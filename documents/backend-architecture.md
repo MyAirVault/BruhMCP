@@ -14,10 +14,11 @@
 The MiniMCP backend is a Node.js-based system designed to manage isolated Model Context Protocol (MCP) instances. Each MCP instance runs as a separate Node.js process with specific API integrations (Gmail, Figma, GitHub, etc.) and has a defined lifecycle with expiration times.
 
 ### Core Responsibilities
-- **MCP Lifecycle Management**: Create, monitor, expire, and restore MCP instances
+- **MCP Lifecycle Management**: Create, monitor, expire, renew, and delete MCP instances
 - **Process Management**: Manage Node.js processes for each MCP instance
-- **API Key Management**: Securely store and use API keys for different services
-- **Logging & Monitoring**: Capture and store logs from MCP instances
+- **Credential Management**: Securely store and manage multiple credential types (API keys, client secrets, etc.)
+- **Custom Instance Management**: Support user-defined names and active/inactive toggling
+- **File-Based Logging & Monitoring**: Capture and store logs in isolated file system structure
 - **Access Control**: Generate and manage secure access URLs for MCP instances
 
 ## Architecture Principles
@@ -34,10 +35,10 @@ The Express API layer remains stateless with:
 - In-memory session management
 - Processes as the only stateful components
 
-### 3. **Event-Driven Communication**
-- HTTP polling for status updates
-- Event emitters for internal communication
-- Simple background intervals for monitoring
+### 3. **Simple Communication**
+- Direct HTTP access to MCP processes
+- File-based status updates
+- Basic process monitoring via built-in Node.js APIs
 
 ### 4. **Security by Design**
 - Encrypted API key storage
@@ -90,8 +91,10 @@ The Express API layer remains stateless with:
 │                   (Node.js Processes)                       │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐      │
-│  │Gmail MCP│  │Figma MCP│  │GitHub   │  │   ...   │      │
-│  │:3001    │  │:3002    │  │MCP :3003│  │  :3004  │      │
+│  │My Gmail │  │Work Figma│  │Dev GitHub│  │Custom   │      │
+│  │:3001    │  │:3002     │  │:3003     │  │Name:3004│      │
+│  │(active) │  │(inactive)│  │(expires  │  │(never   │      │
+│  │         │  │          │  │ 1day)    │  │expires) │      │
 │  └─────────┘  └─────────┘  └─────────┘  └─────────┘      │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -105,20 +108,24 @@ The Express API layer remains stateless with:
 
 #### 2. **Service Layer**
 Business logic components:
-- **MCP Service**: Manages MCP lifecycle (create, restore, delete)
+- **MCP Service**: Manages complete MCP lifecycle (create, renew, toggle, edit, delete)
 - **Process Service**: Manages Node.js processes for MCP instances
-- **Log Service**: Handles log collection, storage, and retrieval
-- **API Key Service**: Secure storage and retrieval of API credentials
+- **Log Service**: Handles file-based log collection, storage, and retrieval
+- **Credential Service**: Secure storage and retrieval of multiple credential types
+- **Port Manager**: In-memory port allocation and management
 
 #### 3. **Background Tasks**
 Asynchronous processing:
-- **Expiration Monitor**: Checks and expires MCPs based on TTL
+- **Expiration Monitor**: Checks and expires MCPs based on expiration_option
 - **Process Health Check**: Monitors process health and status
-- **Cleanup Service**: Removes expired processes and resources
-- **Port Manager**: Manages port allocation and deallocation
+- **Cleanup Service**: Removes expired processes and archives logs
+- **Log Rotation**: Automatic log file rotation and cleanup
+- **Metrics Collection**: Gather JSON-based metrics per MCP instance
 
 #### 4. **Data Layer**
-- **PostgreSQL**: Primary datastore for all persistent data including process info, port assignments, and MCP metadata
+- **PostgreSQL**: Primary datastore for core data (users, mcp_instances, mcp_credentials, mcp_types)
+- **File System**: User-isolated logs and metrics storage
+- **In-Memory**: Port management and process tracking
 
 #### 5. **Process Layer**
 - **Node.js Processes**: Independent processes for each MCP instance
@@ -127,22 +134,20 @@ Asynchronous processing:
 
 ## Technology Stack
 
-### Core Technologies
+### Core Technologies (Simplified)
 - **Runtime**: Node.js (v18+)
-- **Framework**: Express.js 5.x
-- **Database**: PostgreSQL 14+
-- **Process Manager**: PM2 or built-in process management
+- **Framework**: Express.js
+- **Database**: PostgreSQL 14+ (minimal schema)
+- **Process Manager**: Built-in Node.js child_process only
 - **Language**: JavaScript with JSDoc type annotations
 
-### Key Libraries
-- **pg**: PostgreSQL client with connection pooling
-- **child_process**: Node.js process management
-- **Simple polling**: HTTP-based status updates
-- **winston**: Logging library
+### Key Libraries (Minimal)
+- **pg**: PostgreSQL client with basic connection pooling
+- **child_process**: Node.js process spawning and management
+- **winston**: File-based logging only
 - **joi**: Request validation
-- **bcrypt**: Password hashing (for future auth)
-- **node-cron**: Scheduled jobs
-- **find-free-port**: Dynamic port allocation
+- **crypto**: API key encryption
+- **fs**: File system operations for logs and metrics
 
 ### Development Tools
 - **TypeScript**: Type checking via JSDoc
@@ -155,17 +160,19 @@ Asynchronous processing:
 ### MCP Creation Flow
 ```
 1. Client Request → POST /api/mcps
-2. API validates request (MCP type, expiration time)
-3. API Key Service retrieves encrypted API key
+2. API validates request (MCP type, custom_name, expiration_option, credentials)
+3. Credential Service stores encrypted credentials (supports multiple fields)
 4. Port Manager assigns available port
 5. Process Service spawns new Node.js process with:
    - MCP type-specific server script
-   - Environment variables (decrypted API key, assigned port)
+   - Environment variables (decrypted credentials, assigned port)
    - Process ID tracking
-6. MCP Service creates database record with process info
+6. MCP Service creates database record with:
+   - Custom name, expiration option, credentials reference
+   - Process info, port assignment
 7. Generate unique access URL (http://localhost:PORT)
-8. Start background monitoring
-9. Return access URL to client
+8. Start file-based monitoring
+9. Return access URL and instance details to client
 ```
 
 ### MCP Access Flow
@@ -176,13 +183,59 @@ Asynchronous processing:
 4. Background monitor updates last_accessed timestamp
 ```
 
-### Log Aggregation Flow
+### File-Based Log Aggregation Flow
 ```
 1. Process generates logs to stdout/stderr
-2. Log service monitors process output
+2. Log service captures process output
 3. Parse and structure log data
-4. Store in PostgreSQL with MCP association
-5. Make available via API
+4. Store in user-isolated file structure:
+   logs/users/user_{id}/mcp_{id}_{type}/
+5. Make available via file-based API endpoints
+6. Automatic log rotation and cleanup
+```
+
+### MCP Renewal Flow
+```
+1. Client Request → PUT /api/mcps/:id/renew
+2. Validate MCP is expired and owned by user
+3. Update expiration_option and calculate new expires_at
+4. Update last_renewed_at timestamp
+5. If process is dead, restart with existing credentials
+6. Update database record with new expiration
+7. Return renewed instance details
+```
+
+### MCP Toggle Flow
+```
+1. Client Request → PUT /api/mcps/:id/toggle
+2. Validate MCP ownership and current status
+3. Update is_active flag in database
+4. If toggling to inactive: stop process but keep record
+5. If toggling to active: restart process if needed
+6. Return updated status
+```
+
+### MCP Edit Flow
+```
+1. Client Request → PUT /api/mcps/:id/edit
+2. Validate MCP ownership and edit permissions
+3. Update custom_name if provided
+4. If credentials provided:
+   - Encrypt and store new credentials
+   - Restart process with new credentials
+5. Update database record
+6. Return updated instance details
+```
+
+### MCP Delete Flow
+```
+1. Client Request → DELETE /api/mcps/:id
+2. Validate MCP ownership
+3. Stop and kill process immediately
+4. Release assigned port
+5. Hard delete database records (mcp_instances, mcp_credentials)
+6. Archive logs to separate location
+7. Return deletion confirmation
 ```
 
 ## Scalability Considerations
@@ -242,16 +295,20 @@ Asynchronous processing:
                         └─────────────────┘
 ```
 
-### Process Management Options
-1. **PM2** (Production Process Manager)
-2. **systemd** (System-level process management)  
-3. **Built-in Process Manager** (Custom implementation)
+### Simple Process Management
+**Single Approach**: Built-in Node.js child_process spawning only
+- No PM2 complexity
+- No Docker containers  
+- Simple process lifecycle management
+- File-based logging per process
 
-### Monitoring Stack
-- **Prometheus**: Metrics collection
-- **Grafana**: Visualization
-- **Winston**: Application logging
-- **Process monitoring**: Built-in process health checks
+### Simple File-Based Monitoring
+- **Winston**: File-based logging only (logs/users/user_{id}/mcp_{id}_{type}/)
+- **JSON Metrics**: Simple metrics in files (metrics.json per MCP)
+- **Process Health**: Basic process.kill(pid, 0) checks
+- **HTTP Polling**: Real-time status updates via API endpoints
+- **User Isolation**: Complete separation via file system structure
+- **Log Rotation**: Automatic cleanup and archiving
 
 ## Security Considerations
 

@@ -5,17 +5,18 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ## Available Documents
 
 ### Architecture & Design
-- **[backend-architecture.md](./backend-architecture.md)** - Simplified process-based architecture overview, component interactions, Node.js technology stack, and scalability considerations
-- **[database-schema.md](./database-schema.md)** - Complete database schema design with process management tables, port allocation, relationships, and migration strategy
-- **[security-architecture.md](./security-architecture.md)** - Security measures across all layers including authentication, encryption, process isolation, and compliance
+- **[backend-architecture.md](./backend-architecture.md)** - **Simplified Node.js process-based architecture** with file-based logging and basic process management (no Docker/PM2 complexity)
+- **[database-schema.md](./database-schema.md)** - **Minimal database schema** with core tables only, file-based logging, and simple port management (no complex audit tables)
+- **[security-architecture.md](./security-architecture.md)** - **Basic security measures** focused on process isolation and file-based logging (no enterprise complexity)
 
 ### API & Integration
 - **[api-documentation.md](./api-documentation.md)** - Complete REST API specification with direct URL endpoints, simplified access, error handling, and examples
-- **[mcp-integration-guide.md](./mcp-integration-guide.md)** - Detailed guide for MCP process management, Node.js server scripts, lifecycle, and adding new MCP types
+- **[mcp-integration-guide.md](./mcp-integration-guide.md)** - **Simple Node.js process management** guide with server scripts, basic lifecycle, and adding new MCP types (no Docker complexity)
 
 ### Implementation & Operations
-- **[backend-implementation-roadmap.md](./backend-implementation-roadmap.md)** - 10-week phased implementation plan focused on process management with milestones, deliverables, and testing strategy
-- **[logging-monitoring.md](./logging-monitoring.md)** - Process-based observability strategy with user/MCP log isolation, process metrics, alerting, and troubleshooting
+- **[backend-implementation-roadmap.md](./backend-implementation-roadmap.md)** - **Simplified implementation plan** focused on basic process management with clear milestones and deliverables (no complex infrastructure)
+- **[logging-monitoring.md](./logging-monitoring.md)** - **File-based logging and monitoring** strategy with complete user/MCP isolation using simple file system approach (no Prometheus/Grafana complexity)
+- **[SIMPLIFICATION_PLAN.md](./SIMPLIFICATION_PLAN.md)** - **Comprehensive plan to fix gray areas and inconsistencies** by removing Docker/Redis/Kibana/Grafana complexity and implementing simple isolated logging
 
 ## Document Categories
 
@@ -40,20 +41,20 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ## Quick Reference
 
 ### For Developers
-1. Start with [Backend Architecture](./backend-architecture.md) for simplified process-based system overview
-2. Review [Database Schema](./database-schema.md) for process and port management data model
+1. Start with [Backend Architecture](./backend-architecture.md) for **simplified Node.js process-based system** overview
+2. Review [Database Schema](./database-schema.md) for **minimal core tables** and file-based logging approach
 3. Check [API Documentation](./api-documentation.md) for direct URL endpoint details
-4. Follow [Implementation Roadmap](./backend-implementation-roadmap.md) for development phases
+4. Follow [Implementation Roadmap](./backend-implementation-roadmap.md) for **simplified development phases**
 
 ### For DevOps/SRE
-1. Study [Security Architecture](./security-architecture.md) for process isolation security measures
-2. Review [Logging & Monitoring](./logging-monitoring.md) for process-based observability setup
-3. Check [Implementation Roadmap](./backend-implementation-roadmap.md) for PM2-based deployment strategy
+1. Study [Security Architecture](./security-architecture.md) for **basic process isolation** security measures
+2. Review [Logging & Monitoring](./logging-monitoring.md) for **file-based observability** setup (no complex infrastructure)
+3. Check [Implementation Roadmap](./backend-implementation-roadmap.md) for **simple deployment strategy** (no PM2/Docker complexity)
 
 ### For Product Teams
 1. Review [API Documentation](./api-documentation.md) for simplified MCP access capabilities
-2. Check [MCP Integration Guide](./mcp-integration-guide.md) for Node.js server-based integrations
-3. Study [Implementation Roadmap](./backend-implementation-roadmap.md) for faster timeline and milestones
+2. Check [MCP Integration Guide](./mcp-integration-guide.md) for **simple Node.js process-based** integrations
+3. Study [Implementation Roadmap](./backend-implementation-roadmap.md) for **streamlined timeline** and milestones
 
 ## Document Dependencies
 
@@ -64,8 +65,8 @@ backend-architecture.md (foundational)
 ├── security-architecture.md
 └── logging-monitoring.md
 
-backend-implementation-roadmap.md (references all above, simplified process-based plan)
-mcp-integration-guide.md (Node.js process management implementation details)
+backend-implementation-roadmap.md (references all above, **simplified process-based plan**)
+mcp-integration-guide.md (**Simple Node.js process management** implementation details)
 ```
 
 ## Maintenance

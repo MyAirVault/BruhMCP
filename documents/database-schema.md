@@ -11,21 +11,21 @@
 
 ## Overview
 
-The MiniMCP database uses PostgreSQL to store all persistent data for the MCP management system. The schema is designed to support:
-- Multiple MCP types and instances
+The MiniMCP database uses PostgreSQL with a **simplified schema** to store only essential data for the MCP management system. The schema focuses on:
+- Core MCP types and instances
 - Secure API key storage
-- Comprehensive logging
-- User management (future implementation)
-- Audit trails and history
+- Basic user management (future implementation)
+- **File-based logging** (not database logging)
+- Minimal essential tables only
 
-## Database Design Principles
+## Simplified Database Design Principles
 
-1. **Normalization**: 3NF normalization to reduce redundancy
-2. **Audit Fields**: All tables include created_at and updated_at
-3. **Soft Deletes**: Use deleted_at for recoverable deletions
+1. **Essential Tables Only**: Only core tables needed for operation
+2. **Basic Audit Fields**: created_at and updated_at where necessary
+3. **Hard Deletes**: Simple deletion, use file logs for audit trails
 4. **UUID Primary Keys**: For better distributed system compatibility
-5. **Encrypted Sensitive Data**: API keys are encrypted at rest
-6. **Referential Integrity**: Foreign key constraints enforced
+5. **Encrypted API Keys**: Only API keys are encrypted at rest
+6. **File-Based Logging**: All logs and metrics stored as files, not in database
 
 ## Entity Relationship Diagram
 
@@ -36,13 +36,11 @@ The MiniMCP database uses PostgreSQL to store all persistent data for the MCP ma
 │ id (UUID) PK    │     │ id (UUID) PK    │     │ id (UUID) PK    │
 │ email           │     │ name            │     │ user_id FK      │
 │ password_hash   │     │ display_name    │     │ mcp_type_id FK  │
-│ name            │     │ icon_url        │     │ encrypted_key   │
+│ name            │     │ server_script   │     │ encrypted_key   │
 │ created_at      │     │ config_template │     │ key_hint        │
-│ updated_at      │     │ server_script   │     │ created_at      │
-│ deleted_at      │     │ required_scopes │     │ updated_at      │
-└─────────────────┘     │ created_at      │     │ expires_at      │
-         │              │ updated_at      │     └─────────────────┘
-         │              └─────────────────┘              │
+│ updated_at      │     │ created_at      │     │ created_at      │
+└─────────────────┘     │ updated_at      │     │ updated_at      │
+         │              └─────────────────┘     └─────────────────┘
          │                       │                       │
          │                       ▼                       │
          │              ┌─────────────────┐              │
@@ -56,26 +54,22 @@ The MiniMCP database uses PostgreSQL to store all persistent data for the MCP ma
                         │ access_token    │
                         │ status          │
                         │ expires_at      │
-                        │ config          │
                         │ assigned_port   │
-                        │ last_accessed   │
                         │ created_at      │
                         │ updated_at      │
-                        │ deleted_at      │
                         └─────────────────┘
                                  │
                                  ▼
                         ┌─────────────────┐
-                        │   mcp_logs      │
+                        │   File System   │
                         ├─────────────────┤
-                        │ id (UUID) PK    │
-                        │ mcp_instance_id │
-                        │ timestamp       │
-                        │ level           │
-                        │ message         │
-                        │ metadata        │
-                        │ source          │
-                        │ created_at      │
+                        │ logs/users/     │
+                        │ ├─user_123/     │
+                        │ │ ├─mcp_456/    │
+                        │ │ │ ├─app.log   │
+                        │ │ │ └─metrics   │
+                        │ │ └─activity    │
+                        │ └─user_456/     │
                         └─────────────────┘
 ```
 
@@ -106,145 +100,156 @@ CREATE TABLE mcp_types (
     icon_url VARCHAR(500),
     server_script VARCHAR(255) NOT NULL, -- e.g., './mcp-servers/gmail-mcp-server.js'
     config_template JSONB NOT NULL DEFAULT '{}', -- Default configuration
-    required_scopes JSONB DEFAULT '[]', -- Required OAuth scopes
-    resource_limits JSONB DEFAULT '{"cpu": "0.5", "memory": "512m"}',
-    max_duration_minutes INTEGER DEFAULT 60,
+    required_credentials JSONB DEFAULT '[]', -- Required credential fields (api_key, client_secret, etc.)
+    resource_limits JSONB DEFAULT '{"max_memory_mb": 512, "max_cpu_percent": 50}',
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert initial MCP types
-INSERT INTO mcp_types (name, display_name, server_script, config_template) VALUES
-('gmail', 'Gmail MCP', './mcp-servers/gmail-mcp-server.js', '{"api_version": "v1"}'),
-('figma', 'Figma MCP', './mcp-servers/figma-mcp-server.js', '{"api_version": "v2"}'),
-('github', 'GitHub MCP', './mcp-servers/github-mcp-server.js', '{"api_version": "v3"}');
+INSERT INTO mcp_types (name, display_name, server_script, config_template, required_credentials) VALUES
+('gmail', 'Gmail MCP', './mcp-servers/gmail-mcp-server.js', 
+ '{"api_version": "v1"}', 
+ '["api_key", "client_secret", "client_id"]'),
+('figma', 'Figma MCP', './mcp-servers/figma-mcp-server.js', 
+ '{"api_version": "v2"}', 
+ '["api_key"]'),
+('github', 'GitHub MCP', './mcp-servers/github-mcp-server.js', 
+ '{"api_version": "v3"}', 
+ '["personal_access_token"]');
 ```
 
-### 3. api_keys
+### 3. mcp_credentials
 ```sql
-CREATE TABLE api_keys (
+CREATE TABLE mcp_credentials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     mcp_type_id UUID NOT NULL REFERENCES mcp_types(id) ON DELETE CASCADE,
-    encrypted_key TEXT NOT NULL, -- Encrypted using AES-256
-    key_hint VARCHAR(20), -- Last 4 characters for identification
+    encrypted_credentials JSONB NOT NULL, -- Encrypted credentials object (api_key, client_secret, etc.)
+    credentials_hint VARCHAR(20), -- Last 4 characters for identification
     encryption_iv VARCHAR(32) NOT NULL, -- Initialization vector for decryption
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP WITH TIME ZONE,
-    UNIQUE(user_id, mcp_type_id) -- One key per user per MCP type
+    expires_at TIMESTAMP WITH TIME ZONE
+    -- Removed unique constraint to allow multiple credentials per user/type
 );
 ```
 
-### 4. mcp_instances
+### 4. mcp_instances (Enhanced)
 ```sql
 CREATE TABLE mcp_instances (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     mcp_type_id UUID NOT NULL REFERENCES mcp_types(id),
-    api_key_id UUID REFERENCES api_keys(id),
+    credentials_id UUID REFERENCES mcp_credentials(id) ON DELETE SET NULL,
+    custom_name VARCHAR(255), -- User-defined name for the MCP instance
     process_id INTEGER, -- Node.js process ID
     access_token VARCHAR(255) UNIQUE NOT NULL, -- Unique token for accessing this MCP
-    access_url VARCHAR(500) NOT NULL, -- Direct URL to access the MCP (http://localhost:PORT)
     assigned_port INTEGER UNIQUE, -- Port assigned to this MCP process
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, running, expired, disconnected, error
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, running, expired, disconnected
+    is_active BOOLEAN DEFAULT true, -- User can toggle active/inactive
+    expiration_option VARCHAR(10) NOT NULL DEFAULT '1day', -- never, 1h, 6h, 1day, 30days
+    expires_at TIMESTAMP WITH TIME ZONE, -- NULL if expiration_option is 'never'
+    last_renewed_at TIMESTAMP WITH TIME ZONE,
     config JSONB DEFAULT '{}', -- Instance-specific configuration
-    error_message TEXT,
-    last_accessed TIMESTAMP WITH TIME ZONE,
-    stats JSONB DEFAULT '{}', -- CPU, memory usage stats
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP WITH TIME ZONE,
-    CONSTRAINT check_status CHECK (status IN ('pending', 'running', 'expired', 'disconnected', 'error')),
-    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 3001 AND 65535)
+    CONSTRAINT check_status CHECK (status IN ('pending', 'running', 'expired', 'disconnected')),
+    CONSTRAINT check_expiration_option CHECK (expiration_option IN ('never', '1h', '6h', '1day', '30days')),
+    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 3001 AND 3100)
 );
 
--- Index for quick status queries
-CREATE INDEX idx_mcp_instances_status ON mcp_instances(status) WHERE deleted_at IS NULL;
-CREATE INDEX idx_mcp_instances_expires_at ON mcp_instances(expires_at) WHERE deleted_at IS NULL;
-CREATE INDEX idx_mcp_instances_access_token ON mcp_instances(access_token) WHERE deleted_at IS NULL;
-CREATE INDEX idx_mcp_instances_port ON mcp_instances(assigned_port) WHERE deleted_at IS NULL;
-CREATE INDEX idx_mcp_instances_process_id ON mcp_instances(process_id) WHERE deleted_at IS NULL;
+-- Essential indexes only
+CREATE INDEX idx_mcp_instances_user_active ON mcp_instances(user_id, is_active);
+CREATE INDEX idx_mcp_instances_status ON mcp_instances(status) WHERE is_active = true;
+CREATE INDEX idx_mcp_instances_expires_at ON mcp_instances(expires_at) WHERE expires_at IS NOT NULL;
+CREATE INDEX idx_mcp_instances_process_id ON mcp_instances(process_id) WHERE process_id IS NOT NULL;
+CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_option);
 ```
 
-### 5. mcp_logs
-```sql
-CREATE TABLE mcp_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    mcp_instance_id UUID NOT NULL REFERENCES mcp_instances(id) ON DELETE CASCADE,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    level VARCHAR(10) NOT NULL DEFAULT 'info', -- debug, info, warn, error
-    source VARCHAR(50) DEFAULT 'process', -- process, system, api
-    message TEXT NOT NULL,
-    metadata JSONB DEFAULT '{}', -- Additional structured data
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT check_level CHECK (level IN ('debug', 'info', 'warn', 'error'))
-);
+### 5. File-Based Logging (No Database Table)
+```bash
+# Logs are stored in file system, not database
+# Structure: logs/users/user_{id}/mcp_{id}_{type}/
+# Files: app.log, access.log, error.log, metrics.json
 
--- Partitioning for better performance (by month)
-CREATE INDEX idx_mcp_logs_instance_timestamp ON mcp_logs(mcp_instance_id, timestamp DESC);
-CREATE INDEX idx_mcp_logs_timestamp ON mcp_logs(timestamp DESC);
+# No mcp_logs table needed - use file system instead
+# Benefits:
+# - Complete user isolation
+# - Better performance
+# - Easier debugging
+# - No database overhead
 ```
 
-### 6. mcp_events (Audit Trail)
-```sql
-CREATE TABLE mcp_events (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    mcp_instance_id UUID NOT NULL REFERENCES mcp_instances(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id),
-    event_type VARCHAR(50) NOT NULL, -- created, started, restored, expired, deleted, error
-    event_data JSONB DEFAULT '{}',
-    ip_address INET,
-    user_agent TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+### 6. File-Based Audit Trail (No Database Table)
+```bash
+# Audit events stored in file system
+# Structure: logs/users/user_{id}/activity.log
+# System events: logs/system/audit.log
 
-CREATE INDEX idx_mcp_events_instance ON mcp_events(mcp_instance_id, created_at DESC);
+# No mcp_events table needed - use file-based logging
+# Benefits:
+# - Simpler architecture
+# - User-specific audit files
+# - No complex database queries
+# - Direct file access for debugging
 ```
 
-### 7. port_allocations (Port Management)
-```sql
-CREATE TABLE port_allocations (
-    port INTEGER PRIMARY KEY CHECK (port BETWEEN 3001 AND 65535),
-    mcp_instance_id UUID REFERENCES mcp_instances(id) ON DELETE SET NULL,
-    allocated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    released_at TIMESTAMP WITH TIME ZONE,
-    is_available BOOLEAN DEFAULT false,
-    last_health_check TIMESTAMP WITH TIME ZONE
-);
+### 7. Simple Port Management (In-Memory)
+```javascript
+// Port management in application memory - no database table needed
+class SimplePortManager {
+  constructor() {
+    this.usedPorts = new Set();
+    this.portRange = { start: 3001, end: 3100 };
+  }
+  
+  getAvailablePort() {
+    for (let port = this.portRange.start; port <= this.portRange.end; port++) {
+      if (!this.usedPorts.has(port)) {
+        this.usedPorts.add(port);
+        return port;
+      }
+    }
+    throw new Error('No available ports');
+  }
+  
+  releasePort(port) {
+    this.usedPorts.delete(port);
+  }
+}
 
--- Initialize port pool (3001-3100 for example)
-INSERT INTO port_allocations (port, is_available) 
-SELECT port_num, true 
-FROM generate_series(3001, 3100) AS port_num;
-
-CREATE INDEX idx_port_allocations_available ON port_allocations(is_available, port);
-CREATE INDEX idx_port_allocations_mcp ON port_allocations(mcp_instance_id);
+// No port_allocations table needed - simpler in-memory management
 ```
 
-### 8. system_settings (Configuration)
-```sql
-CREATE TABLE system_settings (
-    key VARCHAR(100) PRIMARY KEY,
-    value JSONB NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+### 8. Environment-Based Configuration (No Database Table)
+```javascript
+// Configuration via environment variables - no database table needed
+const config = {
+  encryption: {
+    algorithm: process.env.ENCRYPTION_ALGORITHM || 'aes-256-gcm',
+    masterKey: process.env.MASTER_KEY
+  },
+  mcp: {
+    defaultDurationMinutes: parseInt(process.env.MCP_DEFAULT_DURATION) || 60,
+    maxInstancesPerUser: parseInt(process.env.MCP_MAX_INSTANCES) || 10
+  },
+  cleanup: {
+    retentionDays: parseInt(process.env.LOG_RETENTION_DAYS) || 30
+  },
+  ports: {
+    rangeStart: parseInt(process.env.PORT_RANGE_START) || 3001,
+    rangeEnd: parseInt(process.env.PORT_RANGE_END) || 3100
+  },
+  process: {
+    maxMemoryMB: parseInt(process.env.PROCESS_MAX_MEMORY) || 512,
+    maxCPUPercent: parseInt(process.env.PROCESS_MAX_CPU) || 50
+  }
+};
 
--- Default settings
-INSERT INTO system_settings (key, value, description) VALUES
-('encryption.algorithm', '"aes-256-gcm"', 'Encryption algorithm for API keys'),
-('mcp.default_duration_minutes', '60', 'Default MCP instance duration'),
-('mcp.max_instances_per_user', '10', 'Maximum concurrent MCP instances per user'),
-('cleanup.retention_days', '30', 'Days to retain logs and expired instances'),
-('port.range_start', '3001', 'Starting port for MCP instances'),
-('port.range_end', '3100', 'Ending port for MCP instances'),
-('process.max_memory_mb', '512', 'Maximum memory per MCP process in MB'),
-('process.max_cpu_percent', '50', 'Maximum CPU usage per MCP process');
+// No system_settings table needed - use environment variables
 ```
 
 ## Indexes and Performance
@@ -253,27 +258,29 @@ INSERT INTO system_settings (key, value, description) VALUES
 - All primary keys are automatically indexed
 - Foreign keys have indexes for join performance
 
-### Additional Indexes
+### Essential Indexes Only
 ```sql
--- User queries
-CREATE INDEX idx_users_email ON users(email) WHERE deleted_at IS NULL;
+-- User queries (future authentication)
+CREATE INDEX idx_users_email ON users(email);
 
 -- MCP instance queries
-CREATE INDEX idx_mcp_instances_user_status ON mcp_instances(user_id, status) WHERE deleted_at IS NULL;
-CREATE INDEX idx_mcp_instances_type ON mcp_instances(mcp_type_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_mcp_instances_user_status ON mcp_instances(user_id, status);
+CREATE INDEX idx_mcp_instances_process_id ON mcp_instances(process_id);
+CREATE INDEX idx_mcp_instances_expires_at ON mcp_instances(expires_at);
 
--- Log queries
-CREATE INDEX idx_mcp_logs_level ON mcp_logs(level) WHERE level IN ('warn', 'error');
+-- Credentials lookups
+CREATE INDEX idx_mcp_credentials_user_type ON mcp_credentials(user_id, mcp_type_id, is_active);
+CREATE INDEX idx_mcp_credentials_active ON mcp_credentials(is_active) WHERE is_active = true;
 
--- API key lookups
-CREATE INDEX idx_api_keys_user_type ON api_keys(user_id, mcp_type_id) WHERE is_active = true;
+-- No log indexes needed - using file system for logs
 ```
 
-### Partitioning Strategy
-For high-volume tables:
-- **mcp_logs**: Partition by month
-- **mcp_events**: Partition by month
-- Automatic partition creation via pg_partman extension
+### No Partitioning Needed
+With file-based logging:
+- **No mcp_logs table**: All logs in file system
+- **No mcp_events table**: Audit trails in files
+- **Simpler maintenance**: Basic file rotation and cleanup
+- **Better performance**: No database overhead for logs
 
 ## Migration Strategy
 

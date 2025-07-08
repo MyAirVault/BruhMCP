@@ -26,14 +26,14 @@ This roadmap outlines the phased implementation of the MiniMCP backend system. E
 
 ### Technical Requirements
 - Node.js 18+ installed
-- PM2 process manager
 - PostgreSQL 14+ database
 - Development environment setup
+- File system permissions for log directories
 
 ### Team Skills
 - Node.js/Express.js development
 - PostgreSQL database design
-- Process management with PM2
+- Node.js process management
 - API design and security
 - Testing and deployment
 
@@ -316,19 +316,19 @@ POST   /api/v1/mcps/:id/logs/export
 - Cleanup task
 - Health check task
 
-#### Day 33-34: Monitoring & Metrics
+#### Day 33-34: File-Based Monitoring & Metrics
 ```javascript
-// Observability
-- Prometheus metrics
-- Custom metrics
-- Performance monitoring
-- Alert rules
+// Simple file-based monitoring
+- JSON metrics per MCP instance
+- File-based log aggregation
+- Process health monitoring
+- Simple alerting via logs
 ```
 
 **Deliverables:**
-- Metrics endpoint
-- Grafana dashboards
-- Alert configuration
+- File-based metrics collection
+- Log aggregation system
+- Process health monitoring
 
 #### Day 35: Rate Limiting
 ```javascript
@@ -439,15 +439,15 @@ POST   /api/v1/mcps/:id/logs/export
 
 #### Day 46-47: Deployment Setup
 ```yaml
-# Process Management Setup
-- PM2 ecosystem configuration
-- Process monitoring setup
+# Simple Process Management Setup
+- Node.js process management
+- Basic process monitoring
 - CI/CD pipeline
-- Health monitoring
+- Health check endpoints
 ```
 
 **Deliverables:**
-- PM2 deployment configurations
+- Simple deployment scripts
 - CI/CD pipeline
 - Process management documentation
 
@@ -525,7 +525,7 @@ POST   /api/v1/mcps/:id/logs/export
 Components:
   - Node.js backend application
   - PostgreSQL database
-  - PM2 for process management
+  - Built-in Node.js process management
   - Local MCP server processes
 ```
 
@@ -534,9 +534,9 @@ Components:
 # Staging deployment
 Setup:
   - Single server deployment
-  - PM2 cluster mode
+  - Node.js process management
   - PostgreSQL instance
-  - Process monitoring enabled
+  - Basic process monitoring
 ```
 
 ### Production Environment
@@ -544,9 +544,9 @@ Setup:
 # Production deployment
 Setup:
   - Multiple load-balanced servers
-  - PM2 cluster mode with auto-restart
+  - Node.js process management
   - PostgreSQL with replication
-  - Comprehensive process monitoring
+  - File-based monitoring and logging
 ```
 
 ## Post-Launch
@@ -585,7 +585,7 @@ Setup:
 
 ### Technical Metrics
 - API response time < 200ms (p95)
-- Container startup time < 5s
+- Process startup time < 5s
 - System uptime > 99.9%
 - Zero critical security issues
 
@@ -599,10 +599,10 @@ Setup:
 
 ### Technical Risks
 1. **Process management complexity**
-   - Mitigation: Extensive testing, PM2 integration, fallback options
+   - Mitigation: Extensive testing, simple Node.js process management, fallback options
    
 2. **Performance issues**
-   - Mitigation: Early load testing, process monitoring, optimization sprints
+   - Mitigation: Early load testing, file-based monitoring, optimization sprints
 
 3. **Security vulnerabilities**
    - Mitigation: Regular scanning, security reviews, process isolation

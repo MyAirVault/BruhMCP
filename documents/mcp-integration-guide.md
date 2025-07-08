@@ -53,29 +53,100 @@ This guide explains how Model Context Protocol (MCP) instances are managed withi
 6. **Expiration Time**: TTL for automatic cleanup
 7. **Status**: Current state (pending, running, expired, etc.)
 
-## Process Management
+## Simple Process Management
 
 ### MCP Server Implementation
 
-Each MCP type has a dedicated Node.js server script:
+Each MCP type has a dedicated Node.js server script that runs as an isolated process:
 
 ```javascript
 // Example: Gmail MCP Server (gmail-mcp-server.js)
 const express = require('express');
+const winston = require('winston');
+const fs = require('fs').promises;
+const path = require('path');
 const { MCPRuntime } = require('@modelcontextprotocol/runtime');
 
 const app = express();
 const port = process.env.PORT || 3001;
 const mcpId = process.env.MCP_ID;
-const apiKey = process.env.API_KEY;
+const userId = process.env.USER_ID;
+const mcpType = process.env.MCP_TYPE || 'gmail';
+
+// Parse credentials (multiple fields)
+const credentials = JSON.parse(process.env.CREDENTIALS || '{}');
+const { api_key, client_secret, client_id, refresh_token } = credentials;
+
+// Setup file-based logging
+const logDir = path.join('/logs/users', `user_${userId}`, `mcp_${mcpId}_${mcpType}`);
+await fs.mkdir(logDir, { recursive: true });
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({ 
+      filename: path.join(logDir, 'app.log'),
+      maxsize: 10485760, // 10MB
+      maxFiles: 5
+    }),
+    new winston.transports.File({ 
+      filename: path.join(logDir, 'error.log'), 
+      level: 'error',
+      maxsize: 10485760,
+      maxFiles: 5 
+    })
+  ]
+});
 
 // Initialize MCP with Gmail API
 const mcp = new MCPRuntime({
   type: 'gmail',
-  apiKey: apiKey,
+  credentials: {
+    apiKey: api_key,
+    clientSecret: client_secret,
+    clientId: client_id,
+    refreshToken: refresh_token
+  },
   config: {
     scopes: ['gmail.readonly', 'gmail.send']
-  }
+  },
+  logger
+});
+
+// Metrics collection
+let metrics = {
+  requests: 0,
+  errors: 0,
+  startTime: new Date(),
+  lastAccessed: new Date()
+};
+
+// Middleware for metrics and logging
+app.use((req, res, next) => {
+  metrics.requests++;
+  metrics.lastAccessed = new Date();
+  logger.info(`Request: ${req.method} ${req.path}`, {
+    method: req.method,
+    path: req.path,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+  next();
+});
+
+app.use((err, req, res, next) => {
+  metrics.errors++;
+  logger.error('Request error', {
+    error: err.message,
+    stack: err.stack,
+    method: req.method,
+    path: req.path
+  });
+  next(err);
 });
 
 // MCP endpoints
@@ -83,15 +154,82 @@ app.use('/mcp', mcp.router);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
+  const uptimeMs = Date.now() - metrics.startTime.getTime();
+  const health = { 
     status: 'healthy', 
-    mcpId, 
-    timestamp: new Date().toISOString() 
-  });
+    mcpId,
+    mcpType,
+    userId,
+    uptime: {
+      seconds: Math.floor(uptimeMs / 1000),
+      hours: Math.floor(uptimeMs / (1000 * 60 * 60))
+    },
+    metrics: {
+      requests: metrics.requests,
+      errors: metrics.errors,
+      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests) : 0
+    },
+    timestamp: new Date().toISOString()
+  };
+  
+  res.json(health);
+});
+
+// Metrics endpoint for file-based monitoring
+app.get('/metrics', async (req, res) => {
+  try {
+    const metricsData = {
+      ...metrics,
+      uptime: Date.now() - metrics.startTime.getTime(),
+      memory: process.memoryUsage(),
+      cpu: process.cpuUsage()
+    };
+    
+    // Write metrics to file
+    await fs.writeFile(
+      path.join(logDir, 'metrics.json'),
+      JSON.stringify(metricsData, null, 2)
+    );
+    
+    res.json(metricsData);
+  } catch (error) {
+    logger.error('Failed to write metrics', { error: error.message });
+    res.status(500).json({ error: 'Failed to generate metrics' });
+  }
 });
 
 app.listen(port, () => {
-  console.log(`Gmail MCP server running on port ${port}`);
+  const message = `Gmail MCP server running on port ${port}`;
+  console.log(message);
+  logger.info(message, { port, mcpId, mcpType, userId });
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', async () => {
+  logger.info('Received SIGTERM, shutting down gracefully');
+  
+  // Write final metrics
+  try {
+    const finalMetrics = {
+      ...metrics,
+      shutdownTime: new Date().toISOString(),
+      totalUptime: Date.now() - metrics.startTime.getTime()
+    };
+    
+    await fs.writeFile(
+      path.join(logDir, 'shutdown-metrics.json'),
+      JSON.stringify(finalMetrics, null, 2)
+    );
+  } catch (error) {
+    console.error('Failed to write shutdown metrics:', error);
+  }
+  
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('Received SIGINT, shutting down');
+  process.exit(0);
 });
 ```
 
@@ -157,36 +295,26 @@ Resource tracking per process:
 
 ## MCP Type Configuration
 
-### Configuration Structure
+### Simple Configuration Structure
 
 ```javascript
-// MCP Type configuration in database
+// MCP Type configuration in database (simplified)
 {
   "name": "gmail",
   "display_name": "Gmail MCP",
-  "docker_image": "minimcp/gmail-mcp:latest",
+  "server_script": "gmail-mcp-server.js",
   "config_template": {
     "api_version": "v1",
     "scopes": ["gmail.readonly", "gmail.send"],
-    "timeout_ms": 30000,
-    "retry_attempts": 3
+    "timeout_ms": 30000
   },
   "resource_limits": {
-    "cpu": "0.5",
-    "memory": "512m",
-    "disk": "1g"
+    "max_memory_mb": 512,
+    "max_cpu_percent": 50
   },
-  "environment_variables": [
-    {
-      "name": "GMAIL_API_ENDPOINT",
-      "value": "https://gmail.googleapis.com"
-    }
-  ],
   "health_check": {
     "endpoint": "/health",
-    "interval": 30,
-    "timeout": 5,
-    "retries": 3
+    "interval_seconds": 30
   }
 }
 ```
@@ -244,56 +372,150 @@ Resource tracking per process:
 }
 ```
 
-## API Key Management
+## Credential Management (Multiple Fields)
 
-### Storage Strategy
+### Enhanced Storage Strategy
 
 ```javascript
-// API key encryption and storage
-class APIKeyManager {
+// Multi-credential encryption and storage
+class CredentialService {
   constructor(encryptionKey) {
-    this.cipher = crypto.createCipher('aes-256-gcm', encryptionKey);
+    this.algorithm = 'aes-256-gcm';
+    this.masterKey = encryptionKey;
   }
   
-  async storeAPIKey(userId, mcpType, apiKey) {
+  async store(userId, mcpType, credentials) {
     // 1. Generate unique IV
     const iv = crypto.randomBytes(16);
     
-    // 2. Encrypt API key
-    const encrypted = await this.encrypt(apiKey, iv);
+    // 2. Encrypt entire credentials object
+    const encrypted = await this.encrypt(JSON.stringify(credentials), iv);
     
-    // 3. Store in database
+    // 3. Create credentials hint (last 4 chars of primary field)
+    const primaryField = this.getPrimaryField(credentials);
+    const hint = primaryField ? primaryField.slice(-4) : null;
+    
+    // 4. Store in database
+    const credentialsId = await db.query(
+      `INSERT INTO mcp_credentials 
+       (user_id, mcp_type_id, encrypted_credentials, encryption_iv, credentials_hint) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [userId, mcpTypeId, encrypted, iv.toString('hex'), hint]
+    );
+    
+    return credentialsId.rows[0].id;
+  }
+  
+  async decrypt(credentialsId) {
+    // 1. Get encrypted credentials from database
+    const result = await db.query(
+      `SELECT encrypted_credentials, encryption_iv 
+       FROM mcp_credentials 
+       WHERE id = $1 AND is_active = true`,
+      [credentialsId]
+    );
+    
+    if (!result.rows.length) {
+      throw new Error('Credentials not found or inactive');
+    }
+    
+    // 2. Decrypt and parse
+    const decrypted = await this.decrypt(
+      result.rows[0].encrypted_credentials,
+      Buffer.from(result.rows[0].encryption_iv, 'hex')
+    );
+    
+    return JSON.parse(decrypted);
+  }
+  
+  async update(credentialsId, newCredentials) {
+    // 1. Generate new IV
+    const iv = crypto.randomBytes(16);
+    
+    // 2. Encrypt new credentials
+    const encrypted = await this.encrypt(JSON.stringify(newCredentials), iv);
+    
+    // 3. Update credentials hint
+    const primaryField = this.getPrimaryField(newCredentials);
+    const hint = primaryField ? primaryField.slice(-4) : null;
+    
+    // 4. Update in database
     await db.query(
-      `INSERT INTO api_keys 
-       (user_id, mcp_type_id, encrypted_key, encryption_iv, key_hint) 
-       VALUES ($1, $2, $3, $4, $5)`,
-      [userId, mcpTypeId, encrypted, iv.toString('hex'), apiKey.slice(-4)]
+      `UPDATE mcp_credentials 
+       SET encrypted_credentials = $1, encryption_iv = $2, credentials_hint = $3, updated_at = NOW() 
+       WHERE id = $4`,
+      [encrypted, iv.toString('hex'), hint, credentialsId]
     );
   }
   
-  async retrieveAPIKey(userId, mcpType) {
-    // 1. Get encrypted key from database
-    const result = await db.query(
-      `SELECT encrypted_key, encryption_iv 
-       FROM api_keys 
-       WHERE user_id = $1 AND mcp_type_id = $2`,
-      [userId, mcpTypeId]
+  async delete(credentialsId) {
+    // Hard delete credentials
+    await db.query(
+      `DELETE FROM mcp_credentials WHERE id = $1`,
+      [credentialsId]
     );
-    
-    // 2. Decrypt
-    return await this.decrypt(
-      result.encrypted_key, 
-      Buffer.from(result.encryption_iv, 'hex')
-    );
+  }
+  
+  getPrimaryField(credentials) {
+    // Return primary credential field for hint generation
+    return credentials.api_key || credentials.personal_access_token || credentials.client_secret || Object.values(credentials)[0];
   }
 }
 ```
 
-### Key Rotation
+### Supported Credential Types
 
-- Automatic key rotation every 90 days
-- Grace period for old keys
-- Notification system for expiring keys
+```javascript
+// Example credential configurations by MCP type
+const credentialConfigs = {
+  gmail: {
+    required_fields: ['api_key', 'client_secret', 'client_id'],
+    optional_fields: ['refresh_token'],
+    field_types: {
+      api_key: 'string',
+      client_secret: 'string', 
+      client_id: 'string',
+      refresh_token: 'string'
+    }
+  },
+  
+  figma: {
+    required_fields: ['api_key'],
+    optional_fields: [],
+    field_types: {
+      api_key: 'string'
+    }
+  },
+  
+  github: {
+    required_fields: ['personal_access_token'],
+    optional_fields: ['app_id', 'private_key'],
+    field_types: {
+      personal_access_token: 'string',
+      app_id: 'string',
+      private_key: 'string'
+    }
+  },
+  
+  slack: {
+    required_fields: ['bot_token'],
+    optional_fields: ['app_token', 'signing_secret'],
+    field_types: {
+      bot_token: 'string',
+      app_token: 'string',
+      signing_secret: 'string'
+    }
+  }
+};
+```
+
+### Credential Lifecycle
+
+- **Manual Rotation**: Users can update credentials via edit functionality
+- **Expiration Tracking**: Optional expiration dates for credentials
+- **Multiple Credentials**: Users can store multiple credential sets per MCP type
+- **Secure Deletion**: Complete removal when MCP is deleted
+- **Audit Trail**: All credential changes logged to files
 
 ## Process Lifecycle
 
