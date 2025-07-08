@@ -277,7 +277,7 @@ Create a new MCP instance.
 		"status": "active",
 		"is_active": true,
 		"expiration_option": "1day",
-		"expires_at": "2024-01-08T15:30:00Z",
+		"expires_at": "2024-01-08T15:30:00Z", // ISO 8601 format from database
 		"mcp_type": {
 			"name": "gmail",
 			"display_name": "Gmail MCP"
@@ -318,7 +318,7 @@ List user's MCP instances.
 			"status": "active",
 			"is_active": true,
 			"expiration_option": "1day",
-			"expires_at": "2024-01-08T15:30:00Z",
+			"expires_at": "2024-01-08T15:30:00Z", // ISO 8601 format from database
 			"last_accessed": "2024-01-07T15:35:00Z",
 			"mcp_type": {
 				"name": "gmail",

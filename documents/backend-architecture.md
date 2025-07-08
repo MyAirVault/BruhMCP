@@ -164,7 +164,7 @@ Asynchronous processing:
 3. Check instance limit (max 10 per user)
 4. Generate instance number (next available for user/type)
 5. Credential Service stores encrypted credentials (supports multiple fields)
-6. Port Manager assigns available port (basePort + userId*10 + instanceNum)
+6. Port Manager assigns available port (basePort + (userId * 10) + instanceNum)
 7. Process Service spawns new Node.js process with:
    - MCP type-specific server script
    - Environment variables (decrypted credentials, assigned port)

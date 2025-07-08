@@ -6,7 +6,7 @@
 3. [Threat Model](#threat-model)
 4. [Authentication & Authorization](#authentication--authorization)
 5. [Data Security](#data-security)
-6. [Container Security](#container-security)
+6. [Process Security](#process-security)
 7. [Network Security](#network-security)
 8. [API Security](#api-security)
 9. [Operational Security](#operational-security)
@@ -15,36 +15,31 @@
 
 ## Overview
 
-The MiniMCP security architecture implements defense-in-depth strategies to protect user data, API keys, and MCP instances. This document outlines security measures across all system layers.
+The MiniMCP security architecture implements **essential security measures** to protect user data, API keys, and MCP instances. This document outlines **basic security measures** aligned with the simple Node.js process-based architecture.
 
-### Security Goals
+### Security Goals (Simplified)
 - **Confidentiality**: Protect sensitive data (API keys, user data)
 - **Integrity**: Ensure data and system integrity
 - **Availability**: Maintain service availability
-- **Isolation**: Complete isolation between user instances
-- **Auditability**: Comprehensive audit trails
+- **Isolation**: Process-level isolation between user instances
+- **Auditability**: File-based audit trails
 
 ## Security Principles
 
-### 1. Least Privilege
+### 1. Least Privilege (Basic)
 - Minimal permissions for all components
-- Role-based access control (RBAC)
-- Service accounts with specific permissions
+- Process-level isolation
+- Non-privileged user execution
 
-### 2. Defense in Depth
-- Multiple security layers
-- Redundant security controls
-- No single point of failure
+### 2. Essential Security Layers
+- Process isolation boundaries
+- Encrypted API key storage
+- File-based access control
 
-### 3. Zero Trust
-- Verify everything, trust nothing
-- Continuous validation
-- Encrypted communications
-
-### 4. Secure by Default
+### 3. Secure by Default
 - Secure default configurations
-- Opt-in for less secure features
 - Minimal attack surface
+- Essential security measures only
 
 ## Threat Model
 

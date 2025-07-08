@@ -2,7 +2,9 @@
 
 ## Overview
 
-Simple email-based token authentication for easy login. User enters email → gets token → verifies token → logged in.
+**Token-based authentication only** - No user management system planned. Simple email-based token authentication for easy login. User enters email → gets token → verifies token → logged in.
+
+**Current Implementation**: This is the final authentication approach for the system. No migration to complex user management is planned.
 
 ## Authentication Flow
 

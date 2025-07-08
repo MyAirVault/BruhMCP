@@ -13,7 +13,9 @@ Users can create multiple instances of the same MCP type (e.g., 2 Gmail MCPs) th
 
 ### Instance Limits
 - Maximum 10 instances per user (aligned with existing database schema)
-- Simple instance numbering: 1, 2, 3, etc.
+- Simple instance numbering: Sequential starting from 1
+- Instance assignment: First available number when creating new instance
+- Instance recycling: Reuse numbers when instances are deleted
 - Instance cleanup on user deletion
 
 ## Process Isolation
@@ -37,14 +39,14 @@ Align with existing pattern:
 ```
 <project-root>/logs/
 ├── users/
-│   ├── user_123/
+│   ├── user_{userId}/
 │   │   ├── mcp_001_gmail_1/
 │   │   │   ├── access.log
 │   │   │   └── error.log
 │   │   └── mcp_002_gmail_2/
 │   │       ├── access.log
 │   │       └── error.log
-│   └── user_456/
+│   └── user_{userId}/
 │       └── mcp_001_gmail_1/
 ```
 

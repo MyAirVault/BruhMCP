@@ -35,7 +35,7 @@ The MiniMCP database uses PostgreSQL with a **simplified schema** to store only 
 ├─────────────────┤     ├─────────────────┤     ├─────────────────┤
 │ id (UUID) PK    │     │ id (UUID) PK    │     │ id (UUID) PK    │
 │ email           │     │ name            │     │ user_id FK      │
-│ password_hash   │     │ display_name    │     │ mcp_type_id FK  │
+│ (no password)   │     │ display_name    │     │ mcp_type_id FK  │
 │ name            │     │ server_script   │     │ encrypted_key   │
 │ created_at      │     │ config_template │     │ key_hint        │
 │ updated_at      │     │ created_at      │     │ created_at      │
@@ -75,20 +75,22 @@ The MiniMCP database uses PostgreSQL with a **simplified schema** to store only 
 
 ## Table Schemas
 
-### 1. users (Future Implementation)
+### 1. users (Migration Required)
 ```sql
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    -- password_hash VARCHAR(255) NOT NULL, -- MIGRATION: Remove - not needed for token-based auth
     name VARCHAR(255) NOT NULL,
     is_active BOOLEAN DEFAULT true,
-    email_verified BOOLEAN DEFAULT false,
+    -- email_verified BOOLEAN DEFAULT false, -- MIGRATION: Remove - not needed for token-based auth
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 ```
+
+**Migration Note**: The `password_hash` and `email_verified` fields should be removed in a future migration as they conflict with the token-based authentication approach.
 
 ### 2. mcp_types
 ```sql

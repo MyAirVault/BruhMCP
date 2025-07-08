@@ -13,11 +13,11 @@
 
 ## Overview
 
-The MiniMCP logging and monitoring system uses a **simple file-based approach** to provide complete isolation between users and MCP instances. This eliminates complex monitoring infrastructure while ensuring clear separation and easy debugging.
+The MiniMCP logging and monitoring system uses a **simple file-based approach** to provide complete isolation between users and MCP instances. This uses basic file-based monitoring while ensuring clear separation and easy debugging.
 
 ### Design Principles
 - **File-Based Isolation**: Each user/MCP gets dedicated log directories
-- **No Complex Infrastructure**: No Prometheus, Grafana, or complex monitoring tools
+- **No Complex Infrastructure**: Simple file-based monitoring without external tools
 - **Direct File Access**: Simple file I/O for all logging and metrics
 - **User Privacy**: Complete separation of user data and logs
 - **Easy Debugging**: Direct access to log files for troubleshooting
@@ -32,7 +32,7 @@ The MiniMCP logging and monitoring system uses a **simple file-based approach** 
 │   ├── error.log                  # System-wide errors
 │   └── access.log                 # API access logs
 ├── users/
-│   ├── user_123/
+│   ├── user_{userId}/
 │   │   ├── activity.log           # User activity log
 │   │   ├── mcp_456_gmail/
 │   │   │   ├── app.log           # MCP application logs
@@ -46,7 +46,7 @@ The MiniMCP logging and monitoring system uses a **simple file-based approach** 
 │   │       ├── error.log
 │   │       ├── metrics.json
 │   │       └── process.log
-│   └── user_456/
+│   └── user_{userId}/
 │       └── [similar structure]
 └── temp/
     ├── cleanup/                   # Temporary cleanup logs
@@ -788,7 +788,7 @@ ls -la <project-root>/logs/
 ls -la <project-root>/logs/users/
 
 # Create directories manually if needed
-mkdir -p <project-root>/logs/users/user_123/mcp_456_gmail
+mkdir -p <project-root>/logs/users/user_{userId}/mcp_456_gmail
 ```
 
 #### 2. **High Disk Usage**
@@ -834,7 +834,7 @@ if (fs.existsSync(metricsFile)) {
 ### Debug Commands
 ```bash
 # View recent logs for a specific MCP
-tail -f <project-root>/logs/users/user_123/mcp_456_gmail/app.log
+tail -f <project-root>/logs/users/user_{userId}/mcp_456_gmail/app.log
 
 # Check process status
 ps aux | grep "node.*gmail-server"

@@ -16,7 +16,6 @@ This file contains brief descriptions of all documents in the documents/ folder.
 - **[mcp-duplication-isolation.md](./mcp-duplication-isolation.md)** - **Simple MCP instance duplication** allowing multiple instances per user with basic process isolation (aligned with existing architecture)
 
 ### Implementation & Operations
-- **[backend-implementation-roadmap.md](./backend-implementation-roadmap.md)** - **Simplified implementation plan** focused on basic process management with clear milestones and deliverables (no complex infrastructure)
 - **[logging-monitoring.md](./logging-monitoring.md)** - **File-based logging and monitoring** strategy with complete user/MCP isolation using simple file system approach (no Prometheus/Grafana complexity)
 
 ## Document Categories
@@ -34,7 +33,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
   - database-schema.md
 
 - **Setup**: Installation and configuration guides
-  - backend-implementation-roadmap.md
+  - (Configuration handled via CLAUDE.md)
 
 - **Development**: Development workflows and best practices
   - mcp-integration-guide.md
@@ -49,19 +48,16 @@ This file contains brief descriptions of all documents in the documents/ folder.
 3. Check [API Documentation](./api-documentation.md) for direct URL endpoint details
 4. Review [Authentication Flow](./authentication-flow.md) for **simple console-based authentication** implementation
 5. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP management** approach
-6. Follow [Implementation Roadmap](./backend-implementation-roadmap.md) for **simplified development phases**
 
 ### For DevOps/SRE
 1. Study [Security Architecture](./security-architecture.md) for **basic process isolation** security measures
 2. Review [Logging & Monitoring](./logging-monitoring.md) for **file-based observability** setup (no complex infrastructure)
-3. Check [Implementation Roadmap](./backend-implementation-roadmap.md) for **simple deployment strategy** (no PM2/Docker complexity)
 
 ### For Product Teams
 1. Review [API Documentation](./api-documentation.md) for simplified MCP access capabilities
 2. Check [Authentication Flow](./authentication-flow.md) for **simple console-based authentication** process
 3. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP capabilities**
 4. Check [MCP Integration Guide](./mcp-integration-guide.md) for **simple Node.js process-based** integrations
-5. Study [Implementation Roadmap](./backend-implementation-roadmap.md) for **streamlined timeline** and milestones
 
 ## Document Dependencies
 
@@ -74,7 +70,6 @@ backend-architecture.md (foundational)
 ├── security-architecture.md
 └── logging-monitoring.md
 
-backend-implementation-roadmap.md (references all above, **simplified process-based plan**)
 mcp-integration-guide.md (**Simple Node.js process management** implementation details)
 ```
 
