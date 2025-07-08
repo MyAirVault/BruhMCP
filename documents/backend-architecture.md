@@ -192,7 +192,7 @@ Asynchronous processing:
 2. Log service captures process output
 3. Parse and structure log data
 4. Store in user-isolated file structure:
-   logs/users/user_{id}/mcp_{id}_{type}/
+   <project-root>/logs/users/user_{id}/mcp_{id}_{type}/
 5. Make available via file-based API endpoints
 6. Automatic log rotation and cleanup
 ```
@@ -306,7 +306,7 @@ Asynchronous processing:
 - File-based logging per process
 
 ### Simple File-Based Monitoring
-- **Winston**: File-based logging only (logs/users/user_{id}/mcp_{id}_{type}/)
+- **Winston**: File-based logging only (<project-root>/logs/users/user_{id}/mcp_{id}_{type}/)
 - **JSON Metrics**: Simple metrics in files (metrics.json per MCP)
 - **Process Health**: Basic process.kill(pid, 0) checks
 - **HTTP Polling**: Real-time status updates via API endpoints

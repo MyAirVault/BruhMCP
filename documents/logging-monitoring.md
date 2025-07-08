@@ -26,7 +26,7 @@ The MiniMCP logging and monitoring system uses a **simple file-based approach** 
 
 ### File System Structure
 ```
-logs/
+<project-root>/logs/
 ├── system/
 │   ├── app.log                    # Main application logs
 │   ├── error.log                  # System-wide errors
@@ -70,7 +70,7 @@ const LOG_LEVELS = {
 // Simple logger factory for user/MCP isolation
 class SimpleLoggerFactory {
   static createUserMCPLogger(userId, mcpId, mcpType) {
-    const logDir = `logs/users/user_${userId}/mcp_${mcpId}_${mcpType}`;
+    const logDir = `<project-root>/logs/users/user_${userId}/mcp_${mcpId}_${mcpType}`;
     
     // Ensure directory exists
     fs.mkdirSync(logDir, { recursive: true });
@@ -129,7 +129,7 @@ class SimpleLoggerFactory {
       ),
       transports: [
         new winston.transports.File({
-          filename: 'logs/system/app.log',
+          filename: '<project-root>/logs/system/app.log',
           maxsize: 20 * 1024 * 1024, // 20MB
           maxFiles: 10
         }),
@@ -182,7 +182,7 @@ class SimpleMetricsCollector {
     this.userId = userId;
     this.mcpId = mcpId;
     this.mcpType = mcpType;
-    this.metricsFile = `logs/users/user_${userId}/mcp_${mcpId}_${mcpType}/metrics.json`;
+    this.metricsFile = `<project-root>/logs/users/user_${userId}/mcp_${mcpId}_${mcpType}/metrics.json`;
     
     this.metrics = {
       startTime: Date.now(),
@@ -245,12 +245,12 @@ class SimpleMetricsCollector {
 class DailyMetricsSummary {
   static generateDailySummary(date = new Date()) {
     const dateStr = date.toISOString().split('T')[0];
-    const summaryDir = `logs/summaries/${dateStr}`;
+    const summaryDir = `<project-root>/logs/summaries/${dateStr}`;
     
     fs.mkdirSync(summaryDir, { recursive: true });
     
     // Read all user metrics for the day
-    const userDirs = fs.readdirSync('logs/users');
+    const userDirs = fs.readdirSync('<project-root>/logs/users');
     const summary = {
       date: dateStr,
       totalUsers: userDirs.length,
@@ -262,7 +262,7 @@ class DailyMetricsSummary {
     };
     
     userDirs.forEach(userDir => {
-      const userPath = `logs/users/${userDir}`;
+      const userPath = `<project-root>/logs/users/${userDir}`;
       const mcpDirs = fs.readdirSync(userPath).filter(dir => 
         dir.startsWith('mcp_') && fs.statSync(`${userPath}/${dir}`).isDirectory()
       );
@@ -410,7 +410,7 @@ class SimpleProcessMonitor {
     };
     
     fs.appendFileSync(
-      'logs/system/process.log',
+      '<project-root>/logs/system/process.log',
       JSON.stringify(logEntry) + '\n'
     );
   }
@@ -418,7 +418,7 @@ class SimpleProcessMonitor {
   updateProcessMetrics(processInfo, stats) {
     if (!stats) return;
     
-    const metricsFile = `logs/users/user_${processInfo.userId}/mcp_${processInfo.mcpId}/process_stats.json`;
+    const metricsFile = `<project-root>/logs/users/user_${processInfo.userId}/mcp_${processInfo.mcpId}/process_stats.json`;
     
     const processMetrics = {
       timestamp: new Date().toISOString(),
@@ -441,7 +441,7 @@ class SimpleProcessMonitor {
 // Simple API for log access
 class LogAccessService {
   static async getUserMCPLogs(userId, mcpId, options = {}) {
-    const logDir = `logs/users/user_${userId}/mcp_${mcpId}`;
+    const logDir = `<project-root>/logs/users/user_${userId}/mcp_${mcpId}`;
     
     if (!fs.existsSync(logDir)) {
       throw new Error('Log directory not found');
@@ -488,7 +488,7 @@ class LogAccessService {
   }
   
   static async getUserMCPMetrics(userId, mcpId) {
-    const metricsFile = `logs/users/user_${userId}/mcp_${mcpId}/metrics.json`;
+    const metricsFile = `<project-root>/logs/users/user_${userId}/mcp_${mcpId}/metrics.json`;
     
     if (!fs.existsSync(metricsFile)) {
       return null;
@@ -502,7 +502,7 @@ class LogAccessService {
   }
   
   static async exportUserLogs(userId, format = 'json') {
-    const userDir = `logs/users/user_${userId}`;
+    const userDir = `<project-root>/logs/users/user_${userId}`;
     
     if (!fs.existsSync(userDir)) {
       throw new Error('User logs not found');
@@ -564,8 +564,8 @@ class LogFileManager {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
     
-    this.cleanupDirectory('logs/users', cutoffDate);
-    this.cleanupDirectory('logs/system', cutoffDate);
+    this.cleanupDirectory('<project-root>/logs/users', cutoffDate);
+    this.cleanupDirectory('<project-root>/logs/system', cutoffDate);
   }
   
   static cleanupDirectory(dirPath, cutoffDate) {
@@ -604,8 +604,8 @@ class LogFileManager {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - ageDays);
     
-    this.compressDirectoryLogs('logs/users', cutoffDate);
-    this.compressDirectoryLogs('logs/system', cutoffDate);
+    this.compressDirectoryLogs('<project-root>/logs/users', cutoffDate);
+    this.compressDirectoryLogs('<project-root>/logs/system', cutoffDate);
   }
   
   static compressDirectoryLogs(dirPath, cutoffDate) {
@@ -672,7 +672,7 @@ class SimpleHealthChecker {
     
     // Log health status
     fs.appendFileSync(
-      'logs/system/health.log',
+      '<project-root>/logs/system/health.log',
       JSON.stringify(health) + '\n'
     );
     
@@ -682,7 +682,7 @@ class SimpleHealthChecker {
   static async checkFilesystem() {
     try {
       // Test file write
-      const testFile = 'logs/system/.health_test';
+      const testFile = '<project-root>/logs/system/.health_test';
       fs.writeFileSync(testFile, 'test');
       fs.unlinkSync(testFile);
       
@@ -738,7 +738,7 @@ class SimpleHealthChecker {
     const { exec } = require('child_process');
     
     return new Promise((resolve) => {
-      exec('df -h logs/', (error, stdout) => {
+      exec('df -h <project-root>/logs/', (error, stdout) => {
         if (error) {
           resolve({
             status: 'unhealthy',
@@ -784,23 +784,23 @@ setInterval(() => {
 #### 1. **Log Files Not Created**
 ```bash
 # Check directory permissions
-ls -la logs/
-ls -la logs/users/
+ls -la <project-root>/logs/
+ls -la <project-root>/logs/users/
 
 # Create directories manually if needed
-mkdir -p logs/users/user_123/mcp_456_gmail
+mkdir -p <project-root>/logs/users/user_123/mcp_456_gmail
 ```
 
 #### 2. **High Disk Usage**
 ```bash
 # Check log directory size
-du -sh logs/
+du -sh <project-root>/logs/
 
 # Find large log files
-find logs/ -name "*.log" -size +100M
+find <project-root>/logs/ -name "*.log" -size +100M
 
 # Manual cleanup
-find logs/ -name "*.log" -mtime +30 -delete
+find <project-root>/logs/ -name "*.log" -mtime +30 -delete
 ```
 
 #### 3. **Process Not Logging**
@@ -810,7 +810,7 @@ const processInfo = processMonitor.processes.get(processId);
 console.log('Process info:', processInfo);
 
 // Check if log directory exists
-const logDir = `logs/users/user_${userId}/mcp_${mcpId}_${mcpType}`;
+const logDir = `<project-root>/logs/users/user_${userId}/mcp_${mcpId}_${mcpType}`;
 console.log('Log directory exists:', fs.existsSync(logDir));
 
 // Check file permissions
@@ -821,7 +821,7 @@ console.log('Directory permissions:', stats.mode.toString(8));
 #### 4. **Metrics Not Updating**
 ```javascript
 // Check metrics collector
-const metricsFile = `logs/users/user_${userId}/mcp_${mcpId}_${mcpType}/metrics.json`;
+const metricsFile = `<project-root>/logs/users/user_${userId}/mcp_${mcpId}_${mcpType}/metrics.json`;
 
 if (fs.existsSync(metricsFile)) {
   const metrics = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
@@ -834,19 +834,19 @@ if (fs.existsSync(metricsFile)) {
 ### Debug Commands
 ```bash
 # View recent logs for a specific MCP
-tail -f logs/users/user_123/mcp_456_gmail/app.log
+tail -f <project-root>/logs/users/user_123/mcp_456_gmail/app.log
 
 # Check process status
 ps aux | grep "node.*gmail-server"
 
 # View system health
-tail -10 logs/system/health.log
+tail -10 <project-root>/logs/system/health.log
 
 # Check disk space
-df -h logs/
+df -h <project-root>/logs/
 
 # Count log files
-find logs/ -name "*.log" | wc -l
+find <project-root>/logs/ -name "*.log" | wc -l
 ```
 
 ## Benefits of Simple Approach

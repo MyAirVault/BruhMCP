@@ -63,7 +63,7 @@ The MiniMCP database uses PostgreSQL with a **simplified schema** to store only 
                         ┌─────────────────┐
                         │   File System   │
                         ├─────────────────┤
-                        │ logs/users/     │
+                        │ <project-root>/logs/users/ │
                         │ ├─user_123/     │
                         │ │ ├─mcp_456/    │
                         │ │ │ ├─app.log   │
@@ -175,7 +175,7 @@ CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_opt
 ### 5. File-Based Logging (No Database Table)
 ```bash
 # Logs are stored in file system, not database
-# Structure: logs/users/user_{id}/mcp_{id}_{type}_{instanceNum}/
+# Structure: <project-root>/logs/users/user_{id}/mcp_{id}_{type}_{instanceNum}/
 # Files: app.log, access.log, error.log, metrics.json
 
 # No mcp_logs table needed - use file system instead
@@ -189,8 +189,8 @@ CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_opt
 ### 6. File-Based Audit Trail (No Database Table)
 ```bash
 # Audit events stored in file system
-# Structure: logs/users/user_{id}/activity.log
-# System events: logs/system/audit.log
+# Structure: <project-root>/logs/users/user_{id}/activity.log
+# System events: <project-root>/logs/system/audit.log
 
 # No mcp_events table needed - use file-based logging
 # Benefits:
@@ -347,7 +347,7 @@ ORDER BY mi.created_at DESC;
 SELECT mi.*
 FROM mcp_instances mi
 WHERE mi.access_token = $1;
--- Note: Logs are read from file system at logs/users/user_{userId}/mcp_{mcpId}/
+-- Note: Logs are read from file system at <project-root>/logs/users/user_{userId}/mcp_{mcpId}/
 ```
 
 ### Expired MCP Cleanup

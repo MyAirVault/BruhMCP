@@ -35,7 +35,7 @@ Users can create multiple instances of the same MCP type (e.g., 2 Gmail MCPs) th
 ### Directory Structure
 Align with existing pattern:
 ```
-logs/
+<project-root>/logs/
 ├── users/
 │   ├── user_123/
 │   │   ├── mcp_001_gmail_1/
@@ -93,7 +93,7 @@ UNIQUE (user_id, mcp_type, instance_number);
 const instanceNum = getNextInstanceNumber(userId, mcpType);
 const instanceNum = getNextInstanceNumber(userId, mcpType);
 const port = 3001 + (userId * 10) + instanceNum;
-const logDir = `logs/users/user_${userId}/mcp_${mcpType}_${instanceNum}`;
+const logDir = `<project-root>/logs/users/user_${userId}/mcp_${mcpType}_${instanceNum}`;
 
 // Spawn process with existing approach
 const process = spawn('node', [mcpScript], {
