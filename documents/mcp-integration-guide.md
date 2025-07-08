@@ -78,7 +78,7 @@ const credentials = JSON.parse(process.env.CREDENTIALS || '{}');
 const { api_key, client_secret, client_id, refresh_token } = credentials;
 
 // Setup file-based logging
-const logDir = path.join('<project-root>/logs/users', `user_${userId}`, `mcp_${mcpId}_${mcpType}`);
+const logDir = path.join('./logs/users', `user_${userId}`, `mcp_${mcpId}_${mcpType}`);
 await fs.mkdir(logDir, { recursive: true });
 
 const logger = winston.createLogger({
@@ -1084,4 +1084,4 @@ await processService.createProcess({
 
 1. Review [Backend Architecture](./backend-architecture.md) for system overview
 2. Check [Security Architecture](./security-architecture.md) for detailed security measures
-3. See [Implementation Roadmap](./backend-implementation-roadmap.md) for development timeline
+3. See [Backend Architecture](./backend-architecture.md) for system architecture details

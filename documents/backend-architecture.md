@@ -164,10 +164,11 @@ Asynchronous processing:
 3. Check instance limit (max 10 per user)
 4. Generate instance number (next available for user/type)
 5. Credential Service stores encrypted credentials (supports multiple fields)
-6. Port Manager assigns available port (basePort + (userId * 10) + instanceNum)
+6. Port Manager assigns available port (3001 + (userId * 10) + instanceNum)
 7. Process Service spawns new Node.js process with:
    - MCP type-specific server script
    - Environment variables (decrypted credentials, assigned port)
+   - Configuration from database config JSONB field
    - Process ID tracking
    - Instance identifier: user_{userId}_mcp_{mcpId}_{mcpType}_{instanceNum}
 8. MCP Service creates database record with:
@@ -192,7 +193,7 @@ Asynchronous processing:
 2. Log service captures process output
 3. Parse and structure log data
 4. Store in user-isolated file structure:
-   <project-root>/logs/users/user_{id}/mcp_{id}_{type}/
+   ./logs/users/user_{userId}/mcp_{mcpId}_{mcpType}_{instanceNum}/
 5. Make available via file-based API endpoints
 6. Automatic log rotation and cleanup
 ```
@@ -241,6 +242,48 @@ Asynchronous processing:
 7. Return deletion confirmation
 ```
 
+## Error Handling Procedures
+
+### Process Crash Recovery
+```javascript
+// Error handling for process crashes
+class ProcessErrorHandler {
+  async handleProcessCrash(processId, error) {
+    // Log crash details
+    logger.error(`Process ${processId} crashed`, { error, timestamp: new Date() });
+    
+    // Update database status
+    await mcpInstancesService.updateStatus(processId, 'crashed');
+    
+    // Auto-restart if configured
+    if (config.autoRestart) {
+      await this.restartProcess(processId);
+    }
+    
+    // Notify monitoring system
+    await notificationService.sendAlert('PROCESS_CRASH', { processId, error });
+  }
+}
+```
+
+### Port Allocation Failure Recovery
+```javascript
+// Handle port allocation failures
+class PortAllocationErrorHandler {
+  async handlePortAllocationFailed(userId, instanceNum, error) {
+    // Find alternative port
+    const alternativePort = await portManager.findAlternativePort(userId, instanceNum);
+    
+    if (alternativePort) {
+      return alternativePort;
+    }
+    
+    // If no alternative, fail gracefully
+    throw new Error('PORT_ALLOCATION_FAILED: No available ports in range');
+  }
+}
+```
+
 ## Scalability Considerations
 
 ### Horizontal Scaling
@@ -268,7 +311,7 @@ Asynchronous processing:
 │   Machine       │
 ├─────────────────┤
 │ • Node.js       │
-│ • PM2           │
+│ • Node.js       │
 │ • PostgreSQL    │
 │ • Frontend Dev  │
 └─────────────────┘
@@ -278,11 +321,11 @@ Asynchronous processing:
 ```
 ┌─────────────────┐     ┌─────────────────┐
 │   Load          │────▶│   API Server    │
-│   Balancer      │     │   + PM2         │
+│   Balancer      │     │   + Node.js     │
 └─────────────────┘     └─────────────────┘
          │              ┌─────────────────┐
          └─────────────▶│   API Server    │
-                        │   + PM2         │
+                        │   + Node.js     │
                         └─────────────────┘
                                  │
                                  ▼
@@ -306,7 +349,7 @@ Asynchronous processing:
 - File-based logging per process
 
 ### Simple File-Based Monitoring
-- **Winston**: File-based logging only (<project-root>/logs/users/user_{id}/mcp_{id}_{type}/)
+- **Winston**: File-based logging only (./logs/users/user_{id}/mcp_{id}_{type}/)
 - **JSON Metrics**: Simple metrics in files (metrics.json per MCP)
 - **Process Health**: Basic process.kill(pid, 0) checks
 - **HTTP Polling**: Real-time status updates via API endpoints
@@ -337,5 +380,5 @@ Asynchronous processing:
 
 1. Review [Database Schema](./database-schema.md) for data model details
 2. Check [API Documentation](./api-documentation.md) for endpoint specifications
-3. See [Implementation Roadmap](./backend-implementation-roadmap.md) for development phases
+3. See [MCP Integration Guide](./mcp-integration-guide.md) for implementation details
 4. Consult [Security Architecture](./security-architecture.md) for detailed security measures

@@ -62,7 +62,7 @@ X-Session-Token: <session_token>
 ### MCP Access Token
 
 ```http
-X-MCP-Access-Token: <mcp_access_token>
+X-Access-Token: <mcp_access_token>
 ```
 
 ## Common Headers

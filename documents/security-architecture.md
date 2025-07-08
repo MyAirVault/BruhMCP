@@ -984,5 +984,5 @@ class DisasterRecovery {
 
 1. Review [Backend Architecture](./backend-architecture.md) for system design
 2. Check [API Documentation](./api-documentation.md) for security headers
-3. See [Implementation Roadmap](./backend-implementation-roadmap.md) for security milestones
+3. See [Backend Architecture](./backend-architecture.md) for security implementation details
 4. Consult [Logging & Monitoring](./logging-monitoring.md) for security monitoring

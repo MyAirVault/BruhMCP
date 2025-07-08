@@ -63,7 +63,7 @@ The MiniMCP database uses PostgreSQL with a **simplified schema** to store only 
                         ┌─────────────────┐
                         │   File System   │
                         ├─────────────────┤
-                        │ <project-root>/logs/users/ │
+                        │ ./logs/users/ │
                         │ ├─user_123/     │
                         │ │ ├─mcp_456/    │
                         │ │ │ ├─app.log   │
@@ -75,22 +75,20 @@ The MiniMCP database uses PostgreSQL with a **simplified schema** to store only 
 
 ## Table Schemas
 
-### 1. users (Migration Required)
+### 1. users (Current Schema)
 ```sql
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    -- password_hash VARCHAR(255) NOT NULL, -- MIGRATION: Remove - not needed for token-based auth
     name VARCHAR(255) NOT NULL,
     is_active BOOLEAN DEFAULT true,
-    -- email_verified BOOLEAN DEFAULT false, -- MIGRATION: Remove - not needed for token-based auth
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 ```
 
-**Migration Note**: The `password_hash` and `email_verified` fields should be removed in a future migration as they conflict with the token-based authentication approach.
+**Note**: This schema is aligned with the token-based authentication approach. No password storage is required.
 
 ### 2. mcp_types
 ```sql
@@ -156,12 +154,12 @@ CREATE TABLE mcp_instances (
     expiration_option VARCHAR(10) NOT NULL DEFAULT '1day', -- never, 1h, 6h, 1day, 30days
     expires_at TIMESTAMP WITH TIME ZONE, -- NULL if expiration_option is 'never'
     last_renewed_at TIMESTAMP WITH TIME ZONE,
-    config JSONB DEFAULT '{}', -- Instance-specific configuration
+    config JSONB DEFAULT '{}', -- Instance-specific configuration (stored in database)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_status CHECK (status IN ('active', 'inactive', 'expired')),
     CONSTRAINT check_expiration_option CHECK (expiration_option IN ('never', '1h', '6h', '1day', '30days')),
-    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 3001 AND 3100),
+    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 3001 AND 4000), -- Accommodates formula: 3001 + (userId * 10) + instanceNum
     CONSTRAINT unique_user_mcp_instance UNIQUE (user_id, mcp_type_id, instance_number),
     CONSTRAINT check_max_instances_per_user CHECK (instance_number <= 10)
 );
@@ -177,7 +175,7 @@ CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_opt
 ### 5. File-Based Logging (No Database Table)
 ```bash
 # Logs are stored in file system, not database
-# Structure: <project-root>/logs/users/user_{id}/mcp_{id}_{type}_{instanceNum}/
+# Structure: ./logs/users/user_{id}/mcp_{id}_{type}_{instanceNum}/
 # Files: app.log, access.log, error.log, metrics.json
 
 # No mcp_logs table needed - use file system instead
@@ -191,8 +189,8 @@ CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_opt
 ### 6. File-Based Audit Trail (No Database Table)
 ```bash
 # Audit events stored in file system
-# Structure: <project-root>/logs/users/user_{id}/activity.log
-# System events: <project-root>/logs/system/audit.log
+# Structure: ./logs/users/user_{id}/activity.log
+# System events: ./logs/system/audit.log
 
 # No mcp_events table needed - use file-based logging
 # Benefits:
@@ -349,7 +347,7 @@ ORDER BY mi.created_at DESC;
 SELECT mi.*
 FROM mcp_instances mi
 WHERE mi.access_token = $1;
--- Note: Logs are read from file system at <project-root>/logs/users/user_{userId}/mcp_{mcpId}/
+-- Note: Logs are read from file system at ./logs/users/user_{userId}/mcp_{mcpId}/
 ```
 
 ### Expired MCP Cleanup
@@ -440,4 +438,4 @@ GROUP BY ak.id, ak.key_hint, mt.display_name;
 
 1. Review [API Documentation](./api-documentation.md) for endpoint implementations
 2. Check [Security Architecture](./security-architecture.md) for encryption details
-3. See [Implementation Roadmap](./backend-implementation-roadmap.md) for migration timeline
+3. See [Backend Architecture](./backend-architecture.md) for implementation details

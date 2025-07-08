@@ -27,27 +27,25 @@ Users can create multiple instances of the same MCP type (e.g., 2 Gmail MCPs) th
 - Process monitoring with basic health checks
 
 ### Port Allocation
-- Use existing simple port range: 3001-3100
-- Basic port recycling for multiple instances
-- Port assignment: `basePort + (userId * 10) + instanceNum`
-- Example: User 1, Gmail instance 2 = port 3012
+- See [Backend Architecture](./backend-architecture.md#port-allocation) for detailed port allocation formula
+- Uses expanded port range: 3001-4000 to accommodate multiple instances
 
 ## File System Isolation
 
 ### Directory Structure
 Align with existing pattern:
 ```
-<project-root>/logs/
+./logs/
 ├── users/
 │   ├── user_{userId}/
-│   │   ├── mcp_001_gmail_1/
+│   │   ├── mcp_{mcpId}_{mcpType}_{instanceNum}/
 │   │   │   ├── access.log
 │   │   │   └── error.log
-│   │   └── mcp_002_gmail_2/
+│   │   └── mcp_{mcpId}_{mcpType}_{instanceNum}/
 │   │       ├── access.log
 │   │       └── error.log
 │   └── user_{userId}/
-│       └── mcp_001_gmail_1/
+│       └── mcp_{mcpId}_{mcpType}_{instanceNum}/
 ```
 
 ### File Isolation
@@ -95,7 +93,7 @@ UNIQUE (user_id, mcp_type, instance_number);
 const instanceNum = getNextInstanceNumber(userId, mcpType);
 const instanceNum = getNextInstanceNumber(userId, mcpType);
 const port = 3001 + (userId * 10) + instanceNum;
-const logDir = `<project-root>/logs/users/user_${userId}/mcp_${mcpType}_${instanceNum}`;
+const logDir = `./logs/users/user_${userId}/mcp_${mcpType}_${instanceNum}`;
 
 // Spawn process with existing approach
 const process = spawn('node', [mcpScript], {
