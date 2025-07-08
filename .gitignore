@@ -1,0 +1,40 @@
+# === Node modules ===
+node_modules/
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Build output ===
+dist/
+build/
+.out/          # Next.js
+
+# === TypeScript ===
+*.tsbuildinfo
+
+# === Environment files ===
+.env
+.env.*         # For multiple env variants like .env.development
+
+# === OS/Editor files ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# === Testing ===
+coverage/
+
+# === Cache ===
+.cache/
+.next/
+turbo/
+tmp/
+temp/
+
+# === Lock files (if using only one lock system, ignore others) ===
+package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
