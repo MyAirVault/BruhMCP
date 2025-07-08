@@ -76,14 +76,14 @@ UNIQUE (user_id, mcp_type, instance_number);
 ## API Endpoints
 
 ### Instance Management
-- `POST /api/users/{userId}/mcp/{mcpType}/instances` - Create instance
-- `GET /api/users/{userId}/mcp/{mcpType}/instances` - List instances
-- `DELETE /api/users/{userId}/mcp/{mcpType}/instances/{instanceNum}` - Delete instance
+- `POST /api/v1/mcps` - Create instance
+- `GET /api/v1/mcps` - List instances
+- `DELETE /api/v1/mcps/:id` - Delete instance
 
 ### Instance Operations
-- `GET /api/users/{userId}/mcp/{mcpType}/instances/{instanceNum}/status` - Get status
-- `POST /api/users/{userId}/mcp/{mcpType}/instances/{instanceNum}/start` - Start instance
-- `POST /api/users/{userId}/mcp/{mcpType}/instances/{instanceNum}/stop` - Stop instance
+- `GET /api/v1/mcps/:id` - Get status
+- `POST /api/v1/mcps/:id/toggle` - Toggle instance
+- `POST /api/v1/mcps/:id/toggle` - Toggle instance
 
 ## Implementation
 

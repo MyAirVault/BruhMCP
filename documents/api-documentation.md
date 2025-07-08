@@ -272,7 +272,7 @@ Create a new MCP instance.
 		"custom_name": "My Work Gmail",
 		"instance_number": 1,
 		"access_token": "mcp_acc_1234567890abcdef",
-		"access_url": "http://localhost:3001",
+		"access_url": "http://localhost:3001", // Constructed from assigned_port
 		"assigned_port": 3001,
 		"status": "active",
 		"is_active": true,
@@ -337,7 +337,7 @@ List user's MCP instances.
 			"custom_name": "Personal Gmail",
 			"instance_number": 2,
 			"access_token": "mcp_acc_0987654321fedcba",
-			"access_url": "http://localhost:3002",
+			"access_url": "http://localhost:3002", // Constructed from assigned_port
 			"assigned_port": 3002,
 			"process_id": 12346,
 			"status": "active",
@@ -384,7 +384,7 @@ Get details of a specific MCP instance.
 		"id": "550e8400-e29b-41d4-a716-446655440002",
 		"instance_number": 1,
 		"access_token": "mcp_acc_1234567890abcdef",
-		"access_url": "http://localhost:3001",
+		"access_url": "http://localhost:3001", // Constructed from assigned_port
 		"assigned_port": 3001,
 		"process_id": 12345,
 		"status": "active",

@@ -120,14 +120,14 @@ INSERT INTO mcp_types (name, display_name, server_script, config_template, requi
  '["personal_access_token"]');
 ```
 
-### 3. mcp_credentials
+### 3. api_keys
 ```sql
-CREATE TABLE mcp_credentials (
+CREATE TABLE api_keys (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     mcp_type_id UUID NOT NULL REFERENCES mcp_types(id) ON DELETE CASCADE,
-    encrypted_credentials JSONB NOT NULL, -- Encrypted credentials object (api_key, client_secret, etc.)
-    credentials_hint VARCHAR(20), -- Last 4 characters for identification
+    encrypted_key JSONB NOT NULL, -- Encrypted credentials object (api_key, client_secret, etc.)
+    key_hint VARCHAR(20), -- Last 4 characters for identification
     encryption_iv VARCHAR(32) NOT NULL, -- Initialization vector for decryption
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -143,7 +143,7 @@ CREATE TABLE mcp_instances (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     mcp_type_id UUID NOT NULL REFERENCES mcp_types(id),
-    credentials_id UUID REFERENCES mcp_credentials(id) ON DELETE SET NULL,
+    api_key_id UUID REFERENCES api_keys(id) ON DELETE SET NULL,
     custom_name VARCHAR(255), -- User-defined name for the MCP instance
     instance_number INTEGER NOT NULL DEFAULT 1, -- Instance number for this user/type combination
     process_id INTEGER, -- Node.js process ID
@@ -272,8 +272,8 @@ CREATE INDEX idx_mcp_instances_process_id ON mcp_instances(process_id);
 CREATE INDEX idx_mcp_instances_expires_at ON mcp_instances(expires_at);
 
 -- Credentials lookups
-CREATE INDEX idx_mcp_credentials_user_type ON mcp_credentials(user_id, mcp_type_id, is_active);
-CREATE INDEX idx_mcp_credentials_active ON mcp_credentials(is_active) WHERE is_active = true;
+CREATE INDEX idx_api_keys_user_type ON api_keys(user_id, mcp_type_id, is_active);
+CREATE INDEX idx_api_keys_active ON api_keys(is_active) WHERE is_active = true;
 
 -- No log indexes needed - using file system for logs
 ```
@@ -325,7 +325,7 @@ Each migration should include:
 SELECT 
     mi.id,
     mi.access_token,
-    mi.access_url,
+    CONCAT('http://localhost:', mi.assigned_port) as access_url,
     mi.assigned_port,
     mi.process_id,
     mi.status,
@@ -342,25 +342,12 @@ WHERE mi.user_id = $1
 ORDER BY mi.created_at DESC;
 ```
 
-### Get MCP Instance with Logs
+### Get MCP Instance (File-based logs)
 ```sql
-SELECT 
-    mi.*,
-    COALESCE(
-        JSON_AGG(
-            JSON_BUILD_OBJECT(
-                'id', ml.id,
-                'timestamp', ml.timestamp,
-                'level', ml.level,
-                'message', ml.message
-            ) ORDER BY ml.timestamp DESC
-        ) FILTER (WHERE ml.id IS NOT NULL),
-        '[]'
-    ) as logs
+SELECT mi.*
 FROM mcp_instances mi
-LEFT JOIN mcp_logs ml ON mi.id = ml.mcp_instance_id
-WHERE mi.access_token = $1
-GROUP BY mi.id;
+WHERE mi.access_token = $1;
+-- Note: Logs are read from file system at logs/users/user_{userId}/mcp_{mcpId}/
 ```
 
 ### Expired MCP Cleanup

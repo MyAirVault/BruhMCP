@@ -18,7 +18,6 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ### Implementation & Operations
 - **[backend-implementation-roadmap.md](./backend-implementation-roadmap.md)** - **Simplified implementation plan** focused on basic process management with clear milestones and deliverables (no complex infrastructure)
 - **[logging-monitoring.md](./logging-monitoring.md)** - **File-based logging and monitoring** strategy with complete user/MCP isolation using simple file system approach (no Prometheus/Grafana complexity)
-- **[SIMPLIFICATION_PLAN.md](./SIMPLIFICATION_PLAN.md)** - **Comprehensive plan to fix gray areas and inconsistencies** by removing Docker/Redis/Kibana/Grafana complexity and implementing simple isolated logging
 
 ## Document Categories
 
