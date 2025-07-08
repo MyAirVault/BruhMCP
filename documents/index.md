@@ -15,6 +15,10 @@ This file contains brief descriptions of all documents in the documents/ folder.
 - **[authentication-flow.md](./authentication-flow.md)** - **Simple email-based token authentication** for easy console-based login (no email service complexity)
 - **[mcp-duplication-isolation.md](./mcp-duplication-isolation.md)** - **Simple MCP instance duplication** allowing multiple instances per user with basic process isolation (aligned with existing architecture)
 
+### Frontend Components
+- **[frontend/](./frontend/)** - Frontend component documentation and implementation guides
+  - **[frontend/verify-page.md](./frontend/verify-page.md)** - Magic link verification page documentation
+
 ### Implementation & Operations
 - **[logging-monitoring.md](./logging-monitoring.md)** - **File-based logging and monitoring** strategy with complete user/MCP isolation using simple file system approach (no Prometheus/Grafana complexity)
 

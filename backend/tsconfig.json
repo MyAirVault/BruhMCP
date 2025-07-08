@@ -13,6 +13,7 @@
     "declarationDir": "types",
     "outDir": "./dist",
     "rootDir": "./src",
+    "declarationMap": true,
 
     /* Interop Constraints */
     "esModuleInterop": true,

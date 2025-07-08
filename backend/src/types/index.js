@@ -2,11 +2,59 @@
 
 /**
  * @typedef {Object} User
- * @property {number} id
+ * @property {string} id
  * @property {string} email
  * @property {string} name
- * @property {Date} createdAt
- * @property {Date} updatedAt
+ * @property {boolean} is_active
+ * @property {Date} created_at
+ * @property {Date} updated_at
+ * @property {Date} [deleted_at]
+ */
+
+/**
+ * @typedef {Object} MCPType
+ * @property {string} id
+ * @property {string} name
+ * @property {string} display_name
+ * @property {string} [description]
+ * @property {string} [icon_url]
+ * @property {string} server_script
+ * @property {Object} config_template
+ * @property {Date} created_at
+ * @property {Date} updated_at
+ */
+
+/**
+ * @typedef {Object} MCPInstance
+ * @property {string} id
+ * @property {string} user_id
+ * @property {string} mcp_type_id
+ * @property {string} [api_key_id]
+ * @property {string} [custom_name]
+ * @property {number} instance_number
+ * @property {number} [process_id]
+ * @property {string} access_token
+ * @property {number} [assigned_port]
+ * @property {('active'|'inactive'|'expired')} status
+ * @property {boolean} is_active
+ * @property {('never'|'1h'|'6h'|'1day'|'30days')} expiration_option
+ * @property {Date} [expires_at]
+ * @property {Date} [last_renewed_at]
+ * @property {Object} config
+ * @property {Date} created_at
+ * @property {Date} updated_at
+ */
+
+/**
+ * @typedef {Object} ApiKey
+ * @property {string} id
+ * @property {string} user_id
+ * @property {string} mcp_type_id
+ * @property {Object} encrypted_key
+ * @property {string} [key_hint]
+ * @property {Date} created_at
+ * @property {Date} updated_at
+ * @property {Date} [expires_at]
  */
 
 /**
@@ -23,6 +71,47 @@
  * @property {number} limit
  * @property {string} [sortBy]
  * @property {('asc'|'desc')} [sortOrder]
+ */
+
+/**
+ * @typedef {Object} AuthTokenData
+ * @property {string} email
+ * @property {Date} expiry
+ * @property {Date} createdAt
+ */
+
+/**
+ * @typedef {Object} SessionData
+ * @property {string} userId
+ * @property {Date} createdAt
+ * @property {Date} expiresAt
+ */
+
+/**
+ * @typedef {Object} AuthRequest
+ * @property {string} email
+ */
+
+/**
+ * @typedef {Object} AuthVerifyRequest
+ * @property {string} token
+ */
+
+/**
+ * @typedef {Object} AuthResponse
+ * @property {boolean} success
+ * @property {string} [sessionToken]
+ * @property {string} [message]
+ * @property {string} [error]
+ */
+
+/**
+ * @typedef {Object} ProcessInfo
+ * @property {number} pid
+ * @property {string} mcpId
+ * @property {string} mcpType
+ * @property {number} port
+ * @property {('starting'|'running'|'stopping'|'stopped'|'crashed')} status
  */
 
 export {};
