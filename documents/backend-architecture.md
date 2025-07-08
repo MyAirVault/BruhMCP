@@ -161,18 +161,21 @@ Asynchronous processing:
 ```
 1. Client Request → POST /api/mcps
 2. API validates request (MCP type, custom_name, expiration_option, credentials)
-3. Credential Service stores encrypted credentials (supports multiple fields)
-4. Port Manager assigns available port
-5. Process Service spawns new Node.js process with:
+3. Check instance limit (max 10 per user)
+4. Generate instance number (next available for user/type)
+5. Credential Service stores encrypted credentials (supports multiple fields)
+6. Port Manager assigns available port (basePort + userId*10 + instanceNum)
+7. Process Service spawns new Node.js process with:
    - MCP type-specific server script
    - Environment variables (decrypted credentials, assigned port)
    - Process ID tracking
-6. MCP Service creates database record with:
-   - Custom name, expiration option, credentials reference
+   - Instance identifier: user_{userId}_mcp_{mcpId}_{mcpType}_{instanceNum}
+8. MCP Service creates database record with:
+   - Custom name, instance_number, expiration option, credentials reference
    - Process info, port assignment
-7. Generate unique access URL (http://localhost:PORT)
-8. Start file-based monitoring
-9. Return access URL and instance details to client
+9. Generate unique access URL (http://localhost:PORT)
+10. Start file-based monitoring in user-specific directory
+11. Return access URL and instance details to client
 ```
 
 ### MCP Access Flow

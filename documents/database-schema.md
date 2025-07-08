@@ -145,10 +145,11 @@ CREATE TABLE mcp_instances (
     mcp_type_id UUID NOT NULL REFERENCES mcp_types(id),
     credentials_id UUID REFERENCES mcp_credentials(id) ON DELETE SET NULL,
     custom_name VARCHAR(255), -- User-defined name for the MCP instance
+    instance_number INTEGER NOT NULL DEFAULT 1, -- Instance number for this user/type combination
     process_id INTEGER, -- Node.js process ID
     access_token VARCHAR(255) UNIQUE NOT NULL, -- Unique token for accessing this MCP
     assigned_port INTEGER UNIQUE, -- Port assigned to this MCP process
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, running, expired, disconnected
+    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, inactive, expired
     is_active BOOLEAN DEFAULT true, -- User can toggle active/inactive
     expiration_option VARCHAR(10) NOT NULL DEFAULT '1day', -- never, 1h, 6h, 1day, 30days
     expires_at TIMESTAMP WITH TIME ZONE, -- NULL if expiration_option is 'never'
@@ -156,9 +157,11 @@ CREATE TABLE mcp_instances (
     config JSONB DEFAULT '{}', -- Instance-specific configuration
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT check_status CHECK (status IN ('pending', 'running', 'expired', 'disconnected')),
+    CONSTRAINT check_status CHECK (status IN ('active', 'inactive', 'expired')),
     CONSTRAINT check_expiration_option CHECK (expiration_option IN ('never', '1h', '6h', '1day', '30days')),
-    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 3001 AND 3100)
+    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 3001 AND 3100),
+    CONSTRAINT unique_user_mcp_instance UNIQUE (user_id, mcp_type_id, instance_number),
+    CONSTRAINT check_max_instances_per_user CHECK (instance_number <= 10)
 );
 
 -- Essential indexes only
@@ -172,7 +175,7 @@ CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_opt
 ### 5. File-Based Logging (No Database Table)
 ```bash
 # Logs are stored in file system, not database
-# Structure: logs/users/user_{id}/mcp_{id}_{type}/
+# Structure: logs/users/user_{id}/mcp_{id}_{type}_{instanceNum}/
 # Files: app.log, access.log, error.log, metrics.json
 
 # No mcp_logs table needed - use file system instead

@@ -12,6 +12,8 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ### API & Integration
 - **[api-documentation.md](./api-documentation.md)** - Complete REST API specification with direct URL endpoints, simplified access, error handling, and examples
 - **[mcp-integration-guide.md](./mcp-integration-guide.md)** - **Simple Node.js process management** guide with server scripts, basic lifecycle, and adding new MCP types (no Docker complexity)
+- **[authentication-flow.md](./authentication-flow.md)** - **Simple email-based token authentication** for easy console-based login (no email service complexity)
+- **[mcp-duplication-isolation.md](./mcp-duplication-isolation.md)** - **Simple MCP instance duplication** allowing multiple instances per user with basic process isolation (aligned with existing architecture)
 
 ### Implementation & Operations
 - **[backend-implementation-roadmap.md](./backend-implementation-roadmap.md)** - **Simplified implementation plan** focused on basic process management with clear milestones and deliverables (no complex infrastructure)
@@ -27,6 +29,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 
 - **API**: API documentation and endpoints
   - api-documentation.md
+  - authentication-flow.md
 
 - **Database**: Database schema and migration guides
   - database-schema.md
@@ -36,6 +39,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 
 - **Development**: Development workflows and best practices
   - mcp-integration-guide.md
+  - mcp-duplication-isolation.md
   - logging-monitoring.md
 
 ## Quick Reference
@@ -44,7 +48,9 @@ This file contains brief descriptions of all documents in the documents/ folder.
 1. Start with [Backend Architecture](./backend-architecture.md) for **simplified Node.js process-based system** overview
 2. Review [Database Schema](./database-schema.md) for **minimal core tables** and file-based logging approach
 3. Check [API Documentation](./api-documentation.md) for direct URL endpoint details
-4. Follow [Implementation Roadmap](./backend-implementation-roadmap.md) for **simplified development phases**
+4. Review [Authentication Flow](./authentication-flow.md) for **simple console-based authentication** implementation
+5. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP management** approach
+6. Follow [Implementation Roadmap](./backend-implementation-roadmap.md) for **simplified development phases**
 
 ### For DevOps/SRE
 1. Study [Security Architecture](./security-architecture.md) for **basic process isolation** security measures
@@ -53,8 +59,10 @@ This file contains brief descriptions of all documents in the documents/ folder.
 
 ### For Product Teams
 1. Review [API Documentation](./api-documentation.md) for simplified MCP access capabilities
-2. Check [MCP Integration Guide](./mcp-integration-guide.md) for **simple Node.js process-based** integrations
-3. Study [Implementation Roadmap](./backend-implementation-roadmap.md) for **streamlined timeline** and milestones
+2. Check [Authentication Flow](./authentication-flow.md) for **simple console-based authentication** process
+3. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP capabilities**
+4. Check [MCP Integration Guide](./mcp-integration-guide.md) for **simple Node.js process-based** integrations
+5. Study [Implementation Roadmap](./backend-implementation-roadmap.md) for **streamlined timeline** and milestones
 
 ## Document Dependencies
 
@@ -62,6 +70,8 @@ This file contains brief descriptions of all documents in the documents/ folder.
 backend-architecture.md (foundational)
 ├── database-schema.md
 ├── api-documentation.md
+├── authentication-flow.md
+├── mcp-duplication-isolation.md
 ├── security-architecture.md
 └── logging-monitoring.md
 
@@ -78,4 +88,4 @@ These documents should be updated when:
 - API endpoints are modified
 - Database schema evolves
 
-Last updated: 2024-01-07
+Last updated: 2025-01-08

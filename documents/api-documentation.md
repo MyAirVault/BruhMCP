@@ -32,15 +32,34 @@ API versioning is included in the URL path. The current version is `v1`.
 
 ## Authentication
 
-> **Note**: Authentication is planned for future implementation. Current documentation shows the intended design.
+### Simple Token Authentication
 
-### Bearer Token Authentication
-
+**Step 1: Request Token**
 ```http
-Authorization: Bearer <access_token>
+POST /auth/request
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
 ```
 
-### API Key Authentication (for MCP access)
+**Step 2: Verify Token**
+```http
+POST /auth/verify
+Content-Type: application/json
+
+{
+  "token": "abc123def456"
+}
+```
+
+**Authenticated Requests**
+```http
+X-Session-Token: <session_token>
+```
+
+### MCP Access Token
 
 ```http
 X-MCP-Access-Token: <mcp_access_token>
@@ -93,11 +112,16 @@ X-RateLimit-Reset: 1640995200
 | --------------------- | ----------- | --------------------------------- |
 | `VALIDATION_ERROR`    | 400         | Invalid request parameters        |
 | `UNAUTHORIZED`        | 401         | Missing or invalid authentication |
+| `TOKEN_NOT_FOUND`     | 401         | Authentication token not found    |
+| `TOKEN_EXPIRED`       | 401         | Authentication token expired      |
+| `INSTANCE_LIMIT`      | 400         | Maximum instances per user reached - redirect to plans |
 | `FORBIDDEN`           | 403         | Insufficient permissions          |
 | `NOT_FOUND`           | 404         | Resource not found                |
 | `CONFLICT`            | 409         | Resource already exists           |
 | `RATE_LIMIT_EXCEEDED` | 429         | Too many requests                 |
 | `INTERNAL_ERROR`      | 500         | Server error                      |
+| `PORT_ALLOCATION_FAILED` | 500      | Port allocation failure - redirect to dashboard with error |
+| `PROCESS_CRASH`       | 500         | Process crash during API calls - redirect to dashboard with error |
 | `SERVICE_UNAVAILABLE` | 503         | Service temporarily unavailable   |
 
 ## Rate Limiting
@@ -246,10 +270,11 @@ Create a new MCP instance.
 	"data": {
 		"id": "550e8400-e29b-41d4-a716-446655440002",
 		"custom_name": "My Work Gmail",
+		"instance_number": 1,
 		"access_token": "mcp_acc_1234567890abcdef",
 		"access_url": "http://localhost:3001",
 		"assigned_port": 3001,
-		"status": "pending",
+		"status": "active",
 		"is_active": true,
 		"expiration_option": "1day",
 		"expires_at": "2024-01-08T15:30:00Z",
@@ -268,7 +293,7 @@ List user's MCP instances.
 
 **Query Parameters**
 
--   `status` (string): Filter by status ( active, expired, inactive)
+-   `status` (string): Filter by status (active, inactive, expired)
 -   `is_active` (boolean): Filter by active status
 -   `mcp_type` (string): Filter by MCP type
 -   `expiration_option` (string): Filter by expiration setting
@@ -285,11 +310,12 @@ List user's MCP instances.
 		{
 			"id": "550e8400-e29b-41d4-a716-446655440002",
 			"custom_name": "My Work Gmail",
+			"instance_number": 1,
 			"access_token": "mcp_acc_1234567890abcdef",
 			"access_url": "http://localhost:3001",
 			"assigned_port": 3001,
 			"process_id": 12345,
-			"status": "running",
+			"status": "active",
 			"is_active": true,
 			"expiration_option": "1day",
 			"expires_at": "2024-01-08T15:30:00Z",
@@ -305,13 +331,43 @@ List user's MCP instances.
 				"uptime_hours": 2.5
 			},
 			"created_at": "2024-01-07T15:30:00Z"
+		},
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440003",
+			"custom_name": "Personal Gmail",
+			"instance_number": 2,
+			"access_token": "mcp_acc_0987654321fedcba",
+			"access_url": "http://localhost:3002",
+			"assigned_port": 3002,
+			"process_id": 12346,
+			"status": "active",
+			"is_active": true,
+			"expiration_option": "6h",
+			"expires_at": "2024-01-07T21:30:00Z",
+			"last_accessed": "2024-01-07T15:40:00Z",
+			"mcp_type": {
+				"name": "gmail",
+				"display_name": "Gmail MCP",
+				"icon_url": "https://example.com/gmail-icon.png"
+			},
+			"metrics": {
+				"requests": 23,
+				"errors": 0,
+				"uptime_hours": 1.2
+			},
+			"created_at": "2024-01-07T14:20:00Z"
 		}
 	],
 	"meta": {
 		"total": 5,
 		"page": 1,
 		"limit": 20,
-		"pages": 1
+		"pages": 1,
+		"instances_by_type": {
+			"gmail": 2,
+			"figma": 1,
+			"slack": 2
+		}
 	}
 }
 ```
@@ -326,11 +382,12 @@ Get details of a specific MCP instance.
 {
 	"data": {
 		"id": "550e8400-e29b-41d4-a716-446655440002",
+		"instance_number": 1,
 		"access_token": "mcp_acc_1234567890abcdef",
 		"access_url": "http://localhost:3001",
 		"assigned_port": 3001,
 		"process_id": 12345,
-		"status": "running",
+		"status": "active",
 		"expires_at": "2024-01-07T16:00:00Z",
 		"last_accessed": "2024-01-07T15:35:00Z",
 		"mcp_type": {
@@ -370,7 +427,7 @@ Renew an expired MCP instance.
 {
 	"data": {
 		"id": "550e8400-e29b-41d4-a716-446655440002",
-		"status": "running",
+		"status": "active",
 		"expires_at": "2024-01-07T21:30:00Z",
 		"message": "MCP instance renewed successfully"
 	}
@@ -601,6 +658,7 @@ Get user settings.
 		},
 		"limits": {
 			"max_concurrent_mcps": 10,
+			"max_instances_per_user": 10,
 			"max_api_keys": 20
 		}
 	}
@@ -638,20 +696,52 @@ Update user settings.
 
 ## Examples
 
-### Create Gmail MCP with cURL
+### Authentication Example
 
 ```bash
+# Step 1: Request token
+curl -X POST http://localhost:5000/auth/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com"
+  }'
+
+# Step 2: Check console for token, then verify
+curl -X POST http://localhost:5000/auth/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "abc123def456"
+  }'
+```
+
+### Create Multiple Gmail MCPs
+
+```bash
+# Create first Gmail instance
 curl -X POST https://api.minimcp.com/api/v1/mcps \
-  -H "Authorization: Bearer <access_token>" \
+  -H "X-Session-Token: <session_token>" \
   -H "Content-Type: application/json" \
   -d '{
     "mcp_type": "gmail",
-    "custom_name": "My Work Gmail",
+    "custom_name": "Work Gmail",
     "expiration_option": "1day",
     "credentials": {
-      "api_key": "AIzaSyD-1234567890abcdef",
-      "client_secret": "GOCSPX-1234567890abcdef",
-      "client_id": "123456789.apps.googleusercontent.com"
+      "api_key": "AIzaSyD-work-key",
+      "client_secret": "GOCSPX-work-secret"
+    }
+  }'
+
+# Create second Gmail instance
+curl -X POST https://api.minimcp.com/api/v1/mcps \
+  -H "X-Session-Token: <session_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mcp_type": "gmail",
+    "custom_name": "Personal Gmail",
+    "expiration_option": "6h",
+    "credentials": {
+      "api_key": "AIzaSyD-personal-key",
+      "client_secret": "GOCSPX-personal-secret"
     }
   }'
 ```
@@ -666,20 +756,29 @@ const client = new MiniMCPClient({
 	baseURL: 'https://api.minimcp.com',
 });
 
-// Create MCP instance
-const mcp = await client.createMCP({
+// Create multiple MCP instances
+const workGmail = await client.createMCP({
 	type: 'gmail',
-	customName: 'My Work Gmail',
+	customName: 'Work Gmail',
 	expirationOption: '1day',
 	credentials: {
-		apiKey: 'your_api_key',
-		clientSecret: 'your_client_secret',
-		clientId: 'your_client_id',
+		apiKey: 'work_api_key',
+		clientSecret: 'work_client_secret',
 	},
 });
 
-// Access MCP
-console.log(`Access URL: ${mcp.accessUrl}`);
+const personalGmail = await client.createMCP({
+	type: 'gmail',
+	customName: 'Personal Gmail',
+	expirationOption: '6h',
+	credentials: {
+		apiKey: 'personal_api_key',
+		clientSecret: 'personal_client_secret',
+	},
+});
+
+console.log(`Work Gmail (instance ${workGmail.instanceNumber}): ${workGmail.accessUrl}`);
+console.log(`Personal Gmail (instance ${personalGmail.instanceNumber}): ${personalGmail.accessUrl}`);
 
 // Get logs
 const logs = await client.getMCPLogs(mcp.id, {
@@ -699,25 +798,31 @@ setInterval(async () => {
 ```python
 import requests
 
-# Create MCP
-response = requests.post(
-    'https://api.minimcp.com/api/v1/mcps',
-    headers={
-        'Authorization': 'Bearer <access_token>',
-        'Content-Type': 'application/json'
-    },
-    json={
-        'mcp_type': 'figma',
-        'custom_name': 'Design Projects',
-        'expiration_option': '6h',
-        'credentials': {
-            'api_key': 'your_figma_api_key'
-        }
-    }
-)
+# Create multiple Figma instances
+figma_instances = []
 
-mcp = response.json()['data']
-print(f"Access token: {mcp['access_token']}")
+for i, project in enumerate(['Design System', 'Mobile App', 'Web App'], 1):
+    response = requests.post(
+        'https://api.minimcp.com/api/v1/mcps',
+        headers={
+            'X-Session-Token': '<session_token>',
+            'Content-Type': 'application/json'
+        },
+        json={
+            'mcp_type': 'figma',
+            'custom_name': f'{project} Figma',
+            'expiration_option': '6h',
+            'credentials': {
+                'api_key': f'figma_key_{i}'
+            }
+        }
+    )
+    
+    mcp = response.json()['data']
+    figma_instances.append(mcp)
+    print(f"Instance {mcp['instance_number']} - {project}: {mcp['access_url']}")
+
+print(f"Created {len(figma_instances)} Figma instances")
 ```
 
 ## API Changelog
