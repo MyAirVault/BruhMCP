@@ -3,13 +3,23 @@
     "target": "ES2022",
     "module": "ES2022",
     "lib": ["ES2022"],
+    
+    /* JavaScript Support */
     "allowJs": true,
     "checkJs": true,
+
+    /* Emit */
+    "declaration": true,
+    "declarationDir": "types",
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": true,
+
+    /* Interop Constraints */
     "esModuleInterop": true,
+    
+    /* Type Checking */
     "skipLibCheck": true,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
@@ -26,6 +36,6 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.js"],
+  "exclude": ["node_modules/**/*", "coverage/**/*", "eslint.config.js"]
 }
