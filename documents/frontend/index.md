@@ -9,6 +9,7 @@ This directory contains documentation for the frontend components and pages of t
 - **[verify-page.md](./verify-page.md)** - Magic link verification page handling and user feedback
 - **[magic-link-popup.md](./magic-link-popup.md)** - Popup component with polling-based authentication detection
 - **[dashboard-page.md](./dashboard-page.md)** - Protected dashboard page with logout functionality
+- **[logs-page.md](./logs-page.md)** - Logs viewing page with filtering and export capabilities
 
 ### Enhanced User Experience
 - **[frontend-enhancements.md](./frontend-enhancements.md)** - Latest UI/UX improvements including keyboard navigation, tooltips, and smart positioning
@@ -43,6 +44,13 @@ The frontend is built with:
     -   Authentication check with redirect to login
     -   Includes logout functionality with backend endpoint
     -   Route: `/dashboard`
+
+-   **Logs** (`/frontend/src/pages/Logs.tsx`)
+    -   Log viewing page with filtering and export capabilities
+    -   Accessible from Dashboard's "View Logs" dropdown option
+    -   Advanced filtering by level, source, time range, and search
+    -   Export functionality for downloading logs as JSON
+    -   Route: `/logs`
 
 ### Components
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import MCPSection, { type MCPSectionRef } from '../components/MCPSection';
 import CreateMCPModal from '../components/CreateMCPModal';
@@ -6,7 +7,7 @@ import EditMCPModal from '../components/EditMCPModal';
 import CopyURLModal from '../components/CopyURLModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import Tooltip from '../components/Tooltip';
-import { Zap } from 'lucide-react';
+import { Zap, FileText } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useDropdown } from '../hooks/useDropdown';
 import { mockMCPs, filterMCPsByStatus } from '../utils/mcpHelpers';
@@ -16,6 +17,7 @@ import { type MCPItem } from '../types';
 const Dashboard: React.FC = () => {
   const { userName, isLoading } = useAuth();
   const { openDropdown, handleDropdownToggle, closeDropdowns } = useDropdown();
+  const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editModalData, setEditModalData] = useState<{ isOpen: boolean; mcp: MCPItem | null }>({ 
     isOpen: false, 
@@ -279,7 +281,7 @@ const Dashboard: React.FC = () => {
       });
     },
     onViewLogs: (mcp: MCPItem) => {
-      console.log('View logs for:', mcp.name);
+      navigate(`/logs?mcp=${mcp.id}&name=${encodeURIComponent(mcp.name)}`);
     },
     onCopyURL: (mcp: MCPItem) => {
       setCopyURLModalData({ isOpen: true, mcp });
@@ -293,7 +295,14 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
-              <p className="text-base lg:text-lg text-gray-600">Manage your MCPs</p>
+              <p className="text-base lg:text-lg text-gray-600 mb-3">Manage your MCPs</p>
+              <button
+                onClick={() => navigate('/logs')}
+                className="inline-flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg px-2 py-1 transition-colors cursor-pointer"
+              >
+                <FileText className="w-4 h-4" />
+                <span>View All Logs</span>
+              </button>
             </div>
             <Tooltip content="Press Ctrl+K (Cmd+K on Mac) to quickly open this modal" position="bottom">
               <button
