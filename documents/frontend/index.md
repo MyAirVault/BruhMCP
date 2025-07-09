@@ -43,7 +43,17 @@ The frontend is built with:
     -   Protected route showing "Hello {email}" message
     -   Authentication check with redirect to login
     -   Includes logout functionality with backend endpoint
+    -   User profile dropdown with navigation to profile page
     -   Route: `/dashboard`
+
+-   **Profile** (`/frontend/src/pages/Profile.tsx`)
+    -   User profile management page with editable fields
+    -   Shows first name, last name (editable), email (read-only), member since
+    -   Displays MCP statistics (total created, active count)
+    -   Email notification toggle for MCP expiration alerts
+    -   Save confirmation popup for profile changes
+    -   Back button to return to dashboard
+    -   Route: `/profile`
 
 -   **Logs** (`/frontend/src/pages/Logs.tsx`)
     -   Log viewing page with filtering and export capabilities

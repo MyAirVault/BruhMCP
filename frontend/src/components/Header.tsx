@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDropdown } from '../hooks/useDropdown';
 import { logout } from '../services/authService';
 import { User, CreditCard, Settings, LogOut } from 'lucide-react';
@@ -11,6 +11,9 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
   const { userDropdownOpen, handleUserDropdownToggle, setUserDropdownOpen } = useDropdown();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isProfilePage = location.pathname === '/profile';
 
   const handleLogout = async () => {
     await logout();
@@ -24,20 +27,21 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
           <div className="flex items-center">
             <img src="/logo.svg" alt="airvault-logo" />
           </div>
-          <div className="relative dropdown-container">
-            <button
-              onClick={handleUserDropdownToggle}
-              className="flex items-center space-x-2 p-2 transition-colors cursor-pointer"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user-icon lucide-user">
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              <span className="text-sm font-normal text-black hidden sm:block">{userName}</span>
-              <span className="text-sm font-normal text-black sm:hidden">{userName.split(' ')[0]}</span>
-            </button>
+          {!isProfilePage && (
+            <div className="relative dropdown-container">
+              <button
+                onClick={handleUserDropdownToggle}
+                className="flex items-center space-x-2 p-2 transition-colors cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user-icon lucide-user">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span className="text-sm font-normal text-black hidden sm:block">{userName}</span>
+                <span className="text-sm font-normal text-black sm:hidden">{userName.split(' ')[0]}</span>
+              </button>
 
-            {userDropdownOpen && (
+              {userDropdownOpen && (
               <div 
                 className="absolute right-0 top-full mt-2 w-[180px] rounded-lg shadow-lg py-1 z-50"
                 style={{ 
@@ -47,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
               >
                 <button
                   onClick={() => {
-                    console.log('My Profile');
+                    navigate('/profile');
                     setUserDropdownOpen(false);
                   }}
                   className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"
@@ -114,8 +118,9 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                   <span className="truncate">Sign out</span>
                 </button>
               </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>
