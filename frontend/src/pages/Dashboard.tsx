@@ -2,19 +2,50 @@ import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import MCPSection, { type MCPSectionRef } from '../components/MCPSection';
 import CreateMCPModal from '../components/CreateMCPModal';
+import EditMCPModal from '../components/EditMCPModal';
+import CopyURLModal from '../components/CopyURLModal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import Tooltip from '../components/Tooltip';
 import { Zap } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useDropdown } from '../hooks/useDropdown';
 import { mockMCPs, filterMCPsByStatus } from '../utils/mcpHelpers';
 import { getDropdownItems } from '../utils/dropdownHelpers';
+import { type MCPItem } from '../types';
 
 const Dashboard: React.FC = () => {
   const { userName, isLoading } = useAuth();
   const { openDropdown, handleDropdownToggle, closeDropdowns } = useDropdown();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editModalData, setEditModalData] = useState<{ isOpen: boolean; mcp: MCPItem | null }>({ 
+    isOpen: false, 
+    mcp: null 
+  });
+  const [copyURLModalData, setCopyURLModalData] = useState<{ isOpen: boolean; mcp: MCPItem | null }>({ 
+    isOpen: false, 
+    mcp: null 
+  });
   const [currentSection, setCurrentSection] = useState<'active' | 'inactive' | 'expired' | null>(null);
   const [selectedMCPIndex, setSelectedMCPIndex] = useState(0);
+  
+  // Confirmation modal state
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    type: 'delete' | 'toggle-active' | 'toggle-inactive' | 'renew';
+    title: string;
+    message: string;
+    confirmText: string;
+    mcp: MCPItem | null;
+    onConfirm: (data?: { expiration?: string }) => void;
+  }>({
+    isOpen: false,
+    type: 'delete',
+    title: '',
+    message: '',
+    confirmText: '',
+    mcp: null,
+    onConfirm: () => {}
+  });
   
   // Refs for auto-scrolling
   const activeSectionRef = useRef<MCPSectionRef>(null);
@@ -139,6 +170,9 @@ const Dashboard: React.FC = () => {
         setSelectedMCPIndex(0);
         closeDropdowns(); // Close any open dropdowns
         setIsCreateModalOpen(false); // Close create modal if open
+        setEditModalData({ isOpen: false, mcp: null }); // Close edit modal if open
+        setCopyURLModalData({ isOpen: false, mcp: null }); // Close copy URL modal if open
+        setConfirmationModal(prev => ({ ...prev, isOpen: false })); // Close confirmation modal if open
         return;
       }
     };
@@ -170,6 +204,88 @@ const Dashboard: React.FC = () => {
     console.log('Creating MCP:', data);
   };
 
+  const handleEditMCP = (data: { name: string; apiKey: string; clientId: string; clientSecret: string }) => {
+    console.log('Editing MCP:', editModalData.mcp?.name, 'with data:', data);
+    setEditModalData({ isOpen: false, mcp: null });
+  };
+
+  // Confirmation modal helper
+  const openConfirmationModal = (
+    type: 'delete' | 'toggle-active' | 'toggle-inactive' | 'renew',
+    mcp: MCPItem,
+    onConfirm: (data?: { expiration?: string }) => void
+  ) => {
+    let title: string;
+    let message: string;
+    let confirmText: string;
+
+    switch (type) {
+      case 'delete':
+        title = 'Delete MCP';
+        message = `Are you sure you want to delete this MCP? This action cannot be undone.`;
+        confirmText = 'Delete';
+        break;
+      case 'toggle-active':
+        title = 'Activate MCP';
+        message = `Are you sure you want to activate this MCP?`;
+        confirmText = 'Activate';
+        break;
+      case 'toggle-inactive':
+        title = 'Deactivate MCP';
+        message = `Are you sure you want to deactivate this MCP?`;
+        confirmText = 'Deactivate';
+        break;
+      case 'renew':
+        title = 'Renew MCP';
+        message = `Select a new expiration time for this MCP.`;
+        confirmText = 'Renew';
+        break;
+    }
+
+    setConfirmationModal({
+      isOpen: true,
+      type,
+      title,
+      message,
+      confirmText,
+      mcp,
+      onConfirm
+    });
+  };
+
+  // Dropdown callback handlers
+  const dropdownCallbacks = {
+    onEdit: (mcp: MCPItem) => {
+      setEditModalData({ isOpen: true, mcp });
+    },
+    onToggleActive: (mcp: MCPItem) => {
+      openConfirmationModal('toggle-active', mcp, () => {
+        console.log('Toggling MCP to active:', mcp.name);
+      });
+    },
+    onToggleInactive: (mcp: MCPItem) => {
+      openConfirmationModal('toggle-inactive', mcp, () => {
+        console.log('Toggling MCP to inactive:', mcp.name);
+      });
+    },
+    onRenew: (mcp: MCPItem) => {
+      openConfirmationModal('renew', mcp, (data) => {
+        console.log('Renewing MCP:', mcp.name, 'with expiration:', data?.expiration);
+      });
+    },
+    onDelete: (mcp: MCPItem) => {
+      openConfirmationModal('delete', mcp, () => {
+        console.log('Deleting MCP:', mcp.name);
+      });
+    },
+    onViewLogs: (mcp: MCPItem) => {
+      console.log('View logs for:', mcp.name);
+    },
+    onCopyURL: (mcp: MCPItem) => {
+      setCopyURLModalData({ isOpen: true, mcp });
+    }
+  };
+
   return (
     <Layout userName={userName}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20 py-8">
@@ -199,7 +315,7 @@ const Dashboard: React.FC = () => {
               openDropdown={openDropdown}
               onDropdownToggle={handleDropdownToggle}
               onDropdownClose={closeDropdowns}
-              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns)}
+              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
               sectionType="active"
               {...getSectionProps('active')}
             />
@@ -212,7 +328,7 @@ const Dashboard: React.FC = () => {
               openDropdown={openDropdown}
               onDropdownToggle={handleDropdownToggle}
               onDropdownClose={closeDropdowns}
-              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns)}
+              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
               sectionType="inactive"
               {...getSectionProps('inactive')}
             />
@@ -225,7 +341,7 @@ const Dashboard: React.FC = () => {
               openDropdown={openDropdown}
               onDropdownToggle={handleDropdownToggle}
               onDropdownClose={closeDropdowns}
-              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns)}
+              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
               sectionType="expired"
               {...getSectionProps('expired')}
             />
@@ -237,6 +353,30 @@ const Dashboard: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateMCP}
+      />
+
+      <EditMCPModal
+        isOpen={editModalData.isOpen}
+        onClose={() => setEditModalData({ isOpen: false, mcp: null })}
+        onSubmit={handleEditMCP}
+        mcp={editModalData.mcp}
+      />
+
+      <CopyURLModal
+        isOpen={copyURLModalData.isOpen}
+        onClose={() => setCopyURLModalData({ isOpen: false, mcp: null })}
+        mcp={copyURLModalData.mcp}
+      />
+
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmationModal.onConfirm}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmText={confirmationModal.confirmText}
+        type={confirmationModal.type}
+        mcpName={confirmationModal.mcp?.name}
       />
       
     </Layout>

@@ -3,13 +3,26 @@ import {
   Edit, 
   Power, 
   FileText, 
-  Download, 
   Copy, 
   Trash2, 
   RotateCcw 
 } from 'lucide-react';
 
-export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): DropdownItem[] => {
+interface DropdownCallbacks {
+  onEdit: (mcp: MCPItem) => void;
+  onToggleActive: (mcp: MCPItem) => void;
+  onToggleInactive: (mcp: MCPItem) => void;
+  onRenew: (mcp: MCPItem) => void;
+  onDelete: (mcp: MCPItem) => void;
+  onViewLogs: (mcp: MCPItem) => void;
+  onCopyURL: (mcp: MCPItem) => void;
+}
+
+export const getDropdownItems = (
+  mcp: MCPItem, 
+  onDropdownClose: () => void,
+  callbacks: DropdownCallbacks
+): DropdownItem[] => {
   const baseActions: DropdownItem[] = [];
 
   // State-specific options based on MCP status
@@ -20,7 +33,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Edit',
           icon: Edit,
           onClick: () => {
-            console.log('Edit MCP:', mcp.name);
+            callbacks.onEdit(mcp);
             onDropdownClose();
           }
         },
@@ -28,7 +41,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Toggle to Inactive',
           icon: Power,
           onClick: () => {
-            console.log('Toggle to Inactive:', mcp.name);
+            callbacks.onToggleInactive(mcp);
             onDropdownClose();
           }
         },
@@ -36,15 +49,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'View Logs',
           icon: FileText,
           onClick: () => {
-            console.log('View Logs:', mcp.name);
-            onDropdownClose();
-          }
-        },
-        {
-          label: 'Export Logs',
-          icon: Download,
-          onClick: () => {
-            console.log('Export Logs:', mcp.name);
+            callbacks.onViewLogs(mcp);
             onDropdownClose();
           }
         },
@@ -52,8 +57,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Copy URL',
           icon: Copy,
           onClick: () => {
-            console.log('Copy URL:', mcp.name);
-            // Copy URL to clipboard logic would go here
+            callbacks.onCopyURL(mcp);
             onDropdownClose();
           }
         },
@@ -61,7 +65,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Delete',
           icon: Trash2,
           onClick: () => {
-            console.log('Delete MCP:', mcp.name);
+            callbacks.onDelete(mcp);
             onDropdownClose();
           },
           variant: 'danger' as const
@@ -75,7 +79,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Edit',
           icon: Edit,
           onClick: () => {
-            console.log('Edit MCP:', mcp.name);
+            callbacks.onEdit(mcp);
             onDropdownClose();
           }
         },
@@ -83,7 +87,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Toggle to Active',
           icon: Power,
           onClick: () => {
-            console.log('Toggle to Active:', mcp.name);
+            callbacks.onToggleActive(mcp);
             onDropdownClose();
           }
         },
@@ -91,15 +95,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'View Logs',
           icon: FileText,
           onClick: () => {
-            console.log('View Logs:', mcp.name);
-            onDropdownClose();
-          }
-        },
-        {
-          label: 'Export Logs',
-          icon: Download,
-          onClick: () => {
-            console.log('Export Logs:', mcp.name);
+            callbacks.onViewLogs(mcp);
             onDropdownClose();
           }
         },
@@ -107,7 +103,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Delete',
           icon: Trash2,
           onClick: () => {
-            console.log('Delete MCP:', mcp.name);
+            callbacks.onDelete(mcp);
             onDropdownClose();
           },
           variant: 'danger' as const
@@ -121,7 +117,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Renew',
           icon: RotateCcw,
           onClick: () => {
-            console.log('Renew MCP:', mcp.name);
+            callbacks.onRenew(mcp);
             onDropdownClose();
           }
         },
@@ -129,15 +125,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'View Logs',
           icon: FileText,
           onClick: () => {
-            console.log('View Logs:', mcp.name);
-            onDropdownClose();
-          }
-        },
-        {
-          label: 'Export Logs',
-          icon: Download,
-          onClick: () => {
-            console.log('Export Logs:', mcp.name);
+            callbacks.onViewLogs(mcp);
             onDropdownClose();
           }
         },
@@ -145,7 +133,7 @@ export const getDropdownItems = (mcp: MCPItem, onDropdownClose: () => void): Dro
           label: 'Delete',
           icon: Trash2,
           onClick: () => {
-            console.log('Delete MCP:', mcp.name);
+            callbacks.onDelete(mcp);
             onDropdownClose();
           },
           variant: 'danger' as const
