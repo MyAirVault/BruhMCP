@@ -30,11 +30,12 @@ export async function createUser(email) {
  * @param {string} email
  */
 export async function findOrCreateUser(email) {
-  let user = await findUserByEmail(email);
-  
-  if (!user) {
-    user = await createUser(email);
-  }
-  
-  return user;
+  const query = `
+    INSERT INTO users (email) 
+    VALUES ($1) 
+    ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
+    RETURNING *
+  `;
+  const result = await pool.query(query, [email]);
+  return result.rows[0];
 }

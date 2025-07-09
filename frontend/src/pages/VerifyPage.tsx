@@ -12,7 +12,7 @@ export default function VerifyPage() {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    
+
     if (!token) {
       setState({
         status: 'error',
@@ -26,7 +26,7 @@ export default function VerifyPage() {
 
   const verifyToken = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:5000/auth/verify', {
+      const response = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export default function VerifyPage() {
           <div className="text-green-600">
             <div className="text-4xl mb-4">✅</div>
             <h2 className="text-xl font-semibold mb-2">Authentication Successful!</h2>
-            <p className="text-gray-600">You can now close this window.</p>
+            <p className="text-gray-600">You are now authenticated. You can close this window.</p>
           </div>
         )}
 

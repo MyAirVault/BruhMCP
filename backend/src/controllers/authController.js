@@ -151,3 +151,58 @@ export async function verifyToken(req, res) {
 		});
 	}
 }
+
+/**
+ * Get current user information
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+export async function getCurrentUser(req, res) {
+	try {
+		// User is already available via authenticate middleware
+		return res.status(200).json({
+			success: true,
+			user: {
+				id: req.user.id,
+				email: req.user.email,
+			},
+		});
+	} catch (error) {
+		console.error('Error in getCurrentUser:', error);
+		return res.status(500).json({
+			error: {
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'An unexpected error occurred',
+			},
+		});
+	}
+}
+
+/**
+ * Logout user and clear authentication cookie
+ * @param {import('express').Request} _req
+ * @param {import('express').Response} res
+ */
+export async function logout(_req, res) {
+	try {
+		// Clear the authentication cookie
+		res.clearCookie('auth_token', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'strict',
+		});
+
+		return res.status(200).json({
+			success: true,
+			message: 'Logged out successfully',
+		});
+	} catch (error) {
+		console.error('Error in logout:', error);
+		return res.status(500).json({
+			error: {
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'An unexpected error occurred',
+			},
+		});
+	}
+}

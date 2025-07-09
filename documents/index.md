@@ -12,7 +12,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ### API & Integration
 - **[api-documentation.md](./api-documentation.md)** - Complete REST API specification with direct URL endpoints, simplified access, error handling, and examples
 - **[mcp-integration-guide.md](./mcp-integration-guide.md)** - **Simple Node.js process management** guide with server scripts, basic lifecycle, and adding new MCP types (no Docker complexity)
-- **[authentication-flow.md](./authentication-flow.md)** - **Simple email-based token authentication** for easy console-based login (no email service complexity)
+- **[authentication-flow.md](./authentication-flow.md)** - **Magic link authentication with JWT cookies** - UUID-based magic links with React frontend integration and PostgreSQL user storage
 - **[mcp-duplication-isolation.md](./mcp-duplication-isolation.md)** - **Simple MCP instance duplication** allowing multiple instances per user with basic process isolation (aligned with existing architecture)
 
 ### Frontend Components
@@ -50,7 +50,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 1. Start with [Backend Architecture](./backend-architecture.md) for **simplified Node.js process-based system** overview
 2. Review [Database Schema](./database-schema.md) for **minimal core tables** and file-based logging approach
 3. Check [API Documentation](./api-documentation.md) for direct URL endpoint details
-4. Review [Authentication Flow](./authentication-flow.md) for **simple console-based authentication** implementation
+4. Review [Authentication Flow](./authentication-flow.md) for **magic link authentication with JWT cookies** implementation
 5. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP management** approach
 
 ### For DevOps/SRE
@@ -59,7 +59,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 
 ### For Product Teams
 1. Review [API Documentation](./api-documentation.md) for simplified MCP access capabilities
-2. Check [Authentication Flow](./authentication-flow.md) for **simple console-based authentication** process
+2. Check [Authentication Flow](./authentication-flow.md) for **magic link authentication with JWT cookies** process
 3. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP capabilities**
 4. Check [MCP Integration Guide](./mcp-integration-guide.md) for **simple Node.js process-based** integrations
 

@@ -2,9 +2,12 @@
 import { Router } from 'express';
 import { 
   requestToken, 
-  verifyToken
+  verifyToken,
+  getCurrentUser,
+  logout
 } from '../controllers/authController.js';
 import { authRateLimiter } from '../utils/rateLimiter.js';
+import { authenticate } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -67,5 +70,53 @@ router.post('/request', authRateLimiter, requestToken);
  *         description: Rate limit exceeded
  */
 router.post('/verify', authRateLimiter, verifyToken);
+
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current user information
+ *     description: Returns current authenticated user's information
+ *     tags: [Authentication]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     email:
+ *                       type: string
+ *       401:
+ *         description: Not authenticated
+ */
+router.get('/me', authenticate, getCurrentUser);
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     description: Clear authentication cookie and logout user
+ *     tags: [Authentication]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/logout', logout);
 
 export default router;

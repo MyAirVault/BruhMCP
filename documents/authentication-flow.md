@@ -2,44 +2,54 @@
 
 ## Overview
 
-**Token-based authentication only** - No user management system planned. Simple email-based token authentication for easy login. User enters email → gets token → verifies token → logged in.
+**Magic link authentication with JWT cookies** - Simple email-based magic link authentication. User enters email → gets magic link → clicks link → automatically logged in with JWT cookie.
 
-**Current Implementation**: This is the final authentication approach for the system. No migration to complex user management is planned.
+**Current Implementation**: Token-based magic link flow with React frontend integration and JWT cookie storage for persistent sessions.
 
 ## Authentication Flow
 
-### Step 1: Request Token
+### Step 1: Request Magic Link
 **User Action**: Enter email address
 **Endpoint**: `POST /auth/request`
 **Process**:
-1. User submits email
-2. Server generates random token
+1. User submits email via Postman/frontend
+2. Server generates UUID v4 token
 3. Server stores token in memory: `{token: {email, expiry}}`
-4. Server logs token to console (for development)
-5. User copies token from console/logs
+4. Server logs magic link to console: `http://localhost:5000/verify?token=<uuid>`
+5. User copies magic link from console
 
-### Step 2: Verify Token
-**User Action**: Enter/paste token
-**Endpoint**: `POST /auth/verify`
+### Step 2: Magic Link Verification
+**User Action**: Click magic link in browser
+**Flow**: `http://localhost:5000/verify?token=<uuid>` → `http://localhost:5173/verify?token=<uuid>`
 **Process**:
-1. Server checks if token exists in memory
-2. Server validates token not expired (15 minutes)
-3. If valid, create simple session
-4. User logged in
+1. Backend redirects magic link to React frontend
+2. React component extracts UUID token from URL
+3. React component auto-submits token to `POST /auth/verify`
+4. Backend validates UUID format and token existence
+5. Backend finds or creates user in PostgreSQL database
+6. Backend generates JWT and sets HTTP-only cookie
+7. User sees success message and is authenticated
 
 ## Implementation
 
 ### Token Storage
 - **In-memory Map**: `const authTokens = new Map()`
-- **Token format**: Random 16-character string
+- **Token format**: UUID v4 (36 characters, e.g., `550e8400-e29b-41d4-a716-446655440000`)
 - **Expiry**: 15 minutes from generation
 - **Cleanup**: Remove expired tokens every 5 minutes
+- **Validation**: Zod schema validates UUID format
+
+### User Management
+- **Database**: PostgreSQL with `users` table
+- **User Creation**: Automatic on first authentication
+- **User Data**: `{id: UUID, email: string, created_at: timestamp, updated_at: timestamp}`
+- **No Passwords**: Passwordless authentication via magic links
 
 ### Session Management
-- **Simple sessions**: `const sessions = new Map()`
-- **Session data**: `{userId: email, createdAt: timestamp}`
-- **Session expiry**: 24 hours
-- **No persistence**: Sessions cleared on server restart
+- **JWT Tokens**: Signed with JWT_SECRET, 7-day expiry
+- **Cookie Storage**: HTTP-only, SameSite strict, secure in production
+- **Payload**: `{userId: uuid, email: string}`
+- **Persistence**: Survives server restarts (stored in browser cookies)
 
 ### API Endpoints
 
@@ -48,41 +58,114 @@
 {
   "email": "user@example.com"
 }
+
+// Response
+{
+  "success": true,
+  "message": "Magic link generated. Check console for link.",
+  "email": "user@example.com"
+}
 ```
 
 #### POST /auth/verify
 ```javascript
 {
-  "token": "abc123def456"
+  "token": "550e8400-e29b-41d4-a716-446655440000"
+}
+
+// Response
+{
+  "success": true,
+  "message": "Authentication successful",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com"
+  }
 }
 ```
+
+#### GET /verify (Redirect Route)
+- Redirects `http://localhost:5000/verify?token=<uuid>` to `http://localhost:5173/verify?token=<uuid>`
+- Enables magic link clicking from any browser
 
 ## Security
 
 ### Token Generation
-- Use `crypto.randomBytes(8).toString('hex')`
-- 16-character hex string
-- No special characters for easy copy/paste
+- **UUID v4**: Industry-standard format with 122 bits of entropy
+- **Cryptographically Random**: Uses secure random number generation
+- **Format Validation**: Zod schema validates proper UUID format
+- **No Collision Risk**: UUID v4 virtually eliminates duplicate tokens
 
-### Basic Protection
-- Rate limit: 5 requests per minute per IP
-- Token cleanup on expiry
-- No password storage needed
+### Authentication Security
+- **HTTP-Only Cookies**: JWT not accessible via JavaScript
+- **SameSite Strict**: CSRF protection
+- **Secure Flag**: HTTPS-only in production
+- **JWT Expiry**: 7-day automatic logout
+- **One-Time Tokens**: Magic link tokens consumed after use
+
+### Additional Protection
+- **Rate Limiting**: 5 requests per minute per IP for auth endpoints
+- **CORS Protection**: Explicit origin and credential policies
+- **Token Cleanup**: Automatic removal of expired tokens
+- **Database Security**: Parameterized queries prevent SQL injection
+
+## Frontend Integration
+
+### React Component: VerifyPage.tsx
+- **Router Integration**: React Router handles `/verify` route
+- **URL Parameter Extraction**: `useSearchParams()` gets token from URL
+- **Auto-Verification**: Automatically submits token on page load
+- **User Feedback**: Loading spinner, success/error states
+- **Styling**: Tailwind CSS responsive design
+
+### Development Flow
+1. **Backend**: `npm run dev` (port 5000)
+2. **Frontend**: `npm run dev` (port 5173)
+3. **Request**: POST to `/auth/request` with email
+4. **Console**: Copy magic link from backend console
+5. **Verify**: Click magic link → automatic redirect and verification
+6. **Success**: JWT cookie set, user authenticated
 
 ## Error Handling
 
-Simple error responses:
-- `TOKEN_NOT_FOUND`: Token doesn't exist
-- `TOKEN_EXPIRED`: Token expired
-- `INVALID_EMAIL`: Email format invalid
-- `RATE_LIMITED`: Too many requests
+Comprehensive error scenarios:
+- **VALIDATION_ERROR**: Invalid email format or UUID format
+- **TOKEN_NOT_FOUND**: Token doesn't exist in memory
+- **TOKEN_EXPIRED**: Token expired (15 minutes)
+- **USER_CREATION_FAILED**: Database error during user creation
+- **RATE_LIMITED**: Too many requests (5/minute limit)
+- **MISSING_AUTH_TOKEN**: No JWT cookie for protected routes
+- **INVALID_AUTH_TOKEN**: Invalid or expired JWT cookie
 
-## Development Setup
+## Environment Configuration
 
-1. User enters email in frontend form
-2. Token logged to console: `Auth token for user@example.com: abc123def456`
-3. User copies token from console
-4. User enters token in verification form
-5. User logged in
+### Required Environment Variables
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=minimcp
+DB_USER=postgres
+DB_PASSWORD=your_password
 
-This approach eliminates email service complexity while maintaining security for development and testing.
+# JWT
+JWT_SECRET=your_super_secret_jwt_key
+JWT_EXPIRES_IN=7d
+
+# URLs
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGIN=http://localhost:5173
+```
+
+### Database Setup
+```sql
+-- Users table migration
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+This modern authentication system provides secure, user-friendly magic link authentication with persistent JWT sessions and React frontend integration.

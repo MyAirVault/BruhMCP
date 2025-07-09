@@ -51,8 +51,10 @@ await fetch('http://localhost:5000/auth/verify', {
 ### Security Features
 - **HTTP-Only Cookies**: JWT stored securely, not accessible via JavaScript
 - **Same-Site Policy**: Cookies set with `sameSite: 'strict'`
+- **UUID Tokens**: Industry-standard UUID v4 format with 122 bits of entropy
 - **Token Expiry**: 15-minute token validity, 7-day JWT validity
 - **One-Time Use**: Tokens are deleted after successful verification
+- **UUID Validation**: Backend validates proper UUID format using Zod schema
 - **CORS Protection**: Explicit origin and credentials configuration
 
 ## Styling
@@ -68,6 +70,7 @@ Tailwind CSS design with:
 
 Handles various error scenarios:
 - Missing token in URL
+- Invalid UUID format validation
 - Network connectivity issues  
 - Token validation failures (expired, invalid, not found)
 - User creation/database errors
@@ -75,10 +78,10 @@ Handles various error scenarios:
 ## Magic Link Flow
 
 1. User requests authentication with email
-2. Backend generates magic link: `http://localhost:5000/verify?token=abc123`
-3. User clicks link → backend redirects to `http://localhost:5173/verify?token=abc123`
-4. React component loads and auto-submits token to backend API
-5. Backend creates/logs in user, sets JWT cookie
+2. Backend generates magic link with UUID token: `http://localhost:5000/verify?token=550e8400-e29b-41d4-a716-446655440000`
+3. User clicks link → backend redirects to `http://localhost:5173/verify?token=550e8400-e29b-41d4-a716-446655440000`
+4. React component loads and auto-submits UUID token to backend API
+5. Backend validates UUID format, creates/logs in user, sets JWT cookie
 6. User sees success message and can proceed with authenticated requests
 
 ## Development Setup
