@@ -2,7 +2,7 @@
 
 ## Overview
 
-The verify page (`/frontend/src/pages/VerifyPage.tsx`) is a React component that handles magic link authentication for the MiniMCP application.
+The verify page (`/frontend/src/pages/VerifyPage.tsx`) is a React component that handles magic link authentication for the MiniMCP application. It works in conjunction with the MagicLinkPopup component to provide a seamless authentication experience.
 
 ## Location
 - **File**: `/frontend/src/pages/VerifyPage.tsx`
@@ -17,11 +17,13 @@ The verify page (`/frontend/src/pages/VerifyPage.tsx`) is a React component that
 2. **API Request**: Auto-submits POST request to `/auth/verify` endpoint
 3. **Cookie Setting**: Backend sets HTTP-only JWT cookie on success
 4. **User Feedback**: Shows success/error message with state management
+5. **Polling Detection**: MagicLinkPopup detects successful authentication and redirects user
 
 ### User Experience
 - **Loading State**: Tailwind spinner with "Verifying your authentication..." message
-- **Success State**: "✅ Authentication successful! You can now close this window."
-- **Error State**: "❌ Authentication failed" with specific error message
+- **Success State**: "✅ Authentication Successful! You are now authenticated. You can close this window."
+- **Error State**: "❌ Authentication Failed" with specific error message
+- **Background Role**: Typically runs in background while user waits in MagicLinkPopup
 
 ## Technical Implementation
 

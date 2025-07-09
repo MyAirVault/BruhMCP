@@ -31,7 +31,6 @@ const LoginPage: React.FC = () => {
 
     // Add a small delay to allow logout to complete properly
     const timeoutId = setTimeout(checkAuth, 100);
-    
     return () => clearTimeout(timeoutId);
   }, [navigate]);
 
