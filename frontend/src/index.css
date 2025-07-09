@@ -1,1 +1,30 @@
 @import 'tailwindcss';
+
+:root {
+  /* Text Colors */
+  --dropdown-text-default: #374151;
+  --dropdown-text-danger: #DC2626;
+  
+  /* Background Colors */
+  --dropdown-bg-default: #FFFFFF;
+  --dropdown-bg-hover: #F9FAFB;
+  --dropdown-bg-hover-danger: #FEF2F2;
+  --dropdown-bg-highlighted: #F3F4F6;
+  
+  /* Border Colors */
+  --dropdown-border: #E5E7EB;
+  
+  /* Header Colors */
+  --header-bg: #FFFFFF;
+  --header-border: #E5E7EB;
+  --header-button-bg: #F3F4F6;
+  --header-button-hover: #E5E7EB;
+  
+  /* Status Badge Colors */
+  --status-active-bg: #DCFCE7;
+  --status-active-text: #166534;
+  --status-inactive-bg: #FEE2E2;
+  --status-inactive-text: #B91C1C;
+  --status-expired-bg: #F3F4F6;
+  --status-expired-text: #374151;
+}

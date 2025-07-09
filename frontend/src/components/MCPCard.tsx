@@ -30,7 +30,7 @@ const MCPCard: React.FC<MCPCardProps> = ({
         <div className="flex items-center space-x-3 flex-shrink-0">
           <StatusBadge status={mcp.status} />
           <div className="relative dropdown-container">
-            <button 
+            <button
               className="text-gray-400 hover:text-gray-600 p-2 w-8 h-8 flex items-center justify-center transition-colors cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
@@ -45,7 +45,7 @@ const MCPCard: React.FC<MCPCardProps> = ({
               items={dropdownItems}
               isOpen={openDropdown === mcp.id}
               onClose={onDropdownClose}
-              className="right-0 top-full mt-1"
+              className="right-0 top-full mt-1 sm:right-0 sm:left-auto"
             />
           </div>
         </div>

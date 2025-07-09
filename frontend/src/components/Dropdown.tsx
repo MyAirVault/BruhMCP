@@ -34,58 +34,41 @@ const Dropdown: React.FC<DropdownProps> = ({ items, isOpen, onClose, className =
     event.stopPropagation();
   };
 
-  const getItemStyle = (variant: string = 'default') => {
-    switch (variant) {
-      case 'highlighted':
-        return {
-          backgroundColor: '#F7F7F7',
-          color: '#374151'
-        };
-      case 'danger':
-        return {
-          backgroundColor: '#D45757',
-          color: '#514637'
-        };
-      default:
-        return {
-          color: '#374151'
-        };
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
     <div 
-      className={`absolute bg-white rounded-lg shadow-lg focus:outline-none z-50 ${className}`}
-      style={{ 
-        width: '180px', 
-        borderColor: '#EDEDED', 
-        borderWidth: '0.6px',
-        borderStyle: 'solid',
-        padding: '4px 0px',
-        // Responsive positioning
-        right: '0',
+      className={`absolute rounded-lg shadow-lg focus:outline-none z-50 py-1 ${className}`}
+      style={{
+        backgroundColor: 'var(--dropdown-bg-default)',
+        border: '1px solid var(--dropdown-border)',
         minWidth: '160px',
-        maxWidth: '200px'
+        maxWidth: '220px',
+        width: 'max-content'
       }}
       onClick={handleDropdownClick}
     >
       {items.map((item, index) => (
         <button
           key={index}
-          className="flex items-center w-full text-left text-sm hover:opacity-80 transition-opacity"
-          style={{ 
-            width: '100%', 
-            height: '36px', 
-            padding: '8px 16px',
-            minWidth: '160px',
-            whiteSpace: 'nowrap',
-            ...getItemStyle(item.variant)
+          className="w-full px-4 py-2 text-left text-sm flex items-center transition-colors cursor-pointer"
+          style={{
+            color: item.variant === 'danger' ? 'var(--dropdown-text-danger)' : 'var(--dropdown-text-default)',
+            backgroundColor: item.variant === 'highlighted' ? 'var(--dropdown-bg-highlighted)' : 'transparent'
+          }}
+          onMouseEnter={(e) => {
+            if (item.variant === 'danger') {
+              e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover-danger)';
+            } else {
+              e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = item.variant === 'highlighted' ? 'var(--dropdown-bg-highlighted)' : 'transparent';
           }}
           onClick={item.onClick}
         >
-          {item.label}
+          <span className="truncate">{item.label}</span>
         </button>
       ))}
     </div>
