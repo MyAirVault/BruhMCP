@@ -26,11 +26,12 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
   });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const [typeSearchQuery, setTypeSearchQuery] = useState('');
   const [expirationDropdownOpen, setExpirationDropdownOpen] = useState(false);
   const [typeDropdownPosition, setTypeDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 200, flipUp: false });
   const [expirationDropdownPosition, setExpirationDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 200, flipUp: false });
   const firstInputRef = useRef<HTMLInputElement>(null);
-  const typeButtonRef = useRef<HTMLButtonElement>(null);
+  const typeInputRef = useRef<HTMLInputElement>(null);
   const expirationButtonRef = useRef<HTMLButtonElement>(null);
   const typeDropdownRef = useRef<HTMLDivElement>(null);
   const expirationDropdownRef = useRef<HTMLDivElement>(null);
@@ -48,6 +49,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
       });
       setTypeDropdownOpen(false);
       setExpirationDropdownOpen(false);
+      setTypeSearchQuery('');
       // Focus first field after modal animation
       setTimeout(() => {
         firstInputRef.current?.focus();
@@ -70,24 +72,24 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
   }, [isOpen, onClose]);
 
   // Calculate dropdown position to handle viewport boundaries
-  const calculateDropdownPosition = (buttonRef: React.RefObject<HTMLButtonElement | null>, itemCount: number = 6) => {
-    if (!buttonRef.current) return { top: 0, left: 0, width: 0, maxHeight: 200, flipUp: false };
+  const calculateDropdownPosition = (elementRef: React.RefObject<HTMLElement | null>, itemCount: number = 6) => {
+    if (!elementRef.current) return { top: 0, left: 0, width: 0, maxHeight: 200, flipUp: false };
 
-    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const elementRect = elementRef.current.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const dropdownHeight = Math.min(200, itemCount * 40); // Estimate dropdown height
     
     // Check if dropdown would go below viewport
-    const spaceBelow = viewportHeight - buttonRect.bottom;
-    const spaceAbove = buttonRect.top;
+    const spaceBelow = viewportHeight - elementRect.bottom;
+    const spaceAbove = elementRect.top;
     const flipUp = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
     
     const maxHeight = flipUp ? Math.min(spaceAbove - 10, 200) : Math.min(spaceBelow - 10, 200);
     
     return {
-      top: buttonRect.bottom,
-      left: buttonRect.left,
-      width: buttonRect.width,
+      top: elementRect.bottom,
+      left: elementRect.left,
+      width: elementRect.width,
       maxHeight,
       flipUp
     };
@@ -99,7 +101,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
       const target = e.target as HTMLElement;
       
       if (typeDropdownOpen) {
-        if (!typeButtonRef.current?.contains(target) && !typeDropdownRef.current?.contains(target)) {
+        if (!typeInputRef.current?.contains(target) && !typeDropdownRef.current?.contains(target)) {
           setTypeDropdownOpen(false);
         }
       }
@@ -117,13 +119,22 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     }
   }, [isOpen, typeDropdownOpen, expirationDropdownOpen]);
 
-  const handleTypeDropdownToggle = () => {
+  const handleTypeInputFocus = () => {
     if (!typeDropdownOpen) {
-      const position = calculateDropdownPosition(typeButtonRef, mcpTypes.length);
+      const position = calculateDropdownPosition(typeInputRef, filteredMCPTypes.length);
       setTypeDropdownPosition(position);
     }
-    setTypeDropdownOpen(!typeDropdownOpen);
+    setTypeDropdownOpen(true);
     setExpirationDropdownOpen(false);
+  };
+
+  const handleTypeSearchChange = (value: string) => {
+    setTypeSearchQuery(value);
+    if (!typeDropdownOpen) {
+      const position = calculateDropdownPosition(typeInputRef, filteredMCPTypes.length);
+      setTypeDropdownPosition(position);
+      setTypeDropdownOpen(true);
+    }
   };
 
   const handleExpirationDropdownToggle = () => {
@@ -135,7 +146,17 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     setTypeDropdownOpen(false);
   };
 
-  const mcpTypes = ['Gmail', 'Figma', 'API Gateway', 'Server Control', 'Database', 'Storage'];
+  const mcpTypes = [
+    'Gmail', 'Figma', 'API Gateway', 'Server Control', 'Database', 'Storage',
+    'Slack', 'Discord', 'Trello', 'Asana', 'Notion', 'Google Drive',
+    'Dropbox', 'OneDrive', 'GitHub', 'GitLab', 'Bitbucket', 'Jira',
+    'Confluence', 'Zendesk', 'Intercom', 'Stripe', 'PayPal', 'Shopify'
+  ];
+  
+  // Filter MCP types based on search query
+  const filteredMCPTypes = mcpTypes.filter(type => 
+    type.toLowerCase().includes(typeSearchQuery.toLowerCase())
+  );
   const expirationOptions = ['24 Hours', '7 Days', '30 Days', '90 Days', 'Never'];
 
   const getRequiredFields = (type: string) => {
@@ -239,25 +260,26 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
                 MCP Type
               </label>
               <div className="relative">
-                <button
-                  ref={typeButtonRef}
-                  type="button"
-                  onClick={handleTypeDropdownToggle}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none flex items-center justify-between transition-colors"
-                >
-                  <span className={formData.type ? 'text-gray-900' : 'text-gray-500'}>
-                    {formData.type || 'Select MCP type'}
-                  </span>
-                  <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform ${typeDropdownOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
+                <input
+                  ref={typeInputRef}
+                  type="text"
+                  value={formData.type || typeSearchQuery}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (formData.type && value !== formData.type) {
+                      // If user starts typing different from selected, clear selection and search
+                      handleInputChange('type', '');
+                      handleTypeSearchChange(value);
+                    } else {
+                      handleTypeSearchChange(value);
+                    }
+                  }}
+                  onFocus={handleTypeInputFocus}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Search or select MCP type"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  autoComplete="off"
+                />
               </div>
             </div>
 
@@ -383,20 +405,27 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               maxHeight: typeDropdownPosition.maxHeight
             }}
           >
-            {mcpTypes.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleInputChange('type', type);
-                  setTypeDropdownOpen(false);
-                }}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
-              >
-                {type}
-              </button>
-            ))}
+            {filteredMCPTypes.length > 0 ? (
+              filteredMCPTypes.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleInputChange('type', type);
+                    setTypeSearchQuery('');
+                    setTypeDropdownOpen(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors cursor-pointer"
+                >
+                  {type}
+                </button>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-gray-500 text-sm">
+                No results found
+              </div>
+            )}
           </div>
         </>
       )}
@@ -425,7 +454,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
                   handleInputChange('expiration', option);
                   setExpirationDropdownOpen(false);
                 }}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                className="w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors cursor-pointer"
               >
                 {option}
               </button>

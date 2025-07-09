@@ -1,4 +1,4 @@
-import React, { useRef, useImperativeHandle, forwardRef } from 'react';
+import { useRef, useImperativeHandle, forwardRef } from 'react';
 import { type MCPItem, type DropdownItem } from '../types';
 import MCPCard from './MCPCard';
 import Tooltip from './Tooltip';
