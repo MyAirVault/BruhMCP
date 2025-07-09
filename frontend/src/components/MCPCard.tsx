@@ -2,6 +2,7 @@ import React from 'react';
 import { type MCPItem, type DropdownItem } from '../types';
 import StatusBadge from './StatusBadge';
 import Dropdown from './Dropdown';
+import Tooltip from './Tooltip';
 
 interface MCPCardProps {
   mcp: MCPItem;
@@ -9,6 +10,7 @@ interface MCPCardProps {
   onDropdownToggle: (id: string) => void;
   onDropdownClose: () => void;
   dropdownItems: DropdownItem[];
+  isLastItemInExpired?: boolean;
 }
 
 const MCPCard: React.FC<MCPCardProps> = ({
@@ -16,14 +18,17 @@ const MCPCard: React.FC<MCPCardProps> = ({
   openDropdown,
   onDropdownToggle,
   onDropdownClose,
-  dropdownItems
+  dropdownItems,
+  isLastItemInExpired = false
 }) => {
   return (
     <div className="bg-white border-t border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-center justify-between">
         <div className="flex items-center flex-1 min-w-0">
           <div className="flex-1 ml-2">
-            <h3 className="text-base font-medium text-gray-900 truncate">{mcp.name}</h3>
+            <Tooltip content={mcp.name} position="top">
+              <h3 className="text-base font-medium text-gray-900 truncate max-w-[200px]">{mcp.name}</h3>
+            </Tooltip>
             <p className="text-sm text-gray-500 mt-1">@ {mcp.email}</p>
           </div>
         </div>
@@ -45,7 +50,8 @@ const MCPCard: React.FC<MCPCardProps> = ({
               items={dropdownItems}
               isOpen={openDropdown === mcp.id}
               onClose={onDropdownClose}
-              className="right-0 top-full mt-1 sm:right-0 sm:left-auto"
+              className="right-0 sm:right-0 sm:left-auto"
+              forceFlipUp={isLastItemInExpired}
             />
           </div>
         </div>

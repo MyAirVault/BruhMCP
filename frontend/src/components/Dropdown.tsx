@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface DropdownItem {
   label: string;
@@ -11,9 +11,12 @@ interface DropdownProps {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
+  forceFlipUp?: boolean;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ items, isOpen, onClose, className = '' }) => {
+const Dropdown: React.FC<DropdownProps> = ({ items, isOpen, onClose, className = '', forceFlipUp = false }) => {
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ flipUp: false });
   useEffect(() => {
     const handleClickOutside = () => {
       if (isOpen) {
@@ -21,14 +24,51 @@ const Dropdown: React.FC<DropdownProps> = ({ items, isOpen, onClose, className =
       }
     };
 
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
     if (isOpen) {
       document.addEventListener('click', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
     }
 
     return () => {
       document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
     };
   }, [isOpen, onClose]);
+
+  // Check positioning when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      if (forceFlipUp) {
+        // Immediately set to flip up for last items
+        setPosition({ flipUp: true });
+      } else if (dropdownRef.current) {
+        // Check positioning for other items
+        const checkPosition = () => {
+          if (!dropdownRef.current) return;
+
+          const dropdown = dropdownRef.current;
+          const rect = dropdown.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const dropdownHeight = dropdown.offsetHeight;
+
+          // Check if dropdown would go below viewport with some margin
+          const spaceBelow = viewportHeight - rect.top;
+          const wouldOverflow = spaceBelow < dropdownHeight + 40; // 40px margin
+
+          setPosition({ flipUp: wouldOverflow });
+        };
+
+        // Use requestAnimationFrame to ensure proper timing
+        requestAnimationFrame(checkPosition);
+      }
+    }
+  }, [isOpen, items.length, forceFlipUp]);
 
   const handleDropdownClick = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -37,8 +77,10 @@ const Dropdown: React.FC<DropdownProps> = ({ items, isOpen, onClose, className =
   if (!isOpen) return null;
 
   return (
-    <div 
-      className={`absolute rounded-lg shadow-lg focus:outline-none z-50 py-1 ${className}`}
+    <div
+      ref={dropdownRef}
+      className={`absolute rounded-lg shadow-lg focus:outline-none z-50 py-1 ${className} ${position.flipUp ? 'bottom-full -mb-32' : 'top-full mt-1'
+        }`}
       style={{
         backgroundColor: 'var(--dropdown-bg-default)',
         border: '1px solid var(--dropdown-border)',

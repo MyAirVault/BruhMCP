@@ -10,6 +10,9 @@ This directory contains documentation for the frontend components and pages of t
 - **[magic-link-popup.md](./magic-link-popup.md)** - Popup component with polling-based authentication detection
 - **[dashboard-page.md](./dashboard-page.md)** - Protected dashboard page with logout functionality
 
+### Enhanced User Experience
+- **[frontend-enhancements.md](./frontend-enhancements.md)** - Latest UI/UX improvements including keyboard navigation, tooltips, and smart positioning
+
 ## Frontend Structure
 
 The frontend is built with:

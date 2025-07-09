@@ -137,7 +137,7 @@ const LoginPage: React.FC = () => {
       {/* Background overlay when popup is shown */}
       {showMagicLink && (
         <div
-          className="fixed inset-0 bg-[#6B6B6B]/95 z-40"
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={() => setShowMagicLink(false)}
         />
       )}
