@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 interface VerificationState {
   status: 'loading' | 'success' | 'error';
@@ -8,21 +8,8 @@ interface VerificationState {
 
 export default function VerifyPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [state, setState] = useState<VerificationState>({ status: 'loading' });
-
-  useEffect(() => {
-    const token = searchParams.get('token');
-
-    if (!token) {
-      setState({
-        status: 'error',
-        message: 'No authentication token found in URL'
-      });
-      return;
-    }
-
-    verifyToken(token);
-  }, [searchParams]);
 
   const verifyToken = async (token: string) => {
     try {
@@ -42,6 +29,10 @@ export default function VerifyPage() {
           status: 'success',
           message: 'Authentication successful!'
         });
+        // Redirect to dashboard after successful verification
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       } else {
         setState({
           status: 'error',
@@ -49,6 +40,22 @@ export default function VerifyPage() {
         });
       }
     } catch (error) {
+      // Check if user is actually authenticated despite error
+      try {
+        const authCheck = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (authCheck.ok) {
+          // User is authenticated, redirect to dashboard
+          navigate('/dashboard');
+          return;
+        }
+      } catch {
+        // Auth check failed, show original error
+      }
+
       setState({
         status: 'error',
         message: 'Network error occurred'
@@ -56,6 +63,48 @@ export default function VerifyPage() {
       console.error('Verification error:', error);
     }
   };
+
+  useEffect(() => {
+    // Check if user is already authenticated first
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          // User is already authenticated, redirect to dashboard
+          navigate('/dashboard');
+          return true;
+        }
+      } catch {
+        // User is not authenticated, continue with verification
+      }
+      return false;
+    };
+
+    const handleVerification = async () => {
+      // Check if already authenticated first
+      if (await checkAuth()) {
+        return;
+      }
+
+      const token = searchParams.get('token');
+
+      if (!token) {
+        setState({
+          status: 'error',
+          message: 'No authentication token found in URL'
+        });
+        return;
+      }
+
+      verifyToken(token);
+    };
+
+    handleVerification();
+  }, [searchParams, navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -71,7 +120,10 @@ export default function VerifyPage() {
           <div className="text-green-600">
             <div className="text-4xl mb-4">✅</div>
             <h2 className="text-xl font-semibold mb-2">Authentication Successful!</h2>
-            <p className="text-gray-600">You are now authenticated. You can close this window.</p>
+            <p className="text-gray-600 mb-4">You are now authenticated. Redirecting to dashboard...</p>
+            <div className="animate-pulse bg-blue-500 text-white px-4 py-2 rounded-md">
+              Redirecting...
+            </div>
           </div>
         )}
 

@@ -26,18 +26,19 @@
 ### Step 2: Magic Link Verification & Redirect
 **User Action**: Click magic link in browser/console
 **Flow**: `http://localhost:5000/verify?token=<uuid>` → `http://localhost:5173/verify?token=<uuid>`
-**UI State**: Magic link popup with polling mechanism
+**UI State**: Magic link popup with polling mechanism OR direct VerifyPage
 **Process**:
 1. Backend redirects magic link to React frontend VerifyPage
-2. VerifyPage extracts UUID token from URL parameters
-3. VerifyPage auto-submits token to `POST /auth/verify`
-4. Backend validates UUID format and token existence
-5. Backend finds or creates user in PostgreSQL database
-6. Backend generates JWT and sets HTTP-only cookie
-7. Meanwhile, MagicLinkPopup polls `/api/auth/me` every 2 seconds
-8. When verification succeeds, popup detects authentication
-9. Popup shows "Verification Successful!" message
-10. User is automatically redirected to dashboard after 1 second
+2. VerifyPage first checks if user is already authenticated via `/auth/me`
+3. If already authenticated, redirects to dashboard immediately
+4. If not authenticated, extracts UUID token from URL parameters
+5. VerifyPage auto-submits token to `POST /auth/verify`
+6. Backend validates UUID format and token existence
+7. Backend finds or creates user in PostgreSQL database
+8. Backend generates JWT and sets HTTP-only cookie
+9. VerifyPage shows success message and redirects to dashboard after 1.5 seconds
+10. If MagicLinkPopup is active, it polls `/api/auth/me` every 2 seconds and detects authentication
+11. **Fallback**: If verification fails but cookie exists, VerifyPage performs auth check and redirects
 
 ## Implementation
 
@@ -174,8 +175,10 @@
 - **Route**: `/verify` (handles magic link redirects)
 - **URL Parameter Extraction**: `useSearchParams()` gets token from URL
 - **Auto-Verification**: Automatically submits token to `/auth/verify`
-- **User Feedback**: Loading spinner, success/error states
-- **Minimal UI**: Simple verification status display
+- **Authentication Check**: Checks if user is already authenticated on page load
+- **Auto-Redirect**: Redirects to dashboard after successful verification (1.5s delay)
+- **Error Handling**: Fallback auth check if verification appears to fail
+- **User Feedback**: Loading spinner, success/error states with redirect notification
 
 #### Dashboard.tsx
 - **Route**: `/dashboard` (protected route)
@@ -194,9 +197,9 @@
 5. **Submit Email**: User enters email and clicks "Send Magic Link"
 6. **Show Popup**: MagicLinkPopup appears with confirmation
 7. **Click Link**: User clicks magic link from console
-8. **Verification**: VerifyPage handles token verification
-9. **Polling Detection**: MagicLinkPopup detects successful auth
-10. **Success & Redirect**: Show success message then redirect to dashboard
+8. **Verification**: VerifyPage handles token verification with multiple safety checks
+9. **Success & Redirect**: VerifyPage shows success message then redirects to dashboard
+10. **Fallback**: If popup is closed, VerifyPage still handles verification independently
 
 ### Development Flow
 1. **Backend**: `npm run dev` (port 5000)
@@ -206,8 +209,17 @@
 5. **Popup**: MagicLinkPopup appears with polling active
 6. **Console**: Copy magic link from backend console
 7. **Verify**: Click magic link → automatic redirect and verification
-8. **Success**: Popup shows success → redirects to dashboard
+8. **Success**: VerifyPage shows success → redirects to dashboard (works with or without popup)
 9. **Persistent**: Refresh page → automatically goes to dashboard
+
+### Fixed Bug: Popup Close Issue
+**Previous Issue**: If user closed MagicLinkPopup before clicking verify link, verification would show "auth failed" even though authentication succeeded.
+
+**Resolution**: VerifyPage now includes:
+- **Pre-verification auth check**: Checks if already authenticated before token verification
+- **Automatic redirect on success**: Redirects to dashboard after successful verification
+- **Fallback auth check**: If verification appears to fail, checks if cookie was actually set
+- **Enhanced error handling**: Distinguishes between real failures and race conditions
 
 ## Error Handling
 

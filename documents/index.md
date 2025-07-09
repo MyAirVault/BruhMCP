@@ -12,7 +12,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ### API & Integration
 - **[api-documentation.md](./api-documentation.md)** - Complete REST API specification with direct URL endpoints, simplified access, error handling, and examples
 - **[mcp-integration-guide.md](./mcp-integration-guide.md)** - **Simple Node.js process management** guide with server scripts, basic lifecycle, and adding new MCP types (no Docker complexity)
-- **[authentication-flow.md](./authentication-flow.md)** - **Magic link authentication with JWT cookies** - UUID-based magic links with React frontend integration and PostgreSQL user storage
+- **[authentication-flow.md](./authentication-flow.md)** - **Magic link authentication with JWT cookies** - UUID-based magic links with React frontend integration, PostgreSQL user storage, and enhanced VerifyPage with fallback auth checks
 - **[mcp-duplication-isolation.md](./mcp-duplication-isolation.md)** - **Simple MCP instance duplication** allowing multiple instances per user with basic process isolation (aligned with existing architecture)
 
 ### Frontend Components
@@ -86,4 +86,4 @@ These documents should be updated when:
 - API endpoints are modified
 - Database schema evolves
 
-Last updated: 2025-01-08
+Last updated: 2025-07-09

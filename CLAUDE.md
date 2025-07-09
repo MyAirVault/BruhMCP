@@ -96,6 +96,7 @@ src/
     - Update `<project-root>/documents/index.md` with brief descriptions of each document
     - Keep documentation synchronized with code changes
     - Look up existing documentation before implementing features
+    - Always update the documentation first before implementing features.
 
 ## Project-Specific Guidelines
 
