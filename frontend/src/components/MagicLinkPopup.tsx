@@ -40,67 +40,58 @@ const MagicLinkPopup: React.FC<MagicLinkPopupProps> = ({ email, onClose }) => {
 
   if (isVerifying) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Verification Successful!
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Redirecting you to dashboard...
-            </p>
-          </div>
+      <div className="bg-white rounded-lg p-6 w-full max-w-md h-[300px] shadow-lg z-50 flex flex-col justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Verification Successful!
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Redirecting you to dashboard...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <div className="text-center">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-            <svg 
-              className="h-6 w-6 text-green-600" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
-            </svg>
-          </div>
-          
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Magic Link Sent!
-          </h3>
-          
-          <p className="text-sm text-gray-500 mb-4">
-            We've sent a magic link to <span className="font-medium text-gray-900">{email}</span>
-          </p>
-          
-          <p className="text-sm text-gray-500 mb-6">
-            Check your email and click the link to sign in. The link will expire in 15 minutes.
-          </p>
-          
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-6">
-            <p className="text-sm text-blue-800">
-              <span className="font-medium">Development Note:</span> Check your console for the magic link in development mode.
-            </p>
-          </div>
-          
-          <button
-            onClick={onClose}
-            className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Close
-          </button>
-        </div>
+    <div
+      className="bg-white rounded-lg p-6 w-full max-w-md h-[300px] relative shadow-lg z-50 flex flex-col"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
+      >
+        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div className="text-center flex-1 flex flex-col justify-center">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Check your inbox
+        </h3>
+
+        <p className="text-sm text-gray-700 mb-2">
+          We've sent a sign in link to:
+        </p>
+
+        <p className="text-sm font-medium text-gray-900 mb-6">
+          {email}
+        </p>
+
+        <p className="text-sm text-gray-600 mb-6">
+          Click the link in the email to sign in instantly. The link expires in 24 hours.
+        </p>
+
+        <button
+          onClick={onClose}
+          className="w-full bg-black text-white px-4 py-3 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium transition-colors"
+        >
+          OK
+        </button>
       </div>
     </div>
   );
