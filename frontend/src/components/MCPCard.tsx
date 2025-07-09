@@ -3,6 +3,7 @@ import { type MCPItem, type DropdownItem } from '../types';
 import StatusBadge from './StatusBadge';
 import Dropdown from './Dropdown';
 import Tooltip from './Tooltip';
+import { Mail, Server, Database, Cloud, Globe, Settings } from 'lucide-react';
 
 interface MCPCardProps {
   mcp: MCPItem;
@@ -13,6 +14,29 @@ interface MCPCardProps {
   isLastItemInExpired?: boolean;
 }
 
+// Helper function to get MCP type icon
+const getMCPIcon = (mcpType: string) => {
+  switch (mcpType.toLowerCase()) {
+    case 'gmail':
+      return Mail;
+    case 'server':
+    case 'production':
+    case 'backup':
+      return Server;
+    case 'database':
+    case 'storage':
+      return Database;
+    case 'api':
+    case 'gateway':
+      return Globe;
+    case 'testing':
+    case 'legacy':
+      return Settings;
+    default:
+      return Cloud; // Default fallback icon
+  }
+};
+
 const MCPCard: React.FC<MCPCardProps> = ({
   mcp,
   openDropdown,
@@ -21,6 +45,7 @@ const MCPCard: React.FC<MCPCardProps> = ({
   dropdownItems,
   isLastItemInExpired = false
 }) => {
+  const IconComponent = getMCPIcon(mcp.email);
   return (
     <div className="bg-white border-t border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-center justify-between">
@@ -29,7 +54,10 @@ const MCPCard: React.FC<MCPCardProps> = ({
             <Tooltip content={mcp.name} position="top">
               <h3 className="text-base font-medium text-gray-900 truncate max-w-[200px]">{mcp.name}</h3>
             </Tooltip>
-            <p className="text-sm text-gray-500 mt-1">@ {mcp.email}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <IconComponent className="w-4 h-4 text-gray-400" />
+              <p className="text-sm text-gray-500">{mcp.email}</p>
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-3 flex-shrink-0">

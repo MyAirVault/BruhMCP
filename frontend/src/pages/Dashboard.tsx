@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import MCPSection, { type MCPSectionRef } from '../components/MCPSection';
 import CreateMCPModal from '../components/CreateMCPModal';
 import Tooltip from '../components/Tooltip';
+import { Zap } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useDropdown } from '../hooks/useDropdown';
 import { mockMCPs, filterMCPsByStatus } from '../utils/mcpHelpers';
@@ -183,9 +184,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-black text-white px-4 py-3 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center space-x-2 shadow-lg whitespace-nowrap transition-colors cursor-pointer lg:min-w-[183px]"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+                <Zap className="w-5 h-5" />
                 <span className='text-sm'>Create new MCP</span>
               </button>
             </Tooltip>

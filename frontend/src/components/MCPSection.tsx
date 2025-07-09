@@ -2,6 +2,7 @@ import React, { useRef, useImperativeHandle, forwardRef } from 'react';
 import { type MCPItem, type DropdownItem } from '../types';
 import MCPCard from './MCPCard';
 import Tooltip from './Tooltip';
+import { CheckCircle, PauseCircle, XCircle } from 'lucide-react';
 
 interface MCPSectionProps {
   title: string;
@@ -47,11 +48,44 @@ const MCPSection = forwardRef<MCPSectionRef, MCPSectionProps>((
       }
     }
   }));
+
+  // Helper function to get section icon and color
+  const getSectionIcon = () => {
+    switch (sectionType) {
+      case 'active':
+        return CheckCircle;
+      case 'inactive':
+        return PauseCircle;
+      case 'expired':
+        return XCircle;
+      default:
+        return CheckCircle;
+    }
+  };
+
+  const getSectionIconColor = () => {
+    switch (sectionType) {
+      case 'active':
+        return 'text-green-600';
+      case 'inactive':
+        return 'text-orange-500';
+      case 'expired':
+        return 'text-red-500';
+      default:
+        return 'text-green-600';
+    }
+  };
+
+  const IconComponent = getSectionIcon();
+  const iconColorClass = getSectionIconColor();
   return (
     <section ref={sectionRef}>
       <div className="flex items-center justify-between mb-3">
         <Tooltip content="Use Ctrl+↑/↓ (Cmd+↑/↓ on Mac) to navigate sections" position="top">
-          <h2 className="text-2xl font-semibold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors">{title}</h2>
+          <div className="flex items-center gap-3 cursor-pointer hover:text-gray-700 transition-colors">
+            <IconComponent className={`w-6 h-6 ${iconColorClass}`} />
+            <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
+          </div>
         </Tooltip>
         <span className="text-sm text-gray-500">{count} MCPs</span>
       </div>
