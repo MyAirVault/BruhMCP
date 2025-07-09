@@ -92,11 +92,12 @@ src/
     - Backend: Use JSDoc annotations with TypeScript compiler
 
 4. **Documentation**
+
     - All documentation goes in `<project-root>/documents/` folder
     - Update `<project-root>/documents/index.md` with brief descriptions of each document
     - Keep documentation synchronized with code changes
     - Look up existing documentation before implementing features
-    - Always update the documentation first before implementing features.
+    - Always update the existing documentation after implementing features.
 
 ## Project-Specific Guidelines
 

@@ -1,56 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import Layout from '../components/Layout';
+import MCPSection from '../components/MCPSection';
+import { useAuth } from '../hooks/useAuth';
+import { useDropdown } from '../hooks/useDropdown';
+import { mockMCPs, filterMCPsByStatus } from '../utils/mcpHelpers';
+import { getDropdownItems } from '../utils/dropdownHelpers';
 
 const Dashboard: React.FC = () => {
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check if user is authenticated by checking for auth cookie
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUserEmail(data.user?.email || 'user');
-        } else {
-          // Redirect to login if not authenticated
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        navigate('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    try {
-      // Call backend logout endpoint to clear server-side session
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    
-    // Clear any client-side cookies (multiple possible names)
-    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    
-    navigate('/login');
-  };
+  const { userName, isLoading } = useAuth();
+  const { openDropdown, handleDropdownToggle, closeDropdowns } = useDropdown();
 
   if (isLoading) {
     return (
@@ -63,40 +21,61 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const activeMCPs = filterMCPsByStatus(mockMCPs, 'active');
+  const inactiveMCPs = filterMCPsByStatus(mockMCPs, 'inactive');
+  const expiredMCPs = filterMCPsByStatus(mockMCPs, 'expired');
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Hello {userEmail}
-            </h1>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            >
-              Logout
+    <Layout userName={userName}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20 py-8">
+        <div className="max-w-[1280px] mx-auto">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
+              <p className="text-base lg:text-lg text-gray-600">Manage your MCPs</p>
+            </div>
+            <button className="bg-black text-white px-4 py-3 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center space-x-2 shadow-lg whitespace-nowrap transition-colors cursor-pointer lg:min-w-[183px]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span>Create New MCP</span>
             </button>
           </div>
-          
-          <div className="mt-8">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Welcome to your dashboard
-                </h3>
-                <div className="mt-2 max-w-xl text-sm text-gray-500">
-                  <p>
-                    You have successfully authenticated with your email address. 
-                    This is your personal dashboard where you can manage your account and access features.
-                  </p>
-                </div>
-              </div>
-            </div>
+
+          <div className="space-y-6">
+            <MCPSection
+              title="Active MCPs"
+              count={activeMCPs.length}
+              mcps={activeMCPs}
+              openDropdown={openDropdown}
+              onDropdownToggle={handleDropdownToggle}
+              onDropdownClose={closeDropdowns}
+              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns)}
+            />
+
+            <MCPSection
+              title="Inactive MCPs"
+              count={inactiveMCPs.length}
+              mcps={inactiveMCPs}
+              openDropdown={openDropdown}
+              onDropdownToggle={handleDropdownToggle}
+              onDropdownClose={closeDropdowns}
+              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns)}
+            />
+
+            <MCPSection
+              title="Expired MCPs"
+              count={expiredMCPs.length}
+              mcps={expiredMCPs}
+              openDropdown={openDropdown}
+              onDropdownToggle={handleDropdownToggle}
+              onDropdownClose={closeDropdowns}
+              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns)}
+            />
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
