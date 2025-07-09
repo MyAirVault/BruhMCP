@@ -9,4 +9,5 @@ export interface DropdownItem {
   label: string;
   onClick: () => void;
   variant?: 'default' | 'highlighted' | 'danger';
+  icon?: React.ComponentType<{ className?: string }>;
 }

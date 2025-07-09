@@ -4,6 +4,7 @@ interface DropdownItem {
   label: string;
   onClick: () => void;
   variant?: 'default' | 'highlighted' | 'danger';
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 interface DropdownProps {
@@ -90,29 +91,35 @@ const Dropdown: React.FC<DropdownProps> = ({ items, isOpen, onClose, className =
       }}
       onClick={handleDropdownClick}
     >
-      {items.map((item, index) => (
-        <button
-          key={index}
-          className="w-full px-4 py-2 text-left text-sm flex items-center transition-colors cursor-pointer"
-          style={{
-            color: item.variant === 'danger' ? 'var(--dropdown-text-danger)' : 'var(--dropdown-text-default)',
-            backgroundColor: item.variant === 'highlighted' ? 'var(--dropdown-bg-highlighted)' : 'transparent'
-          }}
-          onMouseEnter={(e) => {
-            if (item.variant === 'danger') {
-              e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover-danger)';
-            } else {
-              e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = item.variant === 'highlighted' ? 'var(--dropdown-bg-highlighted)' : 'transparent';
-          }}
-          onClick={item.onClick}
-        >
-          <span className="truncate">{item.label}</span>
-        </button>
-      ))}
+      {items.map((item, index) => {
+        const IconComponent = item.icon;
+        return (
+          <button
+            key={index}
+            className="w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors cursor-pointer"
+            style={{
+              color: item.variant === 'danger' ? 'var(--dropdown-text-danger)' : 'var(--dropdown-text-default)',
+              backgroundColor: item.variant === 'highlighted' ? 'var(--dropdown-bg-highlighted)' : 'transparent'
+            }}
+            onMouseEnter={(e) => {
+              if (item.variant === 'danger') {
+                e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover-danger)';
+              } else {
+                e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = item.variant === 'highlighted' ? 'var(--dropdown-bg-highlighted)' : 'transparent';
+            }}
+            onClick={item.onClick}
+          >
+            {IconComponent && (
+              <IconComponent className="w-4 h-4 flex-shrink-0" />
+            )}
+            <span className="truncate">{item.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 };

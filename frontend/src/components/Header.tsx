@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropdown } from '../hooks/useDropdown';
 import { logout } from '../services/authService';
+import { User, CreditCard, Settings, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   userName?: string;
@@ -55,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                     console.log('My Profile');
                     setUserDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer"
+                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"
                   style={{ color: 'var(--dropdown-text-default)' }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover)';
@@ -64,14 +65,15 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  My Profile
+                  <User className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">My Profile</span>
                 </button>
                 <button
                   onClick={() => {
                     console.log('Billings');
                     setUserDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer"
+                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"
                   style={{ color: 'var(--dropdown-text-default)' }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover)';
@@ -80,14 +82,15 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  Billings
+                  <CreditCard className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Billings</span>
                 </button>
                 <button
                   onClick={() => {
                     console.log('Settings');
                     setUserDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer"
+                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"
                   style={{ color: 'var(--dropdown-text-default)' }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover)';
@@ -96,14 +99,15 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  Settings
+                  <Settings className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Settings</span>
                 </button>
                 <button
                   onClick={() => {
                     handleLogout();
                     setUserDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer"
+                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"
                   style={{ color: 'var(--dropdown-text-danger)' }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover-danger)';
@@ -112,7 +116,8 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  Sign out
+                  <LogOut className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Sign out</span>
                 </button>
               </div>
             )}
