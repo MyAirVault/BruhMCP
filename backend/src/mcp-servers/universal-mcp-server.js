@@ -26,9 +26,9 @@ const credentials = parseCredentials();
 // Validate service configuration
 const { serviceConfig, apiKey } = validateServiceConfig(mcpType, credentials);
 
-// Create and mount MCP router
+// Create and mount MCP router with instance isolation
 const mcpRouter = createMCPRouter(serviceConfig, mcpType, apiKey, port);
-app.use(`/mcp/${mcpType}`, mcpRouter);
+app.use(`/${mcpId}/mcp/${mcpType}`, mcpRouter);
 
 // Health check endpoint
 const healthCheckHandler = createHealthCheckHandler({

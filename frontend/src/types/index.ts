@@ -1,8 +1,10 @@
 export interface MCPItem {
   id: string;
   name: string;
-  email: string;
+  email: string; // Contains access_url for backward compatibility
   status: 'active' | 'inactive' | 'expired';
+  mcpType?: string; // Added to display MCP type properly
+  access_url?: string; // Added to store URL directly
 }
 
 export interface DropdownItem {

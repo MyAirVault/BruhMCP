@@ -49,7 +49,7 @@ export async function createProcess(config) {
 		const processInfo = {
 			processId: mcpProcess.pid,
 			assignedPort,
-			accessUrl: `http://localhost:${assignedPort}`,
+			accessUrl: `http://localhost:${assignedPort}/${instanceId}/mcp/${mcpType}`,
 			mcpType,
 			instanceId,
 			userId,
@@ -58,8 +58,9 @@ export async function createProcess(config) {
 		};
 
 		console.log(
-			`MCP ${mcpType} server created for instance ${instanceId} on port ${assignedPort} with PID ${mcpProcess.pid}`
+			`🚀 MCP ${mcpType} server created for instance ${instanceId} on port ${assignedPort} with PID ${mcpProcess.pid}`
 		);
+		console.log(`🔗 Instance access URL: http://localhost:${assignedPort}/${instanceId}/mcp/${mcpType}`);
 
 		return {
 			processInfo,
@@ -67,7 +68,7 @@ export async function createProcess(config) {
 			result: {
 				processId: mcpProcess.pid,
 				assignedPort,
-				accessUrl: `http://localhost:${assignedPort}/mcp/${mcpType}`,
+				accessUrl: `http://localhost:${assignedPort}/${instanceId}/mcp/${mcpType}`,
 			},
 		};
 	} catch (error) {

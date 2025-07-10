@@ -21,13 +21,18 @@ export async function deleteMCP(req, res) {
 			});
 		}
 
+		console.log(`🗑️  Deleting MCP instance ${id} for user ${userId}`);
+
 		// Terminate process if running
 		if (instance.process_id) {
+			console.log(`🔄 Terminating process ${instance.process_id} for instance ${id}`);
 			await processManager.terminateProcess(id);
 		}
 
 		// Delete from database
 		await deleteMCPInstance(id, userId);
+
+		console.log(`✅ MCP instance ${id} deleted successfully`);
 
 		res.json({
 			data: {

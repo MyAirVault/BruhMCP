@@ -1,153 +1,214 @@
-# MCP Duplication and Isolation
+# MCP Instance Isolation Architecture
 
 ## Overview
 
-Users can create multiple instances of the same MCP type (e.g., 2 Gmail MCPs) that run independently using simple process isolation.
+Users can create multiple instances of the same MCP type (e.g., 2 Gmail MCPs) that run independently using UUID-based instance isolation. Each instance gets a unique UUID and runs on its own isolated route.
 
 ## MCP Duplication
 
 ### Instance Management
 - Users can create multiple instances of the same MCP type
-- Each instance gets a simple instance number: 1, 2, 3, etc.
-- Example: Gmail instance 1, Gmail instance 2
+- Each instance gets a unique UUID (automatically generated)
+- Example: Gmail instance `550e8400-e29b-41d4-a716-446655440000`, Gmail instance `6ba7b810-9dad-11d1-80b4-00c04fd430c8`
+- Instance numbering: Sequential instance_number for display purposes (1, 2, 3, etc.)
 
 ### Instance Limits
 - Maximum 10 instances per user (aligned with existing database schema)
-- Simple instance numbering: Sequential starting from 1
-- Instance assignment: First available number when creating new instance
-- Instance recycling: Reuse numbers when instances are deleted
+- UUID-based identification: Each instance has a unique UUID
+- Instance assignment: UUID generated automatically, instance_number assigned sequentially
+- Instance recycling: Instance numbers reused when instances are deleted
 - Instance cleanup on user deletion
 
 ## Process Isolation
 
-### Simple Process Management
+### UUID-Based Process Management
 - Each instance runs in its own Node.js process
 - Use existing `child_process.spawn()` approach
-- Process naming: `mcp-{userId}-{mcpType}-{instanceNum}`
-- Process monitoring with basic health checks
+- Process identification: Uses instance UUID for all operations
+- Process environment: `MCP_ID={instanceUUID}`, `USER_ID={userId}`, `MCP_TYPE={mcpType}`
+- Process monitoring with UUID-based health checks
 
-### Port Allocation
-- See [Backend Architecture](./backend-architecture.md#port-allocation) for detailed port allocation formula
-- Uses expanded port range: 3001-4000 to accommodate multiple instances
+### Instance-Based Routing
+- **New Architecture**: `localhost:3000/{instanceUUID}/mcp/{mcpType}`
+- **Example URLs**:
+  - `localhost:3000/550e8400-e29b-41d4-a716-446655440000/mcp/figma`
+  - `localhost:3000/6ba7b810-9dad-11d1-80b4-00c04fd430c8/mcp/gmail`
+- Each instance is completely isolated from others
+- Port allocation: Uses expanded port range 3001-4000 for individual MCP servers
 
 ## File System Isolation
 
 ### Directory Structure
-Align with existing pattern:
+UUID-based directory isolation:
 ```
 ./logs/
 ├── users/
 │   ├── user_{userId}/
-│   │   ├── mcp_{mcpId}_{mcpType}_{instanceNum}/
+│   │   ├── mcp_{instanceUUID}_{mcpType}/
 │   │   │   ├── access.log
-│   │   │   └── error.log
-│   │   └── mcp_{mcpId}_{mcpType}_{instanceNum}/
+│   │   │   ├── error.log
+│   │   │   └── metrics.json
+│   │   └── mcp_{instanceUUID}_{mcpType}/
 │   │       ├── access.log
-│   │       └── error.log
+│   │       ├── error.log
+│   │       └── shutdown-metrics.json
 │   └── user_{userId}/
-│       └── mcp_{mcpId}_{mcpType}_{instanceNum}/
+│       └── mcp_{instanceUUID}_{mcpType}/
 ```
 
 ### File Isolation
-- Each instance gets its own log directory
-- No shared files between instances
-- Simple file cleanup on instance deletion
+- Each instance gets its own log directory based on UUID
+- Complete isolation between instances (no shared files)
+- UUID-based file cleanup on instance deletion
+- Consistent logging with instance UUIDs throughout all operations
 
 ## Database Schema
 
-### Simple Schema Addition
-Add to existing `mcp_instances` table:
+### UUID-Based Instance Isolation
+Current `mcp_instances` table already supports UUID-based isolation:
 ```sql
--- Add instance number column
-ALTER TABLE mcp_instances 
-ADD COLUMN instance_number INTEGER DEFAULT 1;
-
--- Add unique constraint
-ALTER TABLE mcp_instances 
-ADD CONSTRAINT unique_user_mcp_instance 
-UNIQUE (user_id, mcp_type, instance_number);
+CREATE TABLE mcp_instances (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Instance UUID
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    mcp_type_id UUID NOT NULL REFERENCES mcp_types(id),
+    api_key_id UUID REFERENCES api_keys(id) ON DELETE SET NULL,
+    custom_name VARCHAR(255),
+    instance_number INTEGER NOT NULL DEFAULT 1,     -- For display purposes
+    process_id INTEGER,
+    access_token VARCHAR(255) UNIQUE NOT NULL,
+    assigned_port INTEGER UNIQUE,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    -- ... other fields
+    CONSTRAINT unique_user_mcp_instance UNIQUE (user_id, mcp_type_id, instance_number)
+);
 ```
 
 ### Data Isolation
-- Use existing foreign key relationships
-- Add instance_number to queries
-- No complex tenant isolation needed
+- Primary isolation via UUID (`id` field)
+- All operations reference instances by UUID
+- `instance_number` used only for display/ordering
+- Complete isolation between instances in database
 
 ## API Endpoints
 
 ### Instance Management
-- `POST /api/v1/mcps` - Create instance
-- `GET /api/v1/mcps` - List instances
-- `DELETE /api/v1/mcps/:id` - Delete instance
+- `POST /api/v1/mcps` - Create instance (returns UUID and instance-based URL)
+- `GET /api/v1/mcps` - List instances (includes UUIDs and access URLs)
+- `DELETE /api/v1/mcps/:uuid` - Delete instance by UUID
 
 ### Instance Operations
-- `GET /api/v1/mcps/:id` - Get status
-- `POST /api/v1/mcps/:id/toggle` - Toggle instance
-- `POST /api/v1/mcps/:id/toggle` - Toggle instance
+- `GET /api/v1/mcps/:uuid` - Get status by UUID
+- `PUT /api/v1/mcps/:uuid/toggle` - Toggle instance by UUID
+- `PUT /api/v1/mcps/:uuid/renew` - Renew instance by UUID
+
+### Instance Access URLs
+- **Main Pattern**: `localhost:3000/{instanceUUID}/mcp/{mcpType}`
+- **MCP Protocol Endpoints**:
+  - `/{instanceUUID}/mcp/{mcpType}/info` - Server information
+  - `/{instanceUUID}/mcp/{mcpType}/tools` - Available tools
+  - `/{instanceUUID}/mcp/{mcpType}/resources` - Available resources
+  - `/{instanceUUID}/mcp/{mcpType}/tools/{toolName}` - Execute tool
 
 ## Implementation
 
 ### Instance Creation
 ```javascript
-// Simple instance creation
-const instanceNum = getNextInstanceNumber(userId, mcpType);
-const instanceNum = getNextInstanceNumber(userId, mcpType);
-const port = 3001 + (userId * 10) + instanceNum;
-const logDir = `./logs/users/user_${userId}/mcp_${mcpType}_${instanceNum}`;
-
-// Spawn process with existing approach
-const process = spawn('node', [mcpScript], {
-  env: { ...process.env, PORT: port, LOG_DIR: logDir }
+// UUID-based instance creation
+const instanceUUID = await createMCPInstance({
+  userId,
+  mcpTypeId,
+  apiKeyId,
+  customName,
+  instanceNumber: await getNextInstanceNumber(userId, mcpTypeId),
+  accessToken: await generateUniqueAccessToken(),
+  expirationOption,
+  expiresAt,
+  config
 });
+
+// Process creation with UUID isolation
+const processInfo = await processManager.createProcess({
+  mcpType,
+  instanceId: instanceUUID.id,  // UUID used for all operations
+  userId,
+  credentials,
+  config
+});
+
+// Environment variables
+const env = {
+  PORT: assignedPort,
+  MCP_ID: instanceUUID.id,      // Instance UUID
+  USER_ID: userId,
+  MCP_TYPE: mcpType,
+  CREDENTIALS: JSON.stringify(credentials)
+};
 ```
 
 ### Instance Tracking
 ```javascript
-// Simple in-memory tracking
-const activeInstances = new Map();
-// Format: instanceId -> {process, port, logDir, createdAt}
+// UUID-based in-memory tracking
+const activeProcesses = new Map();
+// Format: instanceUUID -> {processId, assignedPort, accessUrl, mcpType, userId, process, startTime}
 ```
 
 ## Security
 
-### Basic Isolation
-- Process-level isolation (no shared memory)
-- File system isolation (separate directories)
-- Port isolation (unique ports per instance)
-- Database isolation (instance_number in queries)
+### UUID-Based Isolation
+- **Process-level isolation**: Each instance runs in separate Node.js process
+- **URL isolation**: Each instance has unique UUID-based route
+- **File system isolation**: UUID-based log directories  
+- **Port isolation**: Unique ports per instance
+- **Database isolation**: All queries use instance UUID
 
 ### Access Control
-- Users can only access their own instances
-- Instance operations require user authentication
-- Basic rate limiting per user
+- **Instance access**: Only users can access their own instances
+- **UUID-based auth**: All operations require instance UUID verification
+- **Route isolation**: `/{instanceUUID}/mcp/{mcpType}` prevents cross-instance access
+- **Authentication**: All instance operations require user authentication
+- **Rate limiting**: Basic rate limiting per user and per instance
 
 ## Monitoring
 
-### Simple Health Checks
-- Process status monitoring
-- Basic resource usage tracking
-- Log file size monitoring
-- Port availability checking
+### UUID-Based Health Checks
+- **Process monitoring**: UUID-based process status tracking
+- **Resource tracking**: Per-instance resource usage monitoring
+- **Log monitoring**: UUID-based log file tracking and rotation
+- **Port monitoring**: Dedicated port availability per instance
 
-### Error Handling
-- Process restart on failure
-- Log rotation for large files
-- Port conflict resolution
-- Instance cleanup on errors
+### Error Handling & Logging
+- **Process restart**: UUID-based process restart on failure
+- **Consistent logging**: All logs include instance UUID for traceability
+- **Error isolation**: Failures in one instance don't affect others
+- **Port management**: Automatic port cleanup and reassignment
+- **Cleanup procedures**: UUID-based cleanup on errors
 
 ## Cleanup
 
 ### Instance Deletion
-1. Stop the process
-2. Remove from active instances map
-3. Delete log directory
-4. Remove database entry
-5. Release port
+1. **Process termination**: Stop process using instance UUID
+2. **Memory cleanup**: Remove from active instances map (by UUID)
+3. **File cleanup**: Delete UUID-based log directory
+4. **Database cleanup**: Remove database entry by UUID
+5. **Port release**: Release assigned port
+6. **Logging**: Log all cleanup operations with instance UUID
 
 ### User Deletion
-1. Stop all user's instances
-2. Delete user's log directory
-3. Remove all database entries
-4. Release all ports
+1. **Instance enumeration**: Find all instances by user ID
+2. **Bulk termination**: Stop all user's processes (by UUID)
+3. **Directory cleanup**: Delete user's entire log directory tree
+4. **Database cleanup**: Remove all user's database entries (CASCADE)
+5. **Port cleanup**: Release all assigned ports
+6. **Audit logging**: Log user deletion with all affected instance UUIDs
 
-This approach maintains simplicity while providing the isolation needed for multiple MCP instances per user.
+## Summary
+
+This UUID-based instance isolation architecture provides:
+- **Complete isolation** between MCP instances
+- **Unique routing** per instance (`/{instanceUUID}/mcp/{mcpType}`)
+- **Consistent identification** using UUIDs throughout the system
+- **Scalable architecture** supporting multiple instances per user
+- **Comprehensive logging** with instance UUID traceability
+- **Secure access control** preventing cross-instance access
+
+Every MCP instance is completely separated and identified by its UUID, ensuring robust isolation and easy tracking throughout the application lifecycle.

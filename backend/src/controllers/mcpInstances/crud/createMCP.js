@@ -95,6 +95,8 @@ export async function createMCP(req, res) {
 
 		// Create process
 		try {
+			console.log(`🔄 Creating MCP instance ${instance.id} for user ${userId} (${mcp_type})`);
+
 			const processInfo = await processManager.createProcess({
 				mcpType: mcp_type,
 				instanceId: instance.id,
@@ -109,6 +111,8 @@ export async function createMCP(req, res) {
 				assigned_port: processInfo.assignedPort,
 				status: 'active',
 			});
+
+			console.log(`✅ MCP instance ${instance.id} created successfully on port ${processInfo.assignedPort}`);
 
 			// Return response
 			res.status(201).json({

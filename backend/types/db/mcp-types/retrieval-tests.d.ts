@@ -8,5 +8,5 @@ export function testGetAllMCPTypes(): Promise<any[]>;
  * @param {string} name - MCP type name
  * @returns {Promise<Object|null>} MCP type or null if not found
  */
-export function testGetMCPTypeByName(name: string): Promise<Object | null>;
+export function testGetMCPTypeByName(name: string): Promise<object | null>;
 //# sourceMappingURL=retrieval-tests.d.ts.map

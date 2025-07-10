@@ -16,6 +16,7 @@ export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 
 	// MCP Protocol: Server info and capabilities discovery
 	mcpRouter.get('/info', (req, res) => {
+		console.log(`📋 Info request for ${serviceConfig.name} MCP Server (Port: ${port})`);
 		res.json({
 			name: `${serviceConfig.name} MCP Server`,
 			version: '1.0.0',
@@ -48,6 +49,8 @@ export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 			const { toolName } = req.params;
 			const { arguments: args = {} } = req.body;
 
+			console.log(`🔧 Tool execution: ${toolName} for ${serviceConfig.name} (Port: ${port})`);
+
 			const result = await handleToolExecution({
 				toolName,
 				args,
@@ -58,6 +61,8 @@ export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 
 			res.json(result);
 		} catch (error) {
+			const { toolName } = req.params;
+			console.error(`❌ Tool execution failed: ${toolName} - ${error.message}`);
 			res.status(500).json({ error: error.message });
 		}
 	});

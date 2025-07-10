@@ -56,9 +56,11 @@ export const useDashboardState = () => {
   const convertToMCPItem = (instance: MCPInstance): MCPItem => ({
     id: instance.id,
     name: instance.custom_name || `${instance.mcp_type.display_name} #${instance.instance_number}`,
-    email: instance.access_url, // This contains the actual MCP server URL
+    email: instance.access_url, // This contains the actual MCP server URL (for backward compatibility)
     status: instance.status === 'active' ? 'active' :
-      instance.status === 'expired' ? 'expired' : 'inactive'
+      instance.status === 'expired' ? 'expired' : 'inactive',
+    mcpType: instance.mcp_type.name, // Add MCP type for proper display
+    access_url: instance.access_url // Add direct access to URL
   });
 
   // Filter MCPs by status

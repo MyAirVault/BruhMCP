@@ -11,23 +11,23 @@ import { setTimeout } from 'node:timers';
 export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses) {
 	// Log stdout
 	mcpProcess.stdout.on('data', data => {
-		console.log(`MCP ${instanceId} stdout: ${data.toString()}`);
+		console.log(`🖥️  Instance ${instanceId} stdout: ${data.toString()}`);
 	});
 
 	// Log stderr
 	mcpProcess.stderr.on('data', data => {
-		console.error(`MCP ${instanceId} stderr: ${data.toString()}`);
+		console.error(`❌ Instance ${instanceId} stderr: ${data.toString()}`);
 	});
 
 	// Handle process exit
 	mcpProcess.on('exit', code => {
-		console.log(`MCP ${instanceId} exited with code ${code}`);
+		console.log(`🛑 Instance ${instanceId} exited with code ${code}`);
 		handleProcessExit(instanceId, code, activeProcesses);
 	});
 
 	// Handle process error
 	mcpProcess.on('error', error => {
-		console.error(`MCP ${instanceId} error:`, error);
+		console.error(`⚠️  Instance ${instanceId} error:`, error);
 		handleProcessError(instanceId, error, activeProcesses);
 	});
 }
@@ -49,7 +49,9 @@ export function handleProcessExit(instanceId, code, activeProcesses) {
 		activeProcesses.delete(instanceId);
 
 		// Log exit
-		console.log(`Process ${instanceId} exited with code ${code}, port ${processInfo.assignedPort} released`);
+		console.log(
+			`🔌 Instance ${instanceId} process exited with code ${code}, port ${processInfo.assignedPort} released`
+		);
 	}
 }
 
@@ -61,7 +63,7 @@ export function handleProcessExit(instanceId, code, activeProcesses) {
  * @returns {void}
  */
 export function handleProcessError(instanceId, error, activeProcesses) {
-	console.error(`Process ${instanceId} error:`, error);
+	console.error(`💥 Instance ${instanceId} process error:`, error);
 
 	// Clean up process
 	terminateProcess(instanceId, activeProcesses);
@@ -80,6 +82,8 @@ export async function terminateProcess(instanceId, activeProcesses) {
 	}
 
 	try {
+		console.log(`🛑 Terminating instance ${instanceId} (PID: ${processInfo.processId})`);
+
 		// Send SIGTERM for graceful shutdown
 		process.kill(processInfo.processId, 'SIGTERM');
 
@@ -87,6 +91,7 @@ export async function terminateProcess(instanceId, activeProcesses) {
 		setTimeout(() => {
 			if (activeProcesses.has(instanceId)) {
 				try {
+					console.log(`💀 Force killing instance ${instanceId} (PID: ${processInfo.processId})`);
 					process.kill(processInfo.processId, 'SIGKILL');
 				} catch {
 					// Process already terminated
@@ -96,7 +101,7 @@ export async function terminateProcess(instanceId, activeProcesses) {
 
 		return true;
 	} catch (error) {
-		console.error(`Failed to terminate process ${instanceId}:`, error);
+		console.error(`❌ Failed to terminate instance ${instanceId}:`, error);
 		return false;
 	}
 }

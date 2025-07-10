@@ -77,6 +77,23 @@ app.use('/api/v1/mcp-types', mcpTypesRoutes);
 app.use('/api/v1/api-keys', apiKeysRoutes);
 app.use('/api/v1/mcps', mcpInstancesRoutes);
 
+// Instance-based MCP routing: /:instanceId/mcp/:mcpType/*
+app.use('/:instanceId/mcp/:mcpType', (req, res) => {
+	const { instanceId, mcpType } = req.params;
+	console.log(`🔄 Instance routing request: ${instanceId}/mcp/${mcpType} from ${req.ip}`);
+
+	// Forward to appropriate MCP instance port
+	// This will be handled by the process manager to route to the correct instance
+	res.status(502).json({
+		error: {
+			code: 'INSTANCE_NOT_AVAILABLE',
+			message: `MCP instance ${instanceId} is not available or not running`,
+			instanceId,
+			mcpType,
+		},
+	});
+});
+
 // 404 handler
 app.use('*', (_req, res) => {
 	res.status(404).json({

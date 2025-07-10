@@ -16,7 +16,7 @@ export async function validateCredentials(req, res) {
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Invalid request parameters',
-					details: validationResult.error.errors.map((err) => ({
+					details: validationResult.error.errors.map(err => ({
 						field: err.path.join('.'),
 						message: err.message,
 					})),

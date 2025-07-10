@@ -22,7 +22,7 @@ Contains technical documentation for server-side components and architecture:
 - **[Security Architecture](./backend/security-architecture.md)** - Basic security measures and process isolation
 - **[Logging & Monitoring](./backend/logging-monitoring.md)** - File-based logging and monitoring strategy
 - **[MCP Integration Guide](./backend/mcp-integration-guide.md)** - **UPDATED 2025-07-10** - Current implementation of MCP server creation and management
-- **[MCP Duplication & Isolation](./backend/mcp-duplication-isolation.md)** - Simple MCP instance duplication
+- **[MCP Duplication & Isolation](./backend/mcp-duplication-isolation.md)** - **UPDATED 2025-07-10** - UUID-based instance isolation architecture
 
 ### Frontend Documentation (`/frontend/`)
 Contains documentation for client-side components and user interface:

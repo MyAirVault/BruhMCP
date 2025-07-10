@@ -38,8 +38,12 @@ export async function toggleMCP(req, res) {
 			});
 		}
 
+		console.log(`🔄 Toggling MCP instance ${id} for user ${userId} to ${is_active ? 'active' : 'inactive'}`);
+
 		// Update instance
 		await updateMCPInstance(id, { is_active });
+
+		console.log(`✅ MCP instance ${id} toggled successfully to ${is_active ? 'active' : 'inactive'}`);
 
 		res.json({
 			data: {

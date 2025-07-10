@@ -19,6 +19,10 @@ const getMCPIcon = (mcpType: string) => {
   switch (mcpType.toLowerCase()) {
     case 'gmail':
       return Mail;
+    case 'figma':
+      return Settings;
+    case 'github':
+      return Globe;
     case 'server':
     case 'production':
     case 'backup':
@@ -45,7 +49,7 @@ const MCPCard: React.FC<MCPCardProps> = ({
   dropdownItems,
   isLastItemInExpired = false
 }) => {
-  const IconComponent = getMCPIcon(mcp.email);
+  const IconComponent = getMCPIcon(mcp.mcpType || 'default');
   return (
     <div className="bg-white border-t border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-center justify-between">
@@ -56,7 +60,7 @@ const MCPCard: React.FC<MCPCardProps> = ({
             </Tooltip>
             <div className="flex items-center gap-2 mt-1">
               <IconComponent className="w-4 h-4 text-gray-400" />
-              <p className="text-sm text-gray-500">{mcp.email}</p>
+              <p className="text-sm text-gray-500">{mcp.mcpType || 'Unknown Type'}</p>
             </div>
           </div>
         </div>
