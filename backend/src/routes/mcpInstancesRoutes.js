@@ -6,6 +6,8 @@ import { toggleMCP } from '../controllers/mcpInstances/toggleMCP.js';
 import { deleteMCP } from '../controllers/mcpInstances/deleteMCP.js';
 import { renewMCP } from '../controllers/mcpInstances/renewMCP.js';
 import { editMCP } from '../controllers/mcpInstances/editMCP.js';
+import { getMCPLogs } from '../controllers/mcpInstances/getMCPLogs.js';
+import { exportMCPLogs } from '../controllers/mcpInstances/exportMCPLogs.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -33,5 +35,11 @@ router.put('/:id/edit', editMCP);
 
 // DELETE /api/v1/mcps/:id - Delete MCP instance
 router.delete('/:id', deleteMCP);
+
+// GET /api/v1/mcps/:id/logs - Get MCP instance logs
+router.get('/:id/logs', getMCPLogs);
+
+// POST /api/v1/mcps/:id/logs/export - Export MCP instance logs
+router.post('/:id/logs/export', exportMCPLogs);
 
 export default router;

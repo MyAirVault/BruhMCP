@@ -88,7 +88,7 @@ app.use('*', (_req, res) => {
 });
 
 // Global error handler
-//@ts-ignore
+// @ts-expect-error - Express error handler requires 4 parameters
 app.use((err, _req, res, _next) => {
 	console.error('Global error handler:', err);
 	res.status(500).json({

@@ -37,6 +37,7 @@ API versioning is included in the URL path. The current version is `v1`.
 All API endpoints require authentication except for health checks. Authentication uses JWT tokens stored in HTTP-only cookies.
 
 **Step 1: Request Magic Link**
+
 ```http
 POST /auth/request
 Content-Type: application/json
@@ -46,7 +47,27 @@ Content-Type: application/json
 }
 ```
 
+**Response (Production)**
+```json
+{
+  "success": true,
+  "message": "Magic link generated. Check console for link.",
+  "email": "user@example.com"
+}
+```
+
+**Response (Development - includes token for testing)**
+```json
+{
+  "success": true,
+  "message": "Magic link generated. Check console for link.",
+  "email": "user@example.com",
+  "token": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
 **Step 2: Verify Magic Link Token**
+
 ```http
 POST /auth/verify
 Content-Type: application/json
@@ -57,49 +78,54 @@ Content-Type: application/json
 ```
 
 **Authentication Details:**
-- JWT tokens stored as HTTP-only cookies
-- SameSite strict, secure in production  
-- 7-day expiry with automatic refresh
-- No Authorization header required - cookies included automatically
+
+-   JWT tokens stored as HTTP-only cookies
+-   SameSite strict, secure in production
+-   7-day expiry with automatic refresh
+-   No Authorization header required - cookies included automatically
 
 **Authenticated Requests**
+
 ```javascript
 fetch('/api/v1/api-keys/validate', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  credentials: 'include', // Include authentication cookies
-  body: JSON.stringify({ /* request data */ })
-})
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+	},
+	credentials: 'include', // Include authentication cookies
+	body: JSON.stringify({
+		/* request data */
+	}),
+});
 ```
 
 **Authentication Middleware Pattern:**
+
 ```javascript
 function requireAuth(req, res, next) {
-  const token = req.cookies.authToken; // JWT from HTTP-only cookie
-  
-  if (!token) {
-    return res.status(401).json({
-      error: {
-        code: 'AUTHENTICATION_REQUIRED',
-        message: 'Authentication required'
-      }
-    });
-  }
-  
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { userId: uuid, email: string }
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      error: {
-        code: 'INVALID_TOKEN', 
-        message: 'Invalid or expired token'
-      }
-    });
-  }
+	const token = req.cookies.authToken; // JWT from HTTP-only cookie
+
+	if (!token) {
+		return res.status(401).json({
+			error: {
+				code: 'AUTHENTICATION_REQUIRED',
+				message: 'Authentication required',
+			},
+		});
+	}
+
+	try {
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		req.user = decoded; // { userId: uuid, email: string }
+		next();
+	} catch (error) {
+		return res.status(401).json({
+			error: {
+				code: 'INVALID_TOKEN',
+				message: 'Invalid or expired token',
+			},
+		});
+	}
 }
 ```
 
@@ -112,8 +138,9 @@ X-MCP-Access-Token: <mcp_access_token>
 ```
 
 **Usage Context:**
-- **User Authentication**: JWT cookies (`authToken`) for API access
-- **MCP Instance Access**: MCP access tokens for direct MCP communication
+
+-   **User Authentication**: JWT cookies (`authToken`) for API access
+-   **MCP Instance Access**: MCP access tokens for direct MCP communication
 
 ## Common Headers
 
@@ -158,21 +185,21 @@ X-RateLimit-Reset: 1640995200
 
 ### Error Codes
 
-| Code                  | HTTP Status | Description                       |
-| --------------------- | ----------- | --------------------------------- |
-| `VALIDATION_ERROR`    | 400         | Invalid request parameters        |
-| `UNAUTHORIZED`        | 401         | Missing or invalid authentication |
-| `TOKEN_NOT_FOUND`     | 401         | Authentication token not found    |
-| `TOKEN_EXPIRED`       | 401         | Authentication token expired      |
-| `INSTANCE_LIMIT`      | 400         | Maximum instances per user reached - redirect to plans |
-| `FORBIDDEN`           | 403         | Insufficient permissions          |
-| `NOT_FOUND`           | 404         | Resource not found                |
-| `CONFLICT`            | 409         | Resource already exists           |
-| `RATE_LIMIT_EXCEEDED` | 429         | Too many requests                 |
-| `INTERNAL_ERROR`      | 500         | Server error                      |
-| `PORT_ALLOCATION_FAILED` | 500      | Port allocation failure - redirect to dashboard with error |
-| `PROCESS_CRASH`       | 500         | Process crash during API calls - redirect to dashboard with error |
-| `SERVICE_UNAVAILABLE` | 503         | Service temporarily unavailable   |
+| Code                     | HTTP Status | Description                                                       |
+| ------------------------ | ----------- | ----------------------------------------------------------------- |
+| `VALIDATION_ERROR`       | 400         | Invalid request parameters                                        |
+| `UNAUTHORIZED`           | 401         | Missing or invalid authentication                                 |
+| `TOKEN_NOT_FOUND`        | 401         | Authentication token not found                                    |
+| `TOKEN_EXPIRED`          | 401         | Authentication token expired                                      |
+| `INSTANCE_LIMIT`         | 400         | Maximum instances per user reached - redirect to plans            |
+| `FORBIDDEN`              | 403         | Insufficient permissions                                          |
+| `NOT_FOUND`              | 404         | Resource not found                                                |
+| `CONFLICT`               | 409         | Resource already exists                                           |
+| `RATE_LIMIT_EXCEEDED`    | 429         | Too many requests                                                 |
+| `INTERNAL_ERROR`         | 500         | Server error                                                      |
+| `PORT_ALLOCATION_FAILED` | 500         | Port allocation failure - redirect to dashboard with error        |
+| `PROCESS_CRASH`          | 500         | Process crash during API calls - redirect to dashboard with error |
+| `SERVICE_UNAVAILABLE`    | 503         | Service temporarily unavailable                                   |
 
 ## Rate Limiting
 
@@ -629,23 +656,22 @@ import { z } from 'zod';
 
 const credentialValidationSchema = z.object({
 	mcp_type_id: z.string().uuid('MCP type ID must be a valid UUID'),
-	credentials: z.record(z.string()).refine(
-		(creds) => Object.keys(creds).length > 0,
-		{ message: 'At least one credential is required' }
-	)
+	credentials: z
+		.record(z.string())
+		.refine(creds => Object.keys(creds).length > 0, { message: 'At least one credential is required' }),
 });
 
 // Specific credential schemas based on MCP type
 const gmailCredentialsSchema = z.object({
 	api_key: z.string().min(1, 'API key is required'),
 	client_secret: z.string().optional(),
-	client_id: z.string().optional()
+	client_id: z.string().optional(),
 });
 
 const oauthCredentialsSchema = z.object({
 	client_id: z.string().min(1, 'Client ID is required'),
 	client_secret: z.string().min(1, 'Client secret is required'),
-	refresh_token: z.string().optional()
+	refresh_token: z.string().optional(),
 });
 ```
 
@@ -756,32 +782,31 @@ export async function validateCredentials(req, res) {
 
 		// Test credentials with actual API
 		const testResult = await testAPICredentials(mcp_type_id, credentials);
-		
+
 		if (testResult.valid) {
 			return res.status(200).json({
 				data: {
 					valid: true,
 					message: 'Credentials validated successfully',
-					api_info: testResult.api_info
-				}
+					api_info: testResult.api_info,
+				},
 			});
 		} else {
 			return res.status(400).json({
 				error: {
 					code: testResult.error_code,
 					message: testResult.error_message,
-					details: testResult.details
-				}
+					details: testResult.details,
+				},
 			});
 		}
-
 	} catch (error) {
 		console.error('Credential validation error:', error);
 		return res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Internal server error during validation'
-			}
+				message: 'Internal server error during validation',
+			},
 		});
 	}
 }
@@ -907,64 +932,6 @@ Export logs for an MCP instance.
 
 ---
 
-### Settings
-
-#### GET /api/v1/settings
-
-Get user settings.
-
-**Response**
-
-```json
-{
-	"data": {
-		"user": {
-			"id": "550e8400-e29b-41d4-a716-446655440000",
-			"email": "user@example.com",
-			"name": "John Doe"
-		},
-		"preferences": {
-			"default_expiration_minutes": 60,
-			"notifications_enabled": true
-		},
-		"limits": {
-			"max_concurrent_mcps": 10,
-			"max_instances_per_user": 10,
-			"max_api_keys": 20
-		}
-	}
-}
-```
-
-#### PATCH /api/v1/settings
-
-Update user settings.
-
-**Request Body**
-
-```json
-{
-	"preferences": {
-		"default_expiration_minutes": 30,
-		"notifications_enabled": false
-	}
-}
-```
-
-**Response**
-
-```json
-{
-	"data": {
-		"message": "Settings updated successfully",
-		"preferences": {
-			"default_expiration_minutes": 30,
-			"notifications_enabled": false
-		}
-	}
-}
-```
-
 ## Examples
 
 ### Authentication Example
@@ -1088,7 +1055,7 @@ for i, project in enumerate(['Design System', 'Mobile App', 'Web App'], 1):
             }
         }
     )
-    
+
     mcp = response.json()['data']
     figma_instances.append(mcp)
     print(f"Instance {mcp['instance_number']} - {project}: {mcp['access_url']}")
@@ -1098,12 +1065,29 @@ print(f"Created {len(figma_instances)} Figma instances")
 
 ## API Changelog
 
-### v1.0.0 (2024-01-07)
+### v1.0.0 (2025-07-10) - Implementation Complete
 
--   Initial API release
--   MCP instance management
--   Log aggregation
--   HTTP polling for status updates
+**Implemented Features:**
+-   ✅ Authentication endpoints (`/auth/request`, `/auth/verify`, `/auth/me`, `/auth/logout`)
+-   ✅ MCP Types endpoints (`/api/v1/mcp-types`, `/api/v1/mcp-types/:name`)
+-   ✅ MCP Instances endpoints (create, list, get, renew, toggle, edit, delete)
+-   ✅ API Keys endpoints (store, validate, list, delete)
+-   ✅ Logs endpoints (`/api/v1/mcps/:id/logs`, `/api/v1/mcps/:id/logs/export`)
+-   ✅ Health check endpoints (`/health`, `/api/v1/health`)
+
+**Development Features:**
+-   ✅ Development mode includes auth tokens in response for testing
+-   ✅ File-based logging system with user isolation
+-   ✅ Log export in JSON, CSV, and TXT formats
+-   ✅ Magic link authentication with JWT cookies
+-   ✅ Comprehensive error handling and validation
+
+**Technical Implementation:**
+-   ✅ PostgreSQL database with migrations
+-   ✅ Zod validation schemas
+-   ✅ Express.js with TypeScript JSDoc support
+-   ✅ Cookie-based authentication
+-   ✅ Rate limiting and security middleware
 
 ## Next Steps
 

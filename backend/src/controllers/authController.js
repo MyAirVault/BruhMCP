@@ -64,11 +64,18 @@ export async function requestToken(req, res) {
 		console.log(`\n🔗 Magic link for ${email}: ${magicLink}\n`);
 
 		// Return success response
-		return res.status(200).json({
+		const response = {
 			success: true,
 			message: 'Magic link generated. Check console for link.',
 			email: email,
-		});
+		};
+
+		// In development mode, also include the token for testing
+		if (process.env.NODE_ENV !== 'production') {
+			response.token = result.token;
+		}
+
+		return res.status(200).json(response);
 	} catch (error) {
 		console.error('Error in requestToken:', error);
 		return res.status(500).json({
@@ -186,7 +193,7 @@ export async function getCurrentUser(req, res) {
 export async function logout(_req, res) {
 	try {
 		// Clear the authentication cookie
-		res.clearCookie('auth_token', {
+		res.clearCookie('authToken', {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'strict',

@@ -1,4 +1,4 @@
-import axios from 'axios';
+// @ts-check
 
 /**
  * Test API credentials against the actual API
@@ -6,7 +6,7 @@ import axios from 'axios';
  * @param {Object} credentials - Credentials to test
  * @returns {Promise<Object>} Validation result
  */
-export async function testAPICredentials(mcpTypeId, credentials) {
+export async function testAPICredentials(_mcpTypeId, credentials) {
 	try {
 		// For now, we'll implement basic validation
 		// In a real implementation, this would make actual API calls
@@ -102,7 +102,7 @@ export async function testAPICredentials(mcpTypeId, credentials) {
  * @param {string} mcpTypeId - MCP type ID
  * @returns {Object} Credential schema
  */
-export function getCredentialSchemaByType(mcpTypeId) {
+export function getCredentialSchemaByType(_mcpTypeId) {
 	// This would normally be fetched from the database
 	// For now, we'll return a basic schema
 	return {

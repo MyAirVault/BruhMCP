@@ -4,11 +4,11 @@
  * @param {Object} credentials - Credentials to test
  * @returns {Promise<Object>} Validation result
  */
-export function testAPICredentials(mcpTypeId: string, credentials: Object): Promise<Object>;
+export function testAPICredentials(mcpTypeId: string, credentials: object): Promise<object>;
 /**
  * Get credential schema by MCP type ID
  * @param {string} mcpTypeId - MCP type ID
  * @returns {Object} Credential schema
  */
-export function getCredentialSchemaByType(mcpTypeId: string): Object;
+export function getCredentialSchemaByType(mcpTypeId: string): object;
 //# sourceMappingURL=credentialValidationService.d.ts.map

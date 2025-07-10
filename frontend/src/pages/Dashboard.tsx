@@ -222,7 +222,7 @@ const Dashboard: React.FC = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentSection, selectedMCPIndex, activeMCPs.length, inactiveMCPs.length, expiredMCPs.length]);
+  }, [currentSection, selectedMCPIndex, activeMCPs, inactiveMCPs, expiredMCPs, closeDropdowns]);
 
   if (isLoading || isLoadingMCPs) {
     return (

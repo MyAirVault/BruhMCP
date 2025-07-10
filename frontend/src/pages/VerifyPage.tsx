@@ -11,60 +11,60 @@ export default function VerifyPage() {
   const navigate = useNavigate();
   const [state, setState] = useState<VerificationState>({ status: 'loading' });
 
-  const verifyToken = async (token: string) => {
-    try {
-      const response = await fetch('/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important for cookies
-        body: JSON.stringify({ token })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setState({
-          status: 'success',
-          message: 'Authentication successful!'
+  useEffect(() => {
+    const verifyToken = async (token: string) => {
+      try {
+        const response = await fetch('/auth/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Important for cookies
+          body: JSON.stringify({ token })
         });
-        // Redirect to dashboard after successful verification
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
-      } else {
+
+        const data = await response.json();
+
+        if (data.success) {
+          setState({
+            status: 'success',
+            message: 'Authentication successful!'
+          });
+          // Redirect to dashboard after successful verification
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1500);
+        } else {
+          setState({
+            status: 'error',
+            message: data.error?.message || 'Verification failed'
+          });
+        }
+      } catch (error) {
+        // Check if user is actually authenticated despite error
+        try {
+          const authCheck = await fetch('/auth/me', {
+            method: 'GET',
+            credentials: 'include',
+          });
+
+          if (authCheck.ok) {
+            // User is authenticated, redirect to dashboard
+            navigate('/dashboard');
+            return;
+          }
+        } catch {
+          // Auth check failed, show original error
+        }
+
         setState({
           status: 'error',
-          message: data.error?.message || 'Verification failed'
+          message: 'Network error occurred'
         });
+        console.error('Verification error:', error);
       }
-    } catch (error) {
-      // Check if user is actually authenticated despite error
-      try {
-        const authCheck = await fetch('/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-        });
+    };
 
-        if (authCheck.ok) {
-          // User is authenticated, redirect to dashboard
-          navigate('/dashboard');
-          return;
-        }
-      } catch {
-        // Auth check failed, show original error
-      }
-
-      setState({
-        status: 'error',
-        message: 'Network error occurred'
-      });
-      console.error('Verification error:', error);
-    }
-  };
-
-  useEffect(() => {
     // Check if user is already authenticated first
     const checkAuth = async () => {
       try {
