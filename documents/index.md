@@ -1,87 +1,95 @@
-# Documents Index
+# MiniMCP Documentation Index
 
-This file contains brief descriptions of all documents in the documents/ folder.
+This file provides a comprehensive overview of all documentation in the MiniMCP project.
 
-## Available Documents
+## Project Overview
 
-### Architecture & Design
-- **[backend-architecture.md](./backend-architecture.md)** - **Simplified Node.js process-based architecture** with file-based logging and basic process management (no Docker/PM2 complexity)
-- **[database-schema.md](./database-schema.md)** - **Minimal database schema** with core tables only, file-based logging, and simple port management (no complex audit tables)
-- **[security-architecture.md](./security-architecture.md)** - **Basic security measures** focused on process isolation and file-based logging (no enterprise complexity)
+MiniMCP is a full-stack web application featuring:
+- **Frontend**: Vite + TypeScript + React + Tailwind CSS
+- **Backend**: Express + JSDoc with TypeScript compiler
+- **Database**: PostgreSQL
 
-### API & Integration
-- **[api-documentation.md](./api-documentation.md)** - Complete REST API specification with direct URL endpoints, simplified access, error handling, and examples
-- **[mcp-integration-guide.md](./mcp-integration-guide.md)** - **Simple Node.js process management** guide with server scripts, basic lifecycle, and adding new MCP types (no Docker complexity)
-- **[how-to-create-mcp-servers-simple.md](./how-to-create-mcp-servers-simple.md)** - **Comprehensive step-by-step guide** for creating MCP servers from any API documentation using the planned Node.js process-based architecture (implementation required)
-- **[authentication-flow.md](./authentication-flow.md)** - **Magic link authentication with JWT cookies** - UUID-based magic links with React frontend integration, PostgreSQL user storage, and enhanced VerifyPage with fallback auth checks
-- **[mcp-duplication-isolation.md](./mcp-duplication-isolation.md)** - **Simple MCP instance duplication** allowing multiple instances per user with basic process isolation (aligned with existing architecture)
+## Documentation Structure
 
-### Frontend Components
-- **[frontend/](./frontend/)** - Frontend component documentation and implementation guides
-  - **[frontend/verify-page.md](./frontend/verify-page.md)** - Magic link verification page documentation
-  - **[frontend/credential-validation-modals.md](./frontend/credential-validation-modals.md)** - **Credential validation UI flow** for API key testing and error handling in MCP creation modals
+### Backend Documentation (`/backend/`)
+Contains technical documentation for server-side components and architecture:
 
-### Implementation & Operations
-- **[logging-monitoring.md](./logging-monitoring.md)** - **File-based logging and monitoring** strategy with complete user/MCP isolation using simple file system approach (no Prometheus/Grafana complexity)
+- **[Backend Index](./backend/index.md)** - Complete overview of backend documentation
+- **[Backend Architecture](./backend/backend-architecture.md)** - Simplified Node.js process-based architecture
+- **[Database Schema](./backend/database-schema.md)** - Minimal database schema with core tables
+- **[API Documentation](./backend/api-documentation.md)** - Complete REST API specification
+- **[Authentication Flow](./backend/authentication-flow.md)** - Magic link authentication with JWT cookies
+- **[Security Architecture](./backend/security-architecture.md)** - Basic security measures and process isolation
+- **[Logging & Monitoring](./backend/logging-monitoring.md)** - File-based logging and monitoring strategy
+- **[MCP Integration Guide](./backend/mcp-integration-guide.md)** - Simple Node.js process management guide
+- **[MCP Duplication & Isolation](./backend/mcp-duplication-isolation.md)** - Simple MCP instance duplication
+
+### Frontend Documentation (`/frontend/`)
+Contains documentation for client-side components and user interface:
+
+- **[Frontend Index](./frontend/index.md)** - Complete overview of frontend documentation
+- **[Login Page](./frontend/login-page.md)** - Main login page with email input and magic link request
+- **[Verify Page](./frontend/verify-page.md)** - Magic link verification page handling
+- **[Dashboard Page](./frontend/dashboard-page.md)** - Protected dashboard page with logout functionality
+- **[Logs Page](./frontend/logs-page.md)** - Logs viewing page with filtering and export capabilities
+- **[Magic Link Popup](./frontend/magic-link-popup.md)** - Popup component with polling-based authentication
+- **[Credential Validation Modals](./frontend/credential-validation-modals.md)** - Credential validation UI flow
+- **[Frontend Enhancements](./frontend/frontend-enhancements.md)** - Latest UI/UX improvements
+
+### Standalone Documentation
+- **[How to Create MCP Servers](./how-to-create-mcp-servers-simple.md)** - Comprehensive step-by-step guide for creating MCP servers from any API documentation
+
+## Quick Start Guide
+
+### For New Developers
+1. Start with [Backend Architecture](./backend/backend-architecture.md) for system overview
+2. Review [Database Schema](./backend/database-schema.md) for data structure
+3. Check [API Documentation](./backend/api-documentation.md) for endpoint details
+4. Review [Authentication Flow](./backend/authentication-flow.md) for login implementation
+5. Study [Frontend Index](./frontend/index.md) for UI component structure
+
+### For API Integration
+1. Follow [MCP Server Creation Guide](./how-to-create-mcp-servers-simple.md) for step-by-step process
+2. Review [MCP Integration Guide](./backend/mcp-integration-guide.md) for implementation details
+3. Check [API Documentation](./backend/api-documentation.md) for endpoint specifications
+
+### For Security & Operations
+1. Study [Security Architecture](./backend/security-architecture.md) for security measures
+2. Review [Logging & Monitoring](./backend/logging-monitoring.md) for observability setup
+3. Check [MCP Duplication & Isolation](./backend/mcp-duplication-isolation.md) for multi-instance management
 
 ## Document Categories
 
-- **Architecture**: System design and architectural decisions
-  - backend-architecture.md
-  - database-schema.md
-  - security-architecture.md
+### Architecture & Design
+- Backend Architecture
+- Database Schema
+- Security Architecture
+- Frontend Structure
 
-- **API**: API documentation and endpoints
-  - api-documentation.md
-  - authentication-flow.md
+### API & Integration
+- API Documentation
+- Authentication Flow
+- MCP Integration Guide
+- MCP Server Creation Guide
 
-- **Database**: Database schema and migration guides
-  - database-schema.md
+### User Interface
+- Login & Authentication Pages
+- Dashboard & Profile Pages
+- Logs & Monitoring Pages
+- UI Components & Enhancements
 
-- **Setup**: Installation and configuration guides
-  - (Configuration handled via CLAUDE.md)
+### Operations & Monitoring
+- Logging & Monitoring
+- Security Measures
+- Process Management
 
-- **Development**: Development workflows and best practices
-  - mcp-integration-guide.md
-  - how-to-create-mcp-servers-simple.md
-  - mcp-duplication-isolation.md
-  - logging-monitoring.md
+## Development Workflow
 
-## Quick Reference
-
-### For Developers
-1. Start with [Backend Architecture](./backend-architecture.md) for **simplified Node.js process-based system** overview
-2. Review [Database Schema](./database-schema.md) for **minimal core tables** and file-based logging approach
-3. Check [API Documentation](./api-documentation.md) for direct URL endpoint details
-4. Review [Authentication Flow](./authentication-flow.md) for **magic link authentication with JWT cookies** implementation
-5. Follow [MCP Server Creation Guide](./how-to-create-mcp-servers-simple.md) for **step-by-step API integration** process
-6. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP management** approach
-7. Review [Credential Validation Modals](./frontend/credential-validation-modals.md) for **credential testing UI flow** implementation
-
-### For DevOps/SRE
-1. Study [Security Architecture](./security-architecture.md) for **basic process isolation** security measures
-2. Review [Logging & Monitoring](./logging-monitoring.md) for **file-based observability** setup (no complex infrastructure)
-
-### For Product Teams
-1. Review [API Documentation](./api-documentation.md) for simplified MCP access capabilities
-2. Check [Authentication Flow](./authentication-flow.md) for **magic link authentication with JWT cookies** process
-3. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP capabilities**
-4. Check [MCP Integration Guide](./mcp-integration-guide.md) for **simple Node.js process-based** integrations
-
-## Document Dependencies
-
-```
-backend-architecture.md (foundational)
-├── database-schema.md
-├── api-documentation.md
-├── authentication-flow.md
-├── mcp-duplication-isolation.md
-├── security-architecture.md
-└── logging-monitoring.md
-
-mcp-integration-guide.md (**Simple Node.js process management** implementation details)
-├── how-to-create-mcp-servers-simple.md (**Step-by-step API integration** guide)
-```
+1. **Setup**: Follow project setup instructions in CLAUDE.md
+2. **Architecture**: Understand system design through backend/frontend indexes
+3. **Implementation**: Use API documentation and integration guides
+4. **Testing**: Follow testing guidelines in component documentation
+5. **Deployment**: Review security and monitoring documentation
 
 ## Maintenance
 
@@ -91,5 +99,6 @@ These documents should be updated when:
 - Security requirements change
 - API endpoints are modified
 - Database schema evolves
+- UI components are enhanced
 
-Last updated: 2025-07-09
+Last updated: 2025-07-10
