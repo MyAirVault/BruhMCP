@@ -11,4 +11,5 @@ export {
 	getNextInstanceNumber,
 	generateUniqueAccessToken,
 	countUserMCPInstances,
+	getAllActiveInstancePorts,
 } from '../mcp-instances/instance-utilities.js';

@@ -18,7 +18,8 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     handleCredentialChange,
     handleTypeSelect,
     handleSubmit,
-    isFormValid
+    isFormValid,
+    retryValidation
   } = useCreateMCPForm({ isOpen, onClose, onSubmit });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
@@ -148,6 +149,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               onCredentialChange={handleCredentialChange}
               onInputChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              onRetryValidation={retryValidation}
             />
 
             <FormField label="Expiration Time" required>

@@ -78,6 +78,7 @@ export function handleProcessError(instanceId, error, activeProcesses) {
 export async function terminateProcess(instanceId, activeProcesses) {
 	const processInfo = activeProcesses.get(instanceId);
 	if (!processInfo) {
+		console.log(`⚠️  Process ${instanceId} not found in active processes`);
 		return false;
 	}
 
@@ -88,20 +89,33 @@ export async function terminateProcess(instanceId, activeProcesses) {
 		process.kill(processInfo.processId, 'SIGTERM');
 
 		// Wait for graceful shutdown, then force kill if needed
-		setTimeout(() => {
+		const forceKillTimeout = setTimeout(() => {
 			if (activeProcesses.has(instanceId)) {
 				try {
 					console.log(`💀 Force killing instance ${instanceId} (PID: ${processInfo.processId})`);
 					process.kill(processInfo.processId, 'SIGKILL');
+					// Manually trigger cleanup if process doesn't exit gracefully
+					handleProcessExit(instanceId, -1, activeProcesses);
 				} catch {
-					// Process already terminated
+					// Process already terminated, still ensure cleanup
+					handleProcessExit(instanceId, -1, activeProcesses);
 				}
 			}
-		}, 10000);
+		}, 5000); // Reduced timeout to 5 seconds
+
+		// Set up cleanup to clear timeout if process exits gracefully
+		const originalProcessInfo = activeProcesses.get(instanceId);
+		if (originalProcessInfo && originalProcessInfo.process) {
+			originalProcessInfo.process.once('exit', () => {
+				clearTimeout(forceKillTimeout);
+			});
+		}
 
 		return true;
 	} catch (error) {
 		console.error(`❌ Failed to terminate instance ${instanceId}:`, error);
+		// Ensure cleanup even if termination fails
+		handleProcessExit(instanceId, -1, activeProcesses);
 		return false;
 	}
 }

@@ -12,7 +12,11 @@
     "export": "tsc --emitDeclarationOnly true --noEmitOnError",
     "lint": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:migrate": "node src/db/migrate.js"
+    "db:migrate": "node src/db/migrate.js",
+    "verify": "node tests/verification/verification-runner.js",
+    "verify:port": "node -e \"import('./tests/verification/port-management.test.js').then(m => new m.default().runAllTests())\"",
+    "verify:cleanup": "node -e \"import('./tests/verification/cleanup.test.js').then(m => new m.default().runAllTests())\"",
+    "verify:duplicates": "node -e \"import('./tests/verification/duplicate-services.test.js').then(m => new m.default().runAllTests())\""
   },
   "keywords": [],
   "author": "",

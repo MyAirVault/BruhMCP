@@ -21,7 +21,7 @@ export async function createProcess(config) {
 
 	try {
 		// Get available port
-		const assignedPort = portManager.getAvailablePort();
+		const assignedPort = await portManager.getAvailablePort();
 
 		// Prepare environment variables
 		const env = {
@@ -73,6 +73,10 @@ export async function createProcess(config) {
 		};
 	} catch (error) {
 		console.error('Failed to create MCP process:', error);
+		// Release port if it was allocated
+		if (assignedPort) {
+			portManager.releasePort(assignedPort);
+		}
 		throw error;
 	}
 }

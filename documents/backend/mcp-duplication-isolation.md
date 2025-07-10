@@ -34,7 +34,7 @@ Users can create multiple instances of the same MCP type (e.g., 2 Gmail MCPs) th
   - `localhost:3000/550e8400-e29b-41d4-a716-446655440000/mcp/figma`
   - `localhost:3000/6ba7b810-9dad-11d1-80b4-00c04fd430c8/mcp/gmail`
 - Each instance is completely isolated from others
-- Port allocation: Uses expanded port range 3001-4000 for individual MCP servers
+- Port allocation: Uses dynamic port range 49160-49999 for individual MCP servers
 
 ## File System Isolation
 

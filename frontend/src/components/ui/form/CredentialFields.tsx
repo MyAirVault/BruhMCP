@@ -12,6 +12,7 @@ interface CredentialFieldsProps {
   onCredentialChange: (credentialName: string, value: string) => void;
   onInputChange: (field: keyof CreateMCPFormData, value: string) => void;
   onKeyDown?: (e: React.KeyboardEvent) => void;
+  onRetryValidation?: () => void;
 }
 
 /**
@@ -24,7 +25,8 @@ const CredentialFields: React.FC<CredentialFieldsProps> = ({
   validationState,
   onCredentialChange,
   onInputChange,
-  onKeyDown
+  onKeyDown,
+  onRetryValidation
 }) => {
   // Check if credentials are required for the selected MCP type
   const requiresCredentials = selectedMcpType && selectedMcpType.required_fields && selectedMcpType.required_fields.length > 0;
@@ -97,7 +99,7 @@ const CredentialFields: React.FC<CredentialFieldsProps> = ({
       
       {/* Validation feedback */}
       <div className="mt-3">
-        <ValidationFeedback validationState={validationState} />
+        <ValidationFeedback validationState={validationState} onRetryValidation={onRetryValidation} />
       </div>
       
       <p className="text-xs text-gray-500 mt-2">

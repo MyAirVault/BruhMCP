@@ -17,6 +17,8 @@ export interface ValidationState {
     quota_remaining?: number;
     permissions?: string[];
   } | null;
+  failureCount: number;
+  lastFailedCredentials: string | null; // Hash of credentials that last failed
 }
 
 export interface DropdownPosition {

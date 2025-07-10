@@ -58,3 +58,20 @@ export async function countUserMCPInstances(userId) {
 	const result = await pool.query(query, [userId]);
 	return result.rows[0];
 }
+
+/**
+ * Get all active instance ports for port manager synchronization
+ * @returns {Promise<Array<number>>} Array of active ports
+ */
+export async function getAllActiveInstancePorts() {
+	const query = `
+    SELECT assigned_port 
+    FROM mcp_instances 
+    WHERE assigned_port IS NOT NULL 
+      AND status = 'active' 
+      AND is_active = true
+  `;
+
+	const result = await pool.query(query);
+	return result.rows.map(row => row.assigned_port).filter(port => port !== null);
+}

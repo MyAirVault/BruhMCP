@@ -1,28 +1,59 @@
 /**
- * Simple port management service
+ * Enhanced port management service with database synchronization
  */
 class PortManager {
 	constructor() {
 		this.usedPorts = new Set();
 		this.portRange = {
-			start: parseInt(process.env.PORT_RANGE_START || '3001'),
-			end: parseInt(process.env.PORT_RANGE_END || '3100'),
+			start: parseInt(process.env.PORT_RANGE_START || '49160'),
+			end: parseInt(process.env.PORT_RANGE_END || '49999'),
 		};
+		this.initialized = false;
+	}
+
+	/**
+	 * Initialize port manager by syncing with database
+	 */
+	async initialize() {
+		if (this.initialized) return;
+		
+		try {
+			const { getAllActiveInstancePorts } = await import('../db/queries/mcpInstancesQueries.js');
+			const activePorts = await getAllActiveInstancePorts();
+			
+			// Clear and sync with database
+			this.usedPorts.clear();
+			activePorts.forEach(port => {
+				if (port && port >= this.portRange.start && port <= this.portRange.end) {
+					this.usedPorts.add(port);
+				}
+			});
+			
+			console.log(`🔧 Port manager initialized with ${this.usedPorts.size} active ports from database`);
+			this.initialized = true;
+		} catch (error) {
+			console.error('❌ Failed to initialize port manager:', error);
+			// Continue with empty set if database sync fails
+			this.initialized = true;
+		}
 	}
 
 	/**
 	 * Get an available port
-	 * @returns {number} Available port number
+	 * @returns {Promise<number>} Available port number
 	 * @throws {Error} If no ports are available
 	 */
-	getAvailablePort() {
+	async getAvailablePort() {
+		await this.initialize();
+		
 		for (let port = this.portRange.start; port <= this.portRange.end; port++) {
 			if (!this.usedPorts.has(port)) {
 				this.usedPorts.add(port);
+				console.log(`🔌 Allocated port ${port} (${this.usedPorts.size}/${this.portRange.end - this.portRange.start + 1} used)`);
 				return port;
 			}
 		}
-		throw new Error('No available ports in range');
+		throw new Error(`No available ports in range ${this.portRange.start}-${this.portRange.end}`);
 	}
 
 	/**
@@ -30,7 +61,10 @@ class PortManager {
 	 * @param {number} port - Port number to release
 	 */
 	releasePort(port) {
-		this.usedPorts.delete(port);
+		if (this.usedPorts.has(port)) {
+			this.usedPorts.delete(port);
+			console.log(`🔌 Released port ${port} (${this.usedPorts.size}/${this.portRange.end - this.portRange.start + 1} used)`);
+		}
 	}
 
 	/**

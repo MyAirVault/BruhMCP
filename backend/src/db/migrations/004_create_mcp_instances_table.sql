@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS mcp_instances (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_status CHECK (status IN ('active', 'inactive', 'expired')),
     CONSTRAINT check_expiration_option CHECK (expiration_option IN ('never', '1h', '6h', '1day', '30days')),
-    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 3001 AND 4000), -- Accommodates formula: 3001 + (userId * 10) + instanceNum
+    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 49160 AND 49999), -- Dynamic port range for MCP servers
     CONSTRAINT unique_user_mcp_instance UNIQUE (user_id, mcp_type_id, instance_number),
     CONSTRAINT check_max_instances_per_user CHECK (instance_number <= 10)
 );

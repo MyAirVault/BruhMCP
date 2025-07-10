@@ -63,13 +63,9 @@ export async function createMCP(req, res) {
 			});
 		}
 
-		// Get or create API key
-		let apiKey = await getAPIKeyByUserAndType(userId, mcpType.id);
-		if (!apiKey) {
-			// Store credentials as API key
-			const { storeAPIKey } = await import('../../../db/queries/apiKeysQueries.js');
-			apiKey = await storeAPIKey(userId, mcpType.id, credentials);
-		}
+		// Store credentials as API key (allow multiple credentials for multiple instances)
+		const { storeAPIKey } = await import('../../../db/queries/apiKeysQueries.js');
+		const apiKey = await storeAPIKey(userId, mcpType.id, credentials);
 
 		// Generate unique access token
 		const accessToken = await generateUniqueAccessToken();
