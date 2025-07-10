@@ -14,7 +14,7 @@ const MagicLinkPopup: React.FC<MagicLinkPopupProps> = ({ email, onClose }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch('/auth/me', {
           method: 'GET',
           credentials: 'include',
         });

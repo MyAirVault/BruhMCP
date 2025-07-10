@@ -4,6 +4,8 @@ import Layout from '../components/Layout';
 import CustomDropdown from '../components/CustomDropdown';
 import { useAuth } from '../hooks/useAuth';
 import { Download, Filter, Search, RefreshCw, ArrowLeft, FileText, Activity, AlertCircle, Info, Bug, Server, Database, Globe } from 'lucide-react';
+import { apiService } from '../services/apiService';
+import type { MCPLog } from '../types';
 
 interface LogEntry {
   id: string;
@@ -102,8 +104,8 @@ const Logs: React.FC = () => {
   const { userName, isLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
+  const [logs, setLogs] = useState<MCPLog[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<MCPLog[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
@@ -148,22 +150,45 @@ const Logs: React.FC = () => {
   };
 
   useEffect(() => {
-    // Simulate API call
     const loadLogs = async () => {
       setIsLoadingLogs(true);
-      // In real implementation, this would be an API call
-      setTimeout(() => {
-        let logsToShow = mockLogs;
-        
-        // Filter logs by specific MCP if provided
-        if (isSpecificMCP) {
-          logsToShow = mockLogs.filter(log => log.mcpId === mcpId);
+      
+      try {
+        if (isSpecificMCP && mcpId) {
+          // Load logs for specific MCP
+          const mcpLogs = await apiService.getMCPLogs(mcpId);
+          setLogs(mcpLogs);
+          setFilteredLogs(mcpLogs);
+        } else {
+          // For now, we'll use mock data for all logs since the API doesn't have an "all logs" endpoint
+          // In a real implementation, you might have a separate endpoint for all logs
+          const allLogs = mockLogs.map(log => ({
+            id: log.id,
+            timestamp: log.timestamp,
+            level: log.level,
+            source: log.source,
+            message: log.message,
+            metadata: log.details
+          }));
+          setLogs(allLogs);
+          setFilteredLogs(allLogs);
         }
-        
-        setLogs(logsToShow);
-        setFilteredLogs(logsToShow);
+      } catch (error) {
+        console.error('Failed to load logs:', error);
+        // Fallback to mock data
+        const fallbackLogs = mockLogs.map(log => ({
+          id: log.id,
+          timestamp: log.timestamp,
+          level: log.level,
+          source: log.source,
+          message: log.message,
+          metadata: log.details
+        }));
+        setLogs(fallbackLogs);
+        setFilteredLogs(fallbackLogs);
+      } finally {
         setIsLoadingLogs(false);
-      }, 1000);
+      }
     };
 
     loadLogs();
@@ -176,7 +201,7 @@ const Logs: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(log => 
         log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.mcpName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
         log.level.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -217,32 +242,91 @@ const Logs: React.FC = () => {
     setFilteredLogs(filtered);
   }, [logs, searchTerm, levelFilter, sourceFilter, timeFilter]);
 
-  const handleExportLogs = () => {
-    const dataStr = JSON.stringify(filteredLogs, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `logs_${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+  const handleExportLogs = async () => {
+    try {
+      if (isSpecificMCP && mcpId) {
+        // Use API export for specific MCP
+        const exportData = await apiService.exportMCPLogs(mcpId, {
+          format: 'json',
+          start_time: timeFilter !== 'all' ? getTimeFilterDate(timeFilter) : undefined,
+          end_time: new Date().toISOString()
+        });
+        
+        // Download the file from the provided URL
+        const link = document.createElement('a');
+        link.href = exportData.download_url;
+        link.download = `logs_${mcpId}_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+      } else {
+        // Fallback to local export for all logs
+        const dataStr = JSON.stringify(filteredLogs, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `logs_${new Date().toISOString().split('T')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+      }
+    } catch (error) {
+      console.error('Failed to export logs:', error);
+      // Fallback to local export
+      const dataStr = JSON.stringify(filteredLogs, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `logs_${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    }
   };
 
-  const handleRefreshLogs = () => {
+  const getTimeFilterDate = (filter: string): string => {
+    const now = new Date();
+    switch (filter) {
+      case '1hour':
+        return new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+      case '1day':
+        return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+      case '1week':
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      case '1month':
+        return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      default:
+        return new Date(0).toISOString();
+    }
+  };
+
+  const handleRefreshLogs = async () => {
     setIsLoadingLogs(true);
-    // In real implementation, this would refresh from API
-    setTimeout(() => {
-      let logsToShow = [...mockLogs];
-      
-      // Filter logs by specific MCP if provided
-      if (isSpecificMCP) {
-        logsToShow = logsToShow.filter(log => log.mcpId === mcpId);
+    
+    try {
+      if (isSpecificMCP && mcpId) {
+        // Refresh logs for specific MCP
+        const mcpLogs = await apiService.getMCPLogs(mcpId);
+        setLogs(mcpLogs);
+        setFilteredLogs(mcpLogs);
+      } else {
+        // Refresh all logs (using mock data for now)
+        const allLogs = mockLogs.map(log => ({
+          id: log.id,
+          timestamp: log.timestamp,
+          level: log.level,
+          source: log.source,
+          message: log.message,
+          metadata: log.details
+        }));
+        setLogs(allLogs);
+        setFilteredLogs(allLogs);
       }
-      
-      setLogs(logsToShow);
+    } catch (error) {
+      console.error('Failed to refresh logs:', error);
+    } finally {
       setIsLoadingLogs(false);
-    }, 500);
+    }
   };
 
   const getLevelColor = (level: string) => {
@@ -480,10 +564,10 @@ const Logs: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 xl:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {log.mcpName ? (
+                            {isSpecificMCP && mcpName ? (
                               <div className="flex items-center space-x-2">
-                                {React.createElement(getMCPIcon(log.mcpName), { className: "w-4 h-4 text-gray-600" })}
-                                <span>{log.mcpName}</span>
+                                {React.createElement(getMCPIcon(mcpName), { className: "w-4 h-4 text-gray-600" })}
+                                <span>{mcpName}</span>
                               </div>
                             ) : (
                               '-'
@@ -493,13 +577,13 @@ const Logs: React.FC = () => {
                             <div className="max-w-xs xl:max-w-md truncate" title={log.message}>
                               {log.message}
                             </div>
-                            {log.details && (
+                            {log.metadata && (
                               <details className="mt-2">
                                 <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
                                   Show details
                                 </summary>
                                 <pre className="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded overflow-x-auto">
-                                  {JSON.stringify(log.details, null, 2)}
+                                  {JSON.stringify(log.metadata, null, 2)}
                                 </pre>
                               </details>
                             )}
@@ -535,10 +619,10 @@ const Logs: React.FC = () => {
                           {React.createElement(getSourceIcon(log.source), { className: "w-4 h-4 text-gray-600" })}
                           <span className="text-sm text-gray-700">{log.source}</span>
                         </div>
-                        {log.mcpName && (
+                        {isSpecificMCP && mcpName && (
                           <div className="flex items-center space-x-2">
-                            {React.createElement(getMCPIcon(log.mcpName), { className: "w-4 h-4 text-gray-600" })}
-                            <span className="text-sm text-gray-700 truncate max-w-[120px]">{log.mcpName}</span>
+                            {React.createElement(getMCPIcon(mcpName), { className: "w-4 h-4 text-gray-600" })}
+                            <span className="text-sm text-gray-700 truncate max-w-[120px]">{mcpName}</span>
                           </div>
                         )}
                       </div>
@@ -547,13 +631,13 @@ const Logs: React.FC = () => {
                         {log.message}
                       </div>
                       
-                      {log.details && (
+                      {log.metadata && (
                         <details className="mt-2">
                           <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
                             Show details
                           </summary>
                           <pre className="mt-2 text-xs text-gray-600 bg-white p-2 rounded overflow-x-auto">
-                            {JSON.stringify(log.details, null, 2)}
+                            {JSON.stringify(log.metadata, null, 2)}
                           </pre>
                         </details>
                       )}

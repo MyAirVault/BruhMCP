@@ -7,12 +7,12 @@ import EditMCPModal from '../components/EditMCPModal';
 import CopyURLModal from '../components/CopyURLModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import Tooltip from '../components/Tooltip';
-import { Zap, FileText } from 'lucide-react';
+import { Zap, FileText, Rocket, ArrowRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useDropdown } from '../hooks/useDropdown';
-import { mockMCPs, filterMCPsByStatus } from '../utils/mcpHelpers';
 import { getDropdownItems } from '../utils/dropdownHelpers';
-import { type MCPItem } from '../types';
+import { type MCPItem, type MCPInstance } from '../types';
+import { apiService } from '../services/apiService';
 
 const Dashboard: React.FC = () => {
   const { userName, isLoading } = useAuth();
@@ -29,6 +29,8 @@ const Dashboard: React.FC = () => {
   });
   const [currentSection, setCurrentSection] = useState<'active' | 'inactive' | 'expired' | null>(null);
   const [selectedMCPIndex, setSelectedMCPIndex] = useState(0);
+  const [mcpInstances, setMCPInstances] = useState<MCPInstance[]>([]);
+  const [isLoadingMCPs, setIsLoadingMCPs] = useState(true);
   
   // Confirmation modal state
   const [confirmationModal, setConfirmationModal] = useState<{
@@ -54,10 +56,49 @@ const Dashboard: React.FC = () => {
   const inactiveSectionRef = useRef<MCPSectionRef>(null);
   const expiredSectionRef = useRef<MCPSectionRef>(null);
 
+  // Load MCP instances on component mount
+  useEffect(() => {
+    const loadMCPInstances = async () => {
+      try {
+        setIsLoadingMCPs(true);
+        const instances = await apiService.getMCPInstances();
+        setMCPInstances(instances);
+      } catch (error) {
+        console.error('Failed to load MCP instances:', error);
+        // Fallback to mock data on error
+        setMCPInstances([]);
+      } finally {
+        setIsLoadingMCPs(false);
+      }
+    };
+
+    loadMCPInstances();
+  }, []);
+
+  // Convert MCPInstance to MCPItem format (for backward compatibility)
+  const convertToMCPItem = (instance: MCPInstance): MCPItem => ({
+    id: instance.id,
+    name: instance.custom_name || `${instance.mcp_type.display_name} #${instance.instance_number}`,
+    email: instance.access_url,
+    status: instance.status === 'active' ? 'active' : 
+            instance.status === 'expired' ? 'expired' : 'inactive'
+  });
+
   // Filter MCPs by status
-  const activeMCPs = filterMCPsByStatus(mockMCPs, 'active');
-  const inactiveMCPs = filterMCPsByStatus(mockMCPs, 'inactive');
-  const expiredMCPs = filterMCPsByStatus(mockMCPs, 'expired');
+  const activeMCPs = mcpInstances
+    .filter(instance => instance.status === 'active' && instance.is_active)
+    .map(convertToMCPItem);
+  
+  const inactiveMCPs = mcpInstances
+    .filter(instance => instance.status === 'inactive' || !instance.is_active)
+    .map(convertToMCPItem);
+  
+  const expiredMCPs = mcpInstances
+    .filter(instance => instance.status === 'expired')
+    .map(convertToMCPItem);
+
+  // Check if user has any MCPs
+  const hasAnyMCPs = mcpInstances.length > 0;
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -183,7 +224,7 @@ const Dashboard: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentSection, selectedMCPIndex, activeMCPs.length, inactiveMCPs.length, expiredMCPs.length]);
 
-  if (isLoading) {
+  if (isLoading || isLoadingMCPs) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -202,13 +243,61 @@ const Dashboard: React.FC = () => {
     };
   };
 
-  const handleCreateMCP = (data: unknown) => {
-    console.log('Creating MCP:', data);
+  interface CreateMCPFormData {
+    name: string;
+    type: string;
+    apiKey: string;
+    clientId: string;
+    clientSecret: string;
+    expiration: string;
+  }
+
+  const handleCreateMCP = async (formData: CreateMCPFormData) => {
+    // Transform form data to API format
+    const data = {
+      mcp_type: formData.type,
+      custom_name: formData.name || undefined,
+      expiration_option: formData.expiration,
+      credentials: {
+        api_key: formData.apiKey,
+        client_id: formData.clientId,
+        client_secret: formData.clientSecret
+      }
+    };
+    try {
+      const newInstance = await apiService.createMCP(data);
+      console.log('Created MCP:', newInstance);
+      // Refresh the MCP list
+      const instances = await apiService.getMCPInstances();
+      setMCPInstances(instances);
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error('Failed to create MCP:', error);
+      // Show error message to user
+    }
   };
 
-  const handleEditMCP = (data: { name: string; apiKey: string; clientId: string; clientSecret: string }) => {
-    console.log('Editing MCP:', editModalData.mcp?.name, 'with data:', data);
-    setEditModalData({ isOpen: false, mcp: null });
+  const handleEditMCP = async (data: { name: string; apiKey: string; clientId: string; clientSecret: string }) => {
+    if (!editModalData.mcp) return;
+    
+    try {
+      await apiService.editMCP(editModalData.mcp.id, {
+        custom_name: data.name,
+        credentials: {
+          api_key: data.apiKey,
+          client_id: data.clientId,
+          client_secret: data.clientSecret
+        }
+      });
+      
+      // Refresh the MCP list
+      const instances = await apiService.getMCPInstances();
+      setMCPInstances(instances);
+      setEditModalData({ isOpen: false, mcp: null });
+    } catch (error) {
+      console.error('Failed to edit MCP:', error);
+      // Show error message to user
+    }
   };
 
   // Confirmation modal helper
@@ -255,29 +344,61 @@ const Dashboard: React.FC = () => {
     });
   };
 
+  // Helper function to refresh MCP list
+  const refreshMCPList = async () => {
+    try {
+      const instances = await apiService.getMCPInstances();
+      setMCPInstances(instances);
+    } catch (error) {
+      console.error('Failed to refresh MCP list:', error);
+    }
+  };
+
   // Dropdown callback handlers
   const dropdownCallbacks = {
     onEdit: (mcp: MCPItem) => {
       setEditModalData({ isOpen: true, mcp });
     },
     onToggleActive: (mcp: MCPItem) => {
-      openConfirmationModal('toggle-active', mcp, () => {
-        console.log('Toggling MCP to active:', mcp.name);
+      openConfirmationModal('toggle-active', mcp, async () => {
+        try {
+          await apiService.toggleMCP(mcp.id, { is_active: true });
+          await refreshMCPList();
+        } catch (error) {
+          console.error('Failed to toggle MCP to active:', error);
+        }
       });
     },
     onToggleInactive: (mcp: MCPItem) => {
-      openConfirmationModal('toggle-inactive', mcp, () => {
-        console.log('Toggling MCP to inactive:', mcp.name);
+      openConfirmationModal('toggle-inactive', mcp, async () => {
+        try {
+          await apiService.toggleMCP(mcp.id, { is_active: false });
+          await refreshMCPList();
+        } catch (error) {
+          console.error('Failed to toggle MCP to inactive:', error);
+        }
       });
     },
     onRenew: (mcp: MCPItem) => {
-      openConfirmationModal('renew', mcp, (data) => {
-        console.log('Renewing MCP:', mcp.name, 'with expiration:', data?.expiration);
+      openConfirmationModal('renew', mcp, async (data) => {
+        try {
+          if (data?.expiration) {
+            await apiService.renewMCP(mcp.id, { expiration_option: data.expiration });
+            await refreshMCPList();
+          }
+        } catch (error) {
+          console.error('Failed to renew MCP:', error);
+        }
       });
     },
     onDelete: (mcp: MCPItem) => {
-      openConfirmationModal('delete', mcp, () => {
-        console.log('Deleting MCP:', mcp.name);
+      openConfirmationModal('delete', mcp, async () => {
+        try {
+          await apiService.deleteMCP(mcp.id);
+          await refreshMCPList();
+        } catch (error) {
+          console.error('Failed to delete MCP:', error);
+        }
       });
     },
     onViewLogs: (mcp: MCPItem) => {
@@ -292,69 +413,113 @@ const Dashboard: React.FC = () => {
     <Layout userName={userName}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20 py-8">
         <div className="max-w-[1280px] mx-auto">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
-              <p className="text-base lg:text-lg text-gray-600 mb-3">Manage your MCPs</p>
-              <button
-                onClick={() => navigate('/logs')}
-                className="inline-flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg px-2 py-1 transition-colors cursor-pointer"
-              >
-                <FileText className="w-4 h-4" />
-                <span>View All Logs</span>
-              </button>
+          {hasAnyMCPs ? (
+            // Regular dashboard with MCPs
+            <>
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
+                <div>
+                  <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
+                  <p className="text-base lg:text-lg text-gray-600 mb-3">Manage your MCPs</p>
+                  <button
+                    onClick={() => navigate('/logs')}
+                    className="inline-flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg px-2 py-1 transition-colors cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>View All Logs</span>
+                  </button>
+                </div>
+                <Tooltip content="Press Ctrl+K (Cmd+K on Mac) to quickly open this modal" position="bottom">
+                  <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-black text-white px-4 py-3 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center space-x-2 shadow-lg whitespace-nowrap transition-colors cursor-pointer lg:min-w-[183px]"
+                  >
+                    <Zap className="w-5 h-5" />
+                    <span className='text-sm'>Create new MCP</span>
+                  </button>
+                </Tooltip>
+              </div>
+
+              <div className="space-y-6">
+                <MCPSection
+                  ref={activeSectionRef}
+                  title="Active MCPs"
+                  count={activeMCPs.length}
+                  mcps={activeMCPs}
+                  openDropdown={openDropdown}
+                  onDropdownToggle={handleDropdownToggle}
+                  onDropdownClose={closeDropdowns}
+                  getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
+                  sectionType="active"
+                  {...getSectionProps('active')}
+                />
+
+                <MCPSection
+                  ref={inactiveSectionRef}
+                  title="Inactive MCPs"
+                  count={inactiveMCPs.length}
+                  mcps={inactiveMCPs}
+                  openDropdown={openDropdown}
+                  onDropdownToggle={handleDropdownToggle}
+                  onDropdownClose={closeDropdowns}
+                  getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
+                  sectionType="inactive"
+                  {...getSectionProps('inactive')}
+                />
+
+                <MCPSection
+                  ref={expiredSectionRef}
+                  title="Expired MCPs"
+                  count={expiredMCPs.length}
+                  mcps={expiredMCPs}
+                  openDropdown={openDropdown}
+                  onDropdownToggle={handleDropdownToggle}
+                  onDropdownClose={closeDropdowns}
+                  getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
+                  sectionType="expired"
+                  {...getSectionProps('expired')}
+                />
+              </div>
+            </>
+          ) : (
+            // Empty state when no MCPs
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <div className="max-w-md mx-auto">
+                <div className="mb-8">
+                  <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <Rocket className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to MiniMCP!</h1>
+                  <p className="text-lg text-gray-600 mb-8">
+                    Get started by creating your first Model Context Protocol instance. 
+                    Connect to services like Gmail, Figma, GitHub, and more.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <Tooltip content="Press Ctrl+K (Cmd+K on Mac) to quickly open this modal" position="bottom">
+                    <button
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="w-full bg-black text-white px-6 py-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center space-x-3 shadow-lg transition-colors cursor-pointer text-lg font-medium"
+                    >
+                      <Zap className="w-6 h-6" />
+                      <span>Create Your First MCP</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
+                  </Tooltip>
+                  
+                  <div className="text-sm text-gray-500">
+                    <p className="mb-2">Popular integrations:</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Gmail</span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Figma</span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">GitHub</span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Slack</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <Tooltip content="Press Ctrl+K (Cmd+K on Mac) to quickly open this modal" position="bottom">
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-black text-white px-4 py-3 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center justify-center space-x-2 shadow-lg whitespace-nowrap transition-colors cursor-pointer lg:min-w-[183px]"
-              >
-                <Zap className="w-5 h-5" />
-                <span className='text-sm'>Create new MCP</span>
-              </button>
-            </Tooltip>
-          </div>
-
-          <div className="space-y-6">
-            <MCPSection
-              ref={activeSectionRef}
-              title="Active MCPs"
-              count={activeMCPs.length}
-              mcps={activeMCPs}
-              openDropdown={openDropdown}
-              onDropdownToggle={handleDropdownToggle}
-              onDropdownClose={closeDropdowns}
-              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
-              sectionType="active"
-              {...getSectionProps('active')}
-            />
-
-            <MCPSection
-              ref={inactiveSectionRef}
-              title="Inactive MCPs"
-              count={inactiveMCPs.length}
-              mcps={inactiveMCPs}
-              openDropdown={openDropdown}
-              onDropdownToggle={handleDropdownToggle}
-              onDropdownClose={closeDropdowns}
-              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
-              sectionType="inactive"
-              {...getSectionProps('inactive')}
-            />
-
-            <MCPSection
-              ref={expiredSectionRef}
-              title="Expired MCPs"
-              count={expiredMCPs.length}
-              mcps={expiredMCPs}
-              openDropdown={openDropdown}
-              onDropdownToggle={handleDropdownToggle}
-              onDropdownClose={closeDropdowns}
-              getDropdownItems={(mcp) => getDropdownItems(mcp, closeDropdowns, dropdownCallbacks)}
-              sectionType="expired"
-              {...getSectionProps('expired')}
-            />
-          </div>
+          )}
         </div>
       </div>
 

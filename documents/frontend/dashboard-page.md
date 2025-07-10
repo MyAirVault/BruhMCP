@@ -2,212 +2,238 @@
 
 ## Overview
 
-The Dashboard Page (`/frontend/src/pages/Dashboard.tsx`) is the main authenticated user interface for the MiniMCP application. It serves as the protected landing page after successful authentication and provides logout functionality.
+The Dashboard Page (`/frontend/src/pages/Dashboard.tsx`) is the main authenticated interface for managing MCP instances. It provides adaptive UI based on whether the user has any MCPs, offering either a comprehensive management interface or a clean onboarding experience.
 
 ## Location
 - **File**: `/frontend/src/pages/Dashboard.tsx`
 - **Route**: `/dashboard` (protected route)
 - **URL**: `http://localhost:5173/dashboard`
 
-## Functionality
+## Adaptive UI States
 
-### Authentication Protection
-- **Auth Check**: Verifies authentication on page load
-- **Protected Route**: Redirects unauthenticated users to login
-- **Loading State**: Shows loading spinner during auth check
-- **User Display**: Shows authenticated user's email address
+### State 1: Dashboard with MCPs (`hasAnyMCPs = true`)
 
-### Logout Functionality
-- **Backend Logout**: Calls `/api/auth/logout` endpoint
-- **Cookie Clearing**: Clears multiple possible cookie names
-- **Navigation**: Redirects to login page after logout
-- **Error Handling**: Graceful handling of logout errors
+When users have MCP instances, the dashboard displays:
 
-### User Interface
-- **Welcome Message**: Personalized greeting with user email
-- **Logout Button**: Prominent logout button in header
-- **Dashboard Card**: Welcome message and instructions
-- **Responsive Design**: Mobile-friendly layout
+#### Header Section
+- **Title**: "Dashboard" with "Manage your MCPs" subtitle
+- **View All Logs**: Quick access to system-wide logs
+- **Create New MCP**: Primary action button with tooltip (Ctrl+K shortcut)
+
+#### MCP Organization
+- **Active MCPs**: Running and available instances
+- **Inactive MCPs**: Disabled or stopped instances  
+- **Expired MCPs**: Instances that have reached their expiration time
+- **Real-time Counts**: Live count display for each section
+
+#### Management Features
+- **CRUD Operations**: Create, edit, toggle, renew, delete MCPs
+- **Keyboard Navigation**: Section navigation with Ctrl+Arrow keys
+- **Dropdown Actions**: Context-sensitive actions per MCP
+- **Status Filtering**: Automatic organization by MCP status
+
+### State 2: Empty Dashboard (`hasAnyMCPs = false`)
+
+When users have no MCPs, the dashboard shows a clean onboarding experience:
+
+#### Welcome Interface
+- **Rocket Icon**: Large visual indicator (24x24 size)
+- **Welcome Message**: "Welcome to MiniMCP!" heading
+- **Description**: Clear explanation of MCP functionality
+- **Call-to-Action**: Prominent "Create Your First MCP" button
+
+#### Getting Started Elements
+- **Large CTA Button**: Full-width, prominent styling with icons
+- **Popular Integrations**: Visual preview badges (Gmail, Figma, GitHub, Slack)
+- **Keyboard Shortcut**: Same Ctrl+K functionality maintained
+- **Centered Layout**: Clean, focused design without distractions
+
+#### Hidden Elements (Clean State)
+- No "View All Logs" button
+- No empty MCP sections
+- No status counters
+- Simplified navigation
 
 ## Technical Implementation
 
-### React Component Structure
+### State Detection
 ```typescript
-const Dashboard: React.FC = () => {
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Verify authentication and get user info
-    };
-    checkAuth();
-  }, [navigate]);
-};
+// Check if user has any MCPs
+const hasAnyMCPs = mcpInstances.length > 0;
 ```
 
-### Authentication Check
+### Conditional Rendering
 ```typescript
-const checkAuth = async () => {
-  try {
-    const response = await fetch('/api/auth/me', {
-      method: 'GET',
-      credentials: 'include',
-    });
+{hasAnyMCPs ? (
+  // Regular dashboard with MCPs
+  <>
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
+      {/* Header with logs button and create button */}
+    </div>
+    <div className="space-y-6">
+      {/* MCP sections */}
+    </div>
+  </>
+) : (
+  // Empty state when no MCPs
+  <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+    {/* Welcome interface */}
+  </div>
+)}
+```
 
-    if (response.ok) {
-      const data = await response.json();
-      setUserEmail(data.user?.email || 'user');
-    } else {
-      navigate('/login');
+### API Integration
+```typescript
+// Load MCP instances on component mount
+useEffect(() => {
+  const loadMCPInstances = async () => {
+    try {
+      setIsLoadingMCPs(true);
+      const instances = await apiService.getMCPInstances();
+      setMCPInstances(instances);
+    } catch (error) {
+      console.error('Failed to load MCP instances:', error);
+      setMCPInstances([]);
+    } finally {
+      setIsLoadingMCPs(false);
     }
-  } catch (error) {
-    console.error('Auth check failed:', error);
-    navigate('/login');
-  } finally {
-    setIsLoading(false);
-  }
-};
-```
+  };
 
-### Logout Implementation
-```typescript
-const handleLogout = async () => {
-  try {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    });
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-  
-  // Clear multiple possible cookie names
-  document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-  document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-  
-  navigate('/login');
-};
+  loadMCPInstances();
+}, []);
 ```
 
 ## User Experience Flow
 
-### Authenticated User
-1. User navigates to `/dashboard`
-2. System checks authentication status
-3. User information is loaded and displayed
-4. Dashboard content is shown
-5. User can interact with logout button
+### First-Time User (Empty State)
+1. User logs in successfully
+2. Dashboard loads with no MCPs (`hasAnyMCPs = false`)
+3. Clean welcome interface is displayed
+4. User sees clear call-to-action to create first MCP
+5. Popular integrations are previewed
+6. User clicks "Create Your First MCP" button
+7. Create MCP modal opens
 
-### Unauthenticated User
-1. User navigates to `/dashboard`
-2. System checks authentication status
-3. User is redirected to login page
-4. No dashboard content is shown
+### Returning User (With MCPs)
+1. User logs in successfully
+2. Dashboard loads existing MCPs (`hasAnyMCPs = true`)
+3. Full dashboard interface is displayed
+4. MCPs are organized by status (Active, Inactive, Expired)
+5. User can manage existing MCPs or create new ones
+6. Access to logs and all management features
 
-### Logout Process
-1. User clicks logout button
-2. System calls backend logout endpoint
-3. Client-side cookies are cleared
-4. User is redirected to login page
-5. Authentication state is reset
+### Transitioning Between States
+- **First MCP Created**: Dashboard automatically switches from empty to full state
+- **Last MCP Deleted**: Dashboard automatically switches from full to empty state
+- **Real-time Updates**: State changes immediately after MCP operations
 
-## State Management
+## Styling and Design
 
-### Component State
-- **userEmail**: Stores authenticated user's email
-- **isLoading**: Loading state during authentication check
-- **navigate**: React Router navigation function
+### Empty State Styling
+```css
+/* Centered welcome layout */
+.flex.flex-col.items-center.justify-center.min-h-[60vh].text-center
 
-### Loading States
-- **Initial Load**: Shows spinner while checking auth
-- **Authenticated**: Shows dashboard content
-- **Unauthenticated**: Redirects to login
+/* Large icon container */
+.w-24.h-24.bg-gray-100.rounded-full.flex.items-center.justify-center
 
-## Integration with Authentication System
+/* Prominent CTA button */
+.w-full.bg-black.text-white.px-6.py-4.rounded-lg.text-lg.font-medium
 
-### Backend Integration
-- **Auth Check**: GET `/api/auth/me` with cookies
-- **Logout**: POST `/api/auth/logout` to clear server session
-- **Cookie Handling**: Uses `credentials: 'include'` for session management
+/* Integration badges */
+.px-3.py-1.rounded-full.text-xs.font-medium.bg-{color}-100.text-{color}-800
+```
 
-### Frontend Integration
-- **React Router**: Uses `useNavigate()` for redirects
-- **LoginPage**: Redirects to login when not authenticated
-- **Protected Route**: Serves as authentication barrier
-
-## Styling
-
-### Tailwind CSS Design
-- **Background**: `min-h-screen bg-gray-50`
-- **Container**: `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`
-- **Header**: `flex items-center justify-between py-6`
-- **Card**: `bg-white overflow-hidden shadow rounded-lg`
-- **Button**: `bg-red-600 hover:bg-red-700 focus:ring-red-500`
-
-### Responsive Design
-- Mobile-first approach
-- Responsive container sizing
+### Regular State Styling
+- Consistent with existing MCP section styling
+- Responsive grid layout
 - Proper spacing and typography
-- Accessible button design
+- Accessible button and dropdown designs
 
-## Security Considerations
+## Icons and Visual Elements
 
-### Route Protection
-- Authentication required for access
-- Automatic redirect for unauthenticated users
-- Secure cookie handling
+### Empty State Icons
+- **Rocket**: Main welcome icon (Lucide React)
+- **Zap**: Create button icon
+- **ArrowRight**: Call-to-action indicator
 
-### Logout Security
-- Server-side session clearing
-- Multiple cookie clearing for safety
-- Proper error handling
+### Regular State Icons
+- **Zap**: Create new MCP button
+- **FileText**: View logs button
+- Various status and action icons per MCP
 
-### Data Protection
-- No sensitive data in component state
-- Secure API communication
-- Proper authentication validation
+## Integration with MCP Management
 
-## Error Handling
+### Create MCP Flow
+Both states use the same CreateMCPModal component:
+```typescript
+const handleCreateMCP = async (formData: CreateMCPFormData) => {
+  const data = {
+    mcp_type: formData.type,
+    custom_name: formData.name || undefined,
+    expiration_option: formData.expiration,
+    credentials: {
+      api_key: formData.apiKey,
+      client_id: formData.clientId,
+      client_secret: formData.clientSecret
+    }
+  };
+  
+  try {
+    const newInstance = await apiService.createMCP(data);
+    const instances = await apiService.getMCPInstances();
+    setMCPInstances(instances); // This will trigger state change
+    setIsCreateModalOpen(false);
+  } catch (error) {
+    console.error('Failed to create MCP:', error);
+  }
+};
+```
 
-### Authentication Errors
-- Network errors during auth check
-- Invalid authentication tokens
-- Server errors during validation
-
-### Logout Errors
-- Network errors during logout
-- Server errors during session clearing
-- Graceful fallback to client-side clearing
+### State Transition
+- Creating first MCP switches to full dashboard
+- Deleting last MCP switches to empty state
+- Automatic detection and UI updates
 
 ## Performance Considerations
 
-### Loading Optimization
-- Efficient authentication checking
-- Minimal component re-renders
-- Proper cleanup on unmount
+### Loading States
+- Shows spinner during initial MCP data loading
+- Maintains responsive design during state transitions
+- Efficient re-rendering when switching between states
 
-### User Experience
-- Fast loading states
-- Smooth transitions
-- Responsive design
+### Memory Optimization
+- Empty state reduces DOM complexity
+- Conditional component mounting
+- Proper cleanup of unused event listeners
+
+## Accessibility
+
+### Empty State Accessibility
+- Semantic heading structure (h1)
+- Descriptive button text
+- Proper focus management
+- Screen reader friendly content
+
+### Keyboard Navigation
+- Tab navigation through interactive elements
+- Ctrl+K shortcut works in both states
+- Focus indicators on all interactive elements
 
 ## Testing Considerations
 
 ### Test Scenarios
-1. Authentication check on page load
-2. Authenticated user display
-3. Unauthenticated user redirect
-4. Logout functionality
-5. Loading states
-6. Error handling
+1. **Empty State Display**: User with no MCPs sees welcome interface
+2. **State Transition**: Creating first MCP switches to full dashboard
+3. **Reverse Transition**: Deleting last MCP switches to empty state
+4. **Keyboard Shortcuts**: Ctrl+K works in both states
+5. **Responsive Design**: Both states work on mobile and desktop
+6. **Loading States**: Proper loading indicators during data fetch
 
 ### Integration Testing
-- Test with actual authentication system
-- Verify logout behavior
-- Test redirect functionality
+- Test with real backend API
+- Verify state transitions after MCP operations
+- Test error handling in both states
 - Mobile and desktop responsiveness
 
-This component provides the main authenticated user interface and serves as the destination for successful authentication flows, ensuring users have a secure and user-friendly experience.
+This adaptive dashboard design provides an optimal user experience for both new and existing users, with clear onboarding for first-time users and comprehensive management for experienced users.

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { ArrowLeft, User, Calendar, Mail, Bell, TrendingUp, Settings } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { apiService } from '../services/apiService';
 
 interface ProfileData {
   firstName: string;
@@ -79,12 +80,35 @@ const Profile: React.FC = () => {
 
   const [editedData, setEditedData] = useState<ProfileData>({ ...profileData });
 
-  // Update profile data when userName changes
+  // Load profile data from API
   useEffect(() => {
-    if (userName) {
-      setProfileData(prev => ({ ...prev, email: userName }));
-      setEditedData(prev => ({ ...prev, email: userName }));
-    }
+    const loadProfileData = async () => {
+      try {
+        const settings = await apiService.getSettings();
+        const newProfileData: ProfileData = {
+          firstName: settings.user.name.split(' ')[0] || '',
+          lastName: settings.user.name.split(' ').slice(1).join(' ') || '',
+          email: settings.user.email,
+          emailNotifications: settings.preferences.notifications_enabled,
+          createdAt: '2024-01-15T10:30:00Z', // This would come from user creation date
+          mcpStats: {
+            totalMCPs: 12, // This would come from MCP count
+            activeMCPs: 8  // This would come from active MCP count
+          }
+        };
+        setProfileData(newProfileData);
+        setEditedData(newProfileData);
+      } catch (error) {
+        console.error('Failed to load profile data:', error);
+        // Fallback to existing logic
+        if (userName) {
+          setProfileData(prev => ({ ...prev, email: userName }));
+          setEditedData(prev => ({ ...prev, email: userName }));
+        }
+      }
+    };
+
+    loadProfileData();
   }, [userName]);
 
   const handleInputChange = (field: keyof ProfileData, value: string | boolean) => {
@@ -92,19 +116,40 @@ const Profile: React.FC = () => {
     setHasUnsavedChanges(true);
   };
 
-  const handleNotificationToggle = () => {
+  const handleNotificationToggle = async () => {
     const newValue = !profileData.emailNotifications;
-    setProfileData(prev => ({ ...prev, emailNotifications: newValue }));
-    setEditedData(prev => ({ ...prev, emailNotifications: newValue }));
-    console.log('Notification settings updated:', newValue);
+    try {
+      await apiService.updateSettings({
+        preferences: {
+          notifications_enabled: newValue
+        }
+      });
+      setProfileData(prev => ({ ...prev, emailNotifications: newValue }));
+      setEditedData(prev => ({ ...prev, emailNotifications: newValue }));
+      console.log('Notification settings updated:', newValue);
+    } catch (error) {
+      console.error('Failed to update notification settings:', error);
+    }
   };
 
-  const handleSave = () => {
-    console.log('Saving profile data:', editedData);
-    setProfileData(editedData);
-    setHasUnsavedChanges(false);
-    setIsEditing(false);
-    setShowSavePopup(false);
+  const handleSave = async () => {
+    try {
+      // Update settings via API
+      await apiService.updateSettings({
+        preferences: {
+          notifications_enabled: editedData.emailNotifications
+        }
+      });
+      
+      console.log('Saving profile data:', editedData);
+      setProfileData(editedData);
+      setHasUnsavedChanges(false);
+      setIsEditing(false);
+      setShowSavePopup(false);
+    } catch (error) {
+      console.error('Failed to save profile data:', error);
+      // Show error message to user
+    }
   };
 
   const handleCancel = () => {

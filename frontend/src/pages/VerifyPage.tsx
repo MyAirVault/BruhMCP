@@ -13,7 +13,7 @@ export default function VerifyPage() {
 
   const verifyToken = async (token: string) => {
     try {
-      const response = await fetch('/api/auth/verify', {
+      const response = await fetch('/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export default function VerifyPage() {
     } catch (error) {
       // Check if user is actually authenticated despite error
       try {
-        const authCheck = await fetch('/api/auth/me', {
+        const authCheck = await fetch('/auth/me', {
           method: 'GET',
           credentials: 'include',
         });

@@ -14,7 +14,7 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch('/auth/me', {
           method: 'GET',
           credentials: 'include',
         });
@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/request', {
+      const response = await fetch('/auth/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

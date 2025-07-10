@@ -13,6 +13,7 @@ This directory contains documentation for the frontend components and pages of t
 
 ### Enhanced User Experience
 - **[frontend-enhancements.md](./frontend-enhancements.md)** - Latest UI/UX improvements including keyboard navigation, tooltips, and smart positioning
+- **[api-integration.md](./api-integration.md)** - Complete backend API integration guide with implementation details
 
 ## Frontend Structure
 
@@ -20,7 +21,54 @@ The frontend is built with:
 
 -   **Framework**: React + TypeScript + Vite
 -   **Styling**: Tailwind CSS
+-   **API Integration**: Custom API service with backend endpoints
 -   **Location**: `/frontend/` directory
+
+## API Integration
+
+### API Service (`/frontend/src/services/apiService.ts`)
+
+The frontend integrates with the backend through a centralized API service that provides:
+
+#### MCP Management
+- `getMCPTypes()` - List available MCP types
+- `getMCPTypeByName(name)` - Get specific MCP type details
+- `createMCP(data)` - Create new MCP instance
+- `getMCPInstances(params?)` - List user's MCP instances with filtering
+- `getMCPInstance(id)` - Get specific MCP instance details
+- `renewMCP(id, data)` - Renew expired MCP instance
+- `toggleMCP(id, data)` - Toggle MCP active/inactive status
+- `editMCP(id, data)` - Update MCP instance details
+- `deleteMCP(id)` - Delete MCP instance
+
+#### API Key Management
+- `getAPIKeys()` - List user's stored API keys
+- `storeAPIKey(data)` - Store new API credentials
+- `validateCredentials(data)` - Validate credentials before storing
+- `deleteAPIKey(id)` - Delete stored API key
+
+#### Logs and Monitoring
+- `getMCPLogs(mcpId, params?)` - Get logs for specific MCP with filtering
+- `exportMCPLogs(mcpId, data)` - Export logs in various formats
+
+#### User Settings
+- `getSettings()` - Get user profile and preferences
+- `updateSettings(data)` - Update user preferences
+
+### Type Definitions (`/frontend/src/types/index.ts`)
+
+Enhanced type system including:
+
+- `MCPType` - MCP type configuration with required fields and resource limits
+- `MCPInstance` - Complete MCP instance with status, metrics, and configuration
+- `APIKey` - Stored API credentials with MCP type association
+- `MCPLog` - Log entries with metadata and structured information
+
+All API calls include:
+- Cookie-based authentication (automatic)
+- Comprehensive error handling
+- TypeScript type safety
+- Consistent response formatting
 
 ## Pages
 
@@ -40,27 +88,32 @@ The frontend is built with:
     -   Route: `/verify?token={uuid}`
 
 -   **Dashboard** (`/frontend/src/pages/Dashboard.tsx`)
-    -   Protected route showing "Hello {email}" message
+    -   Protected route displaying user's MCP instances organized by status
+    -   Real-time data from backend via `apiService.getMCPInstances()`
+    -   Full CRUD operations: create, edit, toggle, renew, delete MCPs
+    -   Keyboard navigation and shortcuts (Ctrl+K for create modal)
     -   Authentication check with redirect to login
-    -   Includes logout functionality with backend endpoint
     -   User profile dropdown with navigation to profile page
     -   Route: `/dashboard`
 
 -   **Profile** (`/frontend/src/pages/Profile.tsx`)
-    -   User profile management page with editable fields
+    -   User profile management page with backend integration
+    -   Loads profile data via `apiService.getSettings()`
     -   Shows first name, last name (editable), email (read-only), member since
     -   Displays MCP statistics (total created, active count)
-    -   Email notification toggle for MCP expiration alerts
+    -   Email notification toggle with real-time API updates
     -   Save confirmation popup for profile changes
     -   Back button to return to dashboard
     -   Route: `/profile`
 
 -   **Logs** (`/frontend/src/pages/Logs.tsx`)
-    -   Log viewing page with filtering and export capabilities
-    -   Accessible from Dashboard's "View Logs" dropdown option
+    -   Comprehensive log viewing with backend integration
+    -   Uses `apiService.getMCPLogs()` for specific MCP logs
     -   Advanced filtering by level, source, time range, and search
-    -   Export functionality for downloading logs as JSON
-    -   Route: `/logs`
+    -   Export functionality via `apiService.exportMCPLogs()`
+    -   Supports both individual MCP logs and system-wide logs
+    -   Real-time refresh capability
+    -   Route: `/logs` or `/logs?mcp={id}&name={name}` for specific MCP
 
 ### Components
 

@@ -11,3 +11,80 @@ export interface DropdownItem {
   variant?: 'default' | 'highlighted' | 'danger';
   icon?: React.ComponentType<{ className?: string }>;
 }
+
+export interface MCPType {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  icon_url?: string;
+  config_template?: Record<string, unknown>;
+  required_fields?: {
+    name: string;
+    type: string;
+    description: string;
+    required: boolean;
+  }[];
+  resource_limits?: {
+    cpu: string;
+    memory: string;
+  };
+  max_duration_minutes?: number;
+  is_active: boolean;
+}
+
+export interface MCPInstance {
+  id: string;
+  custom_name?: string;
+  instance_number: number;
+  access_token: string;
+  access_url: string;
+  assigned_port: number;
+  process_id?: number;
+  status: 'active' | 'inactive' | 'expired' | 'pending';
+  is_active: boolean;
+  expiration_option: string;
+  expires_at: string;
+  last_accessed?: string;
+  mcp_type: {
+    name: string;
+    display_name: string;
+    icon_url?: string;
+  };
+  metrics?: {
+    requests: number;
+    errors: number;
+    uptime_hours: number;
+  };
+  config?: Record<string, unknown>;
+  stats?: {
+    cpu_percent: number;
+    memory_mb: number;
+    uptime_seconds: number;
+  };
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface APIKey {
+  id: string;
+  mcp_type_id: string;
+  mcp_type: {
+    id: string;
+    name: string;
+    display_name: string;
+  };
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  expires_at?: string;
+}
+
+export interface MCPLog {
+  id: string;
+  timestamp: string;
+  level: 'debug' | 'info' | 'warn' | 'error';
+  source: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+}
