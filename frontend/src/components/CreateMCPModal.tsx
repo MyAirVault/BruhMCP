@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { apiService } from '../services/apiService';
+import { type MCPType } from '../types';
 
 interface CreateMCPModalProps {
   isOpen: boolean;
@@ -13,6 +15,17 @@ interface CreateMCPFormData {
   clientId: string;
   clientSecret: string;
   expiration: string;
+}
+
+interface ValidationState {
+  isValidating: boolean;
+  isValid: boolean | null;
+  error: string | null;
+  apiInfo: {
+    service?: string;
+    quota_remaining?: number;
+    permissions?: string[];
+  } | null;
 }
 
 const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit }) => {
@@ -30,11 +43,34 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
   const [expirationDropdownOpen, setExpirationDropdownOpen] = useState(false);
   const [typeDropdownPosition, setTypeDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 200, flipUp: false });
   const [expirationDropdownPosition, setExpirationDropdownPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 200, flipUp: false });
+  const [mcpTypes, setMcpTypes] = useState<MCPType[]>([]);
+  const [selectedMcpType, setSelectedMcpType] = useState<MCPType | null>(null);
+  const [validationState, setValidationState] = useState<ValidationState>({
+    isValidating: false,
+    isValid: null,
+    error: null,
+    apiInfo: null
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
   const typeInputRef = useRef<HTMLInputElement>(null);
   const expirationButtonRef = useRef<HTMLButtonElement>(null);
   const typeDropdownRef = useRef<HTMLDivElement>(null);
   const expirationDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load MCP types from backend
+  useEffect(() => {
+    const loadMcpTypes = async () => {
+      try {
+        const types = await apiService.getMCPTypes();
+        setMcpTypes(types);
+      } catch (error) {
+        console.error('Failed to load MCP types:', error);
+      }
+    };
+
+    loadMcpTypes();
+  }, []);
 
   // Reset form state and focus first field when modal opens
   useEffect(() => {
@@ -50,6 +86,14 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
       setTypeDropdownOpen(false);
       setExpirationDropdownOpen(false);
       setTypeSearchQuery('');
+      setSelectedMcpType(null);
+      setValidationState({
+        isValidating: false,
+        isValid: null,
+        error: null,
+        apiInfo: null
+      });
+      setIsSubmitting(false);
       // Focus first field after modal animation
       setTimeout(() => {
         firstInputRef.current?.focus();
@@ -146,43 +190,145 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     setTypeDropdownOpen(false);
   };
 
-  const mcpTypes = [
-    'Gmail', 'Figma', 'API Gateway', 'Server Control', 'Database', 'Storage',
-    'Slack', 'Discord', 'Trello', 'Asana', 'Notion', 'Google Drive',
-    'Dropbox', 'OneDrive', 'GitHub', 'GitLab', 'Bitbucket', 'Jira',
-    'Confluence', 'Zendesk', 'Intercom', 'Stripe', 'PayPal', 'Shopify'
-  ];
-  
   // Filter MCP types based on search query
   const filteredMCPTypes = mcpTypes.filter(type => 
-    type.toLowerCase().includes(typeSearchQuery.toLowerCase())
+    type.display_name.toLowerCase().includes(typeSearchQuery.toLowerCase()) ||
+    type.name.toLowerCase().includes(typeSearchQuery.toLowerCase())
   );
-  const expirationOptions = ['24 Hours', '7 Days', '30 Days', '90 Days', 'Never'];
+  
+  // Map expiration options to backend format
+  const expirationOptions = [
+    { label: '1 Hour', value: '1h' },
+    { label: '6 Hours', value: '6h' },
+    { label: '1 Day', value: '1day' },
+    { label: '30 Days', value: '30days' },
+    { label: 'Never', value: 'never' }
+  ];
 
-  const getRequiredFields = (type: string) => {
-    switch (type) {
-      case 'Gmail':
-        return ['clientId', 'clientSecret'];
-      case 'Figma':
-        return ['apiKey'];
-      default:
-        return ['apiKey'];
+  const getRequiredFields = (mcpType: MCPType | null) => {
+    if (!mcpType || !mcpType.required_fields) return [];
+    return mcpType.required_fields.map(field => field.name);
+  };
+
+  const requiresCredentials = (mcpType: MCPType | null) => {
+    return mcpType && mcpType.required_fields && mcpType.required_fields.length > 0;
+  };
+
+  // Credential validation function
+  const validateCredentials = useCallback(async () => {
+    if (!selectedMcpType || !requiresCredentials(selectedMcpType)) return;
+
+    const credentials: Record<string, string> = {};
+    
+    // Build credentials object based on required fields
+    const requiredFields = getRequiredFields(selectedMcpType);
+    for (const field of requiredFields) {
+      if (field === 'api_key') {
+        credentials.api_key = formData.apiKey;
+      } else if (field === 'client_id') {
+        credentials.client_id = formData.clientId;
+      } else if (field === 'client_secret') {
+        credentials.client_secret = formData.clientSecret;
+      }
     }
-  };
 
-  const requiresCredentials = (type: string) => {
-    return type && type !== '';
-  };
+    // Check if all required fields are filled
+    const hasAllFields = requiredFields.every(field => {
+      if (field === 'api_key') return formData.apiKey.trim() !== '';
+      if (field === 'client_id') return formData.clientId.trim() !== '';
+      if (field === 'client_secret') return formData.clientSecret.trim() !== '';
+      return true;
+    });
+
+    if (!hasAllFields) {
+      setValidationState({
+        isValidating: false,
+        isValid: null,
+        error: null,
+        apiInfo: null
+      });
+      return;
+    }
+
+    setValidationState(prev => ({ ...prev, isValidating: true, error: null }));
+
+    try {
+      const result = await apiService.validateCredentials({
+        mcp_type_id: selectedMcpType.id,
+        credentials
+      });
+
+      setValidationState({
+        isValidating: false,
+        isValid: result.valid,
+        error: null,
+        apiInfo: result.api_info
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Validation failed';
+      setValidationState({
+        isValidating: false,
+        isValid: false,
+        error: errorMessage,
+        apiInfo: null
+      });
+    }
+  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret]);
 
   const handleInputChange = (field: keyof CreateMCPFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Trigger validation when credentials change
+  useEffect(() => {
+    if (selectedMcpType && requiresCredentials(selectedMcpType)) {
+      const timeoutId = setTimeout(() => {
+        validateCredentials();
+      }, 500); // Debounce validation
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [validateCredentials, selectedMcpType]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '' });
-    onClose();
+    
+    if (!isFormValid() || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // First validate credentials if not already validated
+      if (selectedMcpType && requiresCredentials(selectedMcpType) && validationState.isValid !== true) {
+        await validateCredentials();
+        // Wait for validation to complete
+        return;
+      }
+      
+      // Transform form data to match backend expected format
+      const transformedData = {
+        ...formData,
+        type: selectedMcpType?.name || formData.type,
+        expiration: expirationOptions.find(opt => opt.label === formData.expiration)?.value || formData.expiration
+      };
+      
+      await onSubmit(transformedData);
+      
+      // Reset form
+      setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '' });
+      setSelectedMcpType(null);
+      setValidationState({
+        isValidating: false,
+        isValid: null,
+        error: null,
+        apiInfo: null
+      });
+      onClose();
+    } catch (error) {
+      console.error('Failed to create MCP:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -191,12 +337,22 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
 
   // Check if form is valid for submission
   const isFormValid = () => {
-    return formData.name && 
-           formData.type && 
-           formData.expiration &&
-           ((formData.type === 'Gmail' && formData.clientId && formData.clientSecret) ||
-            (formData.type === 'Figma' && formData.apiKey) ||
-            (formData.type !== 'Gmail' && formData.type !== 'Figma' && formData.type !== '' && formData.apiKey));
+    if (!formData.name || !selectedMcpType || !formData.expiration) return false;
+    
+    // Check if credentials are required and valid
+    if (requiresCredentials(selectedMcpType)) {
+      const requiredFields = getRequiredFields(selectedMcpType);
+      const hasAllFields = requiredFields.every(field => {
+        if (field === 'api_key') return formData.apiKey.trim() !== '';
+        if (field === 'client_id') return formData.clientId.trim() !== '';
+        if (field === 'client_secret') return formData.clientSecret.trim() !== '';
+        return true;
+      });
+      
+      return hasAllFields && (validationState.isValid === true || validationState.isValidating);
+    }
+    
+    return true;
   };
 
   // Handle Enter key for form submission
@@ -263,11 +419,12 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
                 <input
                   ref={typeInputRef}
                   type="text"
-                  value={formData.type || typeSearchQuery}
+                  value={selectedMcpType?.display_name || typeSearchQuery}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (formData.type && value !== formData.type) {
+                    if (selectedMcpType && value !== selectedMcpType.display_name) {
                       // If user starts typing different from selected, clear selection and search
+                      setSelectedMcpType(null);
                       handleInputChange('type', '');
                       handleTypeSearchChange(value);
                     } else {
@@ -283,9 +440,9 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               </div>
             </div>
 
-            {requiresCredentials(formData.type) && (
+            {requiresCredentials(selectedMcpType) && (
               <div>
-                {getRequiredFields(formData.type).includes('clientId') && (
+                {getRequiredFields(selectedMcpType).includes('client_id') && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Client ID
@@ -302,7 +459,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
                   </div>
                 )}
                 
-                {getRequiredFields(formData.type).includes('clientSecret') && (
+                {getRequiredFields(selectedMcpType).includes('client_secret') && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Client Secret
@@ -319,7 +476,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
                   </div>
                 )}
                 
-                {getRequiredFields(formData.type).includes('apiKey') && (
+                {getRequiredFields(selectedMcpType).includes('api_key') && (
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       API Key
@@ -336,7 +493,40 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
                   </div>
                 )}
                 
-                <p className="text-xs text-gray-500">
+                {/* Validation feedback */}
+                <div className="mt-3">
+                  {validationState.isValidating && (
+                    <div className="flex items-center text-sm text-blue-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      Validating credentials...
+                    </div>
+                  )}
+                  
+                  {validationState.isValid === true && (
+                    <div className="flex items-center text-sm text-green-600">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Credentials validated successfully!
+                      {validationState.apiInfo && (
+                        <span className="ml-2 text-xs text-gray-500">
+                          ({validationState.apiInfo.service})
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {validationState.isValid === false && validationState.error && (
+                    <div className="flex items-center text-sm text-red-600">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      {validationState.error}
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-2">
                   These credentials will be stored securely and not requested again for this MCP type
                 </p>
               </div>
@@ -380,10 +570,17 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
             </button>
             <button
               type="submit"
-              disabled={!isFormValid()}
+              disabled={!isFormValid() || isSubmitting}
               className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              Done
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating...
+                </div>
+              ) : (
+                'Done'
+              )}
             </button>
           </div>
         </form>
@@ -408,17 +605,35 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
             {filteredMCPTypes.length > 0 ? (
               filteredMCPTypes.map((type) => (
                 <button
-                  key={type}
+                  key={type.id}
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleInputChange('type', type);
+                    setSelectedMcpType(type);
+                    handleInputChange('type', type.name);
                     setTypeSearchQuery('');
                     setTypeDropdownOpen(false);
+                    // Reset validation state when type changes
+                    setValidationState({
+                      isValidating: false,
+                      isValid: null,
+                      error: null,
+                      apiInfo: null
+                    });
                   }}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors cursor-pointer"
                 >
-                  {type}
+                  <div className="flex items-center">
+                    {type.icon_url && (
+                      <img src={type.icon_url} alt={type.name} className="w-4 h-4 mr-2" />
+                    )}
+                    <div>
+                      <div className="font-medium">{type.display_name}</div>
+                      {type.description && (
+                        <div className="text-xs text-gray-500">{type.description}</div>
+                      )}
+                    </div>
+                  </div>
                 </button>
               ))
             ) : (
@@ -447,16 +662,16 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
           >
             {expirationOptions.map((option) => (
               <button
-                key={option}
+                key={option.value}
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleInputChange('expiration', option);
+                  handleInputChange('expiration', option.label);
                   setExpirationDropdownOpen(false);
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors cursor-pointer"
               >
-                {option}
+                {option.label}
               </button>
             ))}
           </div>

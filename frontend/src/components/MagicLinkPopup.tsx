@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { checkAuthStatus } from '../services/authService';
 
 interface MagicLinkPopupProps {
   email: string;
@@ -12,14 +13,10 @@ const MagicLinkPopup: React.FC<MagicLinkPopupProps> = ({ email, onClose }) => {
 
   // Poll for authentication status
   useEffect(() => {
-    const checkAuthStatus = async () => {
+    const checkAuth = async () => {
       try {
-        const response = await fetch('/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
+        const isAuthenticated = await checkAuthStatus();
+        if (isAuthenticated) {
           setIsVerifying(true);
           // User is now authenticated, redirect to dashboard
           setTimeout(() => {
@@ -32,7 +29,7 @@ const MagicLinkPopup: React.FC<MagicLinkPopupProps> = ({ email, onClose }) => {
     };
 
     // Start polling every 2 seconds
-    const interval = setInterval(checkAuthStatus, 2000);
+    const interval = setInterval(checkAuth, 2000);
 
     // Cleanup interval on component unmount
     return () => clearInterval(interval);

@@ -13,7 +13,7 @@ This directory contains documentation for the frontend components and pages of t
 
 ### Enhanced User Experience
 - **[frontend-enhancements.md](./frontend-enhancements.md)** - Latest UI/UX improvements including keyboard navigation, tooltips, and smart positioning
-- **[api-integration.md](./api-integration.md)** - Complete backend API integration guide with implementation details
+- **[api-integration.md](./api-integration.md)** - Complete backend API integration guide with real-time credential validation and MCP creation flow
 
 ## Frontend Structure
 

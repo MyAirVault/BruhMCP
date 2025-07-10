@@ -4,7 +4,7 @@ import VerifyPage from './pages/VerifyPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
-import Profile from './pages/Profile';
+// import Profile from './pages/Profile'; // Commented out as profile section is not implemented yet
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/logs" element={<Logs />} />
-        <Route path="/profile" element={<Profile />} />
+        {/* <Route path="/profile" element={<Profile />} /> */} {/* Commented out as profile section is not implemented yet */}
         <Route path="/" element={<LoginPage />} />
       </Routes>
     </Router>

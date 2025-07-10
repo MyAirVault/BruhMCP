@@ -16,7 +16,10 @@ export const useAuth = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setUserName(data.user?.name || 'John Smith');
+          // Backend provides email, not name, so we'll use email or extract name from email
+          const email = data.user?.email || '';
+          const userName = email.split('@')[0] || 'User';
+          setUserName(userName);
         } else {
           navigate('/login');
         }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { verifyToken, checkAuthStatus } from '../services/authService';
 
 interface VerificationState {
   status: 'loading' | 'success' | 'error';
@@ -12,20 +13,11 @@ export default function VerifyPage() {
   const [state, setState] = useState<VerificationState>({ status: 'loading' });
 
   useEffect(() => {
-    const verifyToken = async (token: string) => {
+    const verifyTokenFromUrl = async (token: string) => {
       try {
-        const response = await fetch('/auth/verify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include', // Important for cookies
-          body: JSON.stringify({ token })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
+        const response = await verifyToken(token);
+        
+        if (response.success) {
           setState({
             status: 'success',
             message: 'Authentication successful!'
@@ -37,18 +29,14 @@ export default function VerifyPage() {
         } else {
           setState({
             status: 'error',
-            message: data.error?.message || 'Verification failed'
+            message: 'Verification failed'
           });
         }
       } catch (error) {
         // Check if user is actually authenticated despite error
         try {
-          const authCheck = await fetch('/auth/me', {
-            method: 'GET',
-            credentials: 'include',
-          });
-
-          if (authCheck.ok) {
+          const isAuthenticated = await checkAuthStatus();
+          if (isAuthenticated) {
             // User is authenticated, redirect to dashboard
             navigate('/dashboard');
             return;
@@ -59,7 +47,7 @@ export default function VerifyPage() {
 
         setState({
           status: 'error',
-          message: 'Network error occurred'
+          message: error instanceof Error ? error.message : 'Network error occurred'
         });
         console.error('Verification error:', error);
       }
@@ -68,12 +56,8 @@ export default function VerifyPage() {
     // Check if user is already authenticated first
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
+        const isAuthenticated = await checkAuthStatus();
+        if (isAuthenticated) {
           // User is already authenticated, redirect to dashboard
           navigate('/dashboard');
           return true;
@@ -100,7 +84,7 @@ export default function VerifyPage() {
         return;
       }
 
-      verifyToken(token);
+      verifyTokenFromUrl(token);
     };
 
     handleVerification();

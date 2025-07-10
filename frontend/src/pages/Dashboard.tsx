@@ -258,12 +258,20 @@ const Dashboard: React.FC = () => {
       mcp_type: formData.type,
       custom_name: formData.name || undefined,
       expiration_option: formData.expiration,
-      credentials: {
-        api_key: formData.apiKey,
-        client_id: formData.clientId,
-        client_secret: formData.clientSecret
-      }
+      credentials: {} as Record<string, string>
     };
+
+    // Only add non-empty credentials
+    if (formData.apiKey?.trim()) {
+      data.credentials.api_key = formData.apiKey.trim();
+    }
+    if (formData.clientId?.trim()) {
+      data.credentials.client_id = formData.clientId.trim();
+    }
+    if (formData.clientSecret?.trim()) {
+      data.credentials.client_secret = formData.clientSecret.trim();
+    }
+
     try {
       const newInstance = await apiService.createMCP(data);
       console.log('Created MCP:', newInstance);
@@ -274,6 +282,7 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Failed to create MCP:', error);
       // Show error message to user
+      throw error; // Re-throw to let the modal handle the error
     }
   };
 

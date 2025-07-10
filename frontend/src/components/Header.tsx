@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDropdown } from '../hooks/useDropdown';
 import { logout } from '../services/authService';
-import { User, CreditCard, Settings, LogOut } from 'lucide-react';
+import { CreditCard, Settings, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   userName?: string;
@@ -49,7 +49,8 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                   border: '1px solid var(--dropdown-border)' 
                 }}
               >
-                <button
+                {/* Profile navigation commented out as profile section is not implemented yet */}
+                {/* <button
                   onClick={() => {
                     navigate('/profile');
                     setUserDropdownOpen(false);
@@ -65,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                 >
                   <User className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">My Profile</span>
-                </button>
+                </button> */}
                 <button
                   onClick={() => {
                     console.log('Billings');

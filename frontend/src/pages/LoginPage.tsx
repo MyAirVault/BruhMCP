@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MagicLinkPopup from '../components/MagicLinkPopup';
+import { requestMagicLink, checkAuthStatus } from '../services/authService';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,12 +15,8 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
+        const isAuthenticated = await checkAuthStatus();
+        if (isAuthenticated) {
           // User is already authenticated, redirect to dashboard
           navigate('/dashboard');
         }
@@ -40,23 +37,10 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/auth/request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setShowMagicLink(true);
-      } else {
-        setError(data.error?.message || 'Failed to send magic link');
-      }
-    } catch {
-      setError('Network error. Please try again.');
+      await requestMagicLink(email);
+      setShowMagicLink(true);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to send magic link');
     } finally {
       setIsLoading(false);
     }
