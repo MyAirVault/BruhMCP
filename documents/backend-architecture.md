@@ -41,7 +41,7 @@ The Express API layer remains stateless with:
 - Basic process monitoring via built-in Node.js APIs
 
 ### 4. **Security by Design**
-- Encrypted API key storage
+- Plain text API key storage (encryption to be added later)
 - Process isolation boundaries
 - Least privilege access principles
 
@@ -80,7 +80,7 @@ The Express API layer remains stateless with:
 │                      Data Layer                             │
 ├─────────────────────────────────────────────────────────────┤
 │                    PostgreSQL                               │
-│  • MCP Instances         • API Keys (encrypted)            │
+│  • MCP Instances         • API Keys (plain text)           │
 │  • Process Info          • Logs                            │
 │  • Port Assignments      • MCP Types                       │
 └─────────────────────────────────────────────────────────────┘
@@ -146,7 +146,6 @@ Asynchronous processing:
 - **child_process**: Node.js process spawning and management
 - **winston**: File-based logging only
 - **joi**: Request validation
-- **crypto**: API key encryption
 - **fs**: File system operations for logs and metrics
 
 ### Development Tools
@@ -163,11 +162,11 @@ Asynchronous processing:
 2. API validates request (MCP type, custom_name, expiration_option, credentials)
 3. Check instance limit (max 10 per user)
 4. Generate instance number (next available for user/type)
-5. Credential Service stores encrypted credentials (supports multiple fields)
+5. Credential Service stores plain text credentials (supports multiple fields)
 6. Port Manager assigns available port (3001 + (userId * 10) + instanceNum)
 7. Process Service spawns new Node.js process with:
    - MCP type-specific server script
-   - Environment variables (decrypted credentials, assigned port)
+   - Environment variables (credentials, assigned port)
    - Configuration from database config JSONB field
    - Process ID tracking
    - Instance identifier: user_{userId}_mcp_{mcpId}_{mcpType}_{instanceNum}
@@ -225,7 +224,7 @@ Asynchronous processing:
 2. Validate MCP ownership and edit permissions
 3. Update custom_name if provided
 4. If credentials provided:
-   - Encrypt and store new credentials
+   - Store new credentials as plain text
    - Restart process with new credentials
 5. Update database record
 6. Return updated instance details
@@ -371,7 +370,7 @@ class PortAllocationErrorHandler {
 - Resource usage monitoring
 
 ### Data Security
-- Encrypted API keys at rest
+- Plain text API keys at rest (encryption to be added later)
 - TLS for all communications
 - Audit logging
 - Regular security updates

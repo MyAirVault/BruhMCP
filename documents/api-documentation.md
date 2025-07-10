@@ -565,7 +565,6 @@ List user's stored API keys.
 				"name": "gmail",
 				"display_name": "Gmail MCP"
 			},
-			"key_hint": "...cdef",
 			"is_active": true,
 			"created_at": "2024-01-07T15:00:00Z",
 			"updated_at": "2024-01-07T15:00:00Z",
@@ -604,7 +603,6 @@ Store credentials for an MCP type.
 			"name": "gmail",
 			"display_name": "Gmail MCP"
 		},
-		"key_hint": "...cdef",
 		"is_active": true,
 		"created_at": "2024-01-07T15:00:00Z",
 		"updated_at": "2024-01-07T15:00:00Z",

@@ -384,25 +384,22 @@ const getFieldClassName = (fieldName: string) => {
     <h3>API Credentials</h3>
     <span className="text-sm text-green-600 flex items-center">
       <CheckIcon className="w-4 h-4 mr-1" />
-      Validated
+      Configured & Validated
     </span>
   </div>
   
-  {/* Show masked credential hints */}
-  <div className="credential-hints">
-    {Object.entries(credentialHints).map(([key, hint]) => (
-      <div key={key} className="credential-hint">
-        <span className="label">{formatCredentialLabel(key)}:</span>
-        <span className="value">...{hint}</span>
-      </div>
-    ))}
+  {/* Never show any credential information */}
+  <div className="credential-status">
+    <p className="text-sm text-gray-600">
+      Credentials are securely stored and validated. They cannot be viewed for security reasons.
+    </p>
   </div>
   
   <button 
     onClick={() => setEditingCredentials(true)}
     className="btn-outline mt-2"
   >
-    Update Credentials
+    Replace Credentials
   </button>
 </div>
 ```
@@ -564,11 +561,13 @@ function displayValidationErrors(validationErrors: Record<string, string>) {
 
 #### Security Considerations
 
-1. **Credential Masking**: Mask sensitive fields by default, provide toggle for visibility
+1. **No Credential Display**: Never show any credential information to users after storage
 2. **Input Validation**: Validate format and length on client-side before API call
 3. **Error Sanitization**: Don't expose internal system details in error messages
 4. **Temporary Storage**: Don't persist credentials in browser storage during validation
 5. **Auto-clear**: Clear sensitive form data when modal closes
+6. **One-Way Storage**: Once credentials are validated and stored, they cannot be retrieved or viewed
+7. **Replace Only**: Users can only replace existing credentials, never view them
 
 #### Accessibility
 

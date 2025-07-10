@@ -1,6 +1,31 @@
 # MCP Server Creation Guide
 
-## Overview
+## Quick Summary (Human-Readable)
+
+**What is this?** A step-by-step guide to connect any API service (like Gmail, GitHub, Slack) to your MiniMCP system so users can interact with it.
+
+**What you'll create:** A small Node.js program that acts as a translator between MCP (Model Context Protocol) and your chosen API service.
+
+**Real-world example:** Let's say you want to add Gmail support:
+1. You'll create a Gmail MCP server that knows how to talk to Gmail's API
+2. Users enter their Gmail credentials through your web interface
+3. Your system validates the credentials work with Gmail
+4. If valid, it starts a dedicated Gmail MCP server process for that user
+5. Users can then use MCP tools to read emails, send messages, etc.
+
+**What you need to know:**
+- Basic JavaScript/Node.js
+- How to read API documentation
+- Understanding of REST APIs
+- Your target API's authentication method (API keys, OAuth, etc.)
+
+**Time required:** 2-4 hours for a basic implementation, depending on API complexity.
+
+**Current status:** This is documentation for a planned feature. Some infrastructure pieces still need to be built first.
+
+---
+
+## Technical Overview
 
 This guide provides detailed steps to create a new MCP server for any API using the MiniMCP architecture. Each MCP server is a standalone Node.js process that translates MCP protocol requests to target API calls.
 
@@ -21,7 +46,7 @@ This guide provides detailed steps to create a new MCP server for any API using 
 ## Prerequisites
 
 - Target API documentation
-- API credentials/access tokens (will be encrypted with AES-256-GCM)
+- API credentials/access tokens (stored as plain text for development)
 - Node.js environment (v18+ recommended)
 - Understanding of MCP protocol basics
 - Familiarity with security requirements (see [`/documents/security-architecture.md`](./security-architecture.md))
@@ -62,7 +87,7 @@ Document what credentials are needed following the encrypted storage system:
 - **base_url**: API base URL variations
 - **webhook_secret**: Secret for webhook validation
 
-**Note**: All credentials are stored encrypted using AES-256-GCM encryption in the `api_keys` table with unique initialization vectors per credential.
+**Note**: All credentials are stored as plain JSON in the `api_keys` table for development purposes. Encryption to be added later.
 
 ### Step 2: Database Configuration
 
@@ -650,7 +675,7 @@ Create documentation for your MCP server:
 ## Best Practices
 
 ### Security
-- **Never log sensitive credentials** - All credentials are encrypted at rest using AES-256-GCM
+- **Never log sensitive credentials** - All credentials are stored as plain text for development
 - **Validate all inputs** before API calls using Joi schemas
 - **Handle authentication errors gracefully** - Implement proper error responses
 - **Use HTTPS for all API communications** - TLS required for external API calls

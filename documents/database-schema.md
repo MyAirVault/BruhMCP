@@ -36,8 +36,8 @@ The MiniMCP database uses PostgreSQL with a **simplified schema** to store only 
 │ id (UUID) PK    │     │ id (UUID) PK    │     │ id (UUID) PK    │
 │ email           │     │ name            │     │ user_id FK      │
 │ (no password)   │     │ display_name    │     │ mcp_type_id FK  │
-│ name            │     │ server_script   │     │ encrypted_key   │
-│ created_at      │     │ config_template │     │ key_hint        │
+│ name            │     │ server_script   │     │ credentials     │
+│ created_at      │     │ config_template │     │ is_active       │
 │ updated_at      │     │ created_at      │     │ created_at      │
 └─────────────────┘     │ updated_at      │     │ updated_at      │
          │              └─────────────────┘     └─────────────────┘
@@ -128,25 +128,21 @@ CREATE TABLE api_keys (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     mcp_type_id UUID NOT NULL REFERENCES mcp_types(id) ON DELETE CASCADE,
-    encrypted_key JSONB NOT NULL, -- Encrypted credentials object (api_key, client_secret, etc.)
-    key_hint VARCHAR(20), -- Last 4 characters for identification (e.g., "...cdef")
-    encryption_iv VARCHAR(32), -- Initialization vector for decryption (nullable for dummy data)
+    credentials JSONB NOT NULL, -- Plain credentials object (api_key, client_secret, etc.)
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP WITH TIME ZONE
     -- Removed unique constraint to allow multiple credentials per user/type
+    -- Note: Credentials stored as plain JSON for development - encryption to be added later
 );
-
--- Note: For development/testing without encryption, encryption_iv can be NULL
--- and encrypted_key can store credentials as plain JSON (not recommended for production)
 ```
 
 **API Response Mapping:**
 - Database `mcp_type_id` → API response includes both `mcp_type_id` and nested `mcp_type` object
-- Database `key_hint` → API response `key_hint` 
-- Database `encrypted_key` → API never returns raw credentials, only hints
+- Database `credentials` → API **NEVER** returns any credential information to users
 - Database timestamps → API response includes `created_at`, `updated_at`, `expires_at`
+- **Security Policy**: Once credentials are validated and stored, they are never displayed to users again
 
 ### 4. mcp_instances (Enhanced)
 ```sql
@@ -415,7 +411,6 @@ WHERE mi.status = 'running'
 ```sql
 SELECT 
     ak.id,
-    ak.key_hint,
     mt.display_name as mcp_type,
     COUNT(mi.id) as active_instances,
     MAX(mi.created_at) as last_used
@@ -425,7 +420,7 @@ LEFT JOIN mcp_instances mi ON ak.id = mi.api_key_id
     AND mi.status = 'running'
 WHERE ak.user_id = $1
     AND ak.is_active = true
-GROUP BY ak.id, ak.key_hint, mt.display_name;
+GROUP BY ak.id, mt.display_name;
 ```
 
 ## Security Considerations

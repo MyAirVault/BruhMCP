@@ -33,7 +33,7 @@ The MiniMCP security architecture implements **essential security measures** to 
 
 ### 2. Essential Security Layers
 - Process isolation boundaries
-- Encrypted API key storage
+- Plain text API key storage (encryption to be added later)
 - File-based access control
 
 ### 3. Secure by Default
@@ -253,83 +253,34 @@ const requirePermission = (permission) => {
 
 ## Data Security
 
-### API Key Encryption
+### API Key Storage
 
-#### Encryption Strategy
+#### Plain Text Storage Strategy (Temporary)
 ```javascript
-// AES-256-GCM encryption for API keys
-class EncryptionService {
+// Plain text storage for API keys (encryption temporarily disabled)
+class CredentialService {
   constructor() {
-    this.algorithm = 'aes-256-gcm';
-    this.masterKey = Buffer.from(process.env.MASTER_KEY, 'hex');
+    // Simple storage for development - encryption to be added later
   }
   
-  encrypt(plaintext) {
-    // Generate unique IV for each encryption
-    const iv = crypto.randomBytes(16);
-    
-    // Create cipher
-    const cipher = crypto.createCipheriv(this.algorithm, this.masterKey, iv);
-    
-    // Encrypt data
-    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    
-    // Get authentication tag
-    const authTag = cipher.getAuthTag();
-    
-    return {
-      encrypted,
-      iv: iv.toString('hex'),
-      authTag: authTag.toString('hex')
-    };
+  store(plaintext) {
+    return plaintext; // Return as-is for plain text storage
   }
   
-  decrypt(encryptedData) {
-    const decipher = crypto.createDecipheriv(
-      this.algorithm,
-      this.masterKey,
-      Buffer.from(encryptedData.iv, 'hex')
-    );
-    
-    // Set authentication tag
-    decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
-    
-    // Decrypt
-    let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
+  retrieve(credentials) {
+    return credentials; // Return as-is for plain text storage
   }
 }
 ```
 
-#### Key Management
+#### Future Encryption Implementation
 ```javascript
-// Secure key storage and rotation
-class KeyManagementService {
-  async rotateKeys() {
-    // Generate new master key
-    const newKey = crypto.randomBytes(32);
-    
-    // Re-encrypt all API keys with new master key
-    const apiKeys = await db.getAllEncryptedKeys();
-    
-    for (const key of apiKeys) {
-      // Decrypt with old key
-      const plaintext = await this.decrypt(key, this.currentKey);
-      
-      // Encrypt with new key
-      const encrypted = await this.encrypt(plaintext, newKey);
-      
-      // Update in database
-      await db.updateEncryptedKey(key.id, encrypted);
-    }
-    
-    // Update master key in secure storage
-    await this.updateMasterKey(newKey);
-  }
-}
+// TODO: Implement AES-256-GCM encryption when ready
+// This will include:
+// - Master key management
+// - Unique IV generation per credential
+// - Authentication tags for integrity verification
+// - Key rotation capabilities
 ```
 
 ### Database Security
@@ -768,9 +719,9 @@ class ConfigService {
   constructor() {
     this.requiredSecrets = [
       'DATABASE_URL',
-      'MASTER_KEY',
       'JWT_SECRET',
       'SESSION_SECRET'
+      // 'MASTER_KEY' - Not needed for plain text storage
     ];
     
     this.validateSecrets();
@@ -786,9 +737,7 @@ class ConfigService {
     }
     
     // Validate secret strength
-    if (process.env.MASTER_KEY.length < 64) {
-      throw new Error('MASTER_KEY must be at least 32 bytes (64 hex chars)');
-    }
+    // MASTER_KEY validation removed - not needed for plain text storage
   }
   
   getSecret(name) {
