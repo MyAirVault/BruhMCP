@@ -32,9 +32,11 @@ API versioning is included in the URL path. The current version is `v1`.
 
 ## Authentication
 
-### Simple Token Authentication
+### Cookie-Based Authentication (Magic Links)
 
-**Step 1: Request Token**
+All API endpoints require authentication except for health checks. Authentication uses JWT tokens stored in HTTP-only cookies.
+
+**Step 1: Request Magic Link**
 ```http
 POST /auth/request
 Content-Type: application/json
@@ -44,19 +46,61 @@ Content-Type: application/json
 }
 ```
 
-**Step 2: Verify Token**
+**Step 2: Verify Magic Link Token**
 ```http
 POST /auth/verify
 Content-Type: application/json
 
 {
-  "token": "abc123def456"
+  "token": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
+**Authentication Details:**
+- JWT tokens stored as HTTP-only cookies
+- SameSite strict, secure in production  
+- 7-day expiry with automatic refresh
+- No Authorization header required - cookies included automatically
+
 **Authenticated Requests**
-```http
-X-Session-Token: <session_token>
+```javascript
+fetch('/api/v1/api-keys/validate', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  credentials: 'include', // Include authentication cookies
+  body: JSON.stringify({ /* request data */ })
+})
+```
+
+**Authentication Middleware Pattern:**
+```javascript
+function requireAuth(req, res, next) {
+  const token = req.cookies.authToken; // JWT from HTTP-only cookie
+  
+  if (!token) {
+    return res.status(401).json({
+      error: {
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication required'
+      }
+    });
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // { userId: uuid, email: string }
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      error: {
+        code: 'INVALID_TOKEN', 
+        message: 'Invalid or expired token'
+      }
+    });
+  }
+}
 ```
 
 ### MCP Access Token
@@ -515,13 +559,16 @@ List user's stored API keys.
 	"data": [
 		{
 			"id": "550e8400-e29b-41d4-a716-446655440003",
+			"mcp_type_id": "550e8400-e29b-41d4-a716-446655440001",
 			"mcp_type": {
+				"id": "550e8400-e29b-41d4-a716-446655440001",
 				"name": "gmail",
 				"display_name": "Gmail MCP"
 			},
 			"key_hint": "...cdef",
 			"is_active": true,
 			"created_at": "2024-01-07T15:00:00Z",
+			"updated_at": "2024-01-07T15:00:00Z",
 			"expires_at": null
 		}
 	]
@@ -536,11 +583,11 @@ Store credentials for an MCP type.
 
 ```json
 {
-	"mcp_type": "gmail",
+	"mcp_type_id": "550e8400-e29b-41d4-a716-446655440001",
 	"credentials": {
 		"api_key": "AIzaSyD-1234567890abcdef",
-		"client_secret": "GOCSPX-1234567890abcdef if needed",
-		"client_id": "123456789.apps.googleusercontent.com if needed"
+		"client_secret": "GOCSPX-1234567890abcdef",
+		"client_id": "123456789.apps.googleusercontent.com"
 	}
 }
 ```
@@ -551,12 +598,232 @@ Store credentials for an MCP type.
 {
 	"data": {
 		"id": "550e8400-e29b-41d4-a716-446655440003",
+		"mcp_type_id": "550e8400-e29b-41d4-a716-446655440001",
 		"mcp_type": {
+			"id": "550e8400-e29b-41d4-a716-446655440001",
 			"name": "gmail",
 			"display_name": "Gmail MCP"
 		},
-		"credentials_hint": "...cdef",
+		"key_hint": "...cdef",
+		"is_active": true,
+		"created_at": "2024-01-07T15:00:00Z",
+		"updated_at": "2024-01-07T15:00:00Z",
+		"expires_at": null,
 		"message": "Credentials stored successfully"
+	}
+}
+```
+
+#### POST /api/v1/api-keys/validate
+
+Validate API credentials before storing them.
+
+**Zod Validation Schema**
+
+```javascript
+import { z } from 'zod';
+
+const credentialValidationSchema = z.object({
+	mcp_type_id: z.string().uuid('MCP type ID must be a valid UUID'),
+	credentials: z.record(z.string()).refine(
+		(creds) => Object.keys(creds).length > 0,
+		{ message: 'At least one credential is required' }
+	)
+});
+
+// Specific credential schemas based on MCP type
+const gmailCredentialsSchema = z.object({
+	api_key: z.string().min(1, 'API key is required'),
+	client_secret: z.string().optional(),
+	client_id: z.string().optional()
+});
+
+const oauthCredentialsSchema = z.object({
+	client_id: z.string().min(1, 'Client ID is required'),
+	client_secret: z.string().min(1, 'Client secret is required'),
+	refresh_token: z.string().optional()
+});
+```
+
+**Request Body**
+
+```json
+{
+	"mcp_type_id": "550e8400-e29b-41d4-a716-446655440001",
+	"credentials": {
+		"api_key": "AIzaSyD-1234567890abcdef",
+		"client_secret": "GOCSPX-1234567890abcdef",
+		"client_id": "123456789.apps.googleusercontent.com"
+	}
+}
+```
+
+**Validation Error Response** (400 Bad Request - Schema validation failure)
+
+```json
+{
+	"error": {
+		"code": "VALIDATION_ERROR",
+		"message": "Invalid request parameters",
+		"details": [
+			{
+				"field": "credentials.api_key",
+				"message": "API key is required"
+			},
+			{
+				"field": "mcp_type_id",
+				"message": "MCP type ID must be a valid UUID"
+			}
+		]
+	}
+}
+```
+
+**Response** (200 OK - Valid credentials)
+
+```json
+{
+	"data": {
+		"valid": true,
+		"message": "Credentials validated successfully",
+		"api_info": {
+			"service": "Gmail API",
+			"quota_remaining": 95000,
+			"permissions": ["read", "send"]
+		}
+	}
+}
+```
+
+**Response** (400 Bad Request - Invalid credentials)
+
+```json
+{
+	"error": {
+		"code": "INVALID_CREDENTIALS",
+		"message": "API key is invalid or expired",
+		"details": {
+			"field": "api_key",
+			"reason": "Authentication failed"
+		}
+	}
+}
+```
+
+**Controller Implementation Pattern**
+
+```javascript
+export async function validateCredentials(req, res) {
+	try {
+		// Validate request body using Zod
+		const validationResult = credentialValidationSchema.safeParse(req.body);
+
+		if (!validationResult.success) {
+			return res.status(400).json({
+				error: {
+					code: 'VALIDATION_ERROR',
+					message: 'Invalid request parameters',
+					details: validationResult.error.errors.map(err => ({
+						field: err.path.join('.'),
+						message: err.message,
+					})),
+				},
+			});
+		}
+
+		const { mcp_type_id, credentials } = validationResult.data;
+
+		// Additional credential-specific validation based on MCP type
+		const credentialSchema = getCredentialSchemaByType(mcp_type_id);
+		const credentialValidation = credentialSchema.safeParse(credentials);
+
+		if (!credentialValidation.success) {
+			return res.status(400).json({
+				error: {
+					code: 'VALIDATION_ERROR',
+					message: 'Invalid credentials format',
+					details: credentialValidation.error.errors.map(err => ({
+						field: `credentials.${err.path.join('.')}`,
+						message: err.message,
+					})),
+				},
+			});
+		}
+
+		// Test credentials with actual API
+		const testResult = await testAPICredentials(mcp_type_id, credentials);
+		
+		if (testResult.valid) {
+			return res.status(200).json({
+				data: {
+					valid: true,
+					message: 'Credentials validated successfully',
+					api_info: testResult.api_info
+				}
+			});
+		} else {
+			return res.status(400).json({
+				error: {
+					code: testResult.error_code,
+					message: testResult.error_message,
+					details: testResult.details
+				}
+			});
+		}
+
+	} catch (error) {
+		console.error('Credential validation error:', error);
+		return res.status(500).json({
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Internal server error during validation'
+			}
+		});
+	}
+}
+```
+
+**Response** (403 Forbidden - Insufficient permissions)
+
+```json
+{
+	"error": {
+		"code": "INSUFFICIENT_PERMISSIONS",
+		"message": "API key lacks required permissions",
+		"details": {
+			"required_permissions": ["https://www.googleapis.com/auth/gmail.readonly"],
+			"granted_permissions": ["https://www.googleapis.com/auth/userinfo.email"]
+		}
+	}
+}
+```
+
+**Response** (429 Too Many Requests - Rate limited)
+
+```json
+{
+	"error": {
+		"code": "RATE_LIMIT_EXCEEDED",
+		"message": "API rate limit exceeded",
+		"details": {
+			"retry_after": 60,
+			"quota_reset": "2024-01-07T16:00:00Z"
+		}
+	}
+}
+```
+
+**Response** (503 Service Unavailable - API service down)
+
+```json
+{
+	"error": {
+		"code": "SERVICE_UNAVAILABLE",
+		"message": "Target API service is currently unavailable",
+		"details": {
+			"service": "Gmail API",
+			"status_page": "https://status.google.com"
+		}
 	}
 }
 ```

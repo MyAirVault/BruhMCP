@@ -129,15 +129,24 @@ CREATE TABLE api_keys (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     mcp_type_id UUID NOT NULL REFERENCES mcp_types(id) ON DELETE CASCADE,
     encrypted_key JSONB NOT NULL, -- Encrypted credentials object (api_key, client_secret, etc.)
-    key_hint VARCHAR(20), -- Last 4 characters for identification
-    encryption_iv VARCHAR(32) NOT NULL, -- Initialization vector for decryption
+    key_hint VARCHAR(20), -- Last 4 characters for identification (e.g., "...cdef")
+    encryption_iv VARCHAR(32), -- Initialization vector for decryption (nullable for dummy data)
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP WITH TIME ZONE
     -- Removed unique constraint to allow multiple credentials per user/type
 );
+
+-- Note: For development/testing without encryption, encryption_iv can be NULL
+-- and encrypted_key can store credentials as plain JSON (not recommended for production)
 ```
+
+**API Response Mapping:**
+- Database `mcp_type_id` → API response includes both `mcp_type_id` and nested `mcp_type` object
+- Database `key_hint` → API response `key_hint` 
+- Database `encrypted_key` → API never returns raw credentials, only hints
+- Database timestamps → API response includes `created_at`, `updated_at`, `expires_at`
 
 ### 4. mcp_instances (Enhanced)
 ```sql

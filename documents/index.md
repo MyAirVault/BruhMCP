@@ -12,12 +12,14 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ### API & Integration
 - **[api-documentation.md](./api-documentation.md)** - Complete REST API specification with direct URL endpoints, simplified access, error handling, and examples
 - **[mcp-integration-guide.md](./mcp-integration-guide.md)** - **Simple Node.js process management** guide with server scripts, basic lifecycle, and adding new MCP types (no Docker complexity)
+- **[mcp-server-creation-guide.md](./mcp-server-creation-guide.md)** - **Comprehensive step-by-step guide** for creating MCP servers from any API documentation using the planned Node.js process-based architecture (implementation required)
 - **[authentication-flow.md](./authentication-flow.md)** - **Magic link authentication with JWT cookies** - UUID-based magic links with React frontend integration, PostgreSQL user storage, and enhanced VerifyPage with fallback auth checks
 - **[mcp-duplication-isolation.md](./mcp-duplication-isolation.md)** - **Simple MCP instance duplication** allowing multiple instances per user with basic process isolation (aligned with existing architecture)
 
 ### Frontend Components
 - **[frontend/](./frontend/)** - Frontend component documentation and implementation guides
   - **[frontend/verify-page.md](./frontend/verify-page.md)** - Magic link verification page documentation
+  - **[frontend/credential-validation-modals.md](./frontend/credential-validation-modals.md)** - **Credential validation UI flow** for API key testing and error handling in MCP creation modals
 
 ### Implementation & Operations
 - **[logging-monitoring.md](./logging-monitoring.md)** - **File-based logging and monitoring** strategy with complete user/MCP isolation using simple file system approach (no Prometheus/Grafana complexity)
@@ -41,6 +43,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 
 - **Development**: Development workflows and best practices
   - mcp-integration-guide.md
+  - mcp-server-creation-guide.md
   - mcp-duplication-isolation.md
   - logging-monitoring.md
 
@@ -51,7 +54,9 @@ This file contains brief descriptions of all documents in the documents/ folder.
 2. Review [Database Schema](./database-schema.md) for **minimal core tables** and file-based logging approach
 3. Check [API Documentation](./api-documentation.md) for direct URL endpoint details
 4. Review [Authentication Flow](./authentication-flow.md) for **magic link authentication with JWT cookies** implementation
-5. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP management** approach
+5. Follow [MCP Server Creation Guide](./mcp-server-creation-guide.md) for **step-by-step API integration** process
+6. Study [MCP Duplication & Isolation](./mcp-duplication-isolation.md) for **simple multi-instance MCP management** approach
+7. Review [Credential Validation Modals](./frontend/credential-validation-modals.md) for **credential testing UI flow** implementation
 
 ### For DevOps/SRE
 1. Study [Security Architecture](./security-architecture.md) for **basic process isolation** security measures
@@ -75,6 +80,7 @@ backend-architecture.md (foundational)
 └── logging-monitoring.md
 
 mcp-integration-guide.md (**Simple Node.js process management** implementation details)
+├── mcp-server-creation-guide.md (**Step-by-step API integration** guide)
 ```
 
 ## Maintenance
