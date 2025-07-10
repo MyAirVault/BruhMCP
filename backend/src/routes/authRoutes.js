@@ -1,11 +1,6 @@
 // @ts-check
 import { Router } from 'express';
-import { 
-  requestToken, 
-  verifyToken,
-  getCurrentUser,
-  logout
-} from '../controllers/authController.js';
+import { requestToken, verifyToken, getCurrentUser, logout } from '../controllers/authController.js';
 import { authRateLimiter } from '../utils/rateLimiter.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 

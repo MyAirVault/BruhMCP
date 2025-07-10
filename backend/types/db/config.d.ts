@@ -8,5 +8,5 @@ export function testConnection(): Promise<void>;
  * @type {Pool}
  */
 export const pool: Pool;
-export type Pool = import("pg").Pool;
-export type PoolConfig = import("pg").PoolConfig;
+export type Pool = import('pg').Pool;
+export type PoolConfig = import('pg').PoolConfig;

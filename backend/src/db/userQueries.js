@@ -6,9 +6,9 @@ import { pool } from './config.js';
  * @param {string} email
  */
 export async function findUserByEmail(email) {
-  const query = 'SELECT * FROM users WHERE email = $1';
-  const result = await pool.query(query, [email]);
-  return result.rows[0] || null;
+	const query = 'SELECT * FROM users WHERE email = $1';
+	const result = await pool.query(query, [email]);
+	return result.rows[0] || null;
 }
 
 /**
@@ -16,13 +16,13 @@ export async function findUserByEmail(email) {
  * @param {string} email
  */
 export async function createUser(email) {
-  const query = `
+	const query = `
     INSERT INTO users (email) 
     VALUES ($1) 
     RETURNING *
   `;
-  const result = await pool.query(query, [email]);
-  return result.rows[0];
+	const result = await pool.query(query, [email]);
+	return result.rows[0];
 }
 
 /**
@@ -30,12 +30,12 @@ export async function createUser(email) {
  * @param {string} email
  */
 export async function findOrCreateUser(email) {
-  const query = `
+	const query = `
     INSERT INTO users (email) 
     VALUES ($1) 
     ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
     RETURNING *
   `;
-  const result = await pool.query(query, [email]);
-  return result.rows[0];
+	const result = await pool.query(query, [email]);
+	return result.rows[0];
 }

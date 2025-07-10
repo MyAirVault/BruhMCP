@@ -59,7 +59,7 @@ export async function requestToken(req, res) {
 			});
 		}
 
-		// Log magic link to console  
+		// Log magic link to console
 		const magicLink = `http://localhost:${process.env.PORT || 5000}/verify?token=${result.token}`;
 		console.log(`\n🔗 Magic link for ${email}: ${magicLink}\n`);
 
@@ -125,7 +125,7 @@ export async function verifyToken(req, res) {
 		}
 
 		// Set JWT as HTTP-only cookie
-		res.cookie('auth_token', result.jwtToken, {
+		res.cookie('authToken', result.jwtToken, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'strict',

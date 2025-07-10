@@ -6,6 +6,9 @@ import 'dotenv/config';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
+import mcpTypesRoutes from './routes/mcpTypesRoutes.js';
+import apiKeysRoutes from './routes/apiKeysRoutes.js';
+import mcpInstancesRoutes from './routes/mcpInstancesRoutes.js';
 
 // Import middleware
 import { apiRateLimiter } from './utils/rateLimiter.js';
@@ -57,14 +60,22 @@ app.get('/verify', (req, res) => {
 // API routes
 app.use('/auth', authRoutes);
 
-// API v1 routes (placeholder for future implementation)
+// API v1 routes
 app.get('/api/v1/health', (_req, res) => {
 	res.status(200).json({
 		status: 'ok',
 		version: '1.0.0',
 		timestamp: new Date().toISOString(),
+		services: {
+			database: 'healthy',
+			processManager: 'healthy',
+		},
 	});
 });
+
+app.use('/api/v1/mcp-types', mcpTypesRoutes);
+app.use('/api/v1/api-keys', apiKeysRoutes);
+app.use('/api/v1/mcps', mcpInstancesRoutes);
 
 // 404 handler
 app.use('*', (_req, res) => {
