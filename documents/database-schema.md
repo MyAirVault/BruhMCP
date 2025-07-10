@@ -80,13 +80,8 @@ The MiniMCP database uses PostgreSQL with a **simplified schema** to store only 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    first_name VARCHAR(100),
-    last_name VARCHAR(100),
-    email_notifications BOOLEAN DEFAULT true,
-    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP WITH TIME ZONE
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -426,7 +421,7 @@ GROUP BY ak.id, mt.display_name;
 ## Security Considerations
 
 ### Encryption
-- API keys encrypted using AES-256-GCM
+- API keys stored as plain text for development (encryption to be added later)
 - Unique IV per key stored separately
 - Master key stored in environment variable
 

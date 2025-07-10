@@ -7,7 +7,7 @@ This document outlines the UI flow and implementation details for credential val
 **Related Documentation**:
 - [`/documents/api-documentation.md`](../api-documentation.md) - API endpoint for credential validation
 - [`/documents/frontend/frontend-enhancements.md`](./frontend-enhancements.md) - Modal patterns and UI components
-- [`/documents/mcp-server-creation-guide.md`](../mcp-server-creation-guide.md) - Credential requirements per MCP type
+- [`/documents/how-to-create-mcp-servers-simple.md`](../how-to-create-mcp-servers-simple.md) - Credential requirements per MCP type
 
 ## Credential Validation Flow
 

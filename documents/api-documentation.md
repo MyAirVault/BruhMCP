@@ -105,9 +105,15 @@ function requireAuth(req, res, next) {
 
 ### MCP Access Token
 
+MCP access tokens are used for accessing specific MCP instances after creation. These are separate from user authentication cookies.
+
 ```http
-X-Access-Token: <mcp_access_token>
+X-MCP-Access-Token: <mcp_access_token>
 ```
+
+**Usage Context:**
+- **User Authentication**: JWT cookies (`authToken`) for API access
+- **MCP Instance Access**: MCP access tokens for direct MCP communication
 
 ## Common Headers
 

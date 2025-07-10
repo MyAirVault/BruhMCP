@@ -498,8 +498,8 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p tcp --dport 5000 -j ACCEPT
 
 # Allow MCP ports (3001-3100) only from localhost
-iptables -A INPUT -p tcp --dport 3001:3100 -s 127.0.0.1 -j ACCEPT
-iptables -A INPUT -p tcp --dport 3001:3100 -j DROP
+iptables -A INPUT -p tcp --dport 3001:4000 -s 127.0.0.1 -j ACCEPT
+iptables -A INPUT -p tcp --dport 3001:4000 -j DROP
 
 # Allow SSH (if needed)
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT
