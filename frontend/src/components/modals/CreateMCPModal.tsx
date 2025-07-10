@@ -67,7 +67,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
   };
 
   const handleExpirationSelect = (option: ExpirationOption) => {
-    handleInputChange('expiration', option.label);
+    handleInputChange('expiration', option.value);
     setExpirationDropdownOpen(false);
   };
 

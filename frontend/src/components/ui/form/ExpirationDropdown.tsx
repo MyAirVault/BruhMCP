@@ -87,7 +87,7 @@ const ExpirationDropdown: React.FC<ExpirationDropdownProps> = ({
         className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none flex items-center justify-between transition-colors"
       >
         <span className={value ? 'text-gray-900' : 'text-gray-500'}>
-          {value || 'Select expiration time'}
+          {value ? expirationOptions.find(opt => opt.value === value)?.label || value : 'Select expiration time'}
         </span>
         <svg
           className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
