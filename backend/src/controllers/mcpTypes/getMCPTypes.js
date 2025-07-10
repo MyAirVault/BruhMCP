@@ -13,23 +13,38 @@ export async function getMCPTypes(req, res) {
 		const mcpTypes = await getAllMCPTypes({ activeOnly });
 
 		// Transform the response to match API specification
-		const formattedMcpTypes = mcpTypes.map(mcpType => ({
-			id: mcpType.id,
-			name: mcpType.name,
-			display_name: mcpType.display_name,
-			description: mcpType.description,
-			icon_url: mcpType.icon_url,
-			config_template: mcpType.config_template,
-			resource_limits: mcpType.resource_limits,
-			is_active: mcpType.is_active,
-			required_fields:
-				mcpType.required_credentials?.map(field => ({
-					name: field,
-					type: 'string',
-					description: `${field.replace('_', ' ')} for ${mcpType.display_name}`,
-					required: true,
-				})) || [],
-		}));
+		const formattedMcpTypes = mcpTypes.map(mcpType => {
+			// Handle both old format (string array) and new format (object array)
+			let requiredFields = [];
+			if (mcpType.required_credentials && Array.isArray(mcpType.required_credentials)) {
+				if (mcpType.required_credentials.length > 0) {
+					if (typeof mcpType.required_credentials[0] === 'string') {
+						// Old format: string array
+						requiredFields = mcpType.required_credentials.map(field => ({
+							name: field,
+							type: 'string',
+							description: `${field.replace('_', ' ')} for ${mcpType.display_name}`,
+							required: true,
+						}));
+					} else {
+						// New format: object array
+						requiredFields = mcpType.required_credentials;
+					}
+				}
+			}
+
+			return {
+				id: mcpType.id,
+				name: mcpType.name,
+				display_name: mcpType.display_name,
+				description: mcpType.description,
+				icon_url: mcpType.icon_url,
+				config_template: mcpType.config_template,
+				resource_limits: mcpType.resource_limits,
+				is_active: mcpType.is_active,
+				required_fields: requiredFields,
+			};
+		});
 
 		res.json({
 			data: formattedMcpTypes,

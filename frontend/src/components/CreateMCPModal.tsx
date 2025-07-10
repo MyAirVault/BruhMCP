@@ -15,6 +15,7 @@ interface CreateMCPFormData {
   clientId: string;
   clientSecret: string;
   expiration: string;
+  credentials: Record<string, string>;
 }
 
 interface ValidationState {
@@ -35,7 +36,8 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     apiKey: '',
     clientId: '',
     clientSecret: '',
-    expiration: ''
+    expiration: '',
+    credentials: {}
   });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
@@ -81,7 +83,8 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
         apiKey: '',
         clientId: '',
         clientSecret: '',
-        expiration: ''
+        expiration: '',
+        credentials: {}
       });
       setTypeDropdownOpen(false);
       setExpirationDropdownOpen(false);
@@ -218,26 +221,26 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
   const validateCredentials = useCallback(async () => {
     if (!selectedMcpType || !requiresCredentials(selectedMcpType)) return;
 
-    const credentials: Record<string, string> = {};
+    const credentials: Record<string, string> = { ...formData.credentials };
     
     // Build credentials object based on required fields
     const requiredFields = getRequiredFields(selectedMcpType);
+    
+    // Map legacy form fields to new credentials format
     for (const field of requiredFields) {
-      if (field === 'api_key') {
+      if (field === 'api_key' && formData.apiKey) {
         credentials.api_key = formData.apiKey;
-      } else if (field === 'client_id') {
+      } else if (field === 'client_id' && formData.clientId) {
         credentials.client_id = formData.clientId;
-      } else if (field === 'client_secret') {
+      } else if (field === 'client_secret' && formData.clientSecret) {
         credentials.client_secret = formData.clientSecret;
       }
     }
 
     // Check if all required fields are filled
     const hasAllFields = requiredFields.every(field => {
-      if (field === 'api_key') return formData.apiKey.trim() !== '';
-      if (field === 'client_id') return formData.clientId.trim() !== '';
-      if (field === 'client_secret') return formData.clientSecret.trim() !== '';
-      return true;
+      const value = credentials[field];
+      return value && value.trim() !== '';
     });
 
     if (!hasAllFields) {
@@ -273,10 +276,20 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
         apiInfo: null
       });
     }
-  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret]);
+  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials]);
 
   const handleInputChange = (field: keyof CreateMCPFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCredentialChange = (credentialName: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      credentials: {
+        ...prev.credentials,
+        [credentialName]: value
+      }
+    }));
   };
 
   // Trigger validation when credentials change
@@ -315,7 +328,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
       await onSubmit(transformedData);
       
       // Reset form
-      setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '' });
+      setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '', credentials: {} });
       setSelectedMcpType(null);
       setValidationState({
         isValidating: false,
@@ -343,10 +356,15 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     if (requiresCredentials(selectedMcpType)) {
       const requiredFields = getRequiredFields(selectedMcpType);
       const hasAllFields = requiredFields.every(field => {
+        // Check in new credentials object first, then fall back to legacy fields
+        const credentialValue = formData.credentials[field];
+        if (credentialValue && credentialValue.trim() !== '') return true;
+        
+        // Legacy field mapping
         if (field === 'api_key') return formData.apiKey.trim() !== '';
         if (field === 'client_id') return formData.clientId.trim() !== '';
         if (field === 'client_secret') return formData.clientSecret.trim() !== '';
-        return true;
+        return false;
       });
       
       return hasAllFields && (validationState.isValid === true || validationState.isValidating);
@@ -442,56 +460,61 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
 
             {requiresCredentials(selectedMcpType) && (
               <div>
-                {getRequiredFields(selectedMcpType).includes('client_id') && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Client ID
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.clientId}
-                      onChange={(e) => handleInputChange('clientId', e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Enter your Client ID"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      required
-                    />
-                  </div>
-                )}
-                
-                {getRequiredFields(selectedMcpType).includes('client_secret') && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Client Secret
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.clientSecret}
-                      onChange={(e) => handleInputChange('clientSecret', e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Enter your Client Secret"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      required
-                    />
-                  </div>
-                )}
-                
-                {getRequiredFields(selectedMcpType).includes('api_key') && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      API Key
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.apiKey}
-                      onChange={(e) => handleInputChange('apiKey', e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Enter your API key"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      required
-                    />
-                  </div>
-                )}
+                {selectedMcpType?.required_fields?.map((field) => {
+                  const fieldName = field.name;
+                  
+                  // Get value from new credentials object or fall back to legacy fields
+                  let fieldValue = formData.credentials[fieldName] || '';
+                  if (!fieldValue) {
+                    if (fieldName === 'api_key') fieldValue = formData.apiKey;
+                    else if (fieldName === 'client_id') fieldValue = formData.clientId;
+                    else if (fieldName === 'client_secret') fieldValue = formData.clientSecret;
+                  }
+
+                  // Convert field name to readable label
+                  const getFieldLabel = (name: string) => {
+                    switch (name) {
+                      case 'api_key': return 'API Key';
+                      case 'client_id': return 'Client ID';
+                      case 'client_secret': return 'Client Secret';
+                      case 'personal_access_token': return 'Personal Access Token';
+                      case 'bot_token': return 'Bot Token';
+                      case 'refresh_token': return 'Refresh Token';
+                      default: return name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                    }
+                  };
+
+                  const handleChange = (value: string) => {
+                    // Update new credentials object
+                    handleCredentialChange(fieldName, value);
+                    
+                    // Also update legacy fields for backward compatibility
+                    if (fieldName === 'api_key') handleInputChange('apiKey', value);
+                    else if (fieldName === 'client_id') handleInputChange('clientId', value);
+                    else if (fieldName === 'client_secret') handleInputChange('clientSecret', value);
+                  };
+
+                  return (
+                    <div key={fieldName} className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {getFieldLabel(fieldName)}
+                        {field.required && <span className="text-red-500 ml-1">*</span>}
+                      </label>
+                      <input
+                        type={field.type === 'password' ? 'password' : 'text'}
+                        value={fieldValue}
+                        onChange={(e) => handleChange(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={field.description || `Enter your ${getFieldLabel(fieldName).toLowerCase()}`}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                        required={field.required}
+                      />
+                      {field.description && (
+                        <p className="text-xs text-gray-500 mt-1">{field.description}</p>
+                      )}
+                    </div>
+                  );
+                })}
                 
                 {/* Validation feedback */}
                 <div className="mt-3">

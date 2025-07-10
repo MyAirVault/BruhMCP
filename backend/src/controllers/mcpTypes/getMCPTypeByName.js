@@ -21,6 +21,25 @@ export async function getMCPTypeByNameHandler(req, res) {
 		}
 
 		// Transform the response to match API specification
+		// Handle both old format (string array) and new format (object array)
+		let requiredFields = [];
+		if (mcpType.required_credentials && Array.isArray(mcpType.required_credentials)) {
+			if (mcpType.required_credentials.length > 0) {
+				if (typeof mcpType.required_credentials[0] === 'string') {
+					// Old format: string array
+					requiredFields = mcpType.required_credentials.map(field => ({
+						name: field,
+						type: 'string',
+						description: `${field.replace('_', ' ')} for ${mcpType.display_name}`,
+						required: true,
+					}));
+				} else {
+					// New format: object array
+					requiredFields = mcpType.required_credentials;
+				}
+			}
+		}
+
 		const formattedMcpType = {
 			id: mcpType.id,
 			name: mcpType.name,
@@ -30,13 +49,7 @@ export async function getMCPTypeByNameHandler(req, res) {
 			config_template: mcpType.config_template,
 			resource_limits: mcpType.resource_limits,
 			is_active: mcpType.is_active,
-			required_fields:
-				mcpType.required_credentials?.map(field => ({
-					name: field,
-					type: 'string',
-					description: `${field.replace('_', ' ')} for ${mcpType.display_name}`,
-					required: true,
-				})) || [],
+			required_fields: requiredFields,
 		};
 
 		res.json({
