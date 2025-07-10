@@ -72,6 +72,7 @@ export async function requestToken(req, res) {
 
 		// In development mode, also include the token for testing
 		if (process.env.NODE_ENV !== 'production') {
+			// @ts-ignore - Adding token for development
 			response.token = result.token;
 		}
 
@@ -161,7 +162,7 @@ export async function verifyToken(req, res) {
 
 /**
  * Get current user information
- * @param {import('express').Request} req
+ * @param {import('express').Request & { user: { id: string; email: string } }} req
  * @param {import('express').Response} res
  */
 export async function getCurrentUser(req, res) {

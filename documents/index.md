@@ -39,6 +39,10 @@ Contains documentation for client-side components and user interface:
 ### Standalone Documentation
 - **[How to Create MCP Servers](./how-to-create-mcp-servers-simple.md)** - Comprehensive step-by-step guide for creating MCP servers from any API documentation
 
+### Architecture Documentation (New - 2025-07-10)
+- **[Component Organization Patterns](./component-organization-patterns.md)** - Comprehensive guide to the new component organization patterns implementing CLAUDE.md compliance
+- **[Custom Hooks and Utilities](./custom-hooks-utilities.md)** - Documentation for custom hooks and utility functions that support the refactored architecture
+
 ## Quick Start Guide
 
 ### For New Developers
@@ -47,6 +51,8 @@ Contains documentation for client-side components and user interface:
 3. Check [API Documentation](./backend/api-documentation.md) for endpoint details
 4. Review [Authentication Flow](./backend/authentication-flow.md) for login implementation
 5. Study [Frontend Index](./frontend/index.md) for UI component structure
+6. **NEW**: Review [Component Organization Patterns](./component-organization-patterns.md) for code structure guidelines
+7. **NEW**: Study [Custom Hooks and Utilities](./custom-hooks-utilities.md) for frontend architecture patterns
 
 ### For API Integration
 1. Follow [MCP Server Creation Guide](./how-to-create-mcp-servers-simple.md) for step-by-step process
@@ -65,6 +71,8 @@ Contains documentation for client-side components and user interface:
 - Database Schema
 - Security Architecture
 - Frontend Structure
+- **NEW**: Component Organization Patterns
+- **NEW**: Custom Hooks and Utilities
 
 ### API & Integration
 - API Documentation
@@ -77,11 +85,17 @@ Contains documentation for client-side components and user interface:
 - Dashboard & Profile Pages
 - Logs & Monitoring Pages
 - UI Components & Enhancements
+- **NEW**: Refactored Component Architecture
 
 ### Operations & Monitoring
 - Logging & Monitoring
 - Security Measures
 - Process Management
+
+### Development Guidelines
+- **NEW**: CLAUDE.md Compliance Patterns
+- **NEW**: Component Splitting Strategies
+- **NEW**: Hook and Utility Organization
 
 ## Development Workflow
 
@@ -113,6 +127,37 @@ Last updated: 2025-07-10
   - Updated examples to match real API calls and responses
   - Added practical troubleshooting for current system
   - Documented actual credential validation process
+
+### New Architecture Documentation
+
+- **[Component Organization Patterns](./component-organization-patterns.md)** - **NEW DOCUMENT**
+  - Comprehensive guide to CLAUDE.md compliance patterns
+  - Frontend and backend organization strategies
+  - Component splitting methodologies
+  - File size and complexity guidelines
+  - Migration strategies for existing code
+
+- **[Custom Hooks and Utilities](./custom-hooks-utilities.md)** - **NEW DOCUMENT**
+  - Documentation for all custom React hooks
+  - Utility function specifications and usage
+  - Integration patterns and testing strategies
+  - Examples and best practices
+
+### Frontend Architecture Refactoring
+
+- **[Frontend Index](./frontend/index.md)** - **MAJOR UPDATE**
+  - Complete component structure documentation
+  - New subdirectory organization (dashboard/, logs/, modals/, ui/, etc.)
+  - Custom hooks and utilities documentation
+  - Updated component responsibilities and relationships
+
+### Backend Architecture Refactoring
+
+- **[Backend Index](./backend/index.md)** - **MAJOR UPDATE**
+  - New modular controller architecture
+  - Database layer reorganization
+  - MCP server structure documentation
+  - Service layer improvements
 
 ### Current Implementation Status
 

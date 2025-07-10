@@ -3,8 +3,8 @@ import { credentialValidationSchema } from './schemas.js';
 
 /**
  * Validate API credentials
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
  */
 export async function validateCredentials(req, res) {
 	try {
@@ -16,7 +16,7 @@ export async function validateCredentials(req, res) {
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Invalid request parameters',
-					details: validationResult.error.errors.map(err => ({
+					details: validationResult.error.errors.map((err) => ({
 						field: err.path.join('.'),
 						message: err.message,
 					})),
@@ -27,7 +27,7 @@ export async function validateCredentials(req, res) {
 		const { mcp_type_id, credentials } = validationResult.data;
 
 		// Additional credential-specific validation based on MCP type
-		const credentialSchema = getCredentialSchemaByType(mcp_type_id);
+		const credentialSchema = /** @type {any} */ (getCredentialSchemaByType(mcp_type_id));
 		const credentialValidation = credentialSchema.safeParse(credentials);
 
 		if (!credentialValidation.success) {
@@ -35,7 +35,7 @@ export async function validateCredentials(req, res) {
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Invalid credentials format',
-					details: credentialValidation.error.errors.map(err => ({
+					details: credentialValidation.error.errors.map((/** @type {any} */ err) => ({
 						field: `credentials.${err.path.join('.')}`,
 						message: err.message,
 					})),
@@ -44,7 +44,7 @@ export async function validateCredentials(req, res) {
 		}
 
 		// Test credentials with actual API
-		const testResult = await testAPICredentials(mcp_type_id, credentials);
+		const testResult = /** @type {any} */ (await testAPICredentials(mcp_type_id, credentials));
 
 		if (testResult.valid) {
 			return res.status(200).json({

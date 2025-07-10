@@ -1,12 +1,13 @@
 /**
  * Generate JWT token for user
  * @param {import('../types/index.js').User} user
+ * @returns {string} JWT token
  */
-export function generateJWT(user: import('../types/index.js').User): never;
+export function generateJWT(user: import("../types/index.js").User): string;
 /**
  * Verify JWT token
  * @param {string} token
+ * @returns {any} Decoded payload or null
  */
-export function verifyJWT(token: string): string | jwt.JwtPayload | null;
-import jwt from 'jsonwebtoken';
+export function verifyJWT(token: string): any;
 //# sourceMappingURL=jwt.d.ts.map

@@ -1,9 +1,9 @@
-import { getAPIKeysByUserId } from '../../db/apiKeysQueries.js';
+import { getAPIKeysByUserId } from '../../db/queries/apiKeysQueries.js';
 
 /**
  * Get API keys for the authenticated user
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
+ * @param {import('express').Request & { user: { id: string } }} req - Express request object
+ * @param {import('express').Response} res - Express response object
  */
 export async function getAPIKeys(req, res) {
 	try {

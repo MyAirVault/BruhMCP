@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { createMCP } from '../controllers/mcpInstances/createMCP.js';
-import { getMCPInstances } from '../controllers/mcpInstances/getMCPInstances.js';
-import { getMCPInstance } from '../controllers/mcpInstances/getMCPInstance.js';
-import { toggleMCP } from '../controllers/mcpInstances/toggleMCP.js';
-import { deleteMCP } from '../controllers/mcpInstances/deleteMCP.js';
-import { renewMCP } from '../controllers/mcpInstances/renewMCP.js';
-import { editMCP } from '../controllers/mcpInstances/editMCP.js';
-import { getMCPLogs } from '../controllers/mcpInstances/getMCPLogs.js';
-import { exportMCPLogs } from '../controllers/mcpInstances/exportMCPLogs.js';
+import { createMCP } from '../controllers/mcpInstances/crud/createMCP.js';
+import { getMCPInstances } from '../controllers/mcpInstances/crud/getMCPInstances.js';
+import { getMCPInstance } from '../controllers/mcpInstances/crud/getMCPInstance.js';
+import { toggleMCP } from '../controllers/mcpInstances/operations/toggleMCP.js';
+import { deleteMCP } from '../controllers/mcpInstances/crud/deleteMCP.js';
+import { renewMCP } from '../controllers/mcpInstances/operations/renewMCP.js';
+import { editMCP } from '../controllers/mcpInstances/crud/editMCP.js';
+import { getMCPLogs } from '../controllers/mcpInstances/logs/getMCPLogs.js';
+import { exportMCPLogs } from '../controllers/mcpInstances/logs/exportMCPLogs.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();

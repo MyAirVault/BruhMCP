@@ -3,19 +3,19 @@ import fetch from 'node-fetch';
 
 /**
  * Test API credentials against the actual API
- * @param {string} mcpTypeId - MCP type ID
- * @param {Object} credentials - Credentials to test
- * @returns {Promise<Object>} Validation result
+ * @param {string} _mcpTypeId - MCP type ID
+ * @param {any} credentials - Credentials to test
+ * @returns {Promise<any>} Validation result
  */
 export async function testAPICredentials(_mcpTypeId, credentials) {
 	try {
-		const result = {
+		const result = /** @type {any} */ ({
 			valid: false,
 			api_info: null,
 			error_code: null,
 			error_message: null,
 			details: null,
-		};
+		});
 
 		// Check if credentials object has required fields
 		if (!credentials || typeof credentials !== 'object') {
@@ -34,7 +34,7 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 				});
 
 				if (response.ok) {
-					const data = await response.json();
+					const data = /** @type {any} */ (await response.json());
 					result.valid = true;
 					result.api_info = {
 						service: 'Figma API',
@@ -49,7 +49,7 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 					result.error_message = 'Invalid Figma API token';
 					return result;
 				}
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				result.error_code = 'API_ERROR';
 				result.error_message = 'Failed to validate Figma API token';
 				result.details = { error: error.message };
@@ -68,7 +68,7 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 				});
 
 				if (response.ok) {
-					const data = await response.json();
+					const data = /** @type {any} */ (await response.json());
 					result.valid = true;
 					result.api_info = {
 						service: 'GitHub API',
@@ -83,7 +83,7 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 					result.error_message = 'Invalid GitHub personal access token';
 					return result;
 				}
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				result.error_code = 'API_ERROR';
 				result.error_message = 'Failed to validate GitHub token';
 				result.details = { error: error.message };
@@ -103,7 +103,7 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 					permissions: ['read', 'send'],
 				};
 				return result;
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				result.error_code = 'API_ERROR';
 				result.error_message = 'Failed to validate Gmail API key';
 				result.details = { error: error.message };
@@ -120,7 +120,7 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 		};
 
 		return result;
-	} catch (error) {
+	} catch (/** @type {any} */ error) {
 		console.error('Error testing credentials:', error);
 		return {
 			valid: false,
@@ -136,14 +136,14 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 
 /**
  * Get credential schema by MCP type ID
- * @param {string} mcpTypeId - MCP type ID
+ * @param {string} _mcpTypeId - MCP type ID
  * @returns {Object} Credential schema
  */
 export function getCredentialSchemaByType(_mcpTypeId) {
 	// This would normally be fetched from the database
 	// For now, we'll return a basic schema
 	return {
-		safeParse: credentials => {
+		safeParse: (/** @type {any} */ credentials) => {
 			const errors = [];
 
 			if (!credentials || typeof credentials !== 'object') {

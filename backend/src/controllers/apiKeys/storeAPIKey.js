@@ -1,11 +1,12 @@
-import { storeAPIKey } from '../../db/apiKeysQueries.js';
-import { getMCPTypeById } from '../../db/mcpTypesQueries.js';
+import { storeAPIKey } from '../../db/queries/apiKeysQueries.js';
+import { getMCPTypeById } from '../../db/queries/mcpTypesQueries.js';
 import { storeAPIKeySchema } from './schemas.js';
 
 /**
  * Store API key for the authenticated user
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
+ * @param {import('express').Request & { user: { id: string } }} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @returns {Promise<import('express').Response | void>}
  */
 export async function storeAPIKeyHandler(req, res) {
 	try {
@@ -30,7 +31,7 @@ export async function storeAPIKeyHandler(req, res) {
 		const { mcp_type_id, credentials } = validationResult.data;
 
 		// Verify MCP type exists
-		const mcpType = await getMCPTypeById(mcp_type_id);
+		const mcpType = /** @type {any} */ (await getMCPTypeById(mcp_type_id));
 		if (!mcpType) {
 			return res.status(404).json({
 				error: {
@@ -41,7 +42,7 @@ export async function storeAPIKeyHandler(req, res) {
 		}
 
 		// Store the API key
-		const apiKey = await storeAPIKey(userId, mcp_type_id, credentials);
+		const apiKey = /** @type {any} */ (await storeAPIKey(userId, mcp_type_id, credentials));
 
 		res.status(201).json({
 			data: {

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MagicLinkPopup from '../components/MagicLinkPopup';
+import MagicLinkPopup from '../components/modals/MagicLinkPopup';
 import { requestMagicLink, checkAuthStatus } from '../services/authService';
 
 const LoginPage: React.FC = () => {

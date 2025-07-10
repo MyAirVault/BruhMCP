@@ -1,4 +1,4 @@
-import { getAllMCPTypes } from '../../db/mcpTypesQueries.js';
+import { getAllMCPTypes } from '../../db/queries/mcpTypesQueries.js';
 
 /**
  * Get all MCP types

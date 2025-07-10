@@ -1,6 +1,6 @@
 // @ts-check
 import { verifyJWT } from '../utils/jwt.js';
-import { findUserByEmail } from '../db/userQueries.js';
+import { findUserByEmail } from '../db/queries/userQueries.js';
 
 /**
  * Authentication middleware that validates JWT tokens from cookies

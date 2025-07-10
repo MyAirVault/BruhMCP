@@ -1,10 +1,11 @@
-import { spawn } from 'child_process';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import portManager from './portManager.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { createProcess } from './process/process-creation.js';
+import { setupProcessMonitoring, terminateProcess } from './process/process-monitoring.js';
+import {
+	isProcessRunning,
+	getProcessInfo,
+	getAllActiveProcesses,
+	healthCheckAll,
+} from './process/process-utilities.js';
 
 /**
  * Process management service for MCP instances
@@ -17,130 +18,18 @@ class ProcessManager {
 	/**
 	 * Create a new MCP process
 	 * @param {Object} config - Process configuration
-	 * @param {string} config.mcpType - MCP type name
-	 * @param {string} config.instanceId - Instance ID
-	 * @param {string} config.userId - User ID
-	 * @param {Object} config.credentials - Decrypted credentials
-	 * @param {Object} config.config - Instance configuration
 	 * @returns {Promise<Object>} Process information
 	 */
 	async createProcess(config) {
-		const { mcpType, instanceId, userId, credentials, config: instanceConfig } = config;
+		const { processInfo, mcpProcess, result } = await createProcess(config);
 
-		try {
-			// Get available port
-			const assignedPort = portManager.getAvailablePort();
+		// Store process information
+		this.activeProcesses.set(config.instanceId, processInfo);
 
-			// Prepare environment variables
-			const env = {
-				...process.env,
-				PORT: assignedPort.toString(),
-				MCP_ID: instanceId,
-				USER_ID: userId,
-				MCP_TYPE: mcpType,
-				CREDENTIALS: JSON.stringify(credentials),
-				CONFIG: JSON.stringify(instanceConfig || {}),
-				NODE_ENV: 'production',
-			};
+		// Setup process monitoring
+		setupProcessMonitoring(config.instanceId, mcpProcess, this.activeProcesses);
 
-			// Get universal server script path
-			const serverScriptPath = join(__dirname, '..', 'mcp-servers', 'universal-mcp-server.js');
-
-			// Start MCP process
-			const mcpProcess = spawn('node', [serverScriptPath], {
-				env,
-				detached: false,
-				stdio: ['pipe', 'pipe', 'pipe'],
-			});
-
-			// Store process information
-			const processInfo = {
-				processId: mcpProcess.pid,
-				assignedPort,
-				accessUrl: `http://localhost:${assignedPort}`,
-				mcpType,
-				instanceId,
-				userId,
-				process: mcpProcess,
-				startTime: new Date(),
-			};
-
-			this.activeProcesses.set(instanceId, processInfo);
-
-			// Setup process monitoring
-			this.setupProcessMonitoring(instanceId, mcpProcess);
-
-			console.log(`MCP ${mcpType} server created for instance ${instanceId} on port ${assignedPort} with PID ${mcpProcess.pid}`);
-
-			return {
-				processId: mcpProcess.pid,
-				assignedPort,
-				accessUrl: `http://localhost:${assignedPort}/mcp/${mcpType}`,
-			};
-		} catch (error) {
-			console.error('Failed to create MCP process:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Setup process monitoring for an MCP instance
-	 * @param {string} instanceId - Instance ID
-	 * @param {ChildProcess} mcpProcess - Node.js process
-	 */
-	setupProcessMonitoring(instanceId, mcpProcess) {
-		// Log stdout
-		mcpProcess.stdout.on('data', data => {
-			console.log(`MCP ${instanceId} stdout: ${data.toString()}`);
-		});
-
-		// Log stderr
-		mcpProcess.stderr.on('data', data => {
-			console.error(`MCP ${instanceId} stderr: ${data.toString()}`);
-		});
-
-		// Handle process exit
-		mcpProcess.on('exit', code => {
-			console.log(`MCP ${instanceId} exited with code ${code}`);
-			this.handleProcessExit(instanceId, code);
-		});
-
-		// Handle process error
-		mcpProcess.on('error', error => {
-			console.error(`MCP ${instanceId} error:`, error);
-			this.handleProcessError(instanceId, error);
-		});
-	}
-
-	/**
-	 * Handle process exit
-	 * @param {string} instanceId - Instance ID
-	 * @param {number} code - Exit code
-	 */
-	handleProcessExit(instanceId, code) {
-		const processInfo = this.activeProcesses.get(instanceId);
-		if (processInfo) {
-			// Release port
-			portManager.releasePort(processInfo.assignedPort);
-
-			// Remove from active processes
-			this.activeProcesses.delete(instanceId);
-
-			// Log exit
-			console.log(`Process ${instanceId} exited with code ${code}, port ${processInfo.assignedPort} released`);
-		}
-	}
-
-	/**
-	 * Handle process error
-	 * @param {string} instanceId - Instance ID
-	 * @param {Error} error - Error object
-	 */
-	handleProcessError(instanceId, error) {
-		console.error(`Process ${instanceId} error:`, error);
-
-		// Clean up process
-		this.terminateProcess(instanceId);
+		return result;
 	}
 
 	/**
@@ -149,31 +38,7 @@ class ProcessManager {
 	 * @returns {Promise<boolean>} True if process was terminated
 	 */
 	async terminateProcess(instanceId) {
-		const processInfo = this.activeProcesses.get(instanceId);
-		if (!processInfo) {
-			return false;
-		}
-
-		try {
-			// Send SIGTERM for graceful shutdown
-			process.kill(processInfo.processId, 'SIGTERM');
-
-			// Wait for graceful shutdown, then force kill if needed
-			setTimeout(() => {
-				if (this.activeProcesses.has(instanceId)) {
-					try {
-						process.kill(processInfo.processId, 'SIGKILL');
-					} catch (error) {
-						// Process already terminated
-					}
-				}
-			}, 10000);
-
-			return true;
-		} catch (error) {
-			console.error(`Failed to terminate process ${instanceId}:`, error);
-			return false;
-		}
+		return terminateProcess(instanceId, this.activeProcesses);
 	}
 
 	/**
@@ -182,19 +47,7 @@ class ProcessManager {
 	 * @returns {boolean} True if process is running
 	 */
 	isProcessRunning(pid) {
-		// For simulated processes (string IDs), check if they exist in our map
-		if (typeof pid === 'string') {
-			const instanceId = pid.replace('mcp-', '');
-			return this.activeProcesses.has(instanceId);
-		}
-		
-		// For real process IDs
-		try {
-			process.kill(pid, 0); // Signal 0 checks if process exists
-			return true;
-		} catch (error) {
-			return false;
-		}
+		return isProcessRunning(pid, this.activeProcesses);
 	}
 
 	/**
@@ -203,7 +56,7 @@ class ProcessManager {
 	 * @returns {Object|null} Process information or null if not found
 	 */
 	getProcessInfo(instanceId) {
-		return this.activeProcesses.get(instanceId) || null;
+		return getProcessInfo(instanceId, this.activeProcesses);
 	}
 
 	/**
@@ -211,7 +64,7 @@ class ProcessManager {
 	 * @returns {Array<Object>} Array of process information
 	 */
 	getAllActiveProcesses() {
-		return Array.from(this.activeProcesses.values());
+		return getAllActiveProcesses(this.activeProcesses);
 	}
 
 	/**
@@ -219,23 +72,7 @@ class ProcessManager {
 	 * @returns {Promise<Array<Object>>} Array of process health status
 	 */
 	async healthCheckAll() {
-		const healthResults = [];
-
-		for (const [instanceId, processInfo] of this.activeProcesses) {
-			const isRunning = this.isProcessRunning(processInfo.processId);
-
-			healthResults.push({
-				instanceId,
-				processId: processInfo.processId,
-				assignedPort: processInfo.assignedPort,
-				isRunning,
-				uptime: Date.now() - processInfo.startTime.getTime(),
-				mcpType: processInfo.mcpType,
-				userId: processInfo.userId,
-			});
-		}
-
-		return healthResults;
+		return healthCheckAll(this.activeProcesses);
 	}
 }
 

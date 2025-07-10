@@ -9,6 +9,105 @@ This file contains brief descriptions of all documents in the documents/ folder.
 - **[database-schema.md](./database-schema.md)** - **Minimal database schema** with core tables only, file-based logging, and simple port management (no complex audit tables)
 - **[security-architecture.md](./security-architecture.md)** - **Basic security measures** focused on process isolation and file-based logging (no enterprise complexity)
 
+### New Backend Architecture (2025-07-10)
+
+The backend has been completely refactored to follow CLAUDE.md rules with a modular architecture:
+
+#### Controllers (`/backend/src/controllers/`)
+
+- **`apiKeys/`** - API key management controllers
+  - `getAPIKeys.js` - Retrieve stored API keys
+  - `storeAPIKey.js` - Store new API credentials
+  - `deleteAPIKey.js` - Delete stored API keys
+  - `validateCredentials.js` - Validate credentials against service APIs
+  - `schemas.js` - API key validation schemas
+
+- **`mcpInstances/`** - MCP instance management controllers
+  - `crud/` - CRUD operations
+    - `createMCP.js` - Create new MCP instances
+    - `getMCPInstances.js` - List MCP instances with filtering
+    - `getMCPInstance.js` - Get specific MCP instance
+    - `editMCP.js` - Update MCP instance details
+    - `deleteMCP.js` - Delete MCP instances
+  - `logs/` - Log management
+    - `getMCPLogs.js` - Retrieve MCP instance logs
+    - `exportMCPLogs.js` - Export logs in various formats
+  - `operations/` - MCP operations
+    - `toggleMCP.js` - Toggle MCP active/inactive status
+    - `renewMCP.js` - Renew expired MCP instances
+  - `schemas.js` - MCP validation schemas
+  - `utils.js` - MCP utility functions
+
+- **`mcpTypes/`** - MCP type management controllers
+  - `getMCPTypes.js` - List available MCP types
+  - `getMCPTypeByName.js` - Get specific MCP type details
+
+- **`authController.js`** - Authentication controller
+
+#### Database Layer (`/backend/src/db/`)
+
+- **`mcp-instances/`** - MCP instance database operations
+  - `create-instance.js` - Create new MCP instances
+  - `read-instances.js` - Query MCP instances
+  - `update-instance.js` - Update MCP instances
+  - `delete-instance.js` - Delete MCP instances
+  - `instance-utilities.js` - Common instance utilities
+
+- **`mcp-types/`** - MCP type database operations
+  - `types-data.js` - MCP type data management
+  - `upsert-type.js` - Insert/update MCP types
+  - `type-verification.js` - Type verification logic
+  - `credential-verification.js` - Credential validation
+  - `connection-tests.js` - Connection testing utilities
+  - `retrieval-tests.js` - Data retrieval testing
+  - `test-reporting.js` - Test result reporting
+  - `update-types.js` - Type update operations
+  - `verify-update.js` - Update verification
+
+- **Legacy Files** (maintained for compatibility)
+  - `mcpInstancesQueries.js` - Legacy MCP instance queries
+  - `mcpTypesQueries.js` - Legacy MCP type queries
+  - `apiKeysQueries.js` - API key queries
+  - `userQueries.js` - User management queries
+
+#### MCP Server Architecture (`/backend/src/mcp-servers/`)
+
+- **`config/`** - Server configuration
+  - `service-configs.js` - Service-specific configurations
+
+- **`handlers/`** - Request handlers
+  - `endpoint-handlers.js` - API endpoint handlers
+  - `resource-handlers.js` - Resource management handlers
+  - `tool-handlers.js` - Tool-specific handlers
+
+- **`routes/`** - MCP routing
+  - `mcp-routes.js` - MCP server route definitions
+
+- **`utils/`** - Server utilities
+  - `server-setup.js` - Server setup and initialization
+
+- **`universal-mcp-server.js`** - Universal MCP server implementation
+
+#### Services (`/backend/src/services/`)
+
+- **`process/`** - Process management services
+  - `process-creation.js` - Process creation utilities
+  - `process-monitoring.js` - Process monitoring and health checks
+  - `process-utilities.js` - Common process utilities
+
+- **Service Files**
+  - `processManager.js` - Main process management service
+  - `portManager.js` - Port allocation and management
+  - `credentialValidationService.js` - Credential validation service
+  - `authService.js` - Authentication service
+
+This new architecture ensures:
+- **Maximum 8 files per folder** (CLAUDE.md compliance)
+- **Single responsibility** per module
+- **Logical grouping** by domain (CRUD, logs, operations)
+- **Clear separation** between controllers, database, and services
+- **Modular design** for easy maintenance and testing
+
 ### API & Integration
 - **[api-documentation.md](./api-documentation.md)** - Complete REST API specification with direct URL endpoints, simplified access, error handling, and examples
 - **[mcp-integration-guide.md](./mcp-integration-guide.md)** - **Simple Node.js process management** guide with server scripts, basic lifecycle, and adding new MCP types (no Docker complexity)

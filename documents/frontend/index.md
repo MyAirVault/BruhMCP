@@ -24,6 +24,86 @@ The frontend is built with:
 -   **API Integration**: Custom API service with backend endpoints
 -   **Location**: `/frontend/` directory
 
+### New Component Organization (2025-07-10)
+
+The frontend now follows CLAUDE.md rules with components organized in focused subdirectories:
+
+#### Component Directories (`/frontend/src/components/`)
+
+- **`dashboard/`** - Dashboard-specific components
+  - `DashboardContent.tsx` - Main dashboard content display
+  - `DashboardEmptyState.tsx` - Empty state when no MCPs exist
+  - `DashboardHeader.tsx` - Dashboard header with user info
+  - `types.ts` - Dashboard-specific type definitions
+  - `useDashboardActions.ts` - Dashboard action handlers
+  - `useDashboardKeyboardShortcuts.ts` - Keyboard shortcut logic
+  - `useDashboardState.ts` - Dashboard state management
+
+- **`layout/`** - Layout components
+  - `Footer.tsx` - Application footer
+  - `Header.tsx` - Application header
+  - `Layout.tsx` - Main layout wrapper
+
+- **`logs/`** - Logs page components
+  - `LogsCard.tsx` - Individual log entry card
+  - `LogsDisplay.tsx` - Main logs display component
+  - `LogsFilters.tsx` - Log filtering controls
+  - `LogsHeader.tsx` - Logs page header
+  - `LogsTable.tsx` - Logs table component
+  - `LogsTableRow.tsx` - Individual table row
+  - `hooks.ts` - Logs-specific hooks
+  - `index.ts` - Logs component exports
+  - `types.ts` - Logs-specific types
+  - `utils.ts` - Logs utility functions
+
+- **`mcp/`** - MCP-related components
+  - `MCPCard.tsx` - Individual MCP instance card
+  - `MCPSection.tsx` - MCP section wrapper
+
+- **`modals/`** - Modal components
+  - `ConfirmationModal.tsx` - Generic confirmation dialog
+  - `CopyURLModal.tsx` - URL copying modal
+  - `CreateMCPModal.tsx` - MCP creation modal
+  - `EditMCPModal.tsx` - MCP editing modal
+  - `MagicLinkPopup.tsx` - Magic link authentication popup
+
+- **`ui/`** - Reusable UI components
+  - `CustomDropdown.tsx` - Custom dropdown implementation
+  - `Dropdown.tsx` - Generic dropdown component
+  - `KeyboardShortcuts.tsx` - Keyboard shortcuts display
+  - `StatusBadge.tsx` - Status indicator badges
+  - `Tooltip.tsx` - Tooltip component
+  - `form/` - Form-specific components
+    - `CredentialFields.tsx` - Credential input fields
+    - `ExpirationDropdown.tsx` - Expiration time selector
+    - `FormField.tsx` - Generic form field wrapper
+    - `TypeDropdown.tsx` - MCP type selector
+    - `ValidationFeedback.tsx` - Form validation feedback
+
+#### Custom Hooks (`/frontend/src/hooks/`)
+
+- `useAuth.ts` - Authentication state management
+- `useCreateMCPForm.ts` - MCP creation form logic
+- `useDropdown.ts` - Dropdown component logic
+
+#### Utility Functions (`/frontend/src/utils/`)
+
+- `authTest.ts` - Authentication testing utilities
+- `dropdownHelpers.ts` - Dropdown helper functions
+- `dropdownUtils.ts` - Dropdown utility functions
+- `mcpHelpers.ts` - MCP-related helper functions
+
+#### Type Definitions (`/frontend/src/types/`)
+
+- `createMCPModal.ts` - Create MCP modal types
+- `index.ts` - Main type exports
+
+This new structure ensures:
+- **Maximum 8 files per folder** (CLAUDE.md compliance)
+- **Single responsibility** per component
+- **Logical grouping** by feature/domain
+- **Clear separation** between components, hooks, and utilities
+
 ## API Integration
 
 ### API Service (`/frontend/src/services/apiService.ts`)
@@ -117,12 +197,110 @@ All API calls include:
 
 ### Components
 
--   **MagicLinkPopup** (`/frontend/src/components/MagicLinkPopup.tsx`)
+The component architecture has been completely refactored to follow CLAUDE.md rules:
+
+#### Modal Components (`/frontend/src/components/modals/`)
+
+-   **MagicLinkPopup** (`MagicLinkPopup.tsx`)
     -   Modal popup showing magic link sent confirmation
     -   Polling mechanism that checks authentication every 2 seconds
     -   Displays user's email and instructions
     -   Automatic redirect to dashboard on successful verification
     -   Development note about console link visibility
+
+-   **CreateMCPModal** (`CreateMCPModal.tsx`)
+    -   Main MCP creation modal with form validation
+    -   Integrates with credential validation flow
+    -   Real-time type selection and credential testing
+
+-   **EditMCPModal** (`EditMCPModal.tsx`)
+    -   MCP instance editing interface
+    -   Supports name, description, and expiration updates
+
+-   **ConfirmationModal** (`ConfirmationModal.tsx`)
+    -   Generic confirmation dialog for destructive actions
+    -   Used for MCP deletion and other confirmations
+
+-   **CopyURLModal** (`CopyURLModal.tsx`)
+    -   Modal for copying MCP instance URLs
+    -   Clipboard integration and user feedback
+
+#### Dashboard Components (`/frontend/src/components/dashboard/`)
+
+-   **DashboardContent** (`DashboardContent.tsx`)
+    -   Main dashboard content with MCP instance display
+    -   Status-based organization (Active, Inactive, Expired)
+
+-   **DashboardHeader** (`DashboardHeader.tsx`)
+    -   Dashboard header with user profile and actions
+    -   Keyboard shortcuts display and user dropdown
+
+-   **DashboardEmptyState** (`DashboardEmptyState.tsx`)
+    -   Empty state component when no MCPs exist
+    -   Onboarding guidance and create button
+
+#### UI Components (`/frontend/src/components/ui/`)
+
+-   **StatusBadge** (`StatusBadge.tsx`)
+    -   Status indicator badges for MCP instances
+    -   Color-coded status display (Active, Inactive, Expired)
+
+-   **Tooltip** (`Tooltip.tsx`)
+    -   Reusable tooltip component with smart positioning
+    -   Used throughout the application for help text
+
+-   **KeyboardShortcuts** (`KeyboardShortcuts.tsx`)
+    -   Keyboard shortcuts display component
+    -   Shows available shortcuts and their descriptions
+
+-   **Form Components** (`/frontend/src/components/ui/form/`)
+    -   **CredentialFields** (`CredentialFields.tsx`) - Dynamic credential input fields
+    -   **ValidationFeedback** (`ValidationFeedback.tsx`) - Form validation feedback
+    -   **TypeDropdown** (`TypeDropdown.tsx`) - MCP type selection dropdown
+    -   **ExpirationDropdown** (`ExpirationDropdown.tsx`) - Expiration time selector
+    -   **FormField** (`FormField.tsx`) - Generic form field wrapper
+
+#### Logs Components (`/frontend/src/components/logs/`)
+
+-   **LogsDisplay** (`LogsDisplay.tsx`)
+    -   Main logs display with filtering and search
+    -   Integration with backend logs API
+
+-   **LogsFilters** (`LogsFilters.tsx`)
+    -   Advanced filtering controls for logs
+    -   Level, source, and time range filters
+
+-   **LogsTable** (`LogsTable.tsx`)
+    -   Tabular display of log entries
+    -   Sortable columns and pagination
+
+-   **LogsHeader** (`LogsHeader.tsx`)
+    -   Logs page header with actions
+    -   Export functionality and refresh controls
+
+#### MCP Components (`/frontend/src/components/mcp/`)
+
+-   **MCPCard** (`MCPCard.tsx`)
+    -   Individual MCP instance card component
+    -   Status display, actions, and quick information
+
+-   **MCPSection** (`MCPSection.tsx`)
+    -   Section wrapper for organizing MCP cards
+    -   Used for status-based grouping
+
+#### Layout Components (`/frontend/src/components/layout/`)
+
+-   **Layout** (`Layout.tsx`)
+    -   Main application layout wrapper
+    -   Navigation and footer integration
+
+-   **Header** (`Header.tsx`)
+    -   Application header component
+    -   Navigation and user actions
+
+-   **Footer** (`Footer.tsx`)
+    -   Application footer component
+    -   Links and application information
 
 ## Enhanced Authentication Flow
 

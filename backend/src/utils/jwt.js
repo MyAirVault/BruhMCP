@@ -7,6 +7,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 /**
  * Generate JWT token for user
  * @param {import('../types/index.js').User} user
+ * @returns {string} JWT token
  */
 export function generateJWT(user) {
 	const payload = {
@@ -15,17 +16,19 @@ export function generateJWT(user) {
 		email: user.email,
 	};
 
+	// @ts-ignore
 	return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
 /**
  * Verify JWT token
  * @param {string} token
+ * @returns {any} Decoded payload or null
  */
 export function verifyJWT(token) {
 	try {
-		return jwt.verify(token, JWT_SECRET);
-	} catch (error) {
+		return /** @type {any} */ (jwt.verify(token, JWT_SECRET));
+	} catch {
 		return null;
 	}
 }

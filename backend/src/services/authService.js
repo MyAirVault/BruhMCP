@@ -1,7 +1,8 @@
 // @ts-check
 import { v4 as uuidv4 } from 'uuid';
-import { findOrCreateUser } from '../db/userQueries.js';
+import { findOrCreateUser } from '../db/queries/userQueries.js';
 import { generateJWT } from '../utils/jwt.js';
+import { setInterval } from 'node:timers';
 
 class AuthService {
 	constructor() {

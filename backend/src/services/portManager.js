@@ -5,8 +5,8 @@ class PortManager {
 	constructor() {
 		this.usedPorts = new Set();
 		this.portRange = {
-			start: parseInt(process.env.PORT_RANGE_START) || 3001,
-			end: parseInt(process.env.PORT_RANGE_END) || 3100,
+			start: parseInt(process.env.PORT_RANGE_START || '3001'),
+			end: parseInt(process.env.PORT_RANGE_END || '3100'),
 		};
 	}
 

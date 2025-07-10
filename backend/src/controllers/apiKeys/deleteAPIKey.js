@@ -1,9 +1,10 @@
-import { deleteAPIKey } from '../../db/apiKeysQueries.js';
+import { deleteAPIKey } from '../../db/queries/apiKeysQueries.js';
 
 /**
  * Delete API key
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
+ * @param {import('express').Request & { user: { id: string } }} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @returns {Promise<import('express').Response | void>}
  */
 export async function deleteAPIKeyHandler(req, res) {
 	try {
