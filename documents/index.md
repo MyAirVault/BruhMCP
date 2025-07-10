@@ -21,7 +21,7 @@ Contains technical documentation for server-side components and architecture:
 - **[Authentication Flow](./backend/authentication-flow.md)** - Magic link authentication with JWT cookies
 - **[Security Architecture](./backend/security-architecture.md)** - Basic security measures and process isolation
 - **[Logging & Monitoring](./backend/logging-monitoring.md)** - File-based logging and monitoring strategy
-- **[MCP Integration Guide](./backend/mcp-integration-guide.md)** - Simple Node.js process management guide
+- **[MCP Integration Guide](./backend/mcp-integration-guide.md)** - **UPDATED 2025-07-10** - Current implementation of MCP server creation and management
 - **[MCP Duplication & Isolation](./backend/mcp-duplication-isolation.md)** - Simple MCP instance duplication
 
 ### Frontend Documentation (`/frontend/`)
@@ -102,3 +102,35 @@ These documents should be updated when:
 - UI components are enhanced
 
 Last updated: 2025-07-10
+
+## Recent Updates (2025-07-10)
+
+### Major Documentation Updates
+
+- **[MCP Integration Guide](./backend/mcp-integration-guide.md)** - **COMPLETELY REWRITTEN** to reflect actual implementation
+  - Removed outdated complex process management documentation
+  - Added accurate description of current simplified flow
+  - Updated examples to match real API calls and responses
+  - Added practical troubleshooting for current system
+  - Documented actual credential validation process
+
+### Current Implementation Status
+
+The MiniMCP system currently implements:
+
+✅ **Working Features:**
+- Frontend MCP server creation with token input
+- Real credential validation against service APIs (Figma, GitHub, Gmail)
+- Isolated Node.js process creation per MCP server
+- Direct URL access to user's data (`http://localhost:PORT`)
+- Basic health monitoring and process management
+
+🚧 **Limitations:**
+- Manual MCP server implementation (each service requires coding)
+- Basic process monitoring (no automatic recovery)
+- Simple credential storage (no rotation)
+
+📋 **Next Development Priorities:**
+- Automatic MCP server generation from API documentation  
+- Enhanced process monitoring and recovery
+- Advanced credential management

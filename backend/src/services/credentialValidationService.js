@@ -1,4 +1,5 @@
 // @ts-check
+import fetch from 'node-fetch';
 
 /**
  * Test API credentials against the actual API
@@ -8,10 +9,6 @@
  */
 export async function testAPICredentials(_mcpTypeId, credentials) {
 	try {
-		// For now, we'll implement basic validation
-		// In a real implementation, this would make actual API calls
-
-		// Basic validation - check if required fields are present
 		const result = {
 			valid: false,
 			api_info: null,
@@ -27,51 +24,91 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 			return result;
 		}
 
-		// For development, we'll simulate successful validation
-		// In production, this would make actual API calls to test the credentials
-
-		// Gmail API simulation
-		if (credentials.api_key && credentials.api_key.startsWith('AIza')) {
-			result.valid = true;
-			result.api_info = {
-				service: 'Gmail API',
-				quota_remaining: 95000,
-				permissions: ['read', 'send'],
-			};
-			return result;
-		}
-
-		// Figma API simulation
+		// Figma API validation
 		if (credentials.api_key && credentials.api_key.startsWith('figd_')) {
-			result.valid = true;
-			result.api_info = {
-				service: 'Figma API',
-				quota_remaining: 1000,
-				permissions: ['file_read', 'file_write'],
-			};
-			return result;
+			try {
+				const response = await fetch('https://api.figma.com/v1/me', {
+					headers: {
+						'X-Figma-Token': credentials.api_key,
+					},
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					result.valid = true;
+					result.api_info = {
+						service: 'Figma API',
+						user_id: data.id,
+						email: data.email,
+						handle: data.handle,
+						permissions: ['file_read', 'file_write'],
+					};
+					return result;
+				} else {
+					result.error_code = 'INVALID_CREDENTIALS';
+					result.error_message = 'Invalid Figma API token';
+					return result;
+				}
+			} catch (error) {
+				result.error_code = 'API_ERROR';
+				result.error_message = 'Failed to validate Figma API token';
+				result.details = { error: error.message };
+				return result;
+			}
 		}
 
-		// GitHub API simulation
+		// GitHub API validation
 		if (credentials.personal_access_token && credentials.personal_access_token.startsWith('ghp_')) {
-			result.valid = true;
-			result.api_info = {
-				service: 'GitHub API',
-				quota_remaining: 5000,
-				permissions: ['repo', 'read:org'],
-			};
-			return result;
+			try {
+				const response = await fetch('https://api.github.com/user', {
+					headers: {
+						Authorization: `token ${credentials.personal_access_token}`,
+						'User-Agent': 'MCP-Server',
+					},
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					result.valid = true;
+					result.api_info = {
+						service: 'GitHub API',
+						user_id: data.id,
+						login: data.login,
+						name: data.name,
+						permissions: ['repo', 'read:org'],
+					};
+					return result;
+				} else {
+					result.error_code = 'INVALID_CREDENTIALS';
+					result.error_message = 'Invalid GitHub personal access token';
+					return result;
+				}
+			} catch (error) {
+				result.error_code = 'API_ERROR';
+				result.error_message = 'Failed to validate GitHub token';
+				result.details = { error: error.message };
+				return result;
+			}
 		}
 
-		// Generic API key validation
-		if (credentials.api_key && credentials.api_key.length > 10) {
-			result.valid = true;
-			result.api_info = {
-				service: 'Generic API',
-				quota_remaining: 10000,
-				permissions: ['read', 'write'],
-			};
-			return result;
+		// Gmail API validation
+		if (credentials.api_key && credentials.api_key.startsWith('AIza')) {
+			try {
+				// Gmail API requires OAuth2, so we'll just validate the key format
+				// In a real implementation, you'd need to handle OAuth2 flow
+				result.valid = true;
+				result.api_info = {
+					service: 'Gmail API',
+					note: 'OAuth2 validation required for full access',
+					permissions: ['read', 'send'],
+				};
+				return result;
+			} catch (error) {
+				result.error_code = 'API_ERROR';
+				result.error_message = 'Failed to validate Gmail API key';
+				result.details = { error: error.message };
+				return result;
+			}
 		}
 
 		// If no valid credentials found
@@ -79,7 +116,7 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 		result.error_message = 'Invalid or missing credentials';
 		result.details = {
 			field: 'credentials',
-			reason: 'Credentials format not recognized',
+			reason: 'Credentials format not recognized or invalid',
 		};
 
 		return result;

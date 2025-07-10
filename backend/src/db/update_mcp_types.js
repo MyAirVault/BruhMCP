@@ -19,21 +19,21 @@ const mcpTypesData = [
 		server_script: './mcp-servers/figma-mcp-server.js',
 		config_template: {
 			api_version: 'v1',
-			base_url: 'https://api.figma.com/v1'
+			base_url: 'https://api.figma.com/v1',
 		},
 		required_credentials: [
 			{
 				name: 'api_key',
 				type: 'password',
 				description: 'Personal Access Token from Figma account settings',
-				required: true
-			}
+				required: true,
+			},
 		],
 		resource_limits: {
 			max_memory_mb: 512,
 			max_cpu_percent: 50,
-			max_requests_per_minute: 1000
-		}
+			max_requests_per_minute: 1000,
+		},
 	},
 	{
 		name: 'gmail',
@@ -44,33 +44,33 @@ const mcpTypesData = [
 		config_template: {
 			api_version: 'v1',
 			scopes: ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.send'],
-			base_url: 'https://gmail.googleapis.com/gmail/v1'
+			base_url: 'https://gmail.googleapis.com/gmail/v1',
 		},
 		required_credentials: [
 			{
 				name: 'client_id',
 				type: 'text',
 				description: 'OAuth 2.0 Client ID from Google Cloud Console',
-				required: true
+				required: true,
 			},
 			{
 				name: 'client_secret',
 				type: 'password',
 				description: 'OAuth 2.0 Client Secret from Google Cloud Console',
-				required: true
+				required: true,
 			},
 			{
 				name: 'refresh_token',
 				type: 'password',
 				description: 'OAuth 2.0 Refresh Token for accessing Gmail API',
-				required: true
-			}
+				required: true,
+			},
 		],
 		resource_limits: {
 			max_memory_mb: 1024,
 			max_cpu_percent: 60,
-			max_requests_per_minute: 250
-		}
+			max_requests_per_minute: 250,
+		},
 	},
 	{
 		name: 'slack',
@@ -81,21 +81,21 @@ const mcpTypesData = [
 		config_template: {
 			api_version: 'v1',
 			base_url: 'https://slack.com/api',
-			scopes: ['channels:read', 'chat:write', 'users:read', 'files:read']
+			scopes: ['channels:read', 'chat:write', 'users:read', 'files:read'],
 		},
 		required_credentials: [
 			{
 				name: 'bot_token',
 				type: 'password',
 				description: 'Bot User OAuth Token (xoxb-...) from Slack App settings',
-				required: true
-			}
+				required: true,
+			},
 		],
 		resource_limits: {
 			max_memory_mb: 768,
 			max_cpu_percent: 40,
-			max_requests_per_minute: 100
-		}
+			max_requests_per_minute: 100,
+		},
 	},
 	{
 		name: 'github',
@@ -106,22 +106,22 @@ const mcpTypesData = [
 		config_template: {
 			api_version: 'v3',
 			base_url: 'https://api.github.com',
-			scopes: ['repo', 'read:org', 'read:user', 'gist']
+			scopes: ['repo', 'read:org', 'read:user', 'gist'],
 		},
 		required_credentials: [
 			{
 				name: 'personal_access_token',
 				type: 'password',
 				description: 'Personal Access Token from GitHub Developer settings',
-				required: true
-			}
+				required: true,
+			},
 		],
 		resource_limits: {
 			max_memory_mb: 1024,
 			max_cpu_percent: 50,
-			max_requests_per_minute: 5000
-		}
-	}
+			max_requests_per_minute: 5000,
+		},
+	},
 ];
 
 /**
@@ -137,7 +137,7 @@ async function upsertMCPType(mcpType) {
 		server_script,
 		config_template,
 		required_credentials,
-		resource_limits
+		resource_limits,
 	} = mcpType;
 
 	const query = `
@@ -166,7 +166,7 @@ async function upsertMCPType(mcpType) {
 		JSON.stringify(config_template),
 		JSON.stringify(required_credentials),
 		JSON.stringify(resource_limits),
-		true
+		true,
 	];
 
 	await pool.query(query, values);
@@ -201,7 +201,6 @@ async function updateMCPTypes() {
 
 		console.log('📊 Current MCP types in database:');
 		console.table(result.rows);
-
 	} catch (error) {
 		console.error('❌ Failed to update MCP types:', error);
 		throw error;
@@ -214,7 +213,7 @@ async function updateMCPTypes() {
 async function verifyUpdate() {
 	try {
 		console.log('🔍 Verifying MCP types update...');
-		
+
 		const result = await pool.query(`
 			SELECT name, display_name, description, icon_url, 
 			       required_credentials, resource_limits, is_active
@@ -225,7 +224,7 @@ async function verifyUpdate() {
 
 		console.log('');
 		console.log('✅ Verification complete - Found', result.rows.length, 'MCP types');
-		
+
 		for (const row of result.rows) {
 			console.log(`\n📋 ${row.display_name} (${row.name}):`);
 			console.log(`   Description: ${row.description}`);
@@ -234,7 +233,6 @@ async function verifyUpdate() {
 			console.log(`   Resource limits: ${JSON.stringify(row.resource_limits, null, 2)}`);
 			console.log(`   Active: ${row.is_active}`);
 		}
-
 	} catch (error) {
 		console.error('❌ Verification failed:', error);
 		throw error;

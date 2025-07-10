@@ -11,12 +11,10 @@ interface CopyURLModalProps {
 const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => {
   const [copied, setCopied] = useState(false);
 
-  // Generate URL based on MCP (this would be dynamic in a real app)
+  // Generate URL based on MCP - use the actual access_url from backend
   const generateMCPUrl = (mcp: MCPItem): string => {
-    const baseUrl = window.location.origin;
-    const mcpId = mcp.id;
-    const mcpType = mcp.email.toLowerCase();
-    return `${baseUrl}/mcp/${mcpType}/${mcpId}`;
+    // The 'email' field actually contains the access_url from backend
+    return mcp.email;
   };
 
   // Reset copied state when modal opens

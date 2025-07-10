@@ -19,19 +19,19 @@ const Dashboard: React.FC = () => {
   const { openDropdown, handleDropdownToggle, closeDropdowns } = useDropdown();
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editModalData, setEditModalData] = useState<{ isOpen: boolean; mcp: MCPItem | null }>({ 
-    isOpen: false, 
-    mcp: null 
+  const [editModalData, setEditModalData] = useState<{ isOpen: boolean; mcp: MCPItem | null }>({
+    isOpen: false,
+    mcp: null
   });
-  const [copyURLModalData, setCopyURLModalData] = useState<{ isOpen: boolean; mcp: MCPItem | null }>({ 
-    isOpen: false, 
-    mcp: null 
+  const [copyURLModalData, setCopyURLModalData] = useState<{ isOpen: boolean; mcp: MCPItem | null }>({
+    isOpen: false,
+    mcp: null
   });
   const [currentSection, setCurrentSection] = useState<'active' | 'inactive' | 'expired' | null>(null);
   const [selectedMCPIndex, setSelectedMCPIndex] = useState(0);
   const [mcpInstances, setMCPInstances] = useState<MCPInstance[]>([]);
   const [isLoadingMCPs, setIsLoadingMCPs] = useState(true);
-  
+
   // Confirmation modal state
   const [confirmationModal, setConfirmationModal] = useState<{
     isOpen: boolean;
@@ -48,9 +48,9 @@ const Dashboard: React.FC = () => {
     message: '',
     confirmText: '',
     mcp: null,
-    onConfirm: () => {}
+    onConfirm: () => { }
   });
-  
+
   // Refs for auto-scrolling
   const activeSectionRef = useRef<MCPSectionRef>(null);
   const inactiveSectionRef = useRef<MCPSectionRef>(null);
@@ -76,23 +76,24 @@ const Dashboard: React.FC = () => {
   }, []);
 
   // Convert MCPInstance to MCPItem format (for backward compatibility)
+  // Note: 'email' field stores the access_url for historical reasons
   const convertToMCPItem = (instance: MCPInstance): MCPItem => ({
     id: instance.id,
     name: instance.custom_name || `${instance.mcp_type.display_name} #${instance.instance_number}`,
-    email: instance.access_url,
-    status: instance.status === 'active' ? 'active' : 
-            instance.status === 'expired' ? 'expired' : 'inactive'
+    email: instance.access_url, // This contains the actual MCP server URL
+    status: instance.status === 'active' ? 'active' :
+      instance.status === 'expired' ? 'expired' : 'inactive'
   });
 
   // Filter MCPs by status
   const activeMCPs = mcpInstances
     .filter(instance => instance.status === 'active' && instance.is_active)
     .map(convertToMCPItem);
-  
+
   const inactiveMCPs = mcpInstances
     .filter(instance => instance.status === 'inactive' || !instance.is_active)
     .map(convertToMCPItem);
-  
+
   const expiredMCPs = mcpInstances
     .filter(instance => instance.status === 'expired')
     .map(convertToMCPItem);
@@ -195,8 +196,8 @@ const Dashboard: React.FC = () => {
       // Arrow keys for MCP selection within section
       if (currentSection && e.key === 'ArrowDown') {
         e.preventDefault();
-        const currentMCPs = currentSection === 'active' ? activeMCPs : 
-                           currentSection === 'inactive' ? inactiveMCPs : expiredMCPs;
+        const currentMCPs = currentSection === 'active' ? activeMCPs :
+          currentSection === 'inactive' ? inactiveMCPs : expiredMCPs;
         setSelectedMCPIndex(prev => Math.min(prev + 1, currentMCPs.length - 1));
         return;
       }
@@ -288,7 +289,7 @@ const Dashboard: React.FC = () => {
 
   const handleEditMCP = async (data: { name: string; apiKey: string; clientId: string; clientSecret: string }) => {
     if (!editModalData.mcp) return;
-    
+
     try {
       await apiService.editMCP(editModalData.mcp.id, {
         custom_name: data.name,
@@ -298,7 +299,7 @@ const Dashboard: React.FC = () => {
           client_secret: data.clientSecret
         }
       });
-      
+
       // Refresh the MCP list
       const instances = await apiService.getMCPInstances();
       setMCPInstances(instances);
@@ -499,11 +500,11 @@ const Dashboard: React.FC = () => {
                   </div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to MiniMCP!</h1>
                   <p className="text-lg text-gray-600 mb-8">
-                    Get started by creating your first Model Context Protocol instance. 
+                    Get started by creating your first Model Context Protocol instance.
                     Connect to services like Gmail, Figma, GitHub, and more.
                   </p>
                 </div>
-                
+
                 <div className="space-y-4">
                   <Tooltip content="Press Ctrl+K (Cmd+K on Mac) to quickly open this modal" position="bottom">
                     <button
@@ -515,7 +516,7 @@ const Dashboard: React.FC = () => {
                       <ArrowRight className="w-5 h-5" />
                     </button>
                   </Tooltip>
-                  
+
                   <div className="text-sm text-gray-500">
                     <p className="mb-2">Popular integrations:</p>
                     <div className="flex flex-wrap justify-center gap-2">
@@ -561,7 +562,7 @@ const Dashboard: React.FC = () => {
         type={confirmationModal.type}
         mcpName={confirmationModal.mcp?.name}
       />
-      
+
     </Layout>
   );
 };

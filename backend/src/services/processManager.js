@@ -43,8 +43,8 @@ class ProcessManager {
 				NODE_ENV: 'production',
 			};
 
-			// Get server script path
-			const serverScriptPath = join(__dirname, '..', 'mcp-servers', `${mcpType}-mcp-server.js`);
+			// Get universal server script path
+			const serverScriptPath = join(__dirname, '..', 'mcp-servers', 'universal-mcp-server.js');
 
 			// Start MCP process
 			const mcpProcess = spawn('node', [serverScriptPath], {
@@ -70,10 +70,12 @@ class ProcessManager {
 			// Setup process monitoring
 			this.setupProcessMonitoring(instanceId, mcpProcess);
 
+			console.log(`MCP ${mcpType} server created for instance ${instanceId} on port ${assignedPort} with PID ${mcpProcess.pid}`);
+
 			return {
 				processId: mcpProcess.pid,
 				assignedPort,
-				accessUrl: `http://localhost:${assignedPort}`,
+				accessUrl: `http://localhost:${assignedPort}/mcp/${mcpType}`,
 			};
 		} catch (error) {
 			console.error('Failed to create MCP process:', error);
@@ -176,10 +178,17 @@ class ProcessManager {
 
 	/**
 	 * Check if a process is running
-	 * @param {number} pid - Process ID
+	 * @param {string|number} pid - Process ID
 	 * @returns {boolean} True if process is running
 	 */
 	isProcessRunning(pid) {
+		// For simulated processes (string IDs), check if they exist in our map
+		if (typeof pid === 'string') {
+			const instanceId = pid.replace('mcp-', '');
+			return this.activeProcesses.has(instanceId);
+		}
+		
+		// For real process IDs
 		try {
 			process.kill(pid, 0); // Signal 0 checks if process exists
 			return true;

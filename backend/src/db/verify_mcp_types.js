@@ -50,11 +50,11 @@ async function testGetAllMCPTypes() {
 		const types = await getAllMCPTypes();
 		console.log('✅ Successfully retrieved all MCP types');
 		console.log(`   Found ${types.length} MCP types`);
-		
+
 		for (const type of types) {
 			console.log(`   - ${type.display_name} (${type.name})`);
 		}
-		
+
 		return types;
 	} catch (error) {
 		console.error('❌ Failed to retrieve MCP types:', error);
@@ -94,12 +94,12 @@ async function testGetMCPTypeByName(name) {
  */
 function verifyCredentialStructure(mcpType) {
 	const { required_credentials } = mcpType;
-	
+
 	if (!Array.isArray(required_credentials)) {
 		console.log(`❌ ${mcpType.name}: required_credentials is not an array`);
 		return false;
 	}
-	
+
 	// Check if it's old format (string array) or new format (object array)
 	if (required_credentials.length > 0) {
 		if (typeof required_credentials[0] === 'string') {
@@ -107,10 +107,8 @@ function verifyCredentialStructure(mcpType) {
 			return false;
 		} else if (typeof required_credentials[0] === 'object') {
 			const requiredFields = ['name', 'type', 'description', 'required'];
-			const hasAllFields = requiredFields.every(field => 
-				field in required_credentials[0]
-			);
-			
+			const hasAllFields = requiredFields.every(field => field in required_credentials[0]);
+
 			if (hasAllFields) {
 				console.log(`✅ ${mcpType.name}: Credential structure is compatible with frontend`);
 				return true;
@@ -120,7 +118,7 @@ function verifyCredentialStructure(mcpType) {
 			}
 		}
 	}
-	
+
 	console.log(`✅ ${mcpType.name}: No credentials required`);
 	return true;
 }
@@ -131,31 +129,31 @@ function verifyCredentialStructure(mcpType) {
 async function verifyExpectedTypes() {
 	const expectedTypes = ['figma', 'gmail', 'slack', 'github'];
 	const results = [];
-	
+
 	console.log('🔍 Verifying expected MCP types...');
-	
+
 	for (const typeName of expectedTypes) {
 		console.log(`\n📋 Testing ${typeName.toUpperCase()} MCP:`);
 		const type = await testGetMCPTypeByName(typeName);
-		
+
 		if (type) {
 			const isCompatible = verifyCredentialStructure(type);
 			results.push({
 				name: typeName,
 				exists: true,
 				compatible: isCompatible,
-				type: type
+				type: type,
 			});
 		} else {
 			results.push({
 				name: typeName,
 				exists: false,
 				compatible: false,
-				type: null
+				type: null,
 			});
 		}
 	}
-	
+
 	return results;
 }
 
@@ -166,35 +164,31 @@ async function verifyExpectedTypes() {
 function generateTestReport(results) {
 	console.log('\n📊 VERIFICATION REPORT');
 	console.log('========================');
-	
+
 	const summary = {
 		total: results.length,
 		exists: results.filter(r => r.exists).length,
 		compatible: results.filter(r => r.compatible).length,
 		missing: results.filter(r => !r.exists).length,
-		incompatible: results.filter(r => r.exists && !r.compatible).length
+		incompatible: results.filter(r => r.exists && !r.compatible).length,
 	};
-	
+
 	console.log(`Total expected types: ${summary.total}`);
 	console.log(`Types found: ${summary.exists}`);
 	console.log(`Frontend compatible: ${summary.compatible}`);
 	console.log(`Missing types: ${summary.missing}`);
 	console.log(`Incompatible types: ${summary.incompatible}`);
-	
+
 	if (summary.missing > 0) {
 		console.log('\n❌ Missing MCP types:');
-		results.filter(r => !r.exists).forEach(r => 
-			console.log(`   - ${r.name}`)
-		);
+		results.filter(r => !r.exists).forEach(r => console.log(`   - ${r.name}`));
 	}
-	
+
 	if (summary.incompatible > 0) {
 		console.log('\n⚠️  Incompatible MCP types:');
-		results.filter(r => r.exists && !r.compatible).forEach(r => 
-			console.log(`   - ${r.name}`)
-		);
+		results.filter(r => r.exists && !r.compatible).forEach(r => console.log(`   - ${r.name}`));
 	}
-	
+
 	if (summary.missing === 0 && summary.incompatible === 0) {
 		console.log('\n🎉 All MCP types are present and compatible!');
 		return true;
@@ -210,29 +204,29 @@ function generateTestReport(results) {
 async function main() {
 	try {
 		console.log('🔄 Starting MCP types verification...\n');
-		
+
 		// Test database connection
 		const connectionOk = await testConnection();
 		if (!connectionOk) {
 			throw new Error('Database connection failed');
 		}
-		
+
 		console.log('');
-		
+
 		// Verify table structure
 		await verifyTableStructure();
-		
+
 		console.log('\n🔍 Testing MCP types retrieval...');
-		
+
 		// Test getAllMCPTypes
 		const allTypes = await testGetAllMCPTypes();
-		
+
 		// Verify expected types
 		const results = await verifyExpectedTypes();
-		
+
 		// Generate report
 		const allGood = generateTestReport(results);
-		
+
 		if (allGood) {
 			console.log('\n✅ Verification completed successfully!');
 			process.exit(0);
@@ -240,7 +234,6 @@ async function main() {
 			console.log('\n❌ Verification found issues. Check the report above.');
 			process.exit(1);
 		}
-		
 	} catch (error) {
 		console.error('❌ Verification failed:', error);
 		process.exit(1);
