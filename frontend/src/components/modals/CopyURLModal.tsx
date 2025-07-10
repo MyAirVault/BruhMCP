@@ -151,7 +151,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-96 overflow-y-auto">
+        <div className="p-6 max-h-96 overflow-y-auto scrollbar-hide">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               MCP Name
@@ -204,7 +204,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
               Cursor/LLM Configuration
             </label>
             <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-2">
-              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all font-mono max-h-32 overflow-y-auto">
+              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all font-mono max-h-32 overflow-y-auto scrollbar-hide">
                 {cursorConfig}
               </pre>
             </div>
