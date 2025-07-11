@@ -38,16 +38,18 @@ POST /api/v1/mcps
 **Backend Response:**
 ```json
 {
-  "access_url": "http://localhost:3001",
+  "access_url": "http://localhost:49162",
   "access_token": "mcp_acc_b4303f9309804e85874a044548d56391",
   "status": "active"
 }
 ```
 
 **User can now access:**
-- `http://localhost:3001/health` - Server health
-- `http://localhost:3001/me` - User info from Figma
-- `http://localhost:3001/files` - User's Figma files
+- `http://localhost:49162/health` - Server health (REST)
+- `http://localhost:49162/me` - User info from Figma (REST)
+- `http://localhost:49162/files` - User's Figma files (REST)
+- `POST http://localhost:49162/` - JSON-RPC protocol messages
+- `POST http://localhost:49162/message` - Alternative JSON-RPC endpoint
 
 ## Credential Management
 
@@ -82,42 +84,89 @@ const mcpProcess = spawn('node', [`${mcpType}-mcp-server.js`], {
 
 ### Process Properties
 
-- **Unique Port**: Each MCP gets its own port (3001, 3002, etc.)
+- **Unique Port**: Each MCP gets its own port from range 49160-49999
 - **Isolation**: Separate Node.js process per MCP
 - **Environment**: Credentials passed via environment variables
 - **Monitoring**: Basic health checks via `/health` endpoint
 
 ## MCP Server Structure
 
-Each MCP server is a simple Express.js application:
+Each MCP server implements the official Model Context Protocol using JSON-RPC 2.0 messaging, along with REST endpoints for compatibility:
 
-```javascript
-// figma-mcp-server.js
-import express from 'express';
-import fetch from 'node-fetch';
+### MCP JSON-RPC 2.0 Protocol Endpoints
 
-const app = express();
-const port = process.env.PORT;
-const credentials = JSON.parse(process.env.CREDENTIALS);
+**Main Protocol Endpoint:**
+- `POST /` - Primary JSON-RPC message handling
+- `POST /message` - Alternative JSON-RPC endpoint
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date() });
-});
+**Supported JSON-RPC Methods:**
+- `initialize` - Server initialization and capability negotiation
+- `tools/list` - List available tools/actions
+- `tools/call` - Execute specific tools
+- `resources/list` - List available resources/data sources
+- `resources/read` - Read resource content
 
-// User info
-app.get('/me', async (req, res) => {
-  const response = await fetch('https://api.figma.com/v1/me', {
-    headers: { 'X-Figma-Token': credentials.api_key }
-  });
-  const data = await response.json();
-  res.json(data);
-});
+### Example JSON-RPC Messages
 
-app.listen(port, () => {
-  console.log(`Figma MCP server running on port ${port}`);
-});
+**Initialize Request:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {},
+    "clientInfo": {"name": "MCP Client", "version": "1.0.0"}
+  }
+}
 ```
+
+**Initialize Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {"tools": {}, "resources": {}},
+    "serverInfo": {"name": "Figma MCP Server", "version": "1.0.0"},
+    "instructions": "This is a Figma MCP server providing tools and resources for Figma API integration."
+  }
+}
+```
+
+**Tools List Request:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/list"
+}
+```
+
+**Tool Call Request:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "get_figma_user_info",
+    "arguments": {}
+  }
+}
+```
+
+### Legacy REST Endpoints (for compatibility)
+
+- `GET /health` - Server health check
+- `GET /info` - Server information
+- `GET /tools` - List available tools
+- `POST /tools/:toolName` - Execute tools
+- `GET /resources` - List resources
+- `GET /resources/*` - Get resource content
+- `GET /me` - User info endpoint
 
 ## Adding New MCP Types
 
@@ -179,7 +228,7 @@ The new service will automatically appear in the frontend dropdown and work with
 ### Common Issues
 
 **MCP Server Won't Start:**
-- Check if port is available: `netstat -tlnp | grep :3001`
+- Check if port is available: `netstat -tlnp | grep :49162` (replace with actual assigned port)
 - Verify credentials are valid
 - Check server logs in console
 
@@ -199,11 +248,47 @@ The new service will automatically appear in the frontend dropdown and work with
 # Check running MCP processes
 ps aux | grep mcp-server
 
-# Test MCP server directly
-curl http://localhost:3001/health
+# Test MCP server health (REST) - replace 49162 with your actual assigned port
+curl http://localhost:49162/health
 
-# Check port usage
-netstat -tlnp | grep :300
+# Test JSON-RPC initialize
+curl -X POST http://localhost:49162/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {"name": "Test Client", "version": "1.0.0"}
+    }
+  }'
+
+# Test JSON-RPC tools list
+curl -X POST http://localhost:49162/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list"
+  }'
+
+# Test JSON-RPC tool call
+curl -X POST http://localhost:49162/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+      "name": "get_figma_user_info",
+      "arguments": {}
+    }
+  }'
+
+# Check port usage in the MCP range
+netstat -tlnp | grep :491
 ```
 
 ## Current Limitations

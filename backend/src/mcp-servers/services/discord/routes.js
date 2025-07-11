@@ -1,7 +1,8 @@
 import express from 'express';
-import { handleToolExecution, generateTools } from '../handlers/tool-handlers.js';
-import { handleResourceContent, generateResources } from '../handlers/resource-handlers.js';
-import { handleGenericEndpoint, handleParameterizedEndpoint, handleUserInfo } from '../handlers/endpoint-handlers.js';
+import { handleToolExecution, generateTools } from './handlers/tool-handlers.js';
+import { handleResourceContent, generateResources } from './handlers/resource-handlers.js';
+import { handleGenericEndpoint, handleParameterizedEndpoint, handleUserInfo } from './handlers/endpoint-handlers.js';
+import { MCPJsonRpcHandler } from './handlers/jsonrpc-handler.js';
 
 /**
  * Create MCP router with all protocol endpoints
@@ -13,6 +14,65 @@ import { handleGenericEndpoint, handleParameterizedEndpoint, handleUserInfo } fr
  */
 export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 	const mcpRouter = express.Router();
+
+	// Initialize JSON-RPC handler for MCP protocol
+	const jsonRpcHandler = new MCPJsonRpcHandler(serviceConfig, mcpType, apiKey, port);
+
+	// MCP JSON-RPC 2.0 Protocol: Main message handling endpoint
+	mcpRouter.post('/', async (req, res) => {
+		try {
+			console.log(`🔌 JSON-RPC message received for ${serviceConfig.name} (Port: ${port})`, req.body);
+
+			const response = await jsonRpcHandler.processMessage(req.body);
+
+			if (response) {
+				res.json(response);
+			} else {
+				// Notification (no response required)
+				res.status(204).send();
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			console.error(`❌ JSON-RPC processing error: ${errorMessage}`);
+			res.status(500).json({
+				jsonrpc: '2.0',
+				id: req.body?.id || null,
+				error: {
+					code: -32603,
+					message: 'Internal error',
+					data: { details: errorMessage },
+				},
+			});
+		}
+	});
+
+	// MCP JSON-RPC 2.0 Protocol: Alternative message endpoint
+	mcpRouter.post('/message', async (req, res) => {
+		try {
+			console.log(`🔌 JSON-RPC message received at /message for ${serviceConfig.name} (Port: ${port})`, req.body);
+
+			const response = await jsonRpcHandler.processMessage(req.body);
+
+			if (response) {
+				res.json(response);
+			} else {
+				// Notification (no response required)
+				res.status(204).send();
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			console.error(`❌ JSON-RPC processing error at /message: ${errorMessage}`);
+			res.status(500).json({
+				jsonrpc: '2.0',
+				id: req.body?.id || null,
+				error: {
+					code: -32603,
+					message: 'Internal error',
+					data: { details: errorMessage },
+				},
+			});
+		}
+	});
 
 	// MCP Protocol: Server info and capabilities discovery
 	mcpRouter.get('/info', (req, res) => {

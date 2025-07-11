@@ -1,4 +1,4 @@
-import serviceConfigs from '../config/service-configs.js';
+import { serviceRegistry } from '../config/service-registry.js';
 
 /**
  * Parse and validate credentials from environment
@@ -21,14 +21,18 @@ export function parseCredentials() {
  * @param {Object} credentials - Parsed credentials
  * @returns {Object} Service configuration and API key
  */
-export function validateServiceConfig(mcpType, credentials) {
+export async function validateServiceConfig(mcpType, credentials) {
+	// Load services if not already loaded
+	await serviceRegistry.loadServices();
+	
 	// Validate service type
-	if (!mcpType || !serviceConfigs[mcpType]) {
+	const serviceConfig = serviceRegistry.getService(mcpType);
+	if (!serviceConfig) {
 		console.error(`Unsupported MCP type: ${mcpType}`);
+		console.error(`Available types: ${serviceRegistry.getServiceNames().join(', ')}`);
 		process.exit(1);
 	}
 
-	const serviceConfig = serviceConfigs[mcpType];
 	const apiKey = credentials[serviceConfig.credentialField];
 
 	if (!apiKey) {

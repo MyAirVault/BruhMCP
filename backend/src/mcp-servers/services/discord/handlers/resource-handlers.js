@@ -10,20 +10,27 @@ import fetch from 'node-fetch';
  * @returns {Promise<Object>} Resource content
  */
 export async function handleResourceContent({ resourcePath, mcpType, serviceConfig, apiKey }) {
-	if (resourcePath === `${mcpType}/user/profile`) {
+	// Handle different resource path formats
+	let parsedPath = resourcePath;
+	
+	// If resourcePath starts with mcpType://, extract the path part
+	if (resourcePath.startsWith(`${mcpType}://`)) {
+		parsedPath = resourcePath.replace(`${mcpType}://`, '');
+	}
+
+	if (parsedPath === 'user/profile') {
 		const userInfo = await fetch(`${serviceConfig.baseURL}${serviceConfig.endpoints.me}`, {
 			headers: serviceConfig.authHeader(apiKey),
 		});
 		const data = await userInfo.json();
-		return {
-			contents: [
-				{
-					uri: `${mcpType}://user/profile`,
-					mimeType: 'application/json',
-					text: JSON.stringify(data, null, 2),
-				},
-			],
-		};
+		return data;
+	}
+
+	if (parsedPath === 'files/list') {
+		if (serviceConfig.customHandlers && serviceConfig.customHandlers.files) {
+			const result = await serviceConfig.customHandlers.files(serviceConfig, apiKey);
+			return result;
+		}
 	}
 
 	throw new Error(`Resource ${resourcePath} not found`);

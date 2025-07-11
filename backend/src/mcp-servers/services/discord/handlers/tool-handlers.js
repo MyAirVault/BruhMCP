@@ -34,6 +34,29 @@ export async function handleToolExecution({ toolName, args: _args = {}, mcpType,
 		}
 	}
 
+	// Enhanced Figma tools
+	if (toolName === `get_${mcpType}_team_projects`) {
+		if (serviceConfig.customHandlers && serviceConfig.customHandlers.teamProjects) {
+			const { teamId } = _args;
+			if (!teamId) {
+				throw new Error('teamId is required for this operation');
+			}
+			const result = await serviceConfig.customHandlers.teamProjects(serviceConfig, apiKey, teamId);
+			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+		}
+	}
+
+	if (toolName === `get_${mcpType}_file_details`) {
+		if (serviceConfig.customHandlers && serviceConfig.customHandlers.fileDetails) {
+			const { fileKey } = _args;
+			if (!fileKey) {
+				throw new Error('fileKey is required for this operation');
+			}
+			const result = await serviceConfig.customHandlers.fileDetails(serviceConfig, apiKey, fileKey);
+			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+		}
+	}
+
 	throw new Error(`Tool ${toolName} not found`);
 }
 
@@ -84,6 +107,43 @@ export function generateTools(serviceConfig, mcpType) {
 				break;
 		}
 	});
+
+	// Add service-specific enhanced tools
+	if (mcpType === 'figma' && serviceConfig.customHandlers) {
+		if (serviceConfig.customHandlers.teamProjects) {
+			tools.push({
+				name: `get_${mcpType}_team_projects`,
+				description: `Get projects for a specific team from ${serviceConfig.name}`,
+				inputSchema: {
+					type: 'object',
+					properties: {
+						teamId: {
+							type: 'string',
+							description: 'The team ID to get projects for'
+						}
+					},
+					required: ['teamId'],
+				},
+			});
+		}
+
+		if (serviceConfig.customHandlers.fileDetails) {
+			tools.push({
+				name: `get_${mcpType}_file_details`,
+				description: `Get detailed information about a specific file from ${serviceConfig.name}`,
+				inputSchema: {
+					type: 'object',
+					properties: {
+						fileKey: {
+							type: 'string',
+							description: 'The file key to get details for'
+						}
+					},
+					required: ['fileKey'],
+				},
+			});
+		}
+	}
 
 	return tools;
 }

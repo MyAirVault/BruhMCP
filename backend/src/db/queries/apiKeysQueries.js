@@ -29,7 +29,7 @@ export async function getAPIKeysByUserId(userId) {
 export async function storeAPIKey(userId, mcpTypeId, credentials) {
 	console.log('storeAPIKey - credentials type:', typeof credentials);
 	console.log('storeAPIKey - credentials value:', credentials);
-	
+
 	// Ensure credentials is an object before stringifying
 	let credentialsToStore;
 	if (typeof credentials === 'string') {
@@ -52,17 +52,17 @@ export async function storeAPIKey(userId, mcpTypeId, credentials) {
 
 	const result = await pool.query(query, [userId, mcpTypeId, JSON.stringify(credentialsToStore)]);
 	const apiKey = result.rows[0];
-	
+
 	console.log('storeAPIKey - DB returned credentials type:', typeof apiKey.credentials);
 	console.log('storeAPIKey - DB returned credentials value:', apiKey.credentials);
 	console.log('storeAPIKey - DB returned credentials raw:', JSON.stringify(apiKey.credentials));
-	
+
 	// Parse credentials back to object for immediate use
 	if (typeof apiKey.credentials === 'string') {
 		apiKey.credentials = JSON.parse(apiKey.credentials);
 	}
 	// If it's already an object (PostgreSQL might return it parsed), keep it as is
-	
+
 	return apiKey;
 }
 
@@ -83,11 +83,11 @@ export async function getAPIKeyById(apiKeyId, userId) {
 
 	const result = await pool.query(query, [apiKeyId, userId]);
 	const apiKey = result.rows[0];
-	
+
 	if (apiKey && apiKey.credentials) {
 		apiKey.credentials = JSON.parse(apiKey.credentials);
 	}
-	
+
 	return apiKey || null;
 }
 
@@ -124,11 +124,11 @@ export async function getAPIKeyByUserAndType(userId, mcpTypeId) {
 
 	const result = await pool.query(query, [userId, mcpTypeId]);
 	const apiKey = result.rows[0];
-	
+
 	if (apiKey && apiKey.credentials) {
 		apiKey.credentials = JSON.parse(apiKey.credentials);
 	}
-	
+
 	return apiKey || null;
 }
 
@@ -148,11 +148,11 @@ export async function updateAPIKeyCredentials(apiKeyId, credentials) {
 
 	const result = await pool.query(query, [JSON.stringify(credentials), apiKeyId]);
 	const apiKey = result.rows[0];
-	
+
 	// Parse credentials back to object for immediate use
 	if (apiKey && apiKey.credentials) {
 		apiKey.credentials = JSON.parse(apiKey.credentials);
 	}
-	
+
 	return apiKey;
 }

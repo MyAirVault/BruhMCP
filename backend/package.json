@@ -16,7 +16,10 @@
     "verify": "node tests/verification/verification-runner.js",
     "verify:port": "node -e \"import('./tests/verification/port-management.test.js').then(m => new m.default().runAllTests())\"",
     "verify:cleanup": "node -e \"import('./tests/verification/cleanup.test.js').then(m => new m.default().runAllTests())\"",
-    "verify:duplicates": "node -e \"import('./tests/verification/duplicate-services.test.js').then(m => new m.default().runAllTests())\""
+    "verify:duplicates": "node -e \"import('./tests/verification/duplicate-services.test.js').then(m => new m.default().runAllTests())\"",
+    "test:mcp": "node test-mcp-compliance.js",
+    "services:list": "node -e \"import('./src/mcp-servers/config/service-registry.js').then(m => m.serviceRegistry.loadServices().then(() => console.log('Available services:', m.serviceRegistry.getServiceNames())))\"",
+    "services:stats": "node -e \"import('./src/mcp-servers/config/service-registry.js').then(m => m.serviceRegistry.loadServices().then(() => console.log(JSON.stringify(m.serviceRegistry.getStats(), null, 2))))\""
   },
   "keywords": [],
   "author": "",
