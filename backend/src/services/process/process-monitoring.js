@@ -1,34 +1,61 @@
 import portManager from '../portManager.js';
 import { setTimeout } from 'node:timers';
 import { processHealthMonitor } from './process-health-monitor.js';
+import logFileManager from './log-file-manager.js';
 
 /**
  * Setup process monitoring for an MCP instance
  * @param {string} instanceId - Instance ID
  * @param {ChildProcess} mcpProcess - Node.js process
  * @param {Map} activeProcesses - Active processes map
+ * @param {string} userId - User ID for log organization
  * @returns {void}
  */
-export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses) {
+export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses, userId) {
+	// Initialize log files for this instance
+	try {
+		logFileManager.initializeLogFiles(instanceId, userId);
+	} catch (error) {
+		console.error(`❌ Failed to initialize log files for ${instanceId}:`, error);
+	}
+
 	// Log stdout
 	mcpProcess.stdout.on('data', data => {
-		console.log(`🖥️  Instance ${instanceId} stdout: ${data.toString()}`);
+		const message = data.toString();
+		console.log(`🖥️  Instance ${instanceId} stdout: ${message}`);
+		
+		// Write to log file
+		logFileManager.writeLog(instanceId, 'info', message, 'stdout');
 	});
 
 	// Log stderr
 	mcpProcess.stderr.on('data', data => {
-		console.error(`❌ Instance ${instanceId} stderr: ${data.toString()}`);
+		const message = data.toString();
+		console.error(`❌ Instance ${instanceId} stderr: ${message}`);
+		
+		// Write to log file
+		logFileManager.writeLog(instanceId, 'error', message, 'stderr');
 	});
 
 	// Handle process exit
 	mcpProcess.on('exit', code => {
-		console.log(`🛑 Instance ${instanceId} exited with code ${code}`);
+		const message = `Instance ${instanceId} exited with code ${code}`;
+		console.log(`🛑 ${message}`);
+		
+		// Log exit event
+		logFileManager.writeLog(instanceId, code === 0 ? 'info' : 'error', message, 'system', { exitCode: code });
+		
 		handleProcessExit(instanceId, code, activeProcesses);
 	});
 
 	// Handle process error
 	mcpProcess.on('error', error => {
-		console.error(`⚠️  Instance ${instanceId} error:`, error);
+		const message = `Instance ${instanceId} error: ${error.message}`;
+		console.error(`⚠️  ${message}`);
+		
+		// Log error event
+		logFileManager.writeLog(instanceId, 'error', message, 'system', { error: error.message });
+		
 		handleProcessError(instanceId, error, activeProcesses);
 	});
 }
@@ -48,6 +75,9 @@ export function handleProcessExit(instanceId, code, activeProcesses) {
 
 		// Release port
 		portManager.releasePort(processInfo.assignedPort);
+
+		// Close log streams
+		logFileManager.closeLogStreams(instanceId);
 
 		// Remove from active processes
 		activeProcesses.delete(instanceId);
@@ -81,6 +111,9 @@ export function handleProcessError(instanceId, error, activeProcesses) {
 
 	// Stop health monitoring
 	processHealthMonitor.stopMonitoring(instanceId);
+
+	// Close log streams
+	logFileManager.closeLogStreams(instanceId);
 
 	// Emit error event for external handling
 	processHealthMonitor.emit('process-error', {

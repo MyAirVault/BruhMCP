@@ -28,8 +28,8 @@ class ProcessManager {
 		// Store process information
 		this.activeProcesses.set(config.instanceId, processInfo);
 
-		// Setup process monitoring
-		setupProcessMonitoring(config.instanceId, mcpProcess, this.activeProcesses);
+		// Setup process monitoring with log file support
+		setupProcessMonitoring(config.instanceId, mcpProcess, this.activeProcesses, config.userId);
 
 		return result;
 	}
