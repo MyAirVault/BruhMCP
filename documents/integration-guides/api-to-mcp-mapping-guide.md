@@ -228,6 +228,8 @@ resources: [
 
 For each tool/resource that needs more than a simple GET, create a custom handler:
 
+**IMPORTANT: All handlers must include comprehensive logging for access and errors.**
+
 #### Simple GET Handler
 ```javascript
 customHandlers: {
@@ -237,23 +239,65 @@ customHandlers: {
     let url = `${config.api.baseURL}/projects?limit=${limit}`;
     if (status) url += `&status=${status}`;
     
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // Log access attempt
+    if (global.logFileManager && global.mcpId) {
+      global.logFileManager.writeLog(global.mcpId, 'info', 
+        `API Access: GET ${url}`, 'access', {
+          action: 'list_projects',
+          limit,
+          status
+        });
     }
-    
-    const data = await response.json();
-    return {
-      projects: data.projects || data,
-      total: data.total || data.length,
-      limit: limit
-    };
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        // Log API error
+        if (global.logFileManager && global.mcpId) {
+          global.logFileManager.writeLog(global.mcpId, 'error', 
+            `API Error: GET /projects failed - ${response.status} ${response.statusText}`, 'error', {
+              action: 'list_projects',
+              statusCode: response.status,
+              url
+            });
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Log successful access
+      if (global.logFileManager && global.mcpId) {
+        global.logFileManager.writeLog(global.mcpId, 'info', 
+          `Projects listed successfully: ${data.projects?.length || data.length || 0} items`, 'access', {
+            action: 'list_projects',
+            count: data.projects?.length || data.length || 0
+          });
+      }
+      
+      return {
+        projects: data.projects || data,
+        total: data.total || data.length,
+        limit: limit
+      };
+    } catch (error) {
+      // Log unexpected errors
+      if (global.logFileManager && global.mcpId) {
+        global.logFileManager.writeLog(global.mcpId, 'error', 
+          `List projects failed: ${error.message}`, 'error', {
+            action: 'list_projects',
+            error: error.message,
+            options
+          });
+      }
+      throw error;
+    }
   }
 }
 ```
@@ -263,25 +307,67 @@ customHandlers: {
 customHandlers: {
   // Maps to: POST /projects
   createProject: async (config, token, projectData) => {
-    const response = await fetch(`${config.api.baseURL}/projects`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(projectData)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // Log access attempt
+    if (global.logFileManager && global.mcpId) {
+      global.logFileManager.writeLog(global.mcpId, 'info', 
+        `API Access: POST ${config.api.baseURL}/projects`, 'access', {
+          action: 'create_project',
+          projectName: projectData.name
+        });
     }
-    
-    const newProject = await response.json();
-    return {
-      success: true,
-      project: newProject,
-      message: `Project "${newProject.name}" created successfully`
-    };
+
+    try {
+      const response = await fetch(`${config.api.baseURL}/projects`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(projectData)
+      });
+      
+      if (!response.ok) {
+        // Log error
+        if (global.logFileManager && global.mcpId) {
+          global.logFileManager.writeLog(global.mcpId, 'error', 
+            `API Error: POST /projects failed - ${response.status} ${response.statusText}`, 'error', {
+              action: 'create_project',
+              statusCode: response.status,
+              projectData
+            });
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const newProject = await response.json();
+      
+      // Log successful creation
+      if (global.logFileManager && global.mcpId) {
+        global.logFileManager.writeLog(global.mcpId, 'info', 
+          `Project created successfully: ${newProject.name}`, 'access', {
+            action: 'create_project',
+            projectId: newProject.id,
+            projectName: newProject.name
+          });
+      }
+      
+      return {
+        success: true,
+        project: newProject,
+        message: `Project "${newProject.name}" created successfully`
+      };
+    } catch (error) {
+      // Log unexpected errors
+      if (global.logFileManager && global.mcpId) {
+        global.logFileManager.writeLog(global.mcpId, 'error', 
+          `Project creation failed: ${error.message}`, 'error', {
+            action: 'create_project',
+            error: error.message,
+            projectData
+          });
+      }
+      throw error;
+    }
   }
 }
 ```
@@ -487,6 +573,54 @@ export default {
 };
 ```
 
+## Logging Requirements
+
+### Mandatory Logging in All Handlers
+
+Every custom handler MUST implement logging for:
+
+1. **Access Logging** (goes to `access.log`):
+   - All API requests (before making the call)
+   - Successful operations (after completion)
+   - Include action name, parameters, and results summary
+
+2. **Error Logging** (goes to `error.log`):
+   - API errors (4xx, 5xx responses)
+   - Network errors
+   - Validation errors
+   - Include full error details and context
+
+### Logging Pattern Template
+```javascript
+// At the start of every handler:
+if (global.logFileManager && global.mcpId) {
+  global.logFileManager.writeLog(global.mcpId, 'info', 
+    `API Access: ${method} ${url}`, 'access', {
+      action: 'handler_name',
+      parameters: { /* relevant params */ }
+    });
+}
+
+// For successful operations:
+if (global.logFileManager && global.mcpId) {
+  global.logFileManager.writeLog(global.mcpId, 'info', 
+    `Operation completed successfully`, 'access', {
+      action: 'handler_name',
+      results: { /* summary of results */ }
+    });
+}
+
+// For errors:
+if (global.logFileManager && global.mcpId) {
+  global.logFileManager.writeLog(global.mcpId, 'error', 
+    `Operation failed: ${error.message}`, 'error', {
+      action: 'handler_name',
+      error: error.message,
+      context: { /* relevant context */ }
+    });
+}
+```
+
 ## Advanced Mapping Patterns
 
 ### Pagination Handling
@@ -502,20 +636,64 @@ customHandlers: {
       url += `&page=${page}`;
     }
     
-    const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    const data = await response.json();
-    return {
-      items: data.items,
-      pagination: {
-        current_page: data.page,
-        total_pages: data.total_pages,
-        next_cursor: data.next_cursor,
-        has_more: data.has_more
+    // Log access attempt
+    if (global.logFileManager && global.mcpId) {
+      global.logFileManager.writeLog(global.mcpId, 'info', 
+        `API Access: GET ${url}`, 'access', {
+          action: 'list_items_paginated',
+          page, limit, cursor
+        });
+    }
+
+    try {
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        if (global.logFileManager && global.mcpId) {
+          global.logFileManager.writeLog(global.mcpId, 'error', 
+            `Pagination API error: ${response.status}`, 'error', {
+              action: 'list_items_paginated',
+              statusCode: response.status,
+              url
+            });
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    };
+      
+      const data = await response.json();
+      
+      // Log successful pagination
+      if (global.logFileManager && global.mcpId) {
+        global.logFileManager.writeLog(global.mcpId, 'info', 
+          `Paginated list retrieved: ${data.items?.length || 0} items`, 'access', {
+            action: 'list_items_paginated',
+            itemCount: data.items?.length || 0,
+            hasMore: data.has_more
+          });
+      }
+      
+      return {
+        items: data.items,
+        pagination: {
+          current_page: data.page,
+          total_pages: data.total_pages,
+          next_cursor: data.next_cursor,
+          has_more: data.has_more
+        }
+      };
+    } catch (error) {
+      if (global.logFileManager && global.mcpId) {
+        global.logFileManager.writeLog(global.mcpId, 'error', 
+          `Pagination failed: ${error.message}`, 'error', {
+            action: 'list_items_paginated',
+            error: error.message,
+            options
+          });
+      }
+      throw error;
+    }
   }
 }
 ```

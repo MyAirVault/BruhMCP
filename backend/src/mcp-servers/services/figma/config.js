@@ -50,6 +50,11 @@ export default {
 	customHandlers: {
 		// Enhanced file listing with comprehensive API exploration
 		files: async (config, apiKey) => {
+			// Debug: Log the config structure to understand the issue
+			console.log('🔍 Debug config structure:', JSON.stringify(config, null, 2));
+			console.log('🔍 config.api:', config.api);
+			console.log('🔍 config.baseURL:', config.baseURL);
+			
 			const results = {
 				user_info: null,
 				files: [],

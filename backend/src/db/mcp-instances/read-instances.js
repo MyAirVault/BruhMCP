@@ -64,9 +64,11 @@ export async function getMCPInstanceById(instanceId, userId) {
     SELECT mi.*, 
            mt.name as mcp_type_name, 
            mt.display_name as mcp_type_display_name,
-           mt.icon_url as mcp_type_icon_url
+           mt.icon_url as mcp_type_icon_url,
+           ak.credentials
     FROM mcp_instances mi
     JOIN mcp_types mt ON mi.mcp_type_id = mt.id
+    LEFT JOIN api_keys ak ON mi.api_key_id = ak.id
     WHERE mi.id = $1 AND mi.user_id = $2
   `;
 

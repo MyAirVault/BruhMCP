@@ -15,20 +15,31 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * Import service-specific routes
+ * Import service-specific routes or fallback to universal routes
  * @param {string} mcpType - MCP type/service name
  * @returns {Function} createMCPRouter function
  */
 async function importServiceRoutes(mcpType) {
 	try {
+		// Try service-specific routes first
 		const servicePath = join(__dirname, 'services', mcpType, 'routes.js');
 		const serviceModule = await import(`file://${servicePath}`);
 		console.log(`✅ Loaded service-specific routes for ${mcpType}`);
 		return serviceModule.createMCPRouter;
-	} catch (error) {
-		console.error(`❌ Failed to load routes for service ${mcpType}:`, error.message);
-		console.error(`Expected route file: ${join(__dirname, 'services', mcpType, 'routes.js')}`);
-		throw new Error(`Service ${mcpType} is missing required routes.js file`);
+	} catch (serviceError) {
+		console.log(`🔄 Service-specific routes not found for ${mcpType}, using universal routes`);
+		
+		try {
+			// Fallback to universal routes
+			const universalPath = join(__dirname, 'routes', 'mcp-routes.js');
+			const universalModule = await import(`file://${universalPath}`);
+			console.log(`✅ Loaded universal routes for ${mcpType}`);
+			return universalModule.createMCPRouter;
+		} catch (universalError) {
+			console.error(`❌ Failed to load routes for service ${mcpType}:`, serviceError.message);
+			console.error(`Also failed to load universal routes:`, universalError.message);
+			throw new Error(`No routes available for service ${mcpType}`);
+		}
 	}
 }
 

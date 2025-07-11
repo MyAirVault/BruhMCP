@@ -19,17 +19,49 @@ export async function handleResourceContent({ resourcePath, mcpType, serviceConf
 	}
 
 	if (parsedPath === 'user/profile') {
-		const userInfo = await fetch(`${serviceConfig.baseURL}${serviceConfig.endpoints.me}`, {
-			headers: serviceConfig.authHeader(apiKey),
+		// Determine base URL
+		const baseURL = serviceConfig.api?.baseURL || serviceConfig.baseURL;
+		
+		// Create headers object
+		const headers = {};
+		if (serviceConfig.auth?.header) {
+			headers[serviceConfig.auth.header] = apiKey;
+		} else {
+			headers['Authorization'] = `Bearer ${apiKey}`;
+		}
+		
+		const userInfo = await fetch(`${baseURL}${serviceConfig.endpoints.me}`, {
+			headers,
 		});
+		
+		if (!userInfo.ok) {
+			throw new Error(`Failed to fetch user profile: ${userInfo.status} ${userInfo.statusText}`);
+		}
+		
 		const data = await userInfo.json();
-		return data;
+		return {
+			contents: [
+				{
+					uri: `figma://user/profile`,
+					mimeType: 'application/json',
+					text: JSON.stringify(data, null, 2),
+				},
+			],
+		};
 	}
 
 	if (parsedPath === 'files/list') {
 		if (serviceConfig.customHandlers && serviceConfig.customHandlers.files) {
 			const result = await serviceConfig.customHandlers.files(serviceConfig, apiKey);
-			return result;
+			return {
+				contents: [
+					{
+						uri: `figma://files/list`,
+						mimeType: 'application/json',
+						text: JSON.stringify(result, null, 2),
+					},
+				],
+			};
 		}
 	}
 

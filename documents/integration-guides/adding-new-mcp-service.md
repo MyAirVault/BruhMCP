@@ -138,6 +138,7 @@ DELETE /projects/{id} → Tool: "delete_project" (tools only)
 - For simple GET endpoints, use direct endpoint mapping
 - For complex operations, create custom handler functions
 - Handle pagination, filtering, and error cases
+- **MANDATORY**: Include comprehensive logging for all access and errors
 
 ### Step 6: Set Up Credential Validation
 
@@ -179,6 +180,10 @@ You need to register your service in the system database:
 3. Test the `/health` endpoint
 4. Test user info endpoints
 5. Test your custom endpoints
+6. **Check log files** in `logs/users/user_[ID]/mcp_[INSTANCE_ID]/`:
+   - `access.log` - Should contain all API requests and successful operations
+   - `error.log` - Should contain any errors that occurred
+   - `app.log` - General application logs
 
 ### Step 9: Document Your Service
 
@@ -202,6 +207,9 @@ Complete these checks:
 - [ ] Custom endpoints return expected data
 - [ ] Service follows your API rate limits
 - [ ] Error messages are clear and helpful
+- [ ] **All API requests are logged to access.log**
+- [ ] **All errors are logged to error.log**
+- [ ] **Log files contain proper timestamps and metadata**
 
 ## Common Issues and Solutions
 
@@ -223,6 +231,8 @@ Complete these checks:
 - Test your API endpoints with a tool like Postman
 - Check for any required HTTP headers you might be missing
 - Review the **[API to MCP Mapping Guide](./api-to-mcp-mapping-guide.md)** for proper handler implementation
+- **Check error.log** for detailed error information
+- **Verify access.log** shows the API requests being made
 
 ### Performance Issues
 - Review your rate limiting configuration
@@ -237,6 +247,7 @@ Complete these checks:
 - Use environment variables for sensitive data
 - Implement proper error handling
 - Validate all input parameters
+- **Ensure logging doesn't expose sensitive data** (tokens, passwords, personal info)
 
 ### User Experience
 - Provide clear error messages
