@@ -93,20 +93,51 @@ Open your service's `config.js` file and replace the placeholder values:
 - Map your API endpoints to the standard names
 - Update endpoint paths to match your API documentation
 
-### Step 5: Define Available Actions
+### Step 5: Map API Endpoints to MCP Tools and Resources
 
-In the `tools` section, define what users can do:
+This is the most important step - mapping your API to MCP components. For detailed guidance, see **[API to MCP Mapping Guide](./api-to-mcp-mapping-guide.md)**.
 
-**For each action:**
-- Give it a clear name (e.g., "get_user_info", "list_projects")
-- Write a human-readable description
-- Specify which API endpoint it uses
-- Define what parameters are needed
+#### Understanding Tools vs Resources:
+- **Tools**: Actions users can perform (GET, POST, PUT, DELETE operations)
+- **Resources**: Data users can browse (GET operations only)
 
-**For each data source:**
-- List in the `resources` section
-- Provide a clear name and description
-- Link to the appropriate endpoint or handler
+#### Quick Reference for Common Patterns:
+
+**Read Operations (GET endpoints):**
+```
+GET /users/me     → Tool: "get_user_info" + Resource: "user_profile"
+GET /projects     → Tool: "list_projects" + Resource: "projects_list"
+GET /tasks        → Tool: "list_tasks" + Resource: "tasks_list"
+```
+
+**Write Operations (POST/PUT/DELETE endpoints):**
+```
+POST /projects    → Tool: "create_project" (tools only)
+PUT /projects/{id} → Tool: "update_project" (tools only)
+DELETE /projects/{id} → Tool: "delete_project" (tools only)
+```
+
+#### For Each API Endpoint:
+
+**1. Analyze the endpoint:**
+- HTTP method (GET, POST, PUT, DELETE)
+- URL path and parameters
+- Request body structure (for POST/PUT)
+- Response structure
+
+**2. Map to MCP components:**
+- GET endpoints → Tool + Resource
+- POST/PUT/DELETE endpoints → Tool only
+
+**3. Define parameters:**
+- Required vs optional
+- Data types (string, integer, boolean, array, object)
+- Validation rules and defaults
+
+**4. Create custom handlers:**
+- For simple GET endpoints, use direct endpoint mapping
+- For complex operations, create custom handler functions
+- Handle pagination, filtering, and error cases
 
 ### Step 6: Set Up Credential Validation
 
@@ -191,6 +222,7 @@ Complete these checks:
 - Verify your authentication header format
 - Test your API endpoints with a tool like Postman
 - Check for any required HTTP headers you might be missing
+- Review the **[API to MCP Mapping Guide](./api-to-mcp-mapping-guide.md)** for proper handler implementation
 
 ### Performance Issues
 - Review your rate limiting configuration
@@ -223,10 +255,11 @@ Complete these checks:
 If you encounter issues:
 
 1. Check the console logs for error messages
-2. Review existing service implementations (Figma, GitHub)
-3. Verify your API documentation is current
-4. Test your credentials with the service's API directly
-5. Check the main integration guide for technical details
+2. Review the **[API to MCP Mapping Guide](./api-to-mcp-mapping-guide.md)** for detailed implementation patterns
+3. Review existing service implementations (Figma, GitHub, Notion)
+4. Verify your API documentation is current
+5. Test your credentials with the service's API directly
+6. Check the main integration guide for technical details
 
 ## Example Walkthrough: Adding Trello
 

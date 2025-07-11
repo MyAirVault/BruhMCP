@@ -19,6 +19,9 @@ import { testConnection } from './db/config.js';
 // Import port validation for startup checks
 import { validatePortRange } from './utils/portValidation.js';
 
+// Import expiration monitor
+import expirationMonitor from './services/expiration-monitor.js';
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -147,12 +150,24 @@ const server = app.listen(port, async () => {
 		console.error('❌ Database connection failed:', error instanceof Error ? error.message : error);
 	}
 
+	// Start expiration monitor
+	try {
+		expirationMonitor.start();
+		console.log('✅ Expiration monitor started');
+	} catch (error) {
+		console.error('❌ Failed to start expiration monitor:', error);
+	}
+
 	console.log('🎯 All startup checks completed');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
 	console.log('🛑 SIGTERM received, shutting down gracefully...');
+	
+	// Stop expiration monitor
+	expirationMonitor.stop();
+	
 	server.close(() => {
 		console.log('✅ Server closed');
 		process.exit(0);
@@ -161,6 +176,10 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
 	console.log('🛑 SIGINT received, shutting down gracefully...');
+	
+	// Stop expiration monitor
+	expirationMonitor.stop();
+	
 	server.close(() => {
 		console.log('✅ Server closed');
 		process.exit(0);

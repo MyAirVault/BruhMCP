@@ -39,6 +39,7 @@ Contains documentation for client-side components and user interface:
 
 ### Integration Guides
 - **[Adding New MCP Service](./integration-guides/adding-new-mcp-service.md)** - **NEW** - Complete step-by-step guide for non-technical users to add new services using API documentation
+- **[API to MCP Mapping Guide](./integration-guides/api-to-mcp-mapping-guide.md)** - **NEW** - Comprehensive technical guide for mapping REST API endpoints to MCP tools and resources, enabling all HTTP operations (GET, POST, PUT, DELETE)
 
 ### Standalone Documentation
 - **[How to Create MCP Servers](./how-to-create-mcp-servers-simple.md)** - Comprehensive step-by-step guide for creating MCP servers from any API documentation

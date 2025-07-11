@@ -8,6 +8,8 @@ import {
 	setupGracefulShutdown,
 	createHealthCheckHandler,
 } from './utils/server-setup.js';
+// Note: MCP access control is handled at the main router level
+// Individual MCP processes don't need access control as they are isolated by design
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

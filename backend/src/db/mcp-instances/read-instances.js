@@ -75,6 +75,26 @@ export async function getMCPInstanceById(instanceId, userId) {
 }
 
 /**
+ * Get all MCP instances (used by expiration monitor)
+ * @returns {Promise<Array>} Array of all instances
+ */
+export async function getAllMCPInstances() {
+	const query = `
+    SELECT mi.*, 
+           mt.name as mcp_type_name, 
+           mt.display_name as mcp_type_display_name,
+           mt.icon_url as mcp_type_icon_url
+    FROM mcp_instances mi
+    JOIN mcp_types mt ON mi.mcp_type_id = mt.id
+    WHERE mi.status = 'active'
+    ORDER BY mi.created_at DESC
+  `;
+
+	const result = await pool.query(query);
+	return result.rows;
+}
+
+/**
  * Get expired MCP instances
  * @returns {Promise<Array>} Array of expired instances
  */

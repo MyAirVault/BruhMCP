@@ -59,10 +59,15 @@ export function getValidPortRange() {
 
 /**
  * Validate port assignment for database operations
- * @param {number} port - Port to validate
+ * @param {number|null} port - Port to validate (null is allowed for deactivated instances)
  * @throws {Error} If port is invalid
  */
 export function validatePortAssignment(port) {
+	// Allow null values for deactivated instances
+	if (port === null || port === undefined) {
+		return;
+	}
+	
 	if (!isValidMCPPort(port)) {
 		throw new Error(
 			`Invalid port assignment: ${port}. Port must be between ${VALID_PORT_RANGE.MIN} and ${VALID_PORT_RANGE.MAX}`

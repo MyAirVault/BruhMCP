@@ -4,6 +4,7 @@ export { updateMCPInstance } from '../mcp-instances/update-instance.js';
 export {
 	getMCPInstancesByUserId,
 	getMCPInstanceById,
+	getAllMCPInstances,
 	getExpiredMCPInstances,
 } from '../mcp-instances/read-instances.js';
 export { deleteMCPInstance } from '../mcp-instances/delete-instance.js';

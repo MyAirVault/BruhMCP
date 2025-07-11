@@ -6,14 +6,16 @@ This directory contains step-by-step guides for integrating new services and fea
 
 ### Service Integration
 - **[Adding New MCP Service](./adding-new-mcp-service.md)** - Complete step-by-step guide for non-technical users to add new services using API documentation. No coding knowledge required.
+- **[API to MCP Mapping Guide](./api-to-mcp-mapping-guide.md)** - Comprehensive technical guide for mapping REST API endpoints to MCP tools and resources, including GET, POST, PUT, DELETE operations.
 
 ## Guide Categories
 
 ### For Non-Technical Users
 - **Adding New MCP Service** - Walk through the entire process of adding a service using just API documentation and the web interface
 
-### For Developers
-- Technical implementation guides available in the `/backend/` documentation folder
+### For Technical Users
+- **API to MCP Mapping Guide** - Detailed technical guide for properly mapping API endpoints to MCP tools and resources, covering all HTTP methods
+- Additional implementation guides available in the `/backend/` documentation folder
 
 ## Quick Reference
 
