@@ -38,6 +38,7 @@ Contains documentation for client-side components and user interface:
 
 ### Standalone Documentation
 - **[How to Create MCP Servers](./how-to-create-mcp-servers-simple.md)** - Comprehensive step-by-step guide for creating MCP servers from any API documentation
+- **[Automated MCP Generation](./automated-mcp.md)** - Detailed implementation plan for creating an automated MCP server generation system that transforms REST APIs into MCP servers using OpenAPI documentation
 
 ### Architecture Documentation (New - 2025-07-10)
 - **[Component Organization Patterns](./component-organization-patterns.md)** - Comprehensive guide to the new component organization patterns implementing CLAUDE.md compliance

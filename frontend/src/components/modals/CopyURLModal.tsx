@@ -22,7 +22,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
   const generateCursorConfig = (mcp: MCPItem): string => {
     const url = generateMCPUrl(mcp);
     const mcpName = mcp.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    
+
     return `{
   "mcpServers": {
     "${mcpName}": {
@@ -65,13 +65,13 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
   // Copy URL to clipboard
   const handleCopyURL = async () => {
     if (!mcp) return;
-    
+
     const url = generateMCPUrl(mcp);
-    
+
     try {
       await navigator.clipboard.writeText(url);
       setCopiedUrl(true);
-      
+
       // Reset copied state after 2 seconds
       setTimeout(() => {
         setCopiedUrl(false);
@@ -86,7 +86,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
       document.execCommand('copy');
       document.body.removeChild(textArea);
       setCopiedUrl(true);
-      
+
       setTimeout(() => {
         setCopiedUrl(false);
       }, 2000);
@@ -96,13 +96,13 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
   // Copy Cursor configuration to clipboard
   const handleCopyCursorConfig = async () => {
     if (!mcp) return;
-    
+
     const config = generateCursorConfig(mcp);
-    
+
     try {
       await navigator.clipboard.writeText(config);
       setCopiedCursor(true);
-      
+
       // Reset copied state after 2 seconds
       setTimeout(() => {
         setCopiedCursor(false);
@@ -117,7 +117,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
       document.execCommand('copy');
       document.body.removeChild(textArea);
       setCopiedCursor(true);
-      
+
       setTimeout(() => {
         setCopiedCursor(false);
       }, 2000);
@@ -135,7 +135,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
         className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
-      
+
       <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -176,11 +176,10 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
               </div>
               <button
                 onClick={handleCopyURL}
-                className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer ${
-                  copiedUrl 
-                    ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                    : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                }`}
+                className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors cursor-pointer ${copiedUrl
+                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                  }`}
                 title={copiedUrl ? 'Copied!' : 'Copy URL'}
               >
                 {copiedUrl ? (
@@ -199,7 +198,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
 
           {/* Cursor/LLM Integration Section */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Cursor/LLM Configuration
             </label>
@@ -214,11 +213,10 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
               </p>
               <button
                 onClick={handleCopyCursorConfig}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm ${
-                  copiedCursor 
-                    ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                    : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
-                }`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm ${copiedCursor
+                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                  : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+                  }`}
                 title={copiedCursor ? 'Copied!' : 'Copy Cursor Config'}
               >
                 {copiedCursor ? (

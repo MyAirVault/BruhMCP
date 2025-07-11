@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import portManager from '../portManager.js';
+import { generateAccessUrl } from '../../controllers/mcpInstances/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,10 +19,12 @@ const __dirname = dirname(__filename);
  */
 export async function createProcess(config) {
 	const { mcpType, instanceId, userId, credentials, config: instanceConfig } = config;
+	
+	let assignedPort;
 
 	try {
 		// Get available port
-		const assignedPort = await portManager.getAvailablePort();
+		assignedPort = await portManager.getAvailablePort();
 
 		// Prepare environment variables
 		const env = {
@@ -49,7 +52,7 @@ export async function createProcess(config) {
 		const processInfo = {
 			processId: mcpProcess.pid,
 			assignedPort,
-			accessUrl: `http://localhost:${assignedPort}/${instanceId}/mcp/${mcpType}`,
+			accessUrl: generateAccessUrl(assignedPort, instanceId, mcpType),
 			mcpType,
 			instanceId,
 			userId,
@@ -60,7 +63,7 @@ export async function createProcess(config) {
 		console.log(
 			`🚀 MCP ${mcpType} server created for instance ${instanceId} on port ${assignedPort} with PID ${mcpProcess.pid}`
 		);
-		console.log(`🔗 Instance access URL: http://localhost:${assignedPort}/${instanceId}/mcp/${mcpType}`);
+		console.log(`🔗 Instance access URL: ${generateAccessUrl(assignedPort, instanceId, mcpType)}`);
 
 		return {
 			processInfo,
@@ -68,7 +71,7 @@ export async function createProcess(config) {
 			result: {
 				processId: mcpProcess.pid,
 				assignedPort,
-				accessUrl: `http://localhost:${assignedPort}/${instanceId}/mcp/${mcpType}`,
+				accessUrl: generateAccessUrl(assignedPort, instanceId, mcpType),
 			},
 		};
 	} catch (error) {

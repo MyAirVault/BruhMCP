@@ -1,4 +1,5 @@
 import { getMCPInstanceById } from '../../../db/queries/mcpInstancesQueries.js';
+import { generateAccessUrl } from '../utils.js';
 
 /**
  * Get MCP instance by ID
@@ -27,7 +28,7 @@ export async function getMCPInstance(req, res) {
 			custom_name: instance.custom_name,
 			instance_number: instance.instance_number,
 			access_token: instance.access_token,
-			access_url: instance.assigned_port ? `http://localhost:${instance.assigned_port}` : null,
+			access_url: generateAccessUrl(instance.assigned_port, instance.id, instance.mcp_type_name),
 			assigned_port: instance.assigned_port,
 			process_id: instance.process_id,
 			status: instance.status,

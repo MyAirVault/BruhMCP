@@ -9,14 +9,38 @@ class PortManager {
 			end: parseInt(process.env.PORT_RANGE_END || '49999'),
 		};
 		this.initialized = false;
+		this.initializationPromise = null;
 	}
 
 	/**
 	 * Initialize port manager by syncing with database
+	 * Uses mutex pattern to prevent race conditions during concurrent initialization
 	 */
 	async initialize() {
+		// If already initialized, return immediately
 		if (this.initialized) return;
 		
+		// If initialization is in progress, wait for it to complete
+		if (this.initializationPromise) {
+			return this.initializationPromise;
+		}
+		
+		// Start initialization and store the promise to prevent concurrent execution
+		this.initializationPromise = this._performInitialization();
+		
+		try {
+			await this.initializationPromise;
+		} finally {
+			// Clear the promise when done, regardless of success or failure
+			this.initializationPromise = null;
+		}
+	}
+
+	/**
+	 * Internal method to perform the actual initialization
+	 * @private
+	 */
+	async _performInitialization() {
 		try {
 			const { getAllActiveInstancePorts } = await import('../db/queries/mcpInstancesQueries.js');
 			const activePorts = await getAllActiveInstancePorts();
