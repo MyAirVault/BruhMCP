@@ -22,9 +22,11 @@ export async function handleResourceContent({ resourcePath, mcpType, serviceConf
 		// Determine base URL
 		const baseURL = serviceConfig.api?.baseURL || serviceConfig.baseURL;
 		
-		// Create headers object
+		// Create headers object using standardized auth
 		const headers = {};
-		if (serviceConfig.auth?.header) {
+		if (serviceConfig.auth?.header && serviceConfig.auth?.headerFormat) {
+			headers[serviceConfig.auth.header] = serviceConfig.auth.headerFormat(apiKey);
+		} else if (serviceConfig.auth?.header) {
 			headers[serviceConfig.auth.header] = apiKey;
 		} else {
 			headers['Authorization'] = `Bearer ${apiKey}`;
@@ -42,7 +44,7 @@ export async function handleResourceContent({ resourcePath, mcpType, serviceConf
 		return {
 			contents: [
 				{
-					uri: `figma://user/profile`,
+					uri: `${mcpType}://user/profile`,
 					mimeType: 'application/json',
 					text: JSON.stringify(data, null, 2),
 				},
@@ -56,7 +58,7 @@ export async function handleResourceContent({ resourcePath, mcpType, serviceConf
 			return {
 				contents: [
 					{
-						uri: `figma://files/list`,
+						uri: `${mcpType}://files/list`,
 						mimeType: 'application/json',
 						text: JSON.stringify(result, null, 2),
 					},

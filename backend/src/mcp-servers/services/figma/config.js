@@ -28,6 +28,7 @@ export default {
 		type: 'api_key',
 		field: 'api_key',
 		header: 'X-Figma-Token',
+		headerFormat: token => token,
 		validation: {
 			format: /^figd_[A-Za-z0-9_-]+$/,
 			endpoint: '/me'
@@ -43,18 +44,24 @@ export default {
 		fileComments: fileKey => `/files/${fileKey}/comments`,
 		teamProjects: teamId => `/teams/${teamId}/projects`,
 		projectFiles: projectId => `/projects/${projectId}/files`,
-		versions: fileKey => `/files/${fileKey}/versions`
+		versions: fileKey => `/files/${fileKey}/versions`,
+		createComment: fileKey => `/files/${fileKey}/comments`,
+		updateFile: fileKey => `/files/${fileKey}`,
+		createWebhook: teamId => `/teams/${teamId}/webhooks`
 	},
 
 	// Custom handlers for complex operations
 	customHandlers: {
 		// Enhanced file listing with comprehensive API exploration
 		files: async (config, apiKey) => {
-			// Debug: Log the config structure to understand the issue
-			console.log('🔍 Debug config structure:', JSON.stringify(config, null, 2));
-			console.log('🔍 config.api:', config.api);
-			console.log('🔍 config.baseURL:', config.baseURL);
-			
+			// Log access attempt
+			if (global.logFileManager && global.mcpId) {
+				global.logFileManager.writeLog(global.mcpId, 'info', 
+					`API Access: GET ${config.api.baseURL}/me/files`, 'access', {
+						action: 'list_files'
+					});
+			}
+
 			const results = {
 				user_info: null,
 				files: [],
@@ -74,9 +81,29 @@ export default {
 					results.available_endpoints.push('/me - ✅ Available');
 				} else {
 					results.available_endpoints.push(`/me - ❌ ${userResponse.status} ${userResponse.statusText}`);
+					
+					// Log API error
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'error', 
+							`API Error: GET /me failed - ${userResponse.status} ${userResponse.statusText}`, 'error', {
+								action: 'list_files',
+								statusCode: userResponse.status,
+								endpoint: '/me'
+							});
+					}
 				}
 			} catch (error) {
 				results.errors.push('Failed to get user info: ' + error.message);
+				
+				// Log unexpected error
+				if (global.logFileManager && global.mcpId) {
+					global.logFileManager.writeLog(global.mcpId, 'error', 
+						`User info fetch failed: ${error.message}`, 'error', {
+							action: 'list_files',
+							error: error.message,
+							endpoint: '/me'
+						});
+				}
 			}
 
 			// Try different file discovery endpoints
@@ -108,10 +135,43 @@ export default {
 						if (response.status === 403) {
 							results.errors.push(`${endpoint.name}: Access forbidden - may require team membership or different token permissions`);
 						}
+
+						// Log API errors
+						if (global.logFileManager && global.mcpId) {
+							global.logFileManager.writeLog(global.mcpId, 'error', 
+								`API Error: ${endpoint.name} failed - ${response.status} ${response.statusText}`, 'error', {
+									action: 'list_files',
+									statusCode: response.status,
+									endpoint: endpoint.name,
+									url: endpoint.url
+								});
+						}
 					}
 				} catch (error) {
 					results.errors.push(`${endpoint.name}: ${error.message}`);
+					
+					// Log network errors
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'error', 
+							`Network error for ${endpoint.name}: ${error.message}`, 'error', {
+								action: 'list_files',
+								error: error.message,
+								endpoint: endpoint.name,
+								url: endpoint.url
+							});
+					}
 				}
+			}
+
+			// Log successful completion
+			if (global.logFileManager && global.mcpId) {
+				global.logFileManager.writeLog(global.mcpId, 'info', 
+					`Files listed successfully: ${results.files.length} files, ${results.teams.length} teams`, 'access', {
+						action: 'list_files',
+						fileCount: results.files.length,
+						teamCount: results.teams.length,
+						errorCount: results.errors.length
+					});
 			}
 
 			return {
@@ -127,35 +187,191 @@ export default {
 
 		// Get team projects
 		teamProjects: async (config, apiKey, teamId) => {
+			const url = `${config.api.baseURL}/teams/${teamId}/projects`;
+
+			// Log access attempt
+			if (global.logFileManager && global.mcpId) {
+				global.logFileManager.writeLog(global.mcpId, 'info', 
+					`API Access: GET ${url}`, 'access', {
+						action: 'get_team_projects',
+						teamId: teamId
+					});
+			}
+
 			try {
-				const response = await fetch(`${config.api.baseURL}/teams/${teamId}/projects`, {
+				const response = await fetch(url, {
 					headers: { [config.auth.header]: apiKey },
 				});
 				
 				if (response.ok) {
-					return await response.json();
+					const data = await response.json();
+
+					// Log successful retrieval
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'info', 
+							`Team projects retrieved successfully: ${data.projects?.length || 0} projects`, 'access', {
+								action: 'get_team_projects',
+								teamId: teamId,
+								projectCount: data.projects?.length || 0
+							});
+					}
+
+					return data;
 				} else {
+					// Log API error
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'error', 
+							`API Error: GET team projects failed - ${response.status} ${response.statusText}`, 'error', {
+								action: 'get_team_projects',
+								statusCode: response.status,
+								teamId: teamId,
+								url: url
+							});
+					}
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 				}
 			} catch (error) {
+				// Log unexpected error
+				if (global.logFileManager && global.mcpId) {
+					global.logFileManager.writeLog(global.mcpId, 'error', 
+						`Get team projects failed: ${error.message}`, 'error', {
+							action: 'get_team_projects',
+							error: error.message,
+							teamId: teamId,
+							url: url
+						});
+				}
 				throw new Error(`Failed to get team projects: ${error.message}`);
 			}
 		},
 
 		// Get file details
 		fileDetails: async (config, apiKey, fileKey) => {
+			const url = `${config.api.baseURL}/files/${fileKey}`;
+
+			// Log access attempt
+			if (global.logFileManager && global.mcpId) {
+				global.logFileManager.writeLog(global.mcpId, 'info', 
+					`API Access: GET ${url}`, 'access', {
+						action: 'get_file_details',
+						fileKey: fileKey
+					});
+			}
+
 			try {
-				const response = await fetch(`${config.api.baseURL}/files/${fileKey}`, {
+				const response = await fetch(url, {
 					headers: { [config.auth.header]: apiKey },
 				});
 				
 				if (response.ok) {
-					return await response.json();
+					const data = await response.json();
+
+					// Log successful retrieval
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'info', 
+							`File details retrieved successfully: ${data.name || 'Unknown file'}`, 'access', {
+								action: 'get_file_details',
+								fileKey: fileKey,
+								fileName: data.name,
+								fileVersion: data.version
+							});
+					}
+
+					return data;
 				} else {
+					// Log API error
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'error', 
+							`API Error: GET file details failed - ${response.status} ${response.statusText}`, 'error', {
+								action: 'get_file_details',
+								statusCode: response.status,
+								fileKey: fileKey,
+								url: url
+							});
+					}
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 				}
 			} catch (error) {
+				// Log unexpected error
+				if (global.logFileManager && global.mcpId) {
+					global.logFileManager.writeLog(global.mcpId, 'error', 
+						`Get file details failed: ${error.message}`, 'error', {
+							action: 'get_file_details',
+							error: error.message,
+							fileKey: fileKey,
+							url: url
+						});
+				}
 				throw new Error(`Failed to get file details: ${error.message}`);
+			}
+		},
+
+		// Create comment on file
+		createComment: async (config, apiKey, fileKey, message) => {
+			const url = `${config.api.baseURL}/files/${fileKey}/comments`;
+
+			// Log access attempt
+			if (global.logFileManager && global.mcpId) {
+				global.logFileManager.writeLog(global.mcpId, 'info', 
+					`API Access: POST ${url}`, 'access', {
+						action: 'create_comment',
+						fileKey: fileKey
+					});
+			}
+
+			try {
+				const response = await fetch(url, {
+					method: 'POST',
+					headers: {
+						[config.auth.header]: apiKey,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ message })
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+
+					// Log successful creation
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'info', 
+							`Comment created successfully on file ${fileKey}`, 'access', {
+								action: 'create_comment',
+								fileKey: fileKey,
+								commentId: data.id
+							});
+					}
+
+					return {
+						success: true,
+						comment: data,
+						message: 'Comment created successfully'
+					};
+				} else {
+					// Log API error
+					if (global.logFileManager && global.mcpId) {
+						global.logFileManager.writeLog(global.mcpId, 'error', 
+							`API Error: POST comment failed - ${response.status} ${response.statusText}`, 'error', {
+								action: 'create_comment',
+								statusCode: response.status,
+								fileKey: fileKey,
+								url: url
+							});
+					}
+					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+				}
+			} catch (error) {
+				// Log unexpected error
+				if (global.logFileManager && global.mcpId) {
+					global.logFileManager.writeLog(global.mcpId, 'error', 
+						`Create comment failed: ${error.message}`, 'error', {
+							action: 'create_comment',
+							error: error.message,
+							fileKey: fileKey,
+							url: url
+						});
+				}
+				throw new Error(`Failed to create comment: ${error.message}`);
 			}
 		}
 	},
@@ -197,6 +413,23 @@ export default {
 					required: true
 				}
 			}
+		},
+		{
+			name: 'create_comment',
+			description: 'Create a comment on a Figma file',
+			handler: 'createComment',
+			parameters: {
+				fileKey: {
+					type: 'string',
+					description: 'The file key to comment on',
+					required: true
+				},
+				message: {
+					type: 'string',
+					description: 'The comment message',
+					required: true
+				}
+			}
 		}
 	],
 
@@ -204,13 +437,13 @@ export default {
 	resources: [
 		{
 			name: 'user_profile',
-			uri: 'user/profile',
+			uri: 'figma://user/profile',
 			description: 'Current user\'s Figma profile information',
 			endpoint: 'me'
 		},
 		{
 			name: 'files_list',
-			uri: 'files/list',
+			uri: 'figma://files/list',
 			description: 'List of files in Figma',
 			handler: 'files'
 		}

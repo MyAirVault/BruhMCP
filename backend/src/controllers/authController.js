@@ -60,7 +60,7 @@ export async function requestToken(req, res) {
 		}
 
 		// Log magic link to console
-		const magicLink = `http://localhost:${process.env.PORT || 5000}/verify?token=${result.token}`;
+		const magicLink = `${process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`}/verify?token=${result.token}`;
 		console.log(`\n🔗 Magic link for ${email}: ${magicLink}\n`);
 
 		// Return success response
