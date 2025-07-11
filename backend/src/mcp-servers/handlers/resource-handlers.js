@@ -11,15 +11,12 @@ import fetch from 'node-fetch';
  */
 export async function handleResourceContent({ resourcePath, mcpType, serviceConfig, apiKey }) {
     if (resourcePath === `${mcpType}/user/profile`) {
-        const baseURL = serviceConfig.api?.baseURL || serviceConfig.baseURL;
-        const headers = {};
+        const baseURL = serviceConfig.baseURL || serviceConfig.api?.baseURL;
         
-        // Construct authentication header based on service config
-        if (serviceConfig.auth?.header) {
-            headers[serviceConfig.auth.header] = apiKey;
-        } else {
-            headers['Authorization'] = `Bearer ${apiKey}`;
-        }
+        // Use standardized auth header function
+        const headers = serviceConfig.authHeader ? serviceConfig.authHeader(apiKey) : {
+            'Authorization': `Bearer ${apiKey}`
+        };
         
         const userInfo = await fetch(`${baseURL}${serviceConfig.endpoints.me}`, {
             headers,

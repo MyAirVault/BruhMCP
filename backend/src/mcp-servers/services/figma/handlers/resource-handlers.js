@@ -12,7 +12,7 @@ import fetch from 'node-fetch';
 export async function handleResourceContent({ resourcePath, mcpType, serviceConfig, apiKey }) {
 	// Handle different resource path formats
 	let parsedPath = resourcePath;
-	
+
 	// If resourcePath starts with mcpType://, extract the path part
 	if (resourcePath.startsWith(`${mcpType}://`)) {
 		parsedPath = resourcePath.replace(`${mcpType}://`, '');
@@ -20,26 +20,21 @@ export async function handleResourceContent({ resourcePath, mcpType, serviceConf
 
 	if (parsedPath === 'user/profile') {
 		// Determine base URL
-		const baseURL = serviceConfig.api?.baseURL || serviceConfig.baseURL;
-		
+		const baseURL = serviceConfig.baseURL || serviceConfig.api?.baseURL;
+
 		// Create headers object using standardized auth
-		const headers = {};
-		if (serviceConfig.auth?.header && serviceConfig.auth?.headerFormat) {
-			headers[serviceConfig.auth.header] = serviceConfig.auth.headerFormat(apiKey);
-		} else if (serviceConfig.auth?.header) {
-			headers[serviceConfig.auth.header] = apiKey;
-		} else {
-			headers['Authorization'] = `Bearer ${apiKey}`;
-		}
-		
+		const headers = serviceConfig.authHeader ? serviceConfig.authHeader(apiKey) : {
+			'Authorization': `Bearer ${apiKey}`
+		};
+
 		const userInfo = await fetch(`${baseURL}${serviceConfig.endpoints.me}`, {
 			headers,
 		});
-		
+
 		if (!userInfo.ok) {
 			throw new Error(`Failed to fetch user profile: ${userInfo.status} ${userInfo.statusText}`);
 		}
-		
+
 		const data = await userInfo.json();
 		return {
 			contents: [

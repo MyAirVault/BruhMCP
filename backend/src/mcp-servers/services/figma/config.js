@@ -54,10 +54,16 @@ export default {
 	customHandlers: {
 		// Enhanced file listing with comprehensive API exploration
 		files: async (config, apiKey) => {
+			// Determine base URL and headers once at the top
+			const baseURL = config.baseURL || config.api?.baseURL;
+			const headers = config.authHeader ? config.authHeader(apiKey) : {
+				'X-Figma-Token': apiKey
+			};
+			
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
 				global.logFileManager.writeLog(global.mcpId, 'info', 
-					`API Access: GET ${config.api.baseURL}/me/files`, 'access', {
+					`API Access: GET ${baseURL}/me/files`, 'access', {
 						action: 'list_files'
 					});
 			}
@@ -73,8 +79,8 @@ export default {
 
 			// Get user info
 			try {
-				const userResponse = await fetch(`${config.api.baseURL}/me`, {
-					headers: { [config.auth.header]: apiKey },
+				const userResponse = await fetch(`${baseURL}/me`, {
+					headers,
 				});
 				if (userResponse.ok) {
 					results.user_info = await userResponse.json();
@@ -108,15 +114,15 @@ export default {
 
 			// Try different file discovery endpoints
 			const endpoints = [
-				{ name: 'Recent Files', url: `${config.api.baseURL}/me/files` },
-				{ name: 'Teams Listing', url: `${config.api.baseURL}/teams` },
-				{ name: 'Version Info', url: `${config.api.baseURL}/version` },
+				{ name: 'Recent Files', url: `${baseURL}/me/files` },
+				{ name: 'Teams Listing', url: `${baseURL}/teams` },
+				{ name: 'Version Info', url: `${baseURL}/version` },
 			];
 
 			for (const endpoint of endpoints) {
 				try {
 					const response = await fetch(endpoint.url, {
-						headers: { [config.auth.header]: apiKey },
+						headers,
 					});
 
 					if (response.ok) {
@@ -187,7 +193,8 @@ export default {
 
 		// Get team projects
 		teamProjects: async (config, apiKey, teamId) => {
-			const url = `${config.api.baseURL}/teams/${teamId}/projects`;
+			const baseURL = config.baseURL || config.api?.baseURL;
+			const url = `${baseURL}/teams/${teamId}/projects`;
 
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
@@ -199,8 +206,11 @@ export default {
 			}
 
 			try {
+				const headers = config.authHeader ? config.authHeader(apiKey) : {
+					'X-Figma-Token': apiKey
+				};
 				const response = await fetch(url, {
-					headers: { [config.auth.header]: apiKey },
+					headers,
 				});
 				
 				if (response.ok) {
@@ -247,7 +257,8 @@ export default {
 
 		// Get file details
 		fileDetails: async (config, apiKey, fileKey) => {
-			const url = `${config.api.baseURL}/files/${fileKey}`;
+			const baseURL = config.baseURL || config.api?.baseURL;
+			const url = `${baseURL}/files/${fileKey}`;
 
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
@@ -259,8 +270,11 @@ export default {
 			}
 
 			try {
+				const headers = config.authHeader ? config.authHeader(apiKey) : {
+					'X-Figma-Token': apiKey
+				};
 				const response = await fetch(url, {
-					headers: { [config.auth.header]: apiKey },
+					headers,
 				});
 				
 				if (response.ok) {
@@ -308,7 +322,8 @@ export default {
 
 		// Create comment on file
 		createComment: async (config, apiKey, fileKey, message) => {
-			const url = `${config.api.baseURL}/files/${fileKey}/comments`;
+			const baseURL = config.baseURL || config.api?.baseURL;
+			const url = `${baseURL}/files/${fileKey}/comments`;
 
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
@@ -320,12 +335,14 @@ export default {
 			}
 
 			try {
+				const headers = config.authHeader ? config.authHeader(apiKey) : {
+					'X-Figma-Token': apiKey
+				};
+				headers['Content-Type'] = 'application/json';
+				
 				const response = await fetch(url, {
 					method: 'POST',
-					headers: {
-						[config.auth.header]: apiKey,
-						'Content-Type': 'application/json'
-					},
+					headers,
 					body: JSON.stringify({ message })
 				});
 
@@ -462,8 +479,12 @@ export default {
 
 			// Test the API key
 			try {
-				const response = await fetch(`${config.api.baseURL}${config.auth.validation.endpoint}`, {
-					headers: { [config.auth.header]: credentials.api_key },
+				const baseURL = config.baseURL || config.api?.baseURL;
+				const headers = config.authHeader ? config.authHeader(credentials.api_key) : {
+					'X-Figma-Token': credentials.api_key
+				};
+				const response = await fetch(`${baseURL}${config.auth.validation.endpoint}`, {
+					headers,
 				});
 
 				if (!response.ok) {
