@@ -16,6 +16,9 @@ import { apiRateLimiter } from './utils/rateLimiter.js';
 // Import database
 import { testConnection } from './db/config.js';
 
+// Import port validation for startup checks
+import { validatePortRange } from './utils/portValidation.js';
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -117,10 +120,24 @@ app.use((err, _req, res, _next) => {
 });
 
 // Start server
-app.listen(port, async () => {
+const server = app.listen(port, async () => {
 	console.log(`🚀 Server is running on port ${port}`);
 	console.log(`📚 Health check: http://localhost:${port}/health`);
 	console.log(`🔐 Authentication: http://localhost:${port}/auth/request`);
+
+	// Startup validation checks
+	console.log('🔍 Running startup validation checks...');
+
+	// Validate port range configuration
+	try {
+		const envStart = parseInt(process.env.PORT_RANGE_START || '49160');
+		const envEnd = parseInt(process.env.PORT_RANGE_END || '49999');
+		validatePortRange(envStart, envEnd);
+		console.log(`✅ Port range validation passed: ${envStart}-${envEnd}`);
+	} catch (error) {
+		console.warn('⚠️ Port range validation warning:', error.message);
+		console.log('🔧 Using database-enforced range (49160-49999)');
+	}
 
 	// Test database connection
 	try {
@@ -129,4 +146,23 @@ app.listen(port, async () => {
 	} catch (error) {
 		console.error('❌ Database connection failed:', error instanceof Error ? error.message : error);
 	}
+
+	console.log('🎯 All startup checks completed');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+	console.log('🛑 SIGTERM received, shutting down gracefully...');
+	server.close(() => {
+		console.log('✅ Server closed');
+		process.exit(0);
+	});
+});
+
+process.on('SIGINT', () => {
+	console.log('🛑 SIGINT received, shutting down gracefully...');
+	server.close(() => {
+		console.log('✅ Server closed');
+		process.exit(0);
+	});
 });

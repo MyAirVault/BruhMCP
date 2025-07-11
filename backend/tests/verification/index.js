@@ -1,6 +1,6 @@
 /**
  * Verification System Exports
- * 
+ *
  * Main entry point for the MCP Backend Verification Agent
  */
 

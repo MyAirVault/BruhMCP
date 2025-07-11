@@ -5,7 +5,11 @@
  * @param {Map} activeProcesses - Active processes map
  * @returns {void}
  */
-export function setupProcessMonitoring(instanceId: string, mcpProcess: ChildProcess, activeProcesses: Map<any, any>): void;
+export function setupProcessMonitoring(
+	instanceId: string,
+	mcpProcess: ChildProcess,
+	activeProcesses: Map<any, any>
+): void;
 /**
  * Handle process exit
  * @param {string} instanceId - Instance ID

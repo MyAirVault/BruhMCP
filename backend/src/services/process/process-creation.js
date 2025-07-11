@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import portManager from '../portManager.js';
 import { generateAccessUrl } from '../../controllers/mcpInstances/utils.js';
+import { validatePortAssignment } from '../../utils/portValidation.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,12 +20,15 @@ const __dirname = dirname(__filename);
  */
 export async function createProcess(config) {
 	const { mcpType, instanceId, userId, credentials, config: instanceConfig } = config;
-	
+
 	let assignedPort;
 
 	try {
 		// Get available port
 		assignedPort = await portManager.getAvailablePort();
+
+		// Validate port assignment
+		validatePortAssignment(assignedPort);
 
 		// Prepare environment variables
 		const env = {

@@ -27,14 +27,43 @@ export async function getAPIKeysByUserId(userId) {
  * @returns {Promise<Object>} Created API key
  */
 export async function storeAPIKey(userId, mcpTypeId, credentials) {
+	console.log('storeAPIKey - credentials type:', typeof credentials);
+	console.log('storeAPIKey - credentials value:', credentials);
+	
+	// Ensure credentials is an object before stringifying
+	let credentialsToStore;
+	if (typeof credentials === 'string') {
+		try {
+			credentialsToStore = JSON.parse(credentials);
+		} catch (error) {
+			throw new Error(`Invalid credentials format: ${error.message}`);
+		}
+	} else if (typeof credentials === 'object' && credentials !== null) {
+		credentialsToStore = credentials;
+	} else {
+		throw new Error('Credentials must be an object or valid JSON string');
+	}
+
 	const query = `
     INSERT INTO api_keys (user_id, mcp_type_id, credentials)
     VALUES ($1, $2, $3)
-    RETURNING id, user_id, mcp_type_id, is_active, created_at, updated_at, expires_at
+    RETURNING id, user_id, mcp_type_id, credentials, is_active, created_at, updated_at, expires_at
   `;
 
-	const result = await pool.query(query, [userId, mcpTypeId, JSON.stringify(credentials)]);
-	return result.rows[0];
+	const result = await pool.query(query, [userId, mcpTypeId, JSON.stringify(credentialsToStore)]);
+	const apiKey = result.rows[0];
+	
+	console.log('storeAPIKey - DB returned credentials type:', typeof apiKey.credentials);
+	console.log('storeAPIKey - DB returned credentials value:', apiKey.credentials);
+	console.log('storeAPIKey - DB returned credentials raw:', JSON.stringify(apiKey.credentials));
+	
+	// Parse credentials back to object for immediate use
+	if (typeof apiKey.credentials === 'string') {
+		apiKey.credentials = JSON.parse(apiKey.credentials);
+	}
+	// If it's already an object (PostgreSQL might return it parsed), keep it as is
+	
+	return apiKey;
 }
 
 /**
@@ -53,7 +82,13 @@ export async function getAPIKeyById(apiKeyId, userId) {
   `;
 
 	const result = await pool.query(query, [apiKeyId, userId]);
-	return result.rows[0] || null;
+	const apiKey = result.rows[0];
+	
+	if (apiKey && apiKey.credentials) {
+		apiKey.credentials = JSON.parse(apiKey.credentials);
+	}
+	
+	return apiKey || null;
 }
 
 /**
@@ -88,7 +123,13 @@ export async function getAPIKeyByUserAndType(userId, mcpTypeId) {
   `;
 
 	const result = await pool.query(query, [userId, mcpTypeId]);
-	return result.rows[0] || null;
+	const apiKey = result.rows[0];
+	
+	if (apiKey && apiKey.credentials) {
+		apiKey.credentials = JSON.parse(apiKey.credentials);
+	}
+	
+	return apiKey || null;
 }
 
 /**
@@ -102,9 +143,16 @@ export async function updateAPIKeyCredentials(apiKeyId, credentials) {
     UPDATE api_keys 
     SET credentials = $1, updated_at = CURRENT_TIMESTAMP
     WHERE id = $2
-    RETURNING id, user_id, mcp_type_id, is_active, created_at, updated_at, expires_at
+    RETURNING id, user_id, mcp_type_id, credentials, is_active, created_at, updated_at, expires_at
   `;
 
 	const result = await pool.query(query, [JSON.stringify(credentials), apiKeyId]);
-	return result.rows[0];
+	const apiKey = result.rows[0];
+	
+	// Parse credentials back to object for immediate use
+	if (apiKey && apiKey.credentials) {
+		apiKey.credentials = JSON.parse(apiKey.credentials);
+	}
+	
+	return apiKey;
 }

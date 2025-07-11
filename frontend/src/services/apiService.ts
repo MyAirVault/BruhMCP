@@ -223,6 +223,68 @@ export const apiService = {
     });
   },
 
+  getAllMCPLogs: async (params?: {
+    start_time?: string;
+    end_time?: string;
+    level?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<MCPLog[]> => {
+    // First get all MCP instances
+    const mcps = await makeRequest<MCPInstance[]>('/mcps');
+    
+    // Then fetch logs for each MCP instance
+    const allLogsPromises = mcps.map(async (mcp) => {
+      try {
+        const logs = await makeRequest<MCPLog[]>(`/mcps/${mcp.id}/logs`, {
+          method: 'GET',
+        });
+        // Add MCP info to each log entry
+        return logs.map(log => ({
+          ...log,
+          mcpId: mcp.id,
+          mcpName: mcp.custom_name || `${mcp.mcp_type} MCP`
+        }));
+      } catch (error) {
+        console.warn(`Failed to fetch logs for MCP ${mcp.id}:`, error);
+        return [];
+      }
+    });
+    
+    // Wait for all promises and flatten the results
+    const allLogsArrays = await Promise.all(allLogsPromises);
+    const allLogs = allLogsArrays.flat();
+    
+    // Sort by timestamp (newest first)
+    allLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    // Apply filters if provided
+    let filteredLogs = allLogs;
+    
+    if (params?.level) {
+      filteredLogs = filteredLogs.filter(log => log.level === params.level);
+    }
+    
+    if (params?.start_time) {
+      const startTime = new Date(params.start_time);
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startTime);
+    }
+    
+    if (params?.end_time) {
+      const endTime = new Date(params.end_time);
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= endTime);
+    }
+    
+    // Apply pagination
+    if (params?.offset || params?.limit) {
+      const start = params?.offset || 0;
+      const end = params?.limit ? start + params.limit : undefined;
+      filteredLogs = filteredLogs.slice(start, end);
+    }
+    
+    return filteredLogs;
+  },
+
   // Settings
   getSettings: async (): Promise<{
     user: {

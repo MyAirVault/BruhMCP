@@ -1,6 +1,6 @@
 /**
  * Test Utilities and Helpers
- * 
+ *
  * Common utilities for verification tests including:
  * - Database setup and teardown
  * - Test data generation
@@ -30,13 +30,13 @@ export class TestUtils {
 	 */
 	async initialize() {
 		console.log('🔧 Initializing test environment...');
-		
+
 		// Ensure port manager is initialized
 		await portManager.initialize();
-		
+
 		// Create test prerequisites
 		await this.createTestPrerequisites();
-		
+
 		console.log('✅ Test environment initialized');
 	}
 
@@ -47,12 +47,12 @@ export class TestUtils {
 		// Create test user
 		const testUser = await this.createTestUser();
 		this.testData.users.push(testUser);
-		
+
 		// Create test MCP types
 		const figmaType = await this.createTestMCPType('figma', 'Figma');
 		const githubType = await this.createTestMCPType('github', 'GitHub');
 		this.testData.mcpTypes.push(figmaType, githubType);
-		
+
 		console.log('📋 Test prerequisites created');
 	}
 
@@ -61,15 +61,15 @@ export class TestUtils {
 	 */
 	async createTestUser() {
 		const userId = '550e8400-e29b-41d4-a716-446655440000';
-		
+
 		try {
 			// Check if test user already exists
 			const existingUser = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
-			
+
 			if (existingUser.rows.length > 0) {
 				return { id: userId, email: 'test@example.com' };
 			}
-			
+
 			// Create test user
 			const query = `
 				INSERT INTO users (id, email, password_hash, created_at)
@@ -77,13 +77,13 @@ export class TestUtils {
 				ON CONFLICT (id) DO NOTHING
 				RETURNING id, email
 			`;
-			
+
 			const result = await pool.query(query, [
 				userId,
 				'test@example.com',
 				'$2b$10$test.hash.for.verification.tests',
 			]);
-			
+
 			return result.rows[0] || { id: userId, email: 'test@example.com' };
 		} catch (error) {
 			console.log('Note: Test user creation skipped (may already exist)');
@@ -95,18 +95,17 @@ export class TestUtils {
 	 * Create a test MCP type
 	 */
 	async createTestMCPType(name, displayName) {
-		const mcpTypeId = name === 'figma' 
-			? '550e8400-e29b-41d4-a716-446655440001'
-			: '550e8400-e29b-41d4-a716-446655440002';
-		
+		const mcpTypeId =
+			name === 'figma' ? '550e8400-e29b-41d4-a716-446655440001' : '550e8400-e29b-41d4-a716-446655440002';
+
 		try {
 			// Check if MCP type already exists
 			const existing = await pool.query('SELECT id FROM mcp_types WHERE id = $1', [mcpTypeId]);
-			
+
 			if (existing.rows.length > 0) {
 				return { id: mcpTypeId, name, display_name: displayName };
 			}
-			
+
 			// Create test MCP type
 			const query = `
 				INSERT INTO mcp_types (id, name, display_name, description, config_schema, created_at)
@@ -114,7 +113,7 @@ export class TestUtils {
 				ON CONFLICT (id) DO NOTHING
 				RETURNING id, name, display_name
 			`;
-			
+
 			const result = await pool.query(query, [
 				mcpTypeId,
 				name,
@@ -128,7 +127,7 @@ export class TestUtils {
 					required: ['apiKey'],
 				}),
 			]);
-			
+
 			return result.rows[0] || { id: mcpTypeId, name, display_name: displayName };
 		} catch (error) {
 			console.log(`Note: Test MCP type ${name} creation skipped (may already exist)`);
@@ -163,14 +162,14 @@ export class TestUtils {
 	async createTestInstance(userData = null) {
 		const user = userData || this.testData.users[0];
 		const mcpType = this.testData.mcpTypes[0]; // Use Figma type by default
-		
+
 		if (!user || !mcpType) {
 			throw new Error('Test prerequisites not created. Call initialize() first.');
 		}
-		
+
 		const instanceData = this.generateTestInstanceData(user.id, mcpType.id);
 		instanceData.assigned_port = await portManager.getAvailablePort();
-		
+
 		const query = `
 			INSERT INTO mcp_instances (
 				user_id, mcp_type_id, api_key_id, custom_name, instance_number,
@@ -178,7 +177,7 @@ export class TestUtils {
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			RETURNING id
 		`;
-		
+
 		const result = await pool.query(query, [
 			instanceData.user_id,
 			instanceData.mcp_type_id,
@@ -190,10 +189,10 @@ export class TestUtils {
 			instanceData.process_id,
 			JSON.stringify(instanceData.config),
 		]);
-		
+
 		const instance = { ...instanceData, id: result.rows[0].id };
 		this.testData.instances.push(instance);
-		
+
 		return instance;
 	}
 
@@ -202,7 +201,7 @@ export class TestUtils {
 	 */
 	async cleanup() {
 		console.log('🧹 Cleaning up test data...');
-		
+
 		try {
 			// Clean up instances
 			for (const instance of this.testData.instances) {
@@ -215,7 +214,7 @@ export class TestUtils {
 					console.log(`Note: Could not delete instance ${instance.id}:`, error.message);
 				}
 			}
-			
+
 			// Clean up API keys
 			for (const apiKey of this.testData.apiKeys) {
 				try {
@@ -224,10 +223,10 @@ export class TestUtils {
 					console.log(`Note: Could not delete API key ${apiKey.id}:`, error.message);
 				}
 			}
-			
+
 			// Note: We don't delete users and MCP types as they might be used by other tests
 			// In a real test environment, you might want to clean these up too
-			
+
 			console.log('✅ Test data cleaned up');
 		} catch (error) {
 			console.error('❌ Error during cleanup:', error.message);
@@ -375,9 +374,9 @@ export class TestUtils {
 			const result = await fn();
 			const end = Date.now();
 			const duration = end - start;
-			
+
 			console.log(`⏱️  ${description} took ${duration}ms`);
-			
+
 			return { result, duration };
 		},
 
@@ -393,23 +392,23 @@ export class TestUtils {
 		 */
 		async retry(fn, maxAttempts = 3, baseDelay = 1000) {
 			let lastError;
-			
+
 			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 				try {
 					return await fn();
 				} catch (error) {
 					lastError = error;
-					
+
 					if (attempt === maxAttempts) {
 						throw error;
 					}
-					
+
 					const delay = baseDelay * Math.pow(2, attempt - 1);
 					console.log(`⚠️  Attempt ${attempt} failed, retrying in ${delay}ms...`);
 					await this.wait(delay);
 				}
 			}
-			
+
 			throw lastError;
 		},
 	};
@@ -438,7 +437,7 @@ export class TestUtils {
 		setTestEnv(key, value) {
 			const originalValue = process.env[key];
 			process.env[key] = value;
-			
+
 			// Return cleanup function
 			return () => {
 				if (originalValue === undefined) {
@@ -460,32 +459,31 @@ export class TestResultFormatter {
 	 */
 	static formatForConsole(results) {
 		let output = '';
-		
+
 		output += '📋 Test Results Summary:\n';
 		output += '=' + '='.repeat(50) + '\n\n';
-		
+
 		results.forEach((result, index) => {
 			const status = result.success ? '✅' : '❌';
 			output += `${index + 1}. ${status} ${result.test}\n`;
 			output += `   ${result.message}\n`;
-			
+
 			if (result.error) {
 				output += `   Error: ${result.error}\n`;
 			}
-			
+
 			if (result.details && Object.keys(result.details).length > 0) {
 				output += '   Details:\n';
 				Object.entries(result.details).forEach(([key, value]) => {
-					const formattedValue = typeof value === 'object' 
-						? JSON.stringify(value, null, 2).replace(/\n/g, '\n     ')
-						: value;
+					const formattedValue =
+						typeof value === 'object' ? JSON.stringify(value, null, 2).replace(/\n/g, '\n     ') : value;
 					output += `     ${key}: ${formattedValue}\n`;
 				});
 			}
-			
+
 			output += '\n';
 		});
-		
+
 		return output;
 	}
 
@@ -493,11 +491,15 @@ export class TestResultFormatter {
 	 * Format test results for JSON output
 	 */
 	static formatForJSON(results, summary = null) {
-		return JSON.stringify({
-			timestamp: new Date().toISOString(),
-			summary,
-			results,
-		}, null, 2);
+		return JSON.stringify(
+			{
+				timestamp: new Date().toISOString(),
+				summary,
+				results,
+			},
+			null,
+			2
+		);
 	}
 
 	/**
@@ -523,7 +525,7 @@ export class TestResultFormatter {
     <h1>🔍 Verification Test Results</h1>
     <p>Generated: ${new Date().toISOString()}</p>
 		`;
-		
+
 		if (summary) {
 			html += `
     <div class="summary">
@@ -535,21 +537,21 @@ export class TestResultFormatter {
     </div>
 			`;
 		}
-		
+
 		results.forEach((result, index) => {
 			const cssClass = result.success ? 'success' : 'failure';
 			const status = result.success ? '✅' : '❌';
-			
+
 			html += `
     <div class="test-result ${cssClass}">
         <h3>${status} ${result.test}</h3>
         <p>${result.message}</p>
 			`;
-			
+
 			if (result.error) {
 				html += `<p><strong>Error:</strong> ${result.error}</p>`;
 			}
-			
+
 			if (result.details) {
 				html += `
         <div class="details">
@@ -558,15 +560,15 @@ export class TestResultFormatter {
         </div>
 				`;
 			}
-			
+
 			html += '</div>';
 		});
-		
+
 		html += `
 </body>
 </html>
 		`;
-		
+
 		return html;
 	}
 }

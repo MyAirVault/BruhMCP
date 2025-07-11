@@ -4,14 +4,14 @@
  * @param {Object} options - Query options
  * @returns {Promise<Array>} Array of instances
  */
-export function getMCPInstancesByUserId(userId: string, options?: Object): Promise<any[]>;
+export function getMCPInstancesByUserId(userId: string, options?: object): Promise<any[]>;
 /**
  * Get MCP instance by ID
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
  * @returns {Promise<Object|null>} Instance or null if not found
  */
-export function getMCPInstanceById(instanceId: string, userId: string): Promise<Object | null>;
+export function getMCPInstanceById(instanceId: string, userId: string): Promise<object | null>;
 /**
  * Get expired MCP instances
  * @returns {Promise<Array>} Array of expired instances

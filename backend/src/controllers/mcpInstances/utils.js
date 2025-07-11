@@ -22,7 +22,6 @@ export function calculateExpirationDate(option) {
 	}
 }
 
-
 /**
  * Generate consistent access URL for MCP instances
  * @param {number|null} assignedPort - The port number assigned to the instance

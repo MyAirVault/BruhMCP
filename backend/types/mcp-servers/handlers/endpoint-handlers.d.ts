@@ -6,11 +6,15 @@
  * @param {string} params.apiKey - API key for authentication
  * @returns {Promise<Object>} API response data
  */
-export function handleGenericEndpoint({ endpoint, serviceConfig, apiKey }: {
-    endpoint: string;
-    serviceConfig: Object;
-    apiKey: string;
-}): Promise<Object>;
+export function handleGenericEndpoint({
+	endpoint,
+	serviceConfig,
+	apiKey,
+}: {
+	endpoint: string;
+	serviceConfig: object;
+	apiKey: string;
+}): Promise<object>;
 /**
  * Handle parameterized endpoint requests
  * @param {Object} params - Parameterized endpoint request parameters
@@ -21,13 +25,19 @@ export function handleGenericEndpoint({ endpoint, serviceConfig, apiKey }: {
  * @param {string} params.apiKey - API key for authentication
  * @returns {Promise<Object>} API response data
  */
-export function handleParameterizedEndpoint({ endpoint, pathParams, mcpType, serviceConfig, apiKey }: {
-    endpoint: string;
-    pathParams: any[];
-    mcpType: string;
-    serviceConfig: Object;
-    apiKey: string;
-}): Promise<Object>;
+export function handleParameterizedEndpoint({
+	endpoint,
+	pathParams,
+	mcpType,
+	serviceConfig,
+	apiKey,
+}: {
+	endpoint: string;
+	pathParams: any[];
+	mcpType: string;
+	serviceConfig: object;
+	apiKey: string;
+}): Promise<object>;
 /**
  * Handle user info endpoint requests
  * @param {Object} params - User info request parameters
@@ -35,8 +45,5 @@ export function handleParameterizedEndpoint({ endpoint, pathParams, mcpType, ser
  * @param {string} params.apiKey - API key for authentication
  * @returns {Promise<Object>} User info data
  */
-export function handleUserInfo({ serviceConfig, apiKey }: {
-    serviceConfig: Object;
-    apiKey: string;
-}): Promise<Object>;
+export function handleUserInfo({ serviceConfig, apiKey }: { serviceConfig: object; apiKey: string }): Promise<object>;
 //# sourceMappingURL=endpoint-handlers.d.ts.map

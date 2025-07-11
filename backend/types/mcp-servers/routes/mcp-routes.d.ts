@@ -6,6 +6,6 @@
  * @param {number} port - Server port
  * @returns {express.Router} Configured MCP router
  */
-export function createMCPRouter(serviceConfig: Object, mcpType: string, apiKey: string, port: number): express.Router;
+export function createMCPRouter(serviceConfig: object, mcpType: string, apiKey: string, port: number): express.Router;
 import express from 'express';
 //# sourceMappingURL=mcp-routes.d.ts.map

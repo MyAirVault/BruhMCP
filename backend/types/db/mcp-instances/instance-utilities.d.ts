@@ -15,5 +15,5 @@ export function generateUniqueAccessToken(): Promise<string>;
  * @param {string} userId - User ID
  * @returns {Promise<Object>} Instance counts
  */
-export function countUserMCPInstances(userId: string): Promise<Object>;
+export function countUserMCPInstances(userId: string): Promise<object>;
 //# sourceMappingURL=instance-utilities.d.ts.map

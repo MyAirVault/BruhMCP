@@ -89,4 +89,6 @@ export interface MCPLog {
   source: string;
   message: string;
   metadata?: Record<string, unknown>;
+  mcpId?: string;
+  mcpName?: string;
 }

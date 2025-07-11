@@ -56,31 +56,35 @@ const DashboardContent = React.forwardRef<DashboardContentRef, DashboardContentP
         {...getSectionProps('active')}
       />
 
-      <MCPSection
-        ref={inactiveSectionRef}
-        title="Inactive MCPs"
-        count={inactiveMCPs.length}
-        mcps={inactiveMCPs}
-        openDropdown={openDropdown}
-        onDropdownToggle={onDropdownToggle}
-        onDropdownClose={onDropdownClose}
-        getDropdownItems={(mcp) => getDropdownItems(mcp, onDropdownClose, dropdownCallbacks)}
-        sectionType="inactive"
-        {...getSectionProps('inactive')}
-      />
+      {inactiveMCPs.length > 0 && (
+        <MCPSection
+          ref={inactiveSectionRef}
+          title="Inactive MCPs"
+          count={inactiveMCPs.length}
+          mcps={inactiveMCPs}
+          openDropdown={openDropdown}
+          onDropdownToggle={onDropdownToggle}
+          onDropdownClose={onDropdownClose}
+          getDropdownItems={(mcp) => getDropdownItems(mcp, onDropdownClose, dropdownCallbacks)}
+          sectionType="inactive"
+          {...getSectionProps('inactive')}
+        />
+      )}
 
-      <MCPSection
-        ref={expiredSectionRef}
-        title="Expired MCPs"
-        count={expiredMCPs.length}
-        mcps={expiredMCPs}
-        openDropdown={openDropdown}
-        onDropdownToggle={onDropdownToggle}
-        onDropdownClose={onDropdownClose}
-        getDropdownItems={(mcp) => getDropdownItems(mcp, onDropdownClose, dropdownCallbacks)}
-        sectionType="expired"
-        {...getSectionProps('expired')}
-      />
+      {expiredMCPs.length > 0 && (
+        <MCPSection
+          ref={expiredSectionRef}
+          title="Expired MCPs"
+          count={expiredMCPs.length}
+          mcps={expiredMCPs}
+          openDropdown={openDropdown}
+          onDropdownToggle={onDropdownToggle}
+          onDropdownClose={onDropdownClose}
+          getDropdownItems={(mcp) => getDropdownItems(mcp, onDropdownClose, dropdownCallbacks)}
+          sectionType="expired"
+          {...getSectionProps('expired')}
+        />
+      )}
     </div>
   );
 });

@@ -9,10 +9,10 @@
  * @returns {Promise<Object>} Process information
  */
 export function createProcess(config: {
-    mcpType: string;
-    instanceId: string;
-    userId: string;
-    credentials: Object;
-    config: Object;
-}): Promise<Object>;
+	mcpType: string;
+	instanceId: string;
+	userId: string;
+	credentials: object;
+	config: object;
+}): Promise<object>;
 //# sourceMappingURL=process-creation.d.ts.map

@@ -1,13 +1,30 @@
+import { validatePortRange, getValidPortRange } from '../utils/portValidation.js';
+
 /**
  * Enhanced port management service with database synchronization
  */
 class PortManager {
 	constructor() {
 		this.usedPorts = new Set();
+
+		// Validate environment variables against database constraints
+		const envStart = parseInt(process.env.PORT_RANGE_START || '49160');
+		const envEnd = parseInt(process.env.PORT_RANGE_END || '49999');
+
+		try {
+			validatePortRange(envStart, envEnd);
+		} catch (error) {
+			console.error('❌ Port range validation failed:', error.message);
+			console.log('🔧 Using database-enforced port range instead');
+		}
+
+		// Always use the validated range
+		const validRange = getValidPortRange();
 		this.portRange = {
-			start: parseInt(process.env.PORT_RANGE_START || '49160'),
-			end: parseInt(process.env.PORT_RANGE_END || '49999'),
+			start: validRange.min,
+			end: validRange.max,
 		};
+
 		this.initialized = false;
 		this.initializationPromise = null;
 	}
@@ -19,15 +36,15 @@ class PortManager {
 	async initialize() {
 		// If already initialized, return immediately
 		if (this.initialized) return;
-		
+
 		// If initialization is in progress, wait for it to complete
 		if (this.initializationPromise) {
 			return this.initializationPromise;
 		}
-		
+
 		// Start initialization and store the promise to prevent concurrent execution
 		this.initializationPromise = this._performInitialization();
-		
+
 		try {
 			await this.initializationPromise;
 		} finally {
@@ -44,7 +61,7 @@ class PortManager {
 		try {
 			const { getAllActiveInstancePorts } = await import('../db/queries/mcpInstancesQueries.js');
 			const activePorts = await getAllActiveInstancePorts();
-			
+
 			// Clear and sync with database
 			this.usedPorts.clear();
 			activePorts.forEach(port => {
@@ -52,7 +69,7 @@ class PortManager {
 					this.usedPorts.add(port);
 				}
 			});
-			
+
 			console.log(`🔧 Port manager initialized with ${this.usedPorts.size} active ports from database`);
 			this.initialized = true;
 		} catch (error) {
@@ -69,11 +86,13 @@ class PortManager {
 	 */
 	async getAvailablePort() {
 		await this.initialize();
-		
+
 		for (let port = this.portRange.start; port <= this.portRange.end; port++) {
 			if (!this.usedPorts.has(port)) {
 				this.usedPorts.add(port);
-				console.log(`🔌 Allocated port ${port} (${this.usedPorts.size}/${this.portRange.end - this.portRange.start + 1} used)`);
+				console.log(
+					`🔌 Allocated port ${port} (${this.usedPorts.size}/${this.portRange.end - this.portRange.start + 1} used)`
+				);
 				return port;
 			}
 		}
@@ -87,7 +106,9 @@ class PortManager {
 	releasePort(port) {
 		if (this.usedPorts.has(port)) {
 			this.usedPorts.delete(port);
-			console.log(`🔌 Released port ${port} (${this.usedPorts.size}/${this.portRange.end - this.portRange.start + 1} used)`);
+			console.log(
+				`🔌 Released port ${port} (${this.usedPorts.size}/${this.portRange.end - this.portRange.start + 1} used)`
+			);
 		}
 	}
 

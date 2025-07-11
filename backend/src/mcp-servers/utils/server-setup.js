@@ -44,7 +44,11 @@ export function validateServiceConfig(mcpType, credentials) {
  * @returns {Object} Environment variables
  */
 export function getEnvironmentVariables() {
-	const port = process.env.PORT || 3001;
+	const port = parseInt(process.env.PORT);
+	if (!port) {
+		console.error('PORT environment variable is required for MCP server');
+		process.exit(1);
+	}
 	const mcpId = process.env.MCP_ID;
 	const userId = process.env.USER_ID;
 	const mcpType = process.env.MCP_TYPE;

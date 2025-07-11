@@ -2,10 +2,10 @@
 
 /**
  * Comprehensive Verification Agent Runner
- * 
+ *
  * Main script that orchestrates all verification tests:
  * - Port Management Verification
- * - Cleanup Verification  
+ * - Cleanup Verification
  * - Duplicate Service Verification
  * - Generates comprehensive reports
  * - Provides exit codes for CI/CD integration
@@ -48,13 +48,13 @@ class VerificationRunner {
 	 */
 	async initialize() {
 		console.log('🚀 Initializing Comprehensive Verification Agent...\n');
-		
+
 		// Initialize test utilities
 		await this.testUtils.initialize();
-		
+
 		// Register test suites
 		this.registerTestSuites();
-		
+
 		console.log(`📝 Registered ${this.testSuites.length} test suites`);
 		console.log('=' + '='.repeat(60) + '\n');
 	}
@@ -71,7 +71,7 @@ class VerificationRunner {
 				priority: 'high',
 			},
 			{
-				name: 'Cleanup Operations', 
+				name: 'Cleanup Operations',
 				description: 'Verify process termination and resource cleanup',
 				testClass: CleanupTests,
 				priority: 'high',
@@ -90,25 +90,25 @@ class VerificationRunner {
 	 */
 	async runAllTests() {
 		this.results.overall.startTime = new Date();
-		
+
 		console.log('🔍 Starting Comprehensive Verification Tests...\n');
-		
+
 		for (const suiteConfig of this.testSuites) {
 			await this.runTestSuite(suiteConfig);
 		}
-		
+
 		this.results.overall.endTime = new Date();
 		this.results.overall.duration = this.results.overall.endTime - this.results.overall.startTime;
-		
+
 		// Calculate overall statistics
 		this.calculateOverallStats();
-		
+
 		// Generate reports
 		await this.generateReports();
-		
+
 		// Print final summary
 		this.printFinalSummary();
-		
+
 		return this.results;
 	}
 
@@ -119,19 +119,19 @@ class VerificationRunner {
 		console.log(`\n🧪 Running ${suiteConfig.name} Tests`);
 		console.log(`📋 ${suiteConfig.description}`);
 		console.log('-'.repeat(50));
-		
+
 		const suiteStartTime = new Date();
 		let suiteResult;
-		
+
 		try {
 			const testInstance = new suiteConfig.testClass();
 			const result = await testInstance.runAllTests();
-			
+
 			// Cleanup after tests
 			if (typeof testInstance.cleanup === 'function') {
 				await testInstance.cleanup();
 			}
-			
+
 			suiteResult = {
 				name: suiteConfig.name,
 				description: suiteConfig.description,
@@ -144,10 +144,9 @@ class VerificationRunner {
 				results: result.results,
 				error: null,
 			};
-			
 		} catch (error) {
 			console.error(`❌ Test suite ${suiteConfig.name} failed:`, error.message);
-			
+
 			suiteResult = {
 				name: suiteConfig.name,
 				description: suiteConfig.description,
@@ -161,9 +160,9 @@ class VerificationRunner {
 				error: error.message,
 			};
 		}
-		
+
 		this.results.suites.push(suiteResult);
-		
+
 		console.log(`\n⏱️  Suite completed in ${suiteResult.duration}ms`);
 		console.log('=' + '='.repeat(60));
 	}
@@ -173,20 +172,24 @@ class VerificationRunner {
 	 */
 	calculateOverallStats() {
 		this.results.overall.totalTests = this.results.suites.reduce(
-			(sum, suite) => sum + (suite.summary?.total || 0), 0
+			(sum, suite) => sum + (suite.summary?.total || 0),
+			0
 		);
-		
+
 		this.results.overall.totalPassed = this.results.suites.reduce(
-			(sum, suite) => sum + (suite.summary?.passed || 0), 0
+			(sum, suite) => sum + (suite.summary?.passed || 0),
+			0
 		);
-		
+
 		this.results.overall.totalFailed = this.results.suites.reduce(
-			(sum, suite) => sum + (suite.summary?.failed || 0), 0
+			(sum, suite) => sum + (suite.summary?.failed || 0),
+			0
 		);
-		
-		this.results.overall.successRate = this.results.overall.totalTests > 0
-			? ((this.results.overall.totalPassed / this.results.overall.totalTests) * 100).toFixed(1)
-			: '0.0';
+
+		this.results.overall.successRate =
+			this.results.overall.totalTests > 0
+				? ((this.results.overall.totalPassed / this.results.overall.totalTests) * 100).toFixed(1)
+				: '0.0';
 	}
 
 	/**
@@ -194,29 +197,28 @@ class VerificationRunner {
 	 */
 	async generateReports() {
 		console.log('\n📊 Generating verification reports...');
-		
+
 		const reportsDir = join(__dirname, '..', '..', 'reports', 'verification');
-		
+
 		try {
 			// Ensure reports directory exists
 			mkdirSync(reportsDir, { recursive: true });
-			
+
 			const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-			
+
 			// Generate JSON report
 			await this.generateJSONReport(reportsDir, timestamp);
-			
+
 			// Generate HTML report
 			await this.generateHTMLReport(reportsDir, timestamp);
-			
+
 			// Generate console report (also save to file)
 			await this.generateConsoleReport(reportsDir, timestamp);
-			
+
 			// Generate summary report
 			await this.generateSummaryReport(reportsDir, timestamp);
-			
+
 			console.log(`✅ Reports generated in: ${reportsDir}`);
-			
 		} catch (error) {
 			console.error('❌ Failed to generate reports:', error.message);
 		}
@@ -239,10 +241,10 @@ class VerificationRunner {
 			summary: this.results.overall,
 			suites: this.results.suites,
 		};
-		
+
 		const jsonPath = join(reportsDir, `verification-report-${timestamp}.json`);
 		writeFileSync(jsonPath, JSON.stringify(jsonReport, null, 2));
-		
+
 		console.log(`📄 JSON report: ${jsonPath}`);
 	}
 
@@ -253,7 +255,7 @@ class VerificationRunner {
 		const htmlContent = this.generateHTMLContent();
 		const htmlPath = join(reportsDir, `verification-report-${timestamp}.html`);
 		writeFileSync(htmlPath, htmlContent);
-		
+
 		console.log(`🌐 HTML report: ${htmlPath}`);
 	}
 
@@ -261,14 +263,14 @@ class VerificationRunner {
 	 * Generate HTML content
 	 */
 	generateHTMLContent() {
-		const allResults = this.results.suites.flatMap(suite => 
+		const allResults = this.results.suites.flatMap(suite =>
 			suite.results.map(result => ({
 				...result,
 				suiteName: suite.name,
 				suitePriority: suite.priority,
 			}))
 		);
-		
+
 		let html = `
 <!DOCTYPE html>
 <html>
@@ -356,12 +358,12 @@ class VerificationRunner {
             </div>
         </div>
 		`;
-		
+
 		// Add test suites
 		this.results.suites.forEach(suite => {
 			const suiteSuccess = suite.success && (suite.summary?.failed || 0) === 0;
 			const suiteStatusIcon = suiteSuccess ? '✅' : '❌';
-			
+
 			html += `
         <div class="suite">
             <div class="suite-header">
@@ -377,7 +379,7 @@ class VerificationRunner {
             </div>
             <div class="test-results">
 			`;
-			
+
 			if (suite.error) {
 				html += `
                 <div class="test-result failure">
@@ -392,7 +394,7 @@ class VerificationRunner {
 				suite.results.forEach(result => {
 					const resultClass = result.success ? 'success' : 'failure';
 					const resultIcon = result.success ? '✅' : '❌';
-					
+
 					html += `
                 <div class="test-result ${resultClass} collapsible" onclick="toggleDetails(this)">
                     <div class="test-status">${resultIcon}</div>
@@ -400,11 +402,11 @@ class VerificationRunner {
                         <div class="test-name">${result.test}</div>
                         <div class="test-message">${result.message}</div>
 					`;
-					
+
 					if (result.error) {
 						html += `<div class="test-error">Error: ${result.error}</div>`;
 					}
-					
+
 					if (result.details && Object.keys(result.details).length > 0) {
 						html += `
                         <div class="collapsible-content">
@@ -414,20 +416,20 @@ class VerificationRunner {
                         </div>
 						`;
 					}
-					
+
 					html += `
                     </div>
                 </div>
 					`;
 				});
 			}
-			
+
 			html += `
             </div>
         </div>
 			`;
 		});
-		
+
 		html += `
         <div class="footer">
             <p>Report generated by MCP Backend Verification Agent</p>
@@ -443,7 +445,7 @@ class VerificationRunner {
 </body>
 </html>
 		`;
-		
+
 		return html;
 	}
 
@@ -452,44 +454,44 @@ class VerificationRunner {
 	 */
 	async generateConsoleReport(reportsDir, timestamp) {
 		const consolePath = join(reportsDir, `verification-console-${timestamp}.txt`);
-		
+
 		let consoleOutput = '';
 		consoleOutput += '🔍 MCP Backend Verification Report\n';
 		consoleOutput += '=' + '='.repeat(60) + '\n\n';
 		consoleOutput += `Generated: ${new Date().toISOString()}\n`;
 		consoleOutput += `Duration: ${this.results.overall.duration}ms\n\n`;
-		
+
 		consoleOutput += '📊 Overall Summary:\n';
 		consoleOutput += `   Total Tests: ${this.results.overall.totalTests}\n`;
 		consoleOutput += `   Passed: ${this.results.overall.totalPassed}\n`;
 		consoleOutput += `   Failed: ${this.results.overall.totalFailed}\n`;
 		consoleOutput += `   Success Rate: ${this.results.overall.successRate}%\n\n`;
-		
+
 		this.results.suites.forEach(suite => {
 			consoleOutput += `\n🧪 ${suite.name} (${suite.duration}ms)\n`;
 			consoleOutput += '-'.repeat(50) + '\n';
 			consoleOutput += `Description: ${suite.description}\n`;
 			consoleOutput += `Priority: ${suite.priority}\n`;
-			
+
 			if (suite.error) {
 				consoleOutput += `❌ Suite Error: ${suite.error}\n`;
 			} else {
 				consoleOutput += `Summary: ${suite.summary.passed}/${suite.summary.total} passed (${suite.summary.successRate}%)\n\n`;
-				
+
 				suite.results.forEach(result => {
 					const status = result.success ? '✅' : '❌';
 					consoleOutput += `${status} ${result.test}\n`;
 					consoleOutput += `   ${result.message}\n`;
-					
+
 					if (result.error) {
 						consoleOutput += `   Error: ${result.error}\n`;
 					}
-					
+
 					consoleOutput += '\n';
 				});
 			}
 		});
-		
+
 		writeFileSync(consolePath, consoleOutput);
 		console.log(`📄 Console report: ${consolePath}`);
 	}
@@ -499,7 +501,7 @@ class VerificationRunner {
 	 */
 	async generateSummaryReport(reportsDir, timestamp) {
 		const summaryPath = join(reportsDir, `verification-summary-${timestamp}.json`);
-		
+
 		const summary = {
 			timestamp: new Date().toISOString(),
 			overall: this.results.overall,
@@ -513,7 +515,7 @@ class VerificationRunner {
 			})),
 			recommendations: this.generateRecommendations(),
 		};
-		
+
 		writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
 		console.log(`📋 Summary report: ${summaryPath}`);
 	}
@@ -523,11 +525,9 @@ class VerificationRunner {
 	 */
 	generateRecommendations() {
 		const recommendations = [];
-		
-		const failedTests = this.results.suites.flatMap(suite => 
-			suite.results.filter(result => !result.success)
-		);
-		
+
+		const failedTests = this.results.suites.flatMap(suite => suite.results.filter(result => !result.success));
+
 		if (failedTests.length === 0) {
 			recommendations.push({
 				type: 'success',
@@ -538,17 +538,20 @@ class VerificationRunner {
 			// Group failed tests by type
 			const portFailures = failedTests.filter(t => t.test.toLowerCase().includes('port'));
 			const cleanupFailures = failedTests.filter(t => t.test.toLowerCase().includes('cleanup'));
-			const duplicateFailures = failedTests.filter(t => t.test.toLowerCase().includes('duplicate') || t.test.toLowerCase().includes('instance'));
-			
+			const duplicateFailures = failedTests.filter(
+				t => t.test.toLowerCase().includes('duplicate') || t.test.toLowerCase().includes('instance')
+			);
+
 			if (portFailures.length > 0) {
 				recommendations.push({
 					type: 'port_management',
-					message: 'Port management issues detected. Check port allocation logic and database synchronization.',
+					message:
+						'Port management issues detected. Check port allocation logic and database synchronization.',
 					priority: 'high',
 					failedTests: portFailures.map(t => t.test),
 				});
 			}
-			
+
 			if (cleanupFailures.length > 0) {
 				recommendations.push({
 					type: 'cleanup',
@@ -557,27 +560,30 @@ class VerificationRunner {
 					failedTests: cleanupFailures.map(t => t.test),
 				});
 			}
-			
+
 			if (duplicateFailures.length > 0) {
 				recommendations.push({
 					type: 'duplicate_services',
-					message: 'Duplicate service support issues detected. Check database constraints and instance management.',
+					message:
+						'Duplicate service support issues detected. Check database constraints and instance management.',
 					priority: 'medium',
 					failedTests: duplicateFailures.map(t => t.test),
 				});
 			}
 		}
-		
+
 		// Performance recommendations
-		const avgDuration = this.results.suites.reduce((sum, suite) => sum + suite.duration, 0) / this.results.suites.length;
-		if (avgDuration > 10000) { // More than 10 seconds average
+		const avgDuration =
+			this.results.suites.reduce((sum, suite) => sum + suite.duration, 0) / this.results.suites.length;
+		if (avgDuration > 10000) {
+			// More than 10 seconds average
 			recommendations.push({
 				type: 'performance',
 				message: 'Test suite execution is slow. Consider optimizing database operations and test setup.',
 				priority: 'low',
 			});
 		}
-		
+
 		return recommendations;
 	}
 
@@ -588,20 +594,22 @@ class VerificationRunner {
 		console.log('\n' + '='.repeat(80));
 		console.log('🎯 FINAL VERIFICATION SUMMARY');
 		console.log('='.repeat(80));
-		
+
 		console.log(`\n📊 Overall Results:`);
 		console.log(`   Total Duration: ${this.results.overall.duration}ms`);
 		console.log(`   Total Tests: ${this.results.overall.totalTests}`);
 		console.log(`   Passed: ${this.results.overall.totalPassed} ✅`);
 		console.log(`   Failed: ${this.results.overall.totalFailed} ❌`);
 		console.log(`   Success Rate: ${this.results.overall.successRate}%`);
-		
+
 		console.log('\n🧪 Suite Results:');
 		this.results.suites.forEach(suite => {
 			const status = suite.success && (suite.summary?.failed || 0) === 0 ? '✅' : '❌';
-			console.log(`   ${status} ${suite.name}: ${suite.summary?.passed || 0}/${suite.summary?.total || 0} (${suite.summary?.successRate || '0.0'}%)`);
+			console.log(
+				`   ${status} ${suite.name}: ${suite.summary?.passed || 0}/${suite.summary?.total || 0} (${suite.summary?.successRate || '0.0'}%)`
+			);
 		});
-		
+
 		// Print recommendations
 		const recommendations = this.generateRecommendations();
 		if (recommendations.length > 0) {
@@ -611,16 +619,16 @@ class VerificationRunner {
 				console.log(`   ${icon} [${rec.priority.toUpperCase()}] ${rec.message}`);
 			});
 		}
-		
+
 		const overallSuccess = this.results.overall.totalFailed === 0;
 		console.log(`\n🎯 Overall Status: ${overallSuccess ? '✅ PASS' : '❌ FAIL'}`);
-		
+
 		if (!overallSuccess) {
 			console.log('\n❌ Some tests failed. Please review the reports and address the issues.');
 		} else {
 			console.log('\n✅ All verifications passed! The system is working correctly.');
 		}
-		
+
 		console.log('\n' + '='.repeat(80));
 	}
 
@@ -629,7 +637,7 @@ class VerificationRunner {
 	 */
 	async cleanup() {
 		console.log('\n🧹 Cleaning up verification environment...');
-		
+
 		try {
 			await this.testUtils.cleanup();
 			console.log('✅ Verification environment cleaned up');
@@ -651,19 +659,17 @@ class VerificationRunner {
  */
 async function main() {
 	const runner = new VerificationRunner();
-	
+
 	try {
 		await runner.initialize();
 		await runner.runAllTests();
-		
+
 		const exitCode = runner.getExitCode();
 		process.exit(exitCode);
-		
 	} catch (error) {
 		console.error('\n💥 Verification runner crashed:', error);
 		console.error(error.stack);
 		process.exit(1);
-		
 	} finally {
 		try {
 			await runner.cleanup();
