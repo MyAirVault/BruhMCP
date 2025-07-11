@@ -1,5 +1,6 @@
 import portManager from '../portManager.js';
 import { setTimeout } from 'node:timers';
+import { processHealthMonitor } from './process-health-monitor.js';
 
 /**
  * Setup process monitoring for an MCP instance
@@ -42,16 +43,29 @@ export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses) 
 export function handleProcessExit(instanceId, code, activeProcesses) {
 	const processInfo = activeProcesses.get(instanceId);
 	if (processInfo) {
+		// Stop health monitoring
+		processHealthMonitor.stopMonitoring(instanceId);
+
 		// Release port
 		portManager.releasePort(processInfo.assignedPort);
 
 		// Remove from active processes
 		activeProcesses.delete(instanceId);
 
-		// Log exit
+		// Log exit with severity based on exit code
+		const logLevel = code === 0 ? 'info' : 'error';
+		const icon = code === 0 ? '✅' : '💥';
 		console.log(
-			`🔌 Instance ${instanceId} process exited with code ${code}, port ${processInfo.assignedPort} released`
+			`${icon} Instance ${instanceId} process exited with code ${code}, port ${processInfo.assignedPort} released`
 		);
+
+		// Emit event for external handling (database cleanup, etc.)
+		processHealthMonitor.emit('process-exit', {
+			instanceId,
+			code,
+			port: processInfo.assignedPort,
+			cleanExit: code === 0
+		});
 	}
 }
 
@@ -64,6 +78,16 @@ export function handleProcessExit(instanceId, code, activeProcesses) {
  */
 export function handleProcessError(instanceId, error, activeProcesses) {
 	console.error(`💥 Instance ${instanceId} process error:`, error);
+
+	// Stop health monitoring
+	processHealthMonitor.stopMonitoring(instanceId);
+
+	// Emit error event for external handling
+	processHealthMonitor.emit('process-error', {
+		instanceId,
+		error: error.message,
+		timestamp: new Date()
+	});
 
 	// Clean up process
 	terminateProcess(instanceId, activeProcesses);

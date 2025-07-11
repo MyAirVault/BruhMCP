@@ -6,6 +6,8 @@ import {
 	getAllActiveProcesses,
 	healthCheckAll,
 } from './process/process-utilities.js';
+import { processHealthMonitor } from './process/process-health-monitor.js';
+import processCleanupService from './process/process-cleanup.js';
 
 /**
  * Process management service for MCP instances
@@ -73,6 +75,45 @@ class ProcessManager {
 	 */
 	async healthCheckAll() {
 		return healthCheckAll(this.activeProcesses);
+	}
+
+	/**
+	 * Get enhanced health status including monitoring data
+	 * @returns {Promise<Array<Object>>} Enhanced health status
+	 */
+	async getEnhancedHealthStatus() {
+		const basicHealth = await this.healthCheckAll();
+		const monitoringHealth = await processHealthMonitor.getAllHealthStatus();
+		
+		// Merge the results
+		return basicHealth.map(basic => {
+			const monitoring = monitoringHealth.find(m => m.instanceId === basic.instanceId);
+			return {
+				...basic,
+				monitoring: monitoring || { monitoring: false }
+			};
+		});
+	}
+
+	/**
+	 * Clean up orphaned instances
+	 * @returns {Promise<Object>} Cleanup results
+	 */
+	async cleanupOrphanedInstances() {
+		return processCleanupService.cleanupOrphanedInstances();
+	}
+
+	/**
+	 * Get process manager statistics
+	 * @returns {Object} Statistics
+	 */
+	getStats() {
+		return {
+			activeProcesses: this.activeProcesses.size,
+			monitoredProcesses: processHealthMonitor.healthChecks.size,
+			startupValidations: processHealthMonitor.startupValidation.size,
+			timestamp: new Date()
+		};
 	}
 }
 
