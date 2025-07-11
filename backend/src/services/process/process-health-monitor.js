@@ -120,9 +120,9 @@ export class ProcessHealthMonitor extends EventEmitter {
     }
 
     async _isPortInUse(port) {
-        return new Promise((resolve) => {
-            const net = require('net');
-            const server = net.createServer();
+        return new Promise(async (resolve) => {
+            const { createServer } = await import('net');
+            const server = createServer();
             
             server.listen(port, () => {
                 server.close(() => resolve(false));

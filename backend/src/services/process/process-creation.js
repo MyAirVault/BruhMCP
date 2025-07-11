@@ -162,9 +162,9 @@ export async function createProcess(config) {
  * @returns {Promise<boolean>} True if port is in use
  */
 async function checkPortConflict(port) {
-	return new Promise((resolve) => {
-		const net = require('net');
-		const server = net.createServer();
+	return new Promise(async (resolve) => {
+		const { createServer } = await import('net');
+		const server = createServer();
 		
 		server.listen(port, () => {
 			server.close(() => resolve(false)); // Port is available

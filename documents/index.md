@@ -37,6 +37,9 @@ Contains documentation for client-side components and user interface:
 - **[Credential Validation Modals](./frontend/credential-validation-modals.md)** - Credential validation UI flow
 - **[Frontend Enhancements](./frontend/frontend-enhancements.md)** - Latest UI/UX improvements
 
+### Integration Guides
+- **[Adding New MCP Service](./integration-guides/adding-new-mcp-service.md)** - **NEW** - Complete step-by-step guide for non-technical users to add new services using API documentation
+
 ### Standalone Documentation
 - **[How to Create MCP Servers](./how-to-create-mcp-servers-simple.md)** - Comprehensive step-by-step guide for creating MCP servers from any API documentation
 - **[Automated MCP Generation](./automated-mcp.md)** - Detailed implementation plan for creating an automated MCP server generation system that transforms REST APIs into MCP servers using OpenAPI documentation
@@ -57,9 +60,10 @@ Contains documentation for client-side components and user interface:
 7. **NEW**: Study [Custom Hooks and Utilities](./custom-hooks-utilities.md) for frontend architecture patterns
 
 ### For API Integration
-1. Follow [MCP Server Creation Guide](./how-to-create-mcp-servers-simple.md) for step-by-step process
-2. Review [MCP Integration Guide](./backend/mcp-integration-guide.md) for implementation details
-3. Check [API Documentation](./backend/api-documentation.md) for endpoint specifications
+1. **NEW**: Start with [Adding New MCP Service](./integration-guides/adding-new-mcp-service.md) for non-technical service integration
+2. Follow [MCP Server Creation Guide](./how-to-create-mcp-servers-simple.md) for step-by-step process
+3. Review [MCP Integration Guide](./backend/mcp-integration-guide.md) for implementation details
+4. Check [API Documentation](./backend/api-documentation.md) for endpoint specifications
 
 ### For Security & Operations
 1. Study [Security Architecture](./backend/security-architecture.md) for security measures
