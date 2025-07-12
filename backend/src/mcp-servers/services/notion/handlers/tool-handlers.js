@@ -119,8 +119,8 @@ export function generateTools(serviceConfig, mcpType) {
 					properties: {
 						teamId: {
 							type: 'string',
-							description: 'The team ID to get projects for'
-						}
+							description: 'The team ID to get projects for',
+						},
 					},
 					required: ['teamId'],
 				},
@@ -136,8 +136,8 @@ export function generateTools(serviceConfig, mcpType) {
 					properties: {
 						fileKey: {
 							type: 'string',
-							description: 'The file key to get details for'
-						}
+							description: 'The file key to get details for',
+						},
 					},
 					required: ['fileKey'],
 				},

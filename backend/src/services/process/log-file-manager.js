@@ -35,14 +35,14 @@ class LogFileManager {
 			const logFiles = {
 				app: path.join(instanceLogDir, 'app.log'),
 				access: path.join(instanceLogDir, 'access.log'),
-				error: path.join(instanceLogDir, 'error.log')
+				error: path.join(instanceLogDir, 'error.log'),
 			};
 
 			// Create write streams
 			const streams = {
 				app: fs.createWriteStream(logFiles.app, { flags: 'a' }),
 				access: fs.createWriteStream(logFiles.access, { flags: 'a' }),
-				error: fs.createWriteStream(logFiles.error, { flags: 'a' })
+				error: fs.createWriteStream(logFiles.error, { flags: 'a' }),
 			};
 
 			// Store streams for later use
@@ -50,7 +50,6 @@ class LogFileManager {
 
 			console.log(`📁 Created log files for instance ${instanceId} in ${instanceLogDir}`);
 			return streams;
-
 		} catch (error) {
 			console.error(`❌ Failed to initialize log files for instance ${instanceId}:`, error);
 			throw error;
@@ -80,8 +79,8 @@ class LogFileManager {
 			metadata: {
 				type,
 				instanceId,
-				...metadata
-			}
+				...metadata,
+			},
 		};
 
 		// Convert to JSON string with newline

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { type MCPType } from '../types';
 import { type CreateMCPFormData, type ValidationState } from '../types/createMCPModal';
 import { apiService } from '../services/apiService';
@@ -35,6 +35,12 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     lastFailedCredentials: null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Track last validated credentials to prevent unnecessary re-validation
+  const lastValidatedCredentialsRef = useRef<string | null>(null);
+  
+  // Stable ref to validateCredentials to avoid circular dependencies
+  const validateCredentialsRef = useRef<(() => Promise<void>) | null>(null);
 
   // Load MCP types from backend
   useEffect(() => {
@@ -72,6 +78,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         lastFailedCredentials: null
       });
       setIsSubmitting(false);
+      lastValidatedCredentialsRef.current = null;
     }
   }, [isOpen]);
 
@@ -101,6 +108,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
       failureCount: 0,
       lastFailedCredentials: null
     });
+    lastValidatedCredentialsRef.current = null;
   }, [handleInputChange]);
 
   const getRequiredFields = useCallback((mcpType: MCPType | null) => {
@@ -179,6 +187,9 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         failureCount: 0, // Reset failure count on success
         lastFailedCredentials: null
       });
+      
+      // Update last validated credentials
+      lastValidatedCredentialsRef.current = credentialsHash;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Validation failed';
       setValidationState(prev => ({
@@ -190,7 +201,10 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         lastFailedCredentials: credentialsHash
       }));
     }
-  }, [selectedMcpType, formData, requiresCredentials, getRequiredFields]);
+  }, [selectedMcpType, formData, requiresCredentials, getRequiredFields, getCredentialsHash, validationState.failureCount, validationState.lastFailedCredentials]);
+  
+  // Update the ref whenever validateCredentials changes
+  validateCredentialsRef.current = validateCredentials;
 
   // Reset validation state when credentials change
   useEffect(() => {
@@ -219,6 +233,11 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         failureCount: prev.lastFailedCredentials === credentialsHash ? prev.failureCount : 0,
         lastFailedCredentials: prev.lastFailedCredentials === credentialsHash ? prev.lastFailedCredentials : null
       }));
+      
+      // Reset validated credentials ref if credentials changed
+      if (lastValidatedCredentialsRef.current !== credentialsHash) {
+        lastValidatedCredentialsRef.current = null;
+      }
     }
   }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, getRequiredFields, getCredentialsHash]);
 
@@ -244,15 +263,23 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         return value && value.trim() !== '';
       });
 
-      if (hasAllFields && !validationState.isValidating) {
+      const credentialsHash = getCredentialsHash(credentials);
+      
+      // Check if we've already failed validation 2 times for these exact credentials
+      const shouldSkipValidation = validationState.failureCount >= 2 && validationState.lastFailedCredentials === credentialsHash;
+      
+      // Check if we've already validated these exact credentials successfully
+      const alreadyValidated = lastValidatedCredentialsRef.current === credentialsHash && validationState.isValid === true;
+
+      if (hasAllFields && !validationState.isValidating && !shouldSkipValidation && !alreadyValidated) {
         const timeoutId = setTimeout(() => {
-          validateCredentials();
+          validateCredentialsRef.current?.();
         }, 800); // Debounce validation
 
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, getRequiredFields, validationState.isValidating, validateCredentials]);
+  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, getRequiredFields, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
 
   // Check if form is valid for submission
   const isFormValid = useCallback(() => {
@@ -301,7 +328,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         expiration: formData.expiration
       };
       
-      await onSubmit(transformedData);
+      onSubmit(transformedData);
       
       // Reset form
       setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '', credentials: {} });
@@ -330,6 +357,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
       failureCount: 0,
       lastFailedCredentials: null
     }));
+    lastValidatedCredentialsRef.current = null;
     validateCredentials();
   }, [validateCredentials]);
 

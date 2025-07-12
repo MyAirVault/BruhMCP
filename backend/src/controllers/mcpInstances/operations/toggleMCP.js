@@ -48,31 +48,31 @@ export async function toggleMCP(req, res) {
 			const processInfo = processManager.getProcessInfo(id);
 			if (!processInfo) {
 				console.log(`🚀 Starting MCP process for instance ${id}`);
-				
+
 				// Get MCP type for process creation
 				const mcpType = await getMCPTypeById(instance.mcp_type_id);
 				if (!mcpType) {
 					throw new Error('MCP type not found');
 				}
-				
+
 				// For now, credentials are stored as plain JSON (encryption to be added later)
 				const decryptedCredentials = instance.credentials;
-				
+
 				// Create process
 				const processResult = await processManager.createProcess({
 					mcpType: mcpType.name,
 					instanceId: id,
 					userId: userId,
 					credentials: decryptedCredentials,
-					config: instance.config || {}
+					config: instance.config || {},
 				});
-				
+
 				// Update instance with process info
-				await updateMCPInstance(id, { 
+				await updateMCPInstance(id, {
 					is_active: true,
 					process_id: processResult.processId,
 					assigned_port: processResult.assignedPort,
-					status: 'active'
+					status: 'active',
 				});
 			} else {
 				// Process already running, just update status
@@ -81,7 +81,7 @@ export async function toggleMCP(req, res) {
 		} else {
 			// Stopping MCP - terminate process
 			console.log(`🛑 Stopping MCP process for instance ${id}`);
-			
+
 			// Terminate the process
 			const terminated = await processManager.terminateProcess(id);
 			if (terminated) {
@@ -89,13 +89,13 @@ export async function toggleMCP(req, res) {
 			} else {
 				console.log(`⚠️  Process not found or already terminated for instance ${id}`);
 			}
-			
+
 			// Update instance status
-			await updateMCPInstance(id, { 
-				is_active: false, 
+			await updateMCPInstance(id, {
+				is_active: false,
 				status: 'inactive',
 				process_id: null,
-				assigned_port: null
+				assigned_port: null,
 			});
 		}
 

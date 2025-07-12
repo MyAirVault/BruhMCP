@@ -29,11 +29,16 @@ export async function updateMCPInstance(instanceId, updateData) {
 		paramIndex++;
 	});
 
+	// Only add updated_at if it's not already in the update data
+	if (!Object.prototype.hasOwnProperty.call(updateData, 'updated_at')) {
+		fields.push(`updated_at = CURRENT_TIMESTAMP`);
+	}
+
 	values.push(instanceId);
 
 	const query = `
     UPDATE mcp_instances 
-    SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+    SET ${fields.join(', ')}
     WHERE id = $${paramIndex}
     RETURNING *
   `;

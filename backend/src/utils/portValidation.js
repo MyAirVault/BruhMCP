@@ -67,7 +67,7 @@ export function validatePortAssignment(port) {
 	if (port === null || port === undefined) {
 		return;
 	}
-	
+
 	if (!isValidMCPPort(port)) {
 		throw new Error(
 			`Invalid port assignment: ${port}. Port must be between ${VALID_PORT_RANGE.MIN} and ${VALID_PORT_RANGE.MAX}`

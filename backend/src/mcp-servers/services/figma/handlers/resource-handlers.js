@@ -23,9 +23,11 @@ export async function handleResourceContent({ resourcePath, mcpType, serviceConf
 		const baseURL = serviceConfig.baseURL || serviceConfig.api?.baseURL;
 
 		// Create headers object using standardized auth
-		const headers = serviceConfig.authHeader ? serviceConfig.authHeader(apiKey) : {
-			'Authorization': `Bearer ${apiKey}`
-		};
+		const headers = serviceConfig.authHeader
+			? serviceConfig.authHeader(apiKey)
+			: {
+					Authorization: `Bearer ${apiKey}`,
+				};
 
 		const userInfo = await fetch(`${baseURL}${serviceConfig.endpoints.me}`, {
 			headers,

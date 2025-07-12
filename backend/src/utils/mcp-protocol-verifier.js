@@ -52,7 +52,7 @@ export class MCPProtocolVerifier {
 			const portMatch = this.baseUrl.match(/:(\d+)/);
 			const port = portMatch ? portMatch[1] : '49161';
 			const healthUrl = `http://localhost:${port}/health`;
-			
+
 			const response = await fetch(healthUrl);
 
 			if (response.ok) {

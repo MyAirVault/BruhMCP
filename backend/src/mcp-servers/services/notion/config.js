@@ -11,7 +11,7 @@ export default {
 	description: 'All-in-one workspace for notes, docs, and collaboration',
 	category: 'productivity',
 	iconUrl: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/notion.svg',
-	
+
 	// API configuration
 	api: {
 		baseURL: 'https://api.notion.com/v1',
@@ -19,9 +19,9 @@ export default {
 		notionVersion: '2022-06-28',
 		rateLimit: {
 			requests: 3,
-			period: 'second'
+			period: 'second',
 		},
-		documentation: 'https://developers.notion.com/reference'
+		documentation: 'https://developers.notion.com/reference',
 	},
 
 	// Authentication configuration
@@ -32,8 +32,8 @@ export default {
 		headerFormat: token => `Bearer ${token}`,
 		validation: {
 			format: /^secret_[A-Za-z0-9]+$/,
-			endpoint: '/users/me'
-		}
+			endpoint: '/users/me',
+		},
 	},
 
 	// Standard endpoints
@@ -48,7 +48,7 @@ export default {
 		pageBlocks: pageId => `/blocks/${pageId}/children`,
 		pageProperties: pageId => `/pages/${pageId}`,
 		createPage: '/pages',
-		updatePage: pageId => `/pages/${pageId}`
+		updatePage: pageId => `/pages/${pageId}`,
 	},
 
 	// Custom handlers for complex operations
@@ -59,19 +59,19 @@ export default {
 				const payload = {
 					query,
 					...filter,
-					page_size: 100
+					page_size: 100,
 				};
 
 				const response = await fetch(`${config.api.baseURL}/search`, {
 					method: 'POST',
 					headers: {
-						'Authorization': `Bearer ${token}`,
+						Authorization: `Bearer ${token}`,
 						'Content-Type': 'application/json',
-						'Notion-Version': config.api.notionVersion
+						'Notion-Version': config.api.notionVersion,
 					},
-					body: JSON.stringify(payload)
+					body: JSON.stringify(payload),
 				});
-				
+
 				if (response.ok) {
 					const data = await response.json();
 					return {
@@ -83,11 +83,11 @@ export default {
 							url: item.url,
 							created_time: item.created_time,
 							last_edited_time: item.last_edited_time,
-							parent: item.parent
+							parent: item.parent,
 						})),
 						total: data.results.length,
 						has_more: data.has_more,
-						next_cursor: data.next_cursor
+						next_cursor: data.next_cursor,
 					};
 				} else {
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -103,19 +103,19 @@ export default {
 				const payload = {
 					filter,
 					sorts,
-					page_size: 100
+					page_size: 100,
 				};
 
 				const response = await fetch(`${config.api.baseURL}/databases/${databaseId}/query`, {
 					method: 'POST',
 					headers: {
-						'Authorization': `Bearer ${token}`,
+						Authorization: `Bearer ${token}`,
 						'Content-Type': 'application/json',
-						'Notion-Version': config.api.notionVersion
+						'Notion-Version': config.api.notionVersion,
 					},
-					body: JSON.stringify(payload)
+					body: JSON.stringify(payload),
 				});
-				
+
 				if (response.ok) {
 					const data = await response.json();
 					return {
@@ -124,11 +124,11 @@ export default {
 							created_time: page.created_time,
 							last_edited_time: page.last_edited_time,
 							properties: page.properties,
-							url: page.url
+							url: page.url,
 						})),
 						total: data.results.length,
 						has_more: data.has_more,
-						next_cursor: data.next_cursor
+						next_cursor: data.next_cursor,
 					};
 				} else {
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -144,23 +144,23 @@ export default {
 				// Get page properties
 				const pageResponse = await fetch(`${config.api.baseURL}/pages/${pageId}`, {
 					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Notion-Version': config.api.notionVersion
-					}
+						Authorization: `Bearer ${token}`,
+						'Notion-Version': config.api.notionVersion,
+					},
 				});
 
 				// Get page blocks
 				const blocksResponse = await fetch(`${config.api.baseURL}/blocks/${pageId}/children`, {
 					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Notion-Version': config.api.notionVersion
-					}
+						Authorization: `Bearer ${token}`,
+						'Notion-Version': config.api.notionVersion,
+					},
 				});
-				
+
 				if (pageResponse.ok && blocksResponse.ok) {
 					const pageData = await pageResponse.json();
 					const blocksData = await blocksResponse.json();
-					
+
 					return {
 						page: {
 							id: pageData.id,
@@ -168,15 +168,15 @@ export default {
 							last_edited_time: pageData.last_edited_time,
 							properties: pageData.properties,
 							url: pageData.url,
-							parent: pageData.parent
+							parent: pageData.parent,
 						},
 						blocks: blocksData.results.map(block => ({
 							id: block.id,
 							type: block.type,
 							content: block[block.type],
-							has_children: block.has_children
+							has_children: block.has_children,
 						})),
-						total_blocks: blocksData.results.length
+						total_blocks: blocksData.results.length,
 					};
 				} else {
 					throw new Error(`Failed to fetch page data`);
@@ -192,19 +192,19 @@ export default {
 				const payload = {
 					parent,
 					properties,
-					children
+					children,
 				};
 
 				const response = await fetch(`${config.api.baseURL}/pages`, {
 					method: 'POST',
 					headers: {
-						'Authorization': `Bearer ${token}`,
+						Authorization: `Bearer ${token}`,
 						'Content-Type': 'application/json',
-						'Notion-Version': config.api.notionVersion
+						'Notion-Version': config.api.notionVersion,
 					},
-					body: JSON.stringify(payload)
+					body: JSON.stringify(payload),
 				});
-				
+
 				if (response.ok) {
 					return await response.json();
 				} else {
@@ -213,7 +213,7 @@ export default {
 			} catch (error) {
 				throw new Error(`Failed to create page: ${error.message}`);
 			}
-		}
+		},
 	},
 
 	// Available tools configuration
@@ -222,7 +222,7 @@ export default {
 			name: 'get_user_info',
 			description: 'Get current integration user information',
 			endpoint: 'me',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'search_content',
@@ -233,15 +233,15 @@ export default {
 					type: 'string',
 					description: 'Search query text',
 					required: false,
-					default: ''
+					default: '',
 				},
 				filter: {
 					type: 'object',
 					description: 'Filter options (object_type: page/database)',
 					required: false,
-					default: {}
-				}
-			}
+					default: {},
+				},
+			},
 		},
 		{
 			name: 'query_database',
@@ -251,21 +251,21 @@ export default {
 				databaseId: {
 					type: 'string',
 					description: 'Database ID to query',
-					required: true
+					required: true,
 				},
 				filter: {
 					type: 'object',
 					description: 'Filter conditions',
 					required: false,
-					default: {}
+					default: {},
 				},
 				sorts: {
 					type: 'array',
 					description: 'Sort conditions',
 					required: false,
-					default: []
-				}
-			}
+					default: [],
+				},
+			},
 		},
 		{
 			name: 'get_page_content',
@@ -275,9 +275,9 @@ export default {
 				pageId: {
 					type: 'string',
 					description: 'Page ID to retrieve',
-					required: true
-				}
-			}
+					required: true,
+				},
+			},
 		},
 		{
 			name: 'create_page',
@@ -287,21 +287,21 @@ export default {
 				parent: {
 					type: 'object',
 					description: 'Parent page or database reference',
-					required: true
+					required: true,
 				},
 				properties: {
 					type: 'object',
 					description: 'Page properties',
-					required: true
+					required: true,
 				},
 				children: {
 					type: 'array',
 					description: 'Initial content blocks',
 					required: false,
-					default: []
-				}
-			}
-		}
+					default: [],
+				},
+			},
+		},
 	],
 
 	// Available resources configuration
@@ -310,14 +310,14 @@ export default {
 			name: 'user_info',
 			uri: 'user/info',
 			description: 'Integration user information',
-			endpoint: 'me'
+			endpoint: 'me',
 		},
 		{
 			name: 'search_results',
 			uri: 'search/all',
 			description: 'Search results for all accessible content',
-			handler: 'searchContent'
-		}
+			handler: 'searchContent',
+		},
 	],
 
 	// Validation rules
@@ -326,7 +326,7 @@ export default {
 			if (!credentials.integration_token) {
 				throw new Error('Integration token is required');
 			}
-			
+
 			if (!config.auth.validation.format.test(credentials.integration_token)) {
 				throw new Error('Invalid Notion integration token format. Should start with "secret_"');
 			}
@@ -335,9 +335,9 @@ export default {
 			try {
 				const response = await fetch(`${config.api.baseURL}${config.auth.validation.endpoint}`, {
 					headers: {
-						'Authorization': `Bearer ${credentials.integration_token}`,
-						'Notion-Version': config.api.notionVersion
-					}
+						Authorization: `Bearer ${credentials.integration_token}`,
+						'Notion-Version': config.api.notionVersion,
+					},
 				});
 
 				if (!response.ok) {
@@ -347,11 +347,11 @@ export default {
 				const data = await response.json();
 				return {
 					valid: true,
-					user: data
+					user: data,
 				};
 			} catch (error) {
 				throw new Error(`Failed to validate token: ${error.message}`);
 			}
-		}
-	}
+		},
+	},
 };

@@ -63,13 +63,13 @@ export const useDashboardState = () => {
     access_url: instance.access_url // Add direct access to URL
   });
 
-  // Filter MCPs by status
+  // Filter MCPs by status (priority: expired > inactive > active)
   const activeMCPs = mcpInstances
     .filter(instance => instance.status === 'active' && instance.is_active)
     .map(convertToMCPItem);
 
   const inactiveMCPs = mcpInstances
-    .filter(instance => instance.status === 'inactive' || !instance.is_active)
+    .filter(instance => instance.status === 'inactive' || (!instance.is_active && instance.status !== 'expired'))
     .map(convertToMCPItem);
 
   const expiredMCPs = mcpInstances

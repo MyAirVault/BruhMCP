@@ -11,16 +11,16 @@ export default {
 	description: 'Web-based version control and collaboration platform',
 	category: 'development',
 	iconUrl: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg',
-	
+
 	// API configuration
 	api: {
 		baseURL: 'https://api.github.com',
 		version: 'v3',
 		rateLimit: {
 			requests: 5000,
-			period: 'hour'
+			period: 'hour',
 		},
-		documentation: 'https://docs.github.com/en/rest'
+		documentation: 'https://docs.github.com/en/rest',
 	},
 
 	// Authentication configuration
@@ -31,8 +31,8 @@ export default {
 		headerFormat: token => `token ${token}`,
 		validation: {
 			format: /^ghp_[A-Za-z0-9_]+$/,
-			endpoint: '/user'
-		}
+			endpoint: '/user',
+		},
 	},
 
 	// Standard endpoints
@@ -47,7 +47,7 @@ export default {
 		repoDetails: (owner, repo) => `/repos/${owner}/${repo}`,
 		repoIssues: (owner, repo) => `/repos/${owner}/${repo}/issues`,
 		repoPulls: (owner, repo) => `/repos/${owner}/${repo}/pulls`,
-		repoCommits: (owner, repo) => `/repos/${owner}/${repo}/commits`
+		repoCommits: (owner, repo) => `/repos/${owner}/${repo}/commits`,
 	},
 
 	// Custom handlers for complex operations
@@ -56,9 +56,9 @@ export default {
 		repos: async (config, token) => {
 			const response = await fetch(`${config.api.baseURL}/user/repos?per_page=100&sort=updated`, {
 				headers: {
-					'Authorization': `token ${token}`,
+					Authorization: `token ${token}`,
 					'User-Agent': 'MCP-Server',
-					'Accept': 'application/vnd.github.v3+json'
+					Accept: 'application/vnd.github.v3+json',
 				},
 			});
 
@@ -85,15 +85,15 @@ export default {
 					default_branch: repo.default_branch,
 					created_at: repo.created_at,
 					updated_at: repo.updated_at,
-					pushed_at: repo.pushed_at
+					pushed_at: repo.pushed_at,
 				})),
 				totalCount: repos.length,
 				summary: {
 					public: repos.filter(r => !r.private).length,
 					private: repos.filter(r => r.private).length,
 					languages: [...new Set(repos.map(r => r.language).filter(Boolean))],
-					total_stars: repos.reduce((sum, r) => sum + r.stargazers_count, 0)
-				}
+					total_stars: repos.reduce((sum, r) => sum + r.stargazers_count, 0),
+				},
 			};
 		},
 
@@ -102,12 +102,12 @@ export default {
 			try {
 				const response = await fetch(`${config.api.baseURL}/repos/${owner}/${repo}`, {
 					headers: {
-						'Authorization': `token ${token}`,
+						Authorization: `token ${token}`,
 						'User-Agent': 'MCP-Server',
-						'Accept': 'application/vnd.github.v3+json'
+						Accept: 'application/vnd.github.v3+json',
 					},
 				});
-				
+
 				if (response.ok) {
 					return await response.json();
 				} else {
@@ -123,12 +123,12 @@ export default {
 			try {
 				const response = await fetch(`${config.api.baseURL}/issues?filter=assigned&state=open`, {
 					headers: {
-						'Authorization': `token ${token}`,
+						Authorization: `token ${token}`,
 						'User-Agent': 'MCP-Server',
-						'Accept': 'application/vnd.github.v3+json'
+						Accept: 'application/vnd.github.v3+json',
 					},
 				});
-				
+
 				if (response.ok) {
 					const issues = await response.json();
 					return {
@@ -142,9 +142,9 @@ export default {
 							labels: issue.labels.map(l => l.name),
 							assignees: issue.assignees.map(a => a.login),
 							created_at: issue.created_at,
-							updated_at: issue.updated_at
+							updated_at: issue.updated_at,
 						})),
-						total: issues.length
+						total: issues.length,
 					};
 				} else {
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -152,7 +152,7 @@ export default {
 			} catch (error) {
 				throw new Error(`Failed to get issues: ${error.message}`);
 			}
-		}
+		},
 	},
 
 	// Available tools configuration
@@ -161,13 +161,13 @@ export default {
 			name: 'get_user_info',
 			description: 'Get current user information from GitHub',
 			endpoint: 'me',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'list_repositories',
 			description: 'List repositories from GitHub with detailed information',
 			handler: 'repos',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'get_repository_details',
@@ -177,21 +177,21 @@ export default {
 				owner: {
 					type: 'string',
 					description: 'The repository owner',
-					required: true
+					required: true,
 				},
 				repo: {
 					type: 'string',
 					description: 'The repository name',
-					required: true
-				}
-			}
+					required: true,
+				},
+			},
 		},
 		{
 			name: 'list_issues',
 			description: 'List assigned issues from GitHub',
 			handler: 'issues',
-			parameters: {}
-		}
+			parameters: {},
+		},
 	],
 
 	// Available resources configuration
@@ -199,15 +199,15 @@ export default {
 		{
 			name: 'user_profile',
 			uri: 'user/profile',
-			description: 'Current user\'s GitHub profile information',
-			endpoint: 'me'
+			description: "Current user's GitHub profile information",
+			endpoint: 'me',
 		},
 		{
 			name: 'repositories_list',
 			uri: 'repositories/list',
 			description: 'List of repositories in GitHub',
-			handler: 'repos'
-		}
+			handler: 'repos',
+		},
 	],
 
 	// Validation rules
@@ -216,7 +216,7 @@ export default {
 			if (!credentials.personal_access_token) {
 				throw new Error('Personal access token is required');
 			}
-			
+
 			if (!config.auth.validation.format.test(credentials.personal_access_token)) {
 				throw new Error('Invalid GitHub token format. Should start with "ghp_"');
 			}
@@ -225,9 +225,9 @@ export default {
 			try {
 				const response = await fetch(`${config.api.baseURL}${config.auth.validation.endpoint}`, {
 					headers: {
-						'Authorization': `token ${credentials.personal_access_token}`,
+						Authorization: `token ${credentials.personal_access_token}`,
 						'User-Agent': 'MCP-Server',
-						'Accept': 'application/vnd.github.v3+json'
+						Accept: 'application/vnd.github.v3+json',
 					},
 				});
 
@@ -238,11 +238,11 @@ export default {
 				const data = await response.json();
 				return {
 					valid: true,
-					user: data
+					user: data,
 				};
 			} catch (error) {
 				throw new Error(`Failed to validate token: ${error.message}`);
 			}
-		}
-	}
+		},
+	},
 };

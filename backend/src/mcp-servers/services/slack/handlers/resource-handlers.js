@@ -12,7 +12,7 @@ import fetch from 'node-fetch';
 export async function handleResourceContent({ resourcePath, mcpType, serviceConfig, apiKey }) {
 	// Handle different resource path formats
 	let parsedPath = resourcePath;
-	
+
 	// If resourcePath starts with mcpType://, extract the path part
 	if (resourcePath.startsWith(`${mcpType}://`)) {
 		parsedPath = resourcePath.replace(`${mcpType}://`, '');

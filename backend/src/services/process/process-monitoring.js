@@ -23,7 +23,7 @@ export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses, 
 	mcpProcess.stdout.on('data', data => {
 		const message = data.toString();
 		console.log(`🖥️  Instance ${instanceId} stdout: ${message}`);
-		
+
 		// Write to log file
 		logFileManager.writeLog(instanceId, 'info', message, 'stdout');
 	});
@@ -32,7 +32,7 @@ export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses, 
 	mcpProcess.stderr.on('data', data => {
 		const message = data.toString();
 		console.error(`❌ Instance ${instanceId} stderr: ${message}`);
-		
+
 		// Write to log file
 		logFileManager.writeLog(instanceId, 'error', message, 'stderr');
 	});
@@ -41,10 +41,10 @@ export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses, 
 	mcpProcess.on('exit', code => {
 		const message = `Instance ${instanceId} exited with code ${code}`;
 		console.log(`🛑 ${message}`);
-		
+
 		// Log exit event
 		logFileManager.writeLog(instanceId, code === 0 ? 'info' : 'error', message, 'system', { exitCode: code });
-		
+
 		handleProcessExit(instanceId, code, activeProcesses);
 	});
 
@@ -52,10 +52,10 @@ export function setupProcessMonitoring(instanceId, mcpProcess, activeProcesses, 
 	mcpProcess.on('error', error => {
 		const message = `Instance ${instanceId} error: ${error.message}`;
 		console.error(`⚠️  ${message}`);
-		
+
 		// Log error event
 		logFileManager.writeLog(instanceId, 'error', message, 'system', { error: error.message });
-		
+
 		handleProcessError(instanceId, error, activeProcesses);
 	});
 }
@@ -94,7 +94,7 @@ export function handleProcessExit(instanceId, code, activeProcesses) {
 			instanceId,
 			code,
 			port: processInfo.assignedPort,
-			cleanExit: code === 0
+			cleanExit: code === 0,
 		});
 	}
 }
@@ -119,7 +119,7 @@ export function handleProcessError(instanceId, error, activeProcesses) {
 	processHealthMonitor.emit('process-error', {
 		instanceId,
 		error: error.message,
-		timestamp: new Date()
+		timestamp: new Date(),
 	});
 
 	// Clean up process

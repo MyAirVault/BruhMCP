@@ -28,7 +28,7 @@ async function importServiceRoutes(mcpType) {
 		return serviceModule.createMCPRouter;
 	} catch (serviceError) {
 		console.log(`🔄 Service-specific routes not found for ${mcpType}, using universal routes`);
-		
+
 		try {
 			// Fallback to universal routes
 			const universalPath = join(__dirname, 'routes', 'mcp-routes.js');

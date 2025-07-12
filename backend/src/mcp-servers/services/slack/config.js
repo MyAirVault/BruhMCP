@@ -11,16 +11,16 @@ export default {
 	description: 'Business communication platform with channels and messaging',
 	category: 'communication',
 	iconUrl: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/slack.svg',
-	
+
 	// API configuration
 	api: {
 		baseURL: 'https://slack.com/api',
 		version: 'v1',
 		rateLimit: {
 			requests: 100,
-			period: 'minute'
+			period: 'minute',
 		},
-		documentation: 'https://api.slack.com/'
+		documentation: 'https://api.slack.com/',
 	},
 
 	// Authentication configuration
@@ -31,8 +31,8 @@ export default {
 		headerFormat: token => `Bearer ${token}`,
 		validation: {
 			format: /^xoxb-[A-Za-z0-9-]+$/,
-			endpoint: '/auth.test'
-		}
+			endpoint: '/auth.test',
+		},
 	},
 
 	// Standard endpoints
@@ -46,7 +46,7 @@ export default {
 		sendMessage: '/chat.postMessage',
 		channelInfo: channelId => `/conversations.info?channel=${channelId}`,
 		userInfo: userId => `/users.info?user=${userId}`,
-		channelMembers: channelId => `/conversations.members?channel=${channelId}`
+		channelMembers: channelId => `/conversations.members?channel=${channelId}`,
 	},
 
 	// Custom handlers for complex operations
@@ -64,7 +64,7 @@ export default {
 			// Get auth test (workspace info)
 			try {
 				const authResponse = await fetch(`${config.api.baseURL}/auth.test`, {
-					headers: { 'Authorization': `Bearer ${token}` },
+					headers: { Authorization: `Bearer ${token}` },
 				});
 				if (authResponse.ok) {
 					results.auth_info = await authResponse.json();
@@ -78,9 +78,12 @@ export default {
 
 			// Get channels list
 			try {
-				const channelsResponse = await fetch(`${config.api.baseURL}/conversations.list?types=public_channel,private_channel`, {
-					headers: { 'Authorization': `Bearer ${token}` },
-				});
+				const channelsResponse = await fetch(
+					`${config.api.baseURL}/conversations.list?types=public_channel,private_channel`,
+					{
+						headers: { Authorization: `Bearer ${token}` },
+					}
+				);
 				if (channelsResponse.ok) {
 					const channelsData = await channelsResponse.json();
 					if (channelsData.ok) {
@@ -98,7 +101,7 @@ export default {
 				...results,
 				totalChannels: results.channels.length,
 				workspace: results.auth_info?.team || 'Unknown',
-				bot_user: results.auth_info?.user || 'Unknown'
+				bot_user: results.auth_info?.user || 'Unknown',
 			};
 		},
 
@@ -108,18 +111,18 @@ export default {
 				const payload = {
 					channel,
 					text,
-					...options
+					...options,
 				};
 
 				const response = await fetch(`${config.api.baseURL}/chat.postMessage`, {
 					method: 'POST',
 					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(payload)
+					body: JSON.stringify(payload),
 				});
-				
+
 				if (response.ok) {
 					return await response.json();
 				} else {
@@ -133,10 +136,13 @@ export default {
 		// Get channel messages
 		channelHistory: async (config, token, channel, limit = 50) => {
 			try {
-				const response = await fetch(`${config.api.baseURL}/conversations.history?channel=${channel}&limit=${limit}`, {
-					headers: { 'Authorization': `Bearer ${token}` },
-				});
-				
+				const response = await fetch(
+					`${config.api.baseURL}/conversations.history?channel=${channel}&limit=${limit}`,
+					{
+						headers: { Authorization: `Bearer ${token}` },
+					}
+				);
+
 				if (response.ok) {
 					const data = await response.json();
 					if (data.ok) {
@@ -147,10 +153,10 @@ export default {
 								text: msg.text,
 								timestamp: msg.ts,
 								thread_ts: msg.thread_ts,
-								reactions: msg.reactions
+								reactions: msg.reactions,
 							})),
 							total: data.messages.length,
-							channel
+							channel,
 						};
 					} else {
 						throw new Error(`Slack API error: ${data.error}`);
@@ -161,7 +167,7 @@ export default {
 			} catch (error) {
 				throw new Error(`Failed to get channel history: ${error.message}`);
 			}
-		}
+		},
 	},
 
 	// Available tools configuration
@@ -170,13 +176,13 @@ export default {
 			name: 'get_workspace_info',
 			description: 'Get workspace information and authentication details',
 			endpoint: 'me',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'list_channels',
 			description: 'List workspace channels and basic info',
 			handler: 'workspaceInfo',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'send_message',
@@ -186,19 +192,19 @@ export default {
 				channel: {
 					type: 'string',
 					description: 'Channel ID or name to send message to',
-					required: true
+					required: true,
 				},
 				text: {
 					type: 'string',
 					description: 'Message text to send',
-					required: true
+					required: true,
 				},
 				thread_ts: {
 					type: 'string',
 					description: 'Reply to thread timestamp (optional)',
-					required: false
-				}
-			}
+					required: false,
+				},
+			},
 		},
 		{
 			name: 'get_channel_history',
@@ -208,16 +214,16 @@ export default {
 				channel: {
 					type: 'string',
 					description: 'Channel ID to get history from',
-					required: true
+					required: true,
 				},
 				limit: {
 					type: 'integer',
 					description: 'Number of messages to retrieve (max 1000)',
 					required: false,
-					default: 50
-				}
-			}
-		}
+					default: 50,
+				},
+			},
+		},
 	],
 
 	// Available resources configuration
@@ -226,14 +232,14 @@ export default {
 			name: 'workspace_info',
 			uri: 'workspace/info',
 			description: 'Slack workspace information and bot details',
-			handler: 'workspaceInfo'
+			handler: 'workspaceInfo',
 		},
 		{
 			name: 'auth_info',
 			uri: 'auth/info',
 			description: 'Authentication and bot information',
-			endpoint: 'me'
-		}
+			endpoint: 'me',
+		},
 	],
 
 	// Validation rules
@@ -242,7 +248,7 @@ export default {
 			if (!credentials.bot_token) {
 				throw new Error('Bot token is required');
 			}
-			
+
 			if (!config.auth.validation.format.test(credentials.bot_token)) {
 				throw new Error('Invalid Slack bot token format. Should start with "xoxb-"');
 			}
@@ -250,7 +256,7 @@ export default {
 			// Test the token
 			try {
 				const response = await fetch(`${config.api.baseURL}${config.auth.validation.endpoint}`, {
-					headers: { 'Authorization': `Bearer ${credentials.bot_token}` },
+					headers: { Authorization: `Bearer ${credentials.bot_token}` },
 				});
 
 				if (!response.ok) {
@@ -266,11 +272,11 @@ export default {
 					valid: true,
 					workspace: data.team,
 					user: data.user,
-					bot_id: data.bot_id
+					bot_id: data.bot_id,
 				};
 			} catch (error) {
 				throw new Error(`Failed to validate token: ${error.message}`);
 			}
-		}
-	}
+		},
+	},
 };

@@ -32,7 +32,7 @@ export async function createProcess(config) {
 
 		// Get available port with retry logic
 		assignedPort = await portManager.getAvailablePort();
-		
+
 		// Double-check port availability to prevent race conditions
 		const portConflict = await checkPortConflict(assignedPort);
 		if (portConflict) {
@@ -90,11 +90,7 @@ export async function createProcess(config) {
 
 		// CRITICAL: Validate that the process actually starts successfully
 		console.log(`🔍 Validating startup for instance ${instanceId}...`);
-		const startupSuccess = await processHealthMonitor.validateProcessStartup(
-			instanceId, 
-			processInfo, 
-			assignedPort
-		);
+		const startupSuccess = await processHealthMonitor.validateProcessStartup(instanceId, processInfo, assignedPort);
 
 		if (!startupSuccess) {
 			throw new Error('Process startup validation failed');
@@ -114,10 +110,9 @@ export async function createProcess(config) {
 				retryAttempt,
 			},
 		};
-
 	} catch (error) {
 		console.error(`❌ Failed to create MCP process for ${instanceId} (attempt ${retryAttempt}):`, error.message);
-		
+
 		// Clean up on failure
 		if (assignedPort) {
 			portManager.releasePort(assignedPort);
@@ -134,15 +129,15 @@ export async function createProcess(config) {
 		// Retry logic
 		if (retryAttempt < maxRetries) {
 			console.log(`🔄 Retrying process creation for ${instanceId} (${retryAttempt + 1}/${maxRetries})`);
-			
+
 			// Wait before retry with exponential backoff
 			const delay = Math.min(1000 * Math.pow(2, retryAttempt - 1), 10000);
 			await new Promise(resolve => setTimeout(resolve, delay));
-			
+
 			// Recursive retry
 			return createProcess({
 				...config,
-				retryAttempt: retryAttempt + 1
+				retryAttempt: retryAttempt + 1,
 			});
 		}
 
@@ -162,14 +157,14 @@ export async function createProcess(config) {
  * @returns {Promise<boolean>} True if port is in use
  */
 async function checkPortConflict(port) {
-	return new Promise(async (resolve) => {
+	return new Promise(async resolve => {
 		const { createServer } = await import('net');
 		const server = createServer();
-		
+
 		server.listen(port, () => {
 			server.close(() => resolve(false)); // Port is available
 		});
-		
+
 		server.on('error', () => resolve(true)); // Port is in use
 	});
 }

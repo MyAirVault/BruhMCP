@@ -11,16 +11,16 @@ export default {
 	description: 'Design collaboration platform with vector graphics editor',
 	category: 'design',
 	iconUrl: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/figma.svg',
-	
+
 	// API configuration
 	api: {
 		baseURL: 'https://api.figma.com/v1',
 		version: 'v1',
 		rateLimit: {
 			requests: 2000,
-			period: 'hour'
+			period: 'hour',
 		},
-		documentation: 'https://www.figma.com/developers/api'
+		documentation: 'https://www.figma.com/developers/api',
 	},
 
 	// Authentication configuration
@@ -31,8 +31,8 @@ export default {
 		headerFormat: token => token,
 		validation: {
 			format: /^figd_[A-Za-z0-9_-]+$/,
-			endpoint: '/me'
-		}
+			endpoint: '/me',
+		},
 	},
 
 	// Standard endpoints
@@ -47,7 +47,7 @@ export default {
 		versions: fileKey => `/files/${fileKey}/versions`,
 		createComment: fileKey => `/files/${fileKey}/comments`,
 		updateFile: fileKey => `/files/${fileKey}`,
-		createWebhook: teamId => `/teams/${teamId}/webhooks`
+		createWebhook: teamId => `/teams/${teamId}/webhooks`,
 	},
 
 	// Custom handlers for complex operations
@@ -56,16 +56,17 @@ export default {
 		files: async (config, apiKey) => {
 			// Determine base URL and headers once at the top
 			const baseURL = config.baseURL || config.api?.baseURL;
-			const headers = config.authHeader ? config.authHeader(apiKey) : {
-				'X-Figma-Token': apiKey
-			};
-			
+			const headers = config.authHeader
+				? config.authHeader(apiKey)
+				: {
+						'X-Figma-Token': apiKey,
+					};
+
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', 
-					`API Access: GET ${baseURL}/me/files`, 'access', {
-						action: 'list_files'
-					});
+				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: GET ${baseURL}/me/files`, 'access', {
+					action: 'list_files',
+				});
 			}
 
 			const results = {
@@ -87,28 +88,38 @@ export default {
 					results.available_endpoints.push('/me - ✅ Available');
 				} else {
 					results.available_endpoints.push(`/me - ❌ ${userResponse.status} ${userResponse.statusText}`);
-					
+
 					// Log API error
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'error', 
-							`API Error: GET /me failed - ${userResponse.status} ${userResponse.statusText}`, 'error', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'error',
+							`API Error: GET /me failed - ${userResponse.status} ${userResponse.statusText}`,
+							'error',
+							{
 								action: 'list_files',
 								statusCode: userResponse.status,
-								endpoint: '/me'
-							});
+								endpoint: '/me',
+							}
+						);
 					}
 				}
 			} catch (error) {
 				results.errors.push('Failed to get user info: ' + error.message);
-				
+
 				// Log unexpected error
 				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(global.mcpId, 'error', 
-						`User info fetch failed: ${error.message}`, 'error', {
+					global.logFileManager.writeLog(
+						global.mcpId,
+						'error',
+						`User info fetch failed: ${error.message}`,
+						'error',
+						{
 							action: 'list_files',
 							error: error.message,
-							endpoint: '/me'
-						});
+							endpoint: '/me',
+						}
+					);
 				}
 			}
 
@@ -139,55 +150,74 @@ export default {
 							`${endpoint.name} - ❌ ${response.status} ${response.statusText}`
 						);
 						if (response.status === 403) {
-							results.errors.push(`${endpoint.name}: Access forbidden - may require team membership or different token permissions`);
+							results.errors.push(
+								`${endpoint.name}: Access forbidden - may require team membership or different token permissions`
+							);
 						}
 
 						// Log API errors
 						if (global.logFileManager && global.mcpId) {
-							global.logFileManager.writeLog(global.mcpId, 'error', 
-								`API Error: ${endpoint.name} failed - ${response.status} ${response.statusText}`, 'error', {
+							global.logFileManager.writeLog(
+								global.mcpId,
+								'error',
+								`API Error: ${endpoint.name} failed - ${response.status} ${response.statusText}`,
+								'error',
+								{
 									action: 'list_files',
 									statusCode: response.status,
 									endpoint: endpoint.name,
-									url: endpoint.url
-								});
+									url: endpoint.url,
+								}
+							);
 						}
 					}
 				} catch (error) {
 					results.errors.push(`${endpoint.name}: ${error.message}`);
-					
+
 					// Log network errors
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'error', 
-							`Network error for ${endpoint.name}: ${error.message}`, 'error', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'error',
+							`Network error for ${endpoint.name}: ${error.message}`,
+							'error',
+							{
 								action: 'list_files',
 								error: error.message,
 								endpoint: endpoint.name,
-								url: endpoint.url
-							});
+								url: endpoint.url,
+							}
+						);
 					}
 				}
 			}
 
 			// Log successful completion
 			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', 
-					`Files listed successfully: ${results.files.length} files, ${results.teams.length} teams`, 'access', {
+				global.logFileManager.writeLog(
+					global.mcpId,
+					'info',
+					`Files listed successfully: ${results.files.length} files, ${results.teams.length} teams`,
+					'access',
+					{
 						action: 'list_files',
 						fileCount: results.files.length,
 						teamCount: results.teams.length,
-						errorCount: results.errors.length
-					});
+						errorCount: results.errors.length,
+					}
+				);
 			}
 
 			return {
 				...results,
 				totalFiles: results.files.length,
 				totalTeams: results.teams.length,
-				api_limitations: 'Figma API requires team IDs to access most endpoints. Your token has full permissions but team discovery is limited.',
-				note: results.files.length === 0 && results.teams.length === 0
-					? 'No files or teams found. Figma API design requires team IDs for most operations. Consider checking if you have teams in your Figma account.'
-					: undefined,
+				api_limitations:
+					'Figma API requires team IDs to access most endpoints. Your token has full permissions but team discovery is limited.',
+				note:
+					results.files.length === 0 && results.teams.length === 0
+						? 'No files or teams found. Figma API design requires team IDs for most operations. Consider checking if you have teams in your Figma account.'
+						: undefined,
 			};
 		},
 
@@ -198,58 +228,74 @@ export default {
 
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', 
-					`API Access: GET ${url}`, 'access', {
-						action: 'get_team_projects',
-						teamId: teamId
-					});
+				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: GET ${url}`, 'access', {
+					action: 'get_team_projects',
+					teamId: teamId,
+				});
 			}
 
 			try {
-				const headers = config.authHeader ? config.authHeader(apiKey) : {
-					'X-Figma-Token': apiKey
-				};
+				const headers = config.authHeader
+					? config.authHeader(apiKey)
+					: {
+							'X-Figma-Token': apiKey,
+						};
 				const response = await fetch(url, {
 					headers,
 				});
-				
+
 				if (response.ok) {
 					const data = await response.json();
 
 					// Log successful retrieval
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'info', 
-							`Team projects retrieved successfully: ${data.projects?.length || 0} projects`, 'access', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'info',
+							`Team projects retrieved successfully: ${data.projects?.length || 0} projects`,
+							'access',
+							{
 								action: 'get_team_projects',
 								teamId: teamId,
-								projectCount: data.projects?.length || 0
-							});
+								projectCount: data.projects?.length || 0,
+							}
+						);
 					}
 
 					return data;
 				} else {
 					// Log API error
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'error', 
-							`API Error: GET team projects failed - ${response.status} ${response.statusText}`, 'error', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'error',
+							`API Error: GET team projects failed - ${response.status} ${response.statusText}`,
+							'error',
+							{
 								action: 'get_team_projects',
 								statusCode: response.status,
 								teamId: teamId,
-								url: url
-							});
+								url: url,
+							}
+						);
 					}
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 				}
 			} catch (error) {
 				// Log unexpected error
 				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(global.mcpId, 'error', 
-						`Get team projects failed: ${error.message}`, 'error', {
+					global.logFileManager.writeLog(
+						global.mcpId,
+						'error',
+						`Get team projects failed: ${error.message}`,
+						'error',
+						{
 							action: 'get_team_projects',
 							error: error.message,
 							teamId: teamId,
-							url: url
-						});
+							url: url,
+						}
+					);
 				}
 				throw new Error(`Failed to get team projects: ${error.message}`);
 			}
@@ -262,59 +308,75 @@ export default {
 
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', 
-					`API Access: GET ${url}`, 'access', {
-						action: 'get_file_details',
-						fileKey: fileKey
-					});
+				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: GET ${url}`, 'access', {
+					action: 'get_file_details',
+					fileKey: fileKey,
+				});
 			}
 
 			try {
-				const headers = config.authHeader ? config.authHeader(apiKey) : {
-					'X-Figma-Token': apiKey
-				};
+				const headers = config.authHeader
+					? config.authHeader(apiKey)
+					: {
+							'X-Figma-Token': apiKey,
+						};
 				const response = await fetch(url, {
 					headers,
 				});
-				
+
 				if (response.ok) {
 					const data = await response.json();
 
 					// Log successful retrieval
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'info', 
-							`File details retrieved successfully: ${data.name || 'Unknown file'}`, 'access', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'info',
+							`File details retrieved successfully: ${data.name || 'Unknown file'}`,
+							'access',
+							{
 								action: 'get_file_details',
 								fileKey: fileKey,
 								fileName: data.name,
-								fileVersion: data.version
-							});
+								fileVersion: data.version,
+							}
+						);
 					}
 
 					return data;
 				} else {
 					// Log API error
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'error', 
-							`API Error: GET file details failed - ${response.status} ${response.statusText}`, 'error', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'error',
+							`API Error: GET file details failed - ${response.status} ${response.statusText}`,
+							'error',
+							{
 								action: 'get_file_details',
 								statusCode: response.status,
 								fileKey: fileKey,
-								url: url
-							});
+								url: url,
+							}
+						);
 					}
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 				}
 			} catch (error) {
 				// Log unexpected error
 				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(global.mcpId, 'error', 
-						`Get file details failed: ${error.message}`, 'error', {
+					global.logFileManager.writeLog(
+						global.mcpId,
+						'error',
+						`Get file details failed: ${error.message}`,
+						'error',
+						{
 							action: 'get_file_details',
 							error: error.message,
 							fileKey: fileKey,
-							url: url
-						});
+							url: url,
+						}
+					);
 				}
 				throw new Error(`Failed to get file details: ${error.message}`);
 			}
@@ -327,23 +389,24 @@ export default {
 
 			// Log access attempt
 			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', 
-					`API Access: POST ${url}`, 'access', {
-						action: 'create_comment',
-						fileKey: fileKey
-					});
+				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: POST ${url}`, 'access', {
+					action: 'create_comment',
+					fileKey: fileKey,
+				});
 			}
 
 			try {
-				const headers = config.authHeader ? config.authHeader(apiKey) : {
-					'X-Figma-Token': apiKey
-				};
+				const headers = config.authHeader
+					? config.authHeader(apiKey)
+					: {
+							'X-Figma-Token': apiKey,
+						};
 				headers['Content-Type'] = 'application/json';
-				
+
 				const response = await fetch(url, {
 					method: 'POST',
 					headers,
-					body: JSON.stringify({ message })
+					body: JSON.stringify({ message }),
 				});
 
 				if (response.ok) {
@@ -351,46 +414,61 @@ export default {
 
 					// Log successful creation
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'info', 
-							`Comment created successfully on file ${fileKey}`, 'access', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'info',
+							`Comment created successfully on file ${fileKey}`,
+							'access',
+							{
 								action: 'create_comment',
 								fileKey: fileKey,
-								commentId: data.id
-							});
+								commentId: data.id,
+							}
+						);
 					}
 
 					return {
 						success: true,
 						comment: data,
-						message: 'Comment created successfully'
+						message: 'Comment created successfully',
 					};
 				} else {
 					// Log API error
 					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(global.mcpId, 'error', 
-							`API Error: POST comment failed - ${response.status} ${response.statusText}`, 'error', {
+						global.logFileManager.writeLog(
+							global.mcpId,
+							'error',
+							`API Error: POST comment failed - ${response.status} ${response.statusText}`,
+							'error',
+							{
 								action: 'create_comment',
 								statusCode: response.status,
 								fileKey: fileKey,
-								url: url
-							});
+								url: url,
+							}
+						);
 					}
 					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 				}
 			} catch (error) {
 				// Log unexpected error
 				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(global.mcpId, 'error', 
-						`Create comment failed: ${error.message}`, 'error', {
+					global.logFileManager.writeLog(
+						global.mcpId,
+						'error',
+						`Create comment failed: ${error.message}`,
+						'error',
+						{
 							action: 'create_comment',
 							error: error.message,
 							fileKey: fileKey,
-							url: url
-						});
+							url: url,
+						}
+					);
 				}
 				throw new Error(`Failed to create comment: ${error.message}`);
 			}
-		}
+		},
 	},
 
 	// Available tools configuration
@@ -399,13 +477,13 @@ export default {
 			name: 'get_user_info',
 			description: 'Get current user information from Figma',
 			endpoint: 'me',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'list_files',
 			description: 'List files from Figma with comprehensive API exploration',
 			handler: 'files',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'get_team_projects',
@@ -415,9 +493,9 @@ export default {
 				teamId: {
 					type: 'string',
 					description: 'The team ID to get projects for',
-					required: true
-				}
-			}
+					required: true,
+				},
+			},
 		},
 		{
 			name: 'get_file_details',
@@ -427,9 +505,9 @@ export default {
 				fileKey: {
 					type: 'string',
 					description: 'The file key to get details for',
-					required: true
-				}
-			}
+					required: true,
+				},
+			},
 		},
 		{
 			name: 'create_comment',
@@ -439,15 +517,15 @@ export default {
 				fileKey: {
 					type: 'string',
 					description: 'The file key to comment on',
-					required: true
+					required: true,
 				},
 				message: {
 					type: 'string',
 					description: 'The comment message',
-					required: true
-				}
-			}
-		}
+					required: true,
+				},
+			},
+		},
 	],
 
 	// Available resources configuration
@@ -455,15 +533,15 @@ export default {
 		{
 			name: 'user_profile',
 			uri: 'figma://user/profile',
-			description: 'Current user\'s Figma profile information',
-			endpoint: 'me'
+			description: "Current user's Figma profile information",
+			endpoint: 'me',
 		},
 		{
 			name: 'files_list',
 			uri: 'figma://files/list',
 			description: 'List of files in Figma',
-			handler: 'files'
-		}
+			handler: 'files',
+		},
 	],
 
 	// Validation rules
@@ -472,7 +550,7 @@ export default {
 			if (!credentials.api_key) {
 				throw new Error('API key is required');
 			}
-			
+
 			if (!config.auth.validation.format.test(credentials.api_key)) {
 				throw new Error('Invalid Figma API key format. Should start with "figd_"');
 			}
@@ -480,9 +558,11 @@ export default {
 			// Test the API key
 			try {
 				const baseURL = config.baseURL || config.api?.baseURL;
-				const headers = config.authHeader ? config.authHeader(credentials.api_key) : {
-					'X-Figma-Token': credentials.api_key
-				};
+				const headers = config.authHeader
+					? config.authHeader(credentials.api_key)
+					: {
+							'X-Figma-Token': credentials.api_key,
+						};
 				const response = await fetch(`${baseURL}${config.auth.validation.endpoint}`, {
 					headers,
 				});
@@ -494,11 +574,11 @@ export default {
 				const data = await response.json();
 				return {
 					valid: true,
-					user: data
+					user: data,
 				};
 			} catch (error) {
 				throw new Error(`Failed to validate API key: ${error.message}`);
 			}
-		}
-	}
+		},
+	},
 };

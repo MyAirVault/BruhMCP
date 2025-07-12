@@ -84,13 +84,13 @@ class ProcessManager {
 	async getEnhancedHealthStatus() {
 		const basicHealth = await this.healthCheckAll();
 		const monitoringHealth = await processHealthMonitor.getAllHealthStatus();
-		
+
 		// Merge the results
 		return basicHealth.map(basic => {
 			const monitoring = monitoringHealth.find(m => m.instanceId === basic.instanceId);
 			return {
 				...basic,
-				monitoring: monitoring || { monitoring: false }
+				monitoring: monitoring || { monitoring: false },
 			};
 		});
 	}
@@ -112,7 +112,7 @@ class ProcessManager {
 			activeProcesses: this.activeProcesses.size,
 			monitoredProcesses: processHealthMonitor.healthChecks.size,
 			startupValidations: processHealthMonitor.startupValidation.size,
-			timestamp: new Date()
+			timestamp: new Date(),
 		};
 	}
 }

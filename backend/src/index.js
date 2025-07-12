@@ -164,10 +164,10 @@ const server = app.listen(port, async () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
 	console.log('🛑 SIGTERM received, shutting down gracefully...');
-	
+
 	// Stop expiration monitor
 	expirationMonitor.stop();
-	
+
 	server.close(() => {
 		console.log('✅ Server closed');
 		process.exit(0);
@@ -176,10 +176,10 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
 	console.log('🛑 SIGINT received, shutting down gracefully...');
-	
+
 	// Stop expiration monitor
 	expirationMonitor.stop();
-	
+
 	server.close(() => {
 		console.log('✅ Server closed');
 		process.exit(0);

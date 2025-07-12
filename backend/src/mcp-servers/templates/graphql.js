@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 /**
  * GraphQL API Service Template
  * Copy this file and customize for new GraphQL API services
- * 
+ *
  * Instructions:
  * 1. Copy this file to services/{service-name}.js
  * 2. Replace ALL_CAPS placeholders with actual values
@@ -12,34 +12,34 @@ import fetch from 'node-fetch';
  */
 export default {
 	// Basic service information
-	name: 'SERVICE_NAME',                    // Technical name (lowercase, no spaces)
-	displayName: 'SERVICE_DISPLAY_NAME',     // Human-readable name
-	description: 'SERVICE_DESCRIPTION',       // Brief description of the service
-	category: 'SERVICE_CATEGORY',            // Category: communication, productivity, development, design, etc.
-	iconUrl: 'SERVICE_ICON_URL',             // URL to service icon/logo
-	
+	name: 'SERVICE_NAME', // Technical name (lowercase, no spaces)
+	displayName: 'SERVICE_DISPLAY_NAME', // Human-readable name
+	description: 'SERVICE_DESCRIPTION', // Brief description of the service
+	category: 'SERVICE_CATEGORY', // Category: communication, productivity, development, design, etc.
+	iconUrl: 'SERVICE_ICON_URL', // URL to service icon/logo
+
 	// API configuration
 	api: {
-		baseURL: 'https://api.SERVICE_DOMAIN.com/graphql',  // GraphQL endpoint
-		version: 'API_VERSION',                              // API version
-		type: 'graphql',                                     // Indicates GraphQL API
+		baseURL: 'https://api.SERVICE_DOMAIN.com/graphql', // GraphQL endpoint
+		version: 'API_VERSION', // API version
+		type: 'graphql', // Indicates GraphQL API
 		rateLimit: {
-			requests: 1000,                                  // Requests per period
-			period: 'hour'                                   // hour, minute, second
+			requests: 1000, // Requests per period
+			period: 'hour', // hour, minute, second
 		},
-		documentation: 'https://docs.SERVICE_DOMAIN.com/graphql'  // API documentation URL
+		documentation: 'https://docs.SERVICE_DOMAIN.com/graphql', // API documentation URL
 	},
 
 	// Authentication configuration
 	auth: {
-		type: 'AUTH_TYPE',                    // bearer_token, api_key, oauth
-		field: 'CREDENTIAL_FIELD_NAME',      // Field name in credentials object
-		header: 'Authorization',             // Usually Authorization for GraphQL
-		headerFormat: token => `Bearer ${token}`,  // How to format the header value
+		type: 'AUTH_TYPE', // bearer_token, api_key, oauth
+		field: 'CREDENTIAL_FIELD_NAME', // Field name in credentials object
+		header: 'Authorization', // Usually Authorization for GraphQL
+		headerFormat: token => `Bearer ${token}`, // How to format the header value
 		validation: {
-			format: /^TOKEN_REGEX$/,          // Regex to validate token format
-			query: 'query { viewer { id } }'  // GraphQL query to test token
-		}
+			format: /^TOKEN_REGEX$/, // Regex to validate token format
+			query: 'query { viewer { id } }', // GraphQL query to test token
+		},
 	},
 
 	// GraphQL queries and mutations
@@ -55,7 +55,7 @@ export default {
 				}
 			}
 		`,
-		
+
 		// List items query with variables
 		listItems: `
 			query ListItems($first: Int, $after: String, $filter: String) {
@@ -79,7 +79,7 @@ export default {
 				}
 			}
 		`,
-		
+
 		// Get item details
 		itemDetails: `
 			query GetItemDetails($id: ID!) {
@@ -97,7 +97,7 @@ export default {
 					}
 				}
 			}
-		`
+		`,
 	},
 
 	mutations: {
@@ -118,7 +118,7 @@ export default {
 				}
 			}
 		`,
-		
+
 		// Update existing item
 		updateItem: `
 			mutation UpdateItem($id: ID!, $input: UpdateItemInput!) {
@@ -135,16 +135,16 @@ export default {
 					}
 				}
 			}
-		`
+		`,
 	},
 
 	// Standard endpoints (mapped to GraphQL operations)
 	endpoints: {
-		me: 'me',                            // Maps to queries.me
-		list: 'listItems',                   // Maps to queries.listItems
-		details: 'itemDetails',              // Maps to queries.itemDetails
-		create: 'createItem',                // Maps to mutations.createItem
-		update: 'updateItem'                 // Maps to mutations.updateItem
+		me: 'me', // Maps to queries.me
+		list: 'listItems', // Maps to queries.listItems
+		details: 'itemDetails', // Maps to queries.itemDetails
+		create: 'createItem', // Maps to mutations.createItem
+		update: 'updateItem', // Maps to mutations.updateItem
 	},
 
 	// Custom handlers for complex operations
@@ -156,16 +156,16 @@ export default {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						...(config.auth.headerFormat ? 
-							{ [config.auth.header]: config.auth.headerFormat(token) } :
-							{ [config.auth.header]: token })
+						...(config.auth.headerFormat
+							? { [config.auth.header]: config.auth.headerFormat(token) }
+							: { [config.auth.header]: token }),
 					},
 					body: JSON.stringify({
 						query,
-						variables
-					})
+						variables,
+					}),
 				});
-				
+
 				if (response.ok) {
 					const result = await response.json();
 					if (result.errors) {
@@ -183,46 +183,37 @@ export default {
 		// Enhanced list with pagination
 		listItems: async (config, token, options = {}) => {
 			const { first = 50, after = null, filter = '' } = options;
-			const data = await config.customHandlers.executeQuery(
-				config, 
-				token, 
-				config.queries.listItems, 
-				{ first, after, filter }
-			);
-			
+			const data = await config.customHandlers.executeQuery(config, token, config.queries.listItems, {
+				first,
+				after,
+				filter,
+			});
+
 			return {
 				items: data.items.edges.map(edge => edge.node),
 				pageInfo: data.items.pageInfo,
-				totalCount: data.items.totalCount
+				totalCount: data.items.totalCount,
 			};
 		},
 
 		// Get item details
 		getItemDetails: async (config, token, id) => {
-			const data = await config.customHandlers.executeQuery(
-				config, 
-				token, 
-				config.queries.itemDetails, 
-				{ id }
-			);
+			const data = await config.customHandlers.executeQuery(config, token, config.queries.itemDetails, { id });
 			return data.item;
 		},
 
 		// Create new item
 		createItem: async (config, token, input) => {
-			const data = await config.customHandlers.executeQuery(
-				config, 
-				token, 
-				config.mutations.createItem, 
-				{ input }
-			);
-			
+			const data = await config.customHandlers.executeQuery(config, token, config.mutations.createItem, {
+				input,
+			});
+
 			if (data.createItem.errors && data.createItem.errors.length > 0) {
 				throw new Error(`Validation errors: ${data.createItem.errors.map(e => e.message).join(', ')}`);
 			}
-			
+
 			return data.createItem.item;
-		}
+		},
 	},
 
 	// Available tools configuration
@@ -231,7 +222,7 @@ export default {
 			name: 'get_user_info',
 			description: 'Get current user information',
 			handler: 'executeQuery',
-			parameters: {}
+			parameters: {},
 		},
 		{
 			name: 'list_items',
@@ -242,19 +233,19 @@ export default {
 					type: 'integer',
 					description: 'Number of items to fetch',
 					required: false,
-					default: 50
+					default: 50,
 				},
 				after: {
 					type: 'string',
 					description: 'Cursor for pagination',
-					required: false
+					required: false,
 				},
 				filter: {
 					type: 'string',
 					description: 'Filter criteria',
-					required: false
-				}
-			}
+					required: false,
+				},
+			},
 		},
 		{
 			name: 'get_item_details',
@@ -264,9 +255,9 @@ export default {
 				id: {
 					type: 'string',
 					description: 'Item ID',
-					required: true
-				}
-			}
+					required: true,
+				},
+			},
 		},
 		{
 			name: 'create_item',
@@ -280,11 +271,11 @@ export default {
 					properties: {
 						title: { type: 'string', required: true },
 						description: { type: 'string', required: false },
-						content: { type: 'string', required: false }
-					}
-				}
-			}
-		}
+						content: { type: 'string', required: false },
+					},
+				},
+			},
+		},
 	],
 
 	// Available resources configuration
@@ -293,14 +284,14 @@ export default {
 			name: 'user_info',
 			uri: 'user/info',
 			description: 'Current user information',
-			query: 'me'
+			query: 'me',
 		},
 		{
 			name: 'items_list',
 			uri: 'items/list',
 			description: 'List of items',
-			handler: 'listItems'
-		}
+			handler: 'listItems',
+		},
 	],
 
 	// Validation rules
@@ -310,7 +301,7 @@ export default {
 			if (!credentials[requiredField]) {
 				throw new Error(`${requiredField} is required`);
 			}
-			
+
 			// Validate token format if regex provided
 			if (config.auth.validation.format && !config.auth.validation.format.test(credentials[requiredField])) {
 				throw new Error(`Invalid ${requiredField} format`);
@@ -319,18 +310,18 @@ export default {
 			// Test the token with a simple GraphQL query
 			try {
 				const result = await config.customHandlers.executeQuery(
-					config, 
-					credentials[requiredField], 
+					config,
+					credentials[requiredField],
 					config.auth.validation.query
 				);
 
 				return {
 					valid: true,
-					user: result.viewer || result
+					user: result.viewer || result,
 				};
 			} catch (error) {
 				throw new Error(`Failed to validate credentials: ${error.message}`);
 			}
-		}
-	}
+		},
+	},
 };

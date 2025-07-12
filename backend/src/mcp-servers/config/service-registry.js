@@ -13,60 +13,70 @@ class ServiceRegistry {
 	constructor() {
 		this.services = new Map();
 		this.loaded = false;
+		this.servicesDir = join(__dirname, '../services');
 	}
 
 	/**
-	 * Auto-discover and load all service configurations
+	 * Load a specific service configuration on demand
+	 */
+	async loadService(serviceName) {
+		// Return if already loaded
+		if (this.services.has(serviceName)) {
+			return this.services.get(serviceName);
+		}
+
+		try {
+			const configPath = join(this.servicesDir, serviceName, 'config.js');
+
+			// Dynamic import for ES modules
+			const serviceModule = await import(`file://${configPath}`);
+			const serviceConfig = serviceModule.default;
+
+			if (this.validateServiceConfig(serviceConfig, serviceName)) {
+				// Convert to the legacy format for backward compatibility
+				const legacyConfig = this.convertToLegacyFormat(serviceConfig);
+
+				const service = {
+					...legacyConfig,
+					_original: serviceConfig,
+					_metadata: {
+						directory: serviceName,
+						loaded: new Date(),
+						category: serviceConfig.category || 'general',
+					},
+				};
+
+				this.services.set(serviceName, service);
+				console.log(`✅ Loaded service: ${serviceConfig.displayName || serviceName}`);
+				return service;
+			} else {
+				console.warn(`⚠️  Invalid service config: ${serviceName}`);
+				throw new Error(`Invalid service configuration for ${serviceName}`);
+			}
+		} catch (error) {
+			console.error(`❌ Failed to load service ${serviceName}:`, error.message);
+			throw error;
+		}
+	}
+
+	/**
+	 * Auto-discover and load all service configurations (deprecated - use loadService for better performance)
 	 */
 	async loadServices() {
 		if (this.loaded) return;
 
 		try {
-			const servicesDir = join(__dirname, '../services');
-			const files = await readdir(servicesDir, { withFileTypes: true });
-			
-			const serviceDirs = files.filter(dirent => 
-				dirent.isDirectory() && 
-				!dirent.name.startsWith('.')
-			);
+			const files = await readdir(this.servicesDir, { withFileTypes: true });
+			const serviceDirs = files.filter(dirent => dirent.isDirectory() && !dirent.name.startsWith('.'));
 
 			console.log(`🔍 Discovered ${serviceDirs.length} service directories`);
 
 			for (const dir of serviceDirs) {
-				try {
-					const serviceName = dir.name;
-					const configPath = join(servicesDir, serviceName, 'config.js');
-					
-					// Dynamic import for ES modules
-					const serviceModule = await import(`file://${configPath}`);
-					const serviceConfig = serviceModule.default;
-
-					if (this.validateServiceConfig(serviceConfig, serviceName)) {
-						// Convert to the legacy format for backward compatibility
-						const legacyConfig = this.convertToLegacyFormat(serviceConfig);
-						
-						this.services.set(serviceName, {
-							...legacyConfig,
-							_original: serviceConfig,
-							_metadata: {
-								directory: serviceName,
-								loaded: new Date(),
-								category: serviceConfig.category || 'general'
-							}
-						});
-
-						console.log(`✅ Loaded service: ${serviceConfig.displayName || serviceName}`);
-					} else {
-						console.warn(`⚠️  Invalid service config: ${serviceName}`);
-					}
-				} catch (error) {
-					console.error(`❌ Failed to load service ${serviceName}:`, error.message);
-				}
+				await this.loadService(dir.name);
 			}
 
 			this.loaded = true;
 			console.log(`🎉 Service registry loaded with ${this.services.size} services`);
-
 		} catch (error) {
 			console.error('❌ Failed to load service registry:', error.message);
 			throw error;
@@ -79,7 +89,7 @@ class ServiceRegistry {
 	validateServiceConfig(config, serviceName) {
 		const required = ['name', 'api', 'auth', 'endpoints'];
 		const missing = required.filter(field => !config[field]);
-		
+
 		if (missing.length > 0) {
 			console.error(`❌ Service ${serviceName} missing required fields:`, missing);
 			return false;
@@ -111,7 +121,7 @@ class ServiceRegistry {
 			credentialField: serviceConfig.auth.field,
 			endpoints: serviceConfig.endpoints,
 			customHandlers: serviceConfig.customHandlers || {},
-			
+
 			// Enhanced metadata
 			_enhanced: {
 				description: serviceConfig.description,
@@ -121,8 +131,8 @@ class ServiceRegistry {
 				auth: serviceConfig.auth,
 				tools: serviceConfig.tools || [],
 				resources: serviceConfig.resources || [],
-				validation: serviceConfig.validation || {}
-			}
+				validation: serviceConfig.validation || {},
+			},
 		};
 	}
 
@@ -130,7 +140,7 @@ class ServiceRegistry {
 	 * Create auth header function based on service config
 	 */
 	createAuthHeaderFunction(authConfig) {
-		return (token) => {
+		return token => {
 			if (authConfig.headerFormat) {
 				return { [authConfig.header]: authConfig.headerFormat(token) };
 			} else {
@@ -140,13 +150,28 @@ class ServiceRegistry {
 	}
 
 	/**
-	 * Get service configuration by name
+	 * Get service configuration by name (with lazy loading)
 	 */
-	getService(serviceName) {
-		if (!this.loaded) {
-			throw new Error('Service registry not loaded. Call loadServices() first.');
+	async getService(serviceName) {
+		// Check if already loaded
+		if (this.services.has(serviceName)) {
+			return this.services.get(serviceName);
 		}
-		return this.services.get(serviceName);
+
+		// Load service on demand
+		try {
+			return await this.loadService(serviceName);
+		} catch (error) {
+			console.error(`❌ Service ${serviceName} not found or failed to load:`, error.message);
+			return null;
+		}
+	}
+
+	/**
+	 * Get service configuration by name (synchronous - only returns if already loaded)
+	 */
+	getServiceSync(serviceName) {
+		return this.services.get(serviceName) || null;
 	}
 
 	/**
@@ -166,7 +191,7 @@ class ServiceRegistry {
 		if (!this.loaded) {
 			throw new Error('Service registry not loaded. Call loadServices() first.');
 		}
-		
+
 		const result = {};
 		for (const [name, config] of this.services) {
 			if (config._metadata?.category === category) {
@@ -181,24 +206,26 @@ class ServiceRegistry {
 	 */
 	getServiceMetadata(serviceName) {
 		const service = this.getService(serviceName);
-		return service ? {
-			name: service._original?.name,
-			displayName: service._original?.displayName,
-			description: service._original?.description,
-			category: service._original?.category,
-			iconUrl: service._original?.iconUrl,
-			api: service._original?.api,
-			tools: service._original?.tools?.length || 0,
-			resources: service._original?.resources?.length || 0,
-			loadedAt: service._metadata?.loaded
-		} : null;
+		return service
+			? {
+					name: service._original?.name,
+					displayName: service._original?.displayName,
+					description: service._original?.description,
+					category: service._original?.category,
+					iconUrl: service._original?.iconUrl,
+					api: service._original?.api,
+					tools: service._original?.tools?.length || 0,
+					resources: service._original?.resources?.length || 0,
+					loadedAt: service._metadata?.loaded,
+				}
+			: null;
 	}
 
 	/**
 	 * Validate service credentials
 	 */
 	async validateCredentials(serviceName, credentials) {
-		const service = this.getService(serviceName);
+		const service = await this.getService(serviceName);
 		if (!service) {
 			throw new Error(`Service ${serviceName} not found`);
 		}
@@ -220,16 +247,16 @@ class ServiceRegistry {
 	/**
 	 * Get available tools for a service
 	 */
-	getServiceTools(serviceName) {
-		const service = this.getService(serviceName);
+	async getServiceTools(serviceName) {
+		const service = await this.getService(serviceName);
 		return service?._original?.tools || [];
 	}
 
 	/**
 	 * Get available resources for a service
 	 */
-	getServiceResources(serviceName) {
-		const service = this.getService(serviceName);
+	async getServiceResources(serviceName) {
+		const service = await this.getService(serviceName);
 		return service?._original?.resources || [];
 	}
 
@@ -270,7 +297,7 @@ class ServiceRegistry {
 			loaded: true,
 			total: this.services.size,
 			categories,
-			services: this.getServiceNames()
+			services: this.getServiceNames(),
 		};
 	}
 }
@@ -280,12 +307,14 @@ export const serviceRegistry = new ServiceRegistry();
 
 // Convenience functions
 export const loadServices = () => serviceRegistry.loadServices();
-export const getService = (name) => serviceRegistry.getService(name);
+export const loadService = name => serviceRegistry.loadService(name);
+export const getService = name => serviceRegistry.getService(name);
+export const getServiceSync = name => serviceRegistry.getServiceSync(name);
 export const getAllServices = () => serviceRegistry.getAllServices();
-export const getServiceMetadata = (name) => serviceRegistry.getServiceMetadata(name);
+export const getServiceMetadata = name => serviceRegistry.getServiceMetadata(name);
 export const validateCredentials = (name, creds) => serviceRegistry.validateCredentials(name, creds);
-export const getServiceTools = (name) => serviceRegistry.getServiceTools(name);
-export const getServiceResources = (name) => serviceRegistry.getServiceResources(name);
+export const getServiceTools = name => serviceRegistry.getServiceTools(name);
+export const getServiceResources = name => serviceRegistry.getServiceResources(name);
 export const getRegistryStats = () => serviceRegistry.getStats();
 
 export default serviceRegistry;

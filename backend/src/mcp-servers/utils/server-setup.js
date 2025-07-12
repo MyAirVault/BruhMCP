@@ -22,14 +22,11 @@ export function parseCredentials() {
  * @returns {Object} Service configuration and API key
  */
 export async function validateServiceConfig(mcpType, credentials) {
-	// Load services if not already loaded
-	await serviceRegistry.loadServices();
-	
-	// Validate service type
-	const serviceConfig = serviceRegistry.getService(mcpType);
+	// Load only the specific service on demand
+	const serviceConfig = await serviceRegistry.getService(mcpType);
 	if (!serviceConfig) {
 		console.error(`Unsupported MCP type: ${mcpType}`);
-		console.error(`Available types: ${serviceRegistry.getServiceNames().join(', ')}`);
+		console.error(`Service ${mcpType} not found or failed to load`);
 		process.exit(1);
 	}
 

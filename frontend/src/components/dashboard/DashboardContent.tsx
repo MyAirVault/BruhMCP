@@ -43,18 +43,20 @@ const DashboardContent = React.forwardRef<DashboardContentRef, DashboardContentP
 
   return (
     <div className="space-y-6">
-      <MCPSection
-        ref={activeSectionRef}
-        title="Active MCPs"
-        count={activeMCPs.length}
-        mcps={activeMCPs}
-        openDropdown={openDropdown}
-        onDropdownToggle={onDropdownToggle}
-        onDropdownClose={onDropdownClose}
-        getDropdownItems={(mcp) => getDropdownItems(mcp, onDropdownClose, dropdownCallbacks)}
-        sectionType="active"
-        {...getSectionProps('active')}
-      />
+      {activeMCPs.length > 0 && (
+        <MCPSection
+          ref={activeSectionRef}
+          title="Active MCPs"
+          count={activeMCPs.length}
+          mcps={activeMCPs}
+          openDropdown={openDropdown}
+          onDropdownToggle={onDropdownToggle}
+          onDropdownClose={onDropdownClose}
+          getDropdownItems={(mcp) => getDropdownItems(mcp, onDropdownClose, dropdownCallbacks)}
+          sectionType="active"
+          {...getSectionProps('active')}
+        />
+      )}
 
       {inactiveMCPs.length > 0 && (
         <MCPSection

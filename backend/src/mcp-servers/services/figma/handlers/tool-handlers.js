@@ -14,7 +14,7 @@ export async function handleToolExecution({ toolName, args: _args = {}, mcpType,
 	// Get service-defined tools from enhanced config
 	const serviceTools = serviceConfig._enhanced?.tools || [];
 	const serviceTool = serviceTools.find(tool => tool.name === toolName);
-	
+
 	if (serviceTool) {
 		// Handle service-defined tools
 		if (serviceTool.endpoint) {
@@ -35,8 +35,14 @@ export async function handleToolExecution({ toolName, args: _args = {}, mcpType,
 			const handler = serviceConfig.customHandlers?.[serviceTool.handler];
 			if (handler) {
 				// Get original config for handler
-				const originalConfig = serviceConfig._enhanced ? serviceConfig._original || serviceConfig._enhanced : serviceConfig;
-				const result = await handler(originalConfig, apiKey, ...(serviceTool.parameters ? Object.values(_args) : []));
+				const originalConfig = serviceConfig._enhanced
+					? serviceConfig._original || serviceConfig._enhanced
+					: serviceConfig;
+				const result = await handler(
+					originalConfig,
+					apiKey,
+					...(serviceTool.parameters ? Object.values(_args) : [])
+				);
 				return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 			}
 		}
@@ -56,7 +62,9 @@ export async function handleToolExecution({ toolName, args: _args = {}, mcpType,
 
 	if (toolName === `list_${mcpType}_files` || toolName === 'list_files') {
 		if (serviceConfig.customHandlers && serviceConfig.customHandlers.files) {
-			const originalConfig = serviceConfig._enhanced ? serviceConfig._original || serviceConfig._enhanced : serviceConfig;
+			const originalConfig = serviceConfig._enhanced
+				? serviceConfig._original || serviceConfig._enhanced
+				: serviceConfig;
 			const result = await serviceConfig.customHandlers.files(originalConfig, apiKey);
 			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 		}
@@ -68,7 +76,9 @@ export async function handleToolExecution({ toolName, args: _args = {}, mcpType,
 			if (!teamId) {
 				throw new Error('teamId is required for this operation');
 			}
-			const originalConfig = serviceConfig._enhanced ? serviceConfig._original || serviceConfig._enhanced : serviceConfig;
+			const originalConfig = serviceConfig._enhanced
+				? serviceConfig._original || serviceConfig._enhanced
+				: serviceConfig;
 			const result = await serviceConfig.customHandlers.teamProjects(originalConfig, apiKey, teamId);
 			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 		}
@@ -80,7 +90,9 @@ export async function handleToolExecution({ toolName, args: _args = {}, mcpType,
 			if (!fileKey) {
 				throw new Error('fileKey is required for this operation');
 			}
-			const originalConfig = serviceConfig._enhanced ? serviceConfig._original || serviceConfig._enhanced : serviceConfig;
+			const originalConfig = serviceConfig._enhanced
+				? serviceConfig._original || serviceConfig._enhanced
+				: serviceConfig;
 			const result = await serviceConfig.customHandlers.fileDetails(originalConfig, apiKey, fileKey);
 			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 		}
@@ -98,7 +110,7 @@ export async function handleToolExecution({ toolName, args: _args = {}, mcpType,
 export function generateTools(serviceConfig, mcpType) {
 	// Use service-defined tools from enhanced config if available
 	const serviceTools = serviceConfig._enhanced?.tools || [];
-	
+
 	if (serviceTools.length > 0) {
 		// Convert service tools to MCP format
 		return serviceTools.map(tool => ({
@@ -107,9 +119,7 @@ export function generateTools(serviceConfig, mcpType) {
 			inputSchema: {
 				type: 'object',
 				properties: tool.parameters || {},
-				required: Object.keys(tool.parameters || {}).filter(key => 
-					tool.parameters[key].required
-				),
+				required: Object.keys(tool.parameters || {}).filter(key => tool.parameters[key].required),
 			},
 		}));
 	}
@@ -166,8 +176,8 @@ export function generateTools(serviceConfig, mcpType) {
 					properties: {
 						teamId: {
 							type: 'string',
-							description: 'The team ID to get projects for'
-						}
+							description: 'The team ID to get projects for',
+						},
 					},
 					required: ['teamId'],
 				},
@@ -183,8 +193,8 @@ export function generateTools(serviceConfig, mcpType) {
 					properties: {
 						fileKey: {
 							type: 'string',
-							description: 'The file key to get details for'
-						}
+							description: 'The file key to get details for',
+						},
 					},
 					required: ['fileKey'],
 				},

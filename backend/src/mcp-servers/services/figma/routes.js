@@ -15,11 +15,11 @@ import logFileManager from '../../../services/process/log-file-manager.js';
  */
 export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 	const mcpRouter = express.Router();
-	
+
 	// Extract MCP ID from environment for logging
 	const mcpId = process.env.MCP_ID;
 	const userId = process.env.USER_ID;
-	
+
 	// Logging middleware for all MCP requests
 	mcpRouter.use((req, res, next) => {
 		const accessLog = {
@@ -31,14 +31,14 @@ export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 			service: serviceConfig.name,
 			mcpType,
 			port,
-			body: req.method === 'POST' ? req.body : undefined
+			body: req.method === 'POST' ? req.body : undefined,
 		};
-		
+
 		// Log access request
 		if (mcpId) {
 			logFileManager.writeLog(mcpId, 'info', `${req.method} ${req.originalUrl}`, 'access', accessLog);
 		}
-		
+
 		console.log(`🔍 ${serviceConfig.name} MCP: ${req.method} ${req.originalUrl} (Port: ${port})`);
 		next();
 	});
@@ -151,17 +151,23 @@ export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 		} catch (error) {
 			const { toolName } = req.params;
 			console.error(`❌ Tool execution failed: ${toolName} - ${error.message}`);
-			
+
 			// Log error
 			if (mcpId) {
-				logFileManager.writeLog(mcpId, 'error', `Tool execution failed: ${toolName} - ${error.message}`, 'error', {
-					toolName,
-					error: error.message,
-					stack: error.stack,
-					service: serviceConfig.name
-				});
+				logFileManager.writeLog(
+					mcpId,
+					'error',
+					`Tool execution failed: ${toolName} - ${error.message}`,
+					'error',
+					{
+						toolName,
+						error: error.message,
+						stack: error.stack,
+						service: serviceConfig.name,
+					}
+				);
 			}
-			
+
 			res.status(500).json({ error: error.message });
 		}
 	});
@@ -182,14 +188,20 @@ export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 		} catch (error) {
 			// Log error
 			if (mcpId) {
-				logFileManager.writeLog(mcpId, 'error', `Resource access failed: ${req.params[0]} - ${error.message}`, 'error', {
-					resourcePath: req.params[0],
-					error: error.message,
-					stack: error.stack,
-					service: serviceConfig.name
-				});
+				logFileManager.writeLog(
+					mcpId,
+					'error',
+					`Resource access failed: ${req.params[0]} - ${error.message}`,
+					'error',
+					{
+						resourcePath: req.params[0],
+						error: error.message,
+						stack: error.stack,
+						service: serviceConfig.name,
+					}
+				);
 			}
-			
+
 			if (error.message.includes('not found')) {
 				res.status(404).json({ error: error.message });
 			} else {
@@ -205,17 +217,17 @@ export function createMCPRouter(serviceConfig, mcpType, apiKey, port) {
 			res.json(data);
 		} catch (error) {
 			console.error('Error fetching user info:', error);
-			
+
 			// Log error
 			if (mcpId) {
 				logFileManager.writeLog(mcpId, 'error', `User info fetch failed: ${error.message}`, 'error', {
 					endpoint: 'me',
 					error: error.message,
 					stack: error.stack,
-					service: serviceConfig.name
+					service: serviceConfig.name,
 				});
 			}
-			
+
 			res.status(500).json({ error: 'Failed to fetch user info: ' + error.message });
 		}
 	});
