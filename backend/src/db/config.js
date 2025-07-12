@@ -39,3 +39,52 @@ export async function testConnection() {
 		throw error;
 	}
 }
+
+/**
+ * Check if required database tables exist
+ */
+export async function checkDatabaseTables() {
+	const requiredTables = ['users', 'mcp_types', 'api_keys', 'mcp_instances'];
+	
+	try {
+		const client = await pool.connect();
+		
+		for (const table of requiredTables) {
+			const result = await client.query(`
+				SELECT EXISTS (
+					SELECT FROM information_schema.tables 
+					WHERE table_schema = 'public' 
+					AND table_name = $1
+				);
+			`, [table]);
+			
+			if (!result.rows[0].exists) {
+				throw new Error(`Required table '${table}' does not exist. Please run database migrations.`);
+			}
+		}
+		
+		console.log('✅ All required database tables exist');
+		client.release();
+		return true;
+	} catch (error) {
+		console.error('❌ Database table check failed:', error.message);
+		throw error;
+	}
+}
+
+/**
+ * Initialize database connection and verify tables
+ */
+export async function initializeDatabase() {
+	try {
+		console.log('🔄 Initializing database connection...');
+		await testConnection();
+		await checkDatabaseTables();
+		console.log('✅ Database initialization complete');
+	} catch (error) {
+		console.error('❌ Database initialization failed:', error.message);
+		console.error('Please ensure PostgreSQL is running and migrations have been executed.');
+		console.error('Run: npm run db:migrate');
+		throw error;
+	}
+}

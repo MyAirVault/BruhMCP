@@ -14,7 +14,7 @@ import mcpInstancesRoutes from './routes/mcpInstancesRoutes.js';
 import { apiRateLimiter } from './utils/rateLimiter.js';
 
 // Import database
-import { testConnection } from './db/config.js';
+import { initializeDatabase } from './db/config.js';
 
 // Import port validation for startup checks
 import { validatePortRange } from './utils/portValidation.js';
@@ -100,13 +100,28 @@ app.use('/:instanceId/mcp/:mcpType', (req, res) => {
 	});
 });
 
-// 404 handler
-app.use('*', (_req, res) => {
-	res.status(404).json({
-		error: {
-			code: 'NOT_FOUND',
-			message: 'The requested resource was not found',
-		},
+// SPA fallback - serve index.html for non-API routes
+app.get('*', (req, res) => {
+	// Don't serve SPA for API routes
+	if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || req.path.startsWith('/health')) {
+		return res.status(404).json({
+			error: {
+				code: 'NOT_FOUND',
+				message: 'The requested resource was not found',
+			},
+		});
+	}
+	
+	// Serve index.html for all other routes (SPA routing)
+	res.sendFile('index.html', { root: 'public' }, (err) => {
+		if (err) {
+			res.status(404).json({
+				error: {
+					code: 'FRONTEND_NOT_FOUND',
+					message: 'Frontend not built. Run npm run build:frontend',
+				},
+			});
+		}
 	});
 });
 
@@ -142,12 +157,13 @@ const server = app.listen(port, async () => {
 		console.log('🔧 Using database-enforced range (49160-49999)');
 	}
 
-	// Test database connection
+	// Initialize database and verify tables
 	try {
-		await testConnection();
-		console.log('✅ Database connected successfully');
+		await initializeDatabase();
 	} catch (error) {
-		console.error('❌ Database connection failed:', error instanceof Error ? error.message : error);
+		console.error('❌ Database initialization failed:', error instanceof Error ? error.message : error);
+		console.error('🛑 Server cannot start without a properly configured database');
+		process.exit(1);
 	}
 
 	// Start expiration monitor

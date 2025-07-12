@@ -7,6 +7,7 @@ This file contains brief descriptions of all documents in the documents/ folder.
 ### Architecture & Design
 - **[backend-architecture.md](./backend-architecture.md)** - **Simplified Node.js process-based architecture** with file-based logging and basic process management (no Docker/PM2 complexity)
 - **[database-schema.md](./database-schema.md)** - **Minimal database schema** with core tables only, file-based logging, and simple port management (no complex audit tables)
+- **[database-setup.md](./database-setup.md)** - **Complete database setup guide** including PostgreSQL configuration, environment variables, migration scripts, and troubleshooting
 - **[security-architecture.md](./security-architecture.md)** - **Basic security measures** focused on process isolation and file-based logging (no enterprise complexity)
 
 ### New Backend Architecture (2025-07-10)

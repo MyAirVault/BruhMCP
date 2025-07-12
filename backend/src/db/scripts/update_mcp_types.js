@@ -1,7 +1,7 @@
 // @ts-check
-import { pool } from './config.js';
-import { updateMCPTypes } from './mcp-types/update-types.js';
-import { verifyUpdate } from './mcp-types/verify-update.js';
+import { pool } from '../config.js';
+import { updateMCPTypes } from '../mcp-types/update-types.js';
+import { verifyUpdate } from '../mcp-types/verify-update.js';
 import { fileURLToPath } from 'url';
 
 /**

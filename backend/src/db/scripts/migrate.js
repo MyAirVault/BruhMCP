@@ -1,4 +1,4 @@
-import { pool } from './config.js';
+import { pool } from '../config.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -7,9 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const migrations = [
+	'001_create_users_table.sql',
 	'002_create_mcp_types_table.sql',
 	'003_create_api_keys_table.sql',
 	'004_create_mcp_instances_table.sql',
+	'006_update_port_range.sql',
 ];
 
 async function runMigrations() {
@@ -17,7 +19,7 @@ async function runMigrations() {
 		console.log('🔄 Running database migrations...');
 
 		for (const migration of migrations) {
-			const migrationPath = join(__dirname, 'migrations', migration);
+			const migrationPath = join(__dirname, '..', 'migrations', migration);
 			const sql = readFileSync(migrationPath, 'utf8');
 
 			console.log(`📄 Running migration: ${migration}`);

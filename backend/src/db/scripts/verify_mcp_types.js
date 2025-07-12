@@ -1,10 +1,10 @@
 // @ts-check
-import { pool } from './config.js';
-import { testConnection, verifyTableStructure } from './mcp-types/connection-tests.js';
-import { testGetAllMCPTypes } from './mcp-types/retrieval-tests.js';
-import { verifyExpectedTypes } from './mcp-types/type-verification.js';
-import { generateTestReport } from './mcp-types/test-reporting.js';
-import { verifyCredentialStructure } from './mcp-types/credential-verification.js';
+import { pool } from '../config.js';
+import { testConnection, verifyTableStructure } from '../mcp-types/tests/connection-tests.js';
+import { testGetAllMCPTypes } from '../mcp-types/tests/retrieval-tests.js';
+import { verifyExpectedTypes } from '../mcp-types/tests/type-verification.js';
+import { generateTestReport } from '../mcp-types/tests/test-reporting.js';
+import { verifyCredentialStructure } from '../mcp-types/tests/credential-verification.js';
 import { fileURLToPath } from 'url';
 
 /**
