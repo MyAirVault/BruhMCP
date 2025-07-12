@@ -212,11 +212,15 @@ export const apiService = {
     download_url: string;
     expires_at: string;
     size_bytes: number;
+    format: string;
+    total_logs: number;
   }> => {
     return makeRequest<{
       download_url: string;
       expires_at: string;
       size_bytes: number;
+      format: string;
+      total_logs: number;
     }>(`/mcps/${mcpId}/logs/export`, {
       method: 'POST',
       body: JSON.stringify(data),

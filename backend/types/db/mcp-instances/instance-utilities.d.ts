@@ -15,5 +15,10 @@ export function generateUniqueAccessToken(): Promise<string>;
  * @param {string} userId - User ID
  * @returns {Promise<Object>} Instance counts
  */
-export function countUserMCPInstances(userId: string): Promise<object>;
+export function countUserMCPInstances(userId: string): Promise<Object>;
+/**
+ * Get all active instance ports for port manager synchronization
+ * @returns {Promise<Array<number>>} Array of active ports
+ */
+export function getAllActiveInstancePorts(): Promise<Array<number>>;
 //# sourceMappingURL=instance-utilities.d.ts.map

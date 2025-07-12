@@ -3,13 +3,10 @@
  * @param {string} instanceId - Instance ID
  * @param {ChildProcess} mcpProcess - Node.js process
  * @param {Map} activeProcesses - Active processes map
+ * @param {string} userId - User ID for log organization
  * @returns {void}
  */
-export function setupProcessMonitoring(
-	instanceId: string,
-	mcpProcess: ChildProcess,
-	activeProcesses: Map<any, any>
-): void;
+export function setupProcessMonitoring(instanceId: string, mcpProcess: ChildProcess, activeProcesses: Map<any, any>, userId: string): void;
 /**
  * Handle process exit
  * @param {string} instanceId - Instance ID

@@ -3,7 +3,7 @@
  * @param {import('../types/index.js').User} user
  * @returns {string} JWT token
  */
-export function generateJWT(user: import('../types/index.js').User): string;
+export function generateJWT(user: import("../types/index.js").User): string;
 /**
  * Verify JWT token
  * @param {string} token

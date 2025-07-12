@@ -10,5 +10,5 @@ export function testAPICredentials(_mcpTypeId: string, credentials: any): Promis
  * @param {string} _mcpTypeId - MCP type ID
  * @returns {Object} Credential schema
  */
-export function getCredentialSchemaByType(_mcpTypeId: string): object;
+export function getCredentialSchemaByType(_mcpTypeId: string): Object;
 //# sourceMappingURL=credentialValidationService.d.ts.map

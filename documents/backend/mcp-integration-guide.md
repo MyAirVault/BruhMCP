@@ -23,48 +23,51 @@ Frontend → Backend → Validation → Process Creation → URL Return
 ### Example: Creating a Figma MCP Server
 
 **Frontend Request:**
+
 ```typescript
 POST /api/v1/mcps
 {
   "mcp_type": "figma",
-  "custom_name": "My Figma MCP", 
+  "custom_name": "My Figma MCP",
   "expiration_option": "1h",
   "credentials": {
-    "api_key": "figd_zWfTj8oHAmpYRsds9arzHge06ftLAzOy0oC0Jyc5"
+    "api_key": "<your-api-key>"
   }
 }
 ```
 
 **Backend Response:**
+
 ```json
 {
-  "access_url": "http://localhost:49162",
-  "access_token": "mcp_acc_b4303f9309804e85874a044548d56391",
-  "status": "active"
+	"access_url": "http://localhost:49162",
+	"access_token": "mcp_acc_b4303f9309804e85874a044548d56391",
+	"status": "active"
 }
 ```
 
 **User can now access:**
-- `http://localhost:49162/health` - Server health (REST)
-- `http://localhost:49162/me` - User info from Figma (REST)
-- `http://localhost:49162/files` - User's Figma files (REST)
-- `POST http://localhost:49162/` - JSON-RPC protocol messages
-- `POST http://localhost:49162/message` - Alternative JSON-RPC endpoint
+
+-   `http://localhost:49162/health` - Server health (REST)
+-   `http://localhost:49162/me` - User info from Figma (REST)
+-   `http://localhost:49162/files` - User's Figma files (REST)
+-   `POST http://localhost:49162/` - JSON-RPC protocol messages
+-   `POST http://localhost:49162/message` - Alternative JSON-RPC endpoint
 
 ## Credential Management
 
 ### Current Implementation
 
-- **Storage**: Credentials encrypted in database
-- **Validation**: Real API calls to validate tokens (Figma API, GitHub API, etc.)
-- **Usage**: Passed to MCP server process via environment variables
-- **Security**: Each MCP server runs as isolated Node.js process
+-   **Storage**: Credentials encrypted in database
+-   **Validation**: Real API calls to validate tokens (Figma API, GitHub API, etc.)
+-   **Usage**: Passed to MCP server process via environment variables
+-   **Security**: Each MCP server runs as isolated Node.js process
 
 ### Supported Services
 
-- **Figma**: Requires `api_key` (starts with `figd_`)
-- **GitHub**: Requires `personal_access_token` (starts with `ghp_`)
-- **Gmail**: Requires `api_key` (starts with `AIza`)
+-   **Figma**: Requires `api_key` (starts with `figd_`)
+-   **GitHub**: Requires `personal_access_token` (starts with `ghp_`)
+-   **Gmail**: Requires `api_key` (starts with `AIza`)
 
 ## Process Management
 
@@ -73,21 +76,21 @@ POST /api/v1/mcps
 ```javascript
 // Backend creates isolated Node.js process
 const mcpProcess = spawn('node', [`${mcpType}-mcp-server.js`], {
-  env: {
-    PORT: assignedPort,
-    MCP_ID: instanceId,
-    USER_ID: userId,
-    CREDENTIALS: JSON.stringify(credentials)
-  }
+	env: {
+		PORT: assignedPort,
+		MCP_ID: instanceId,
+		USER_ID: userId,
+		CREDENTIALS: JSON.stringify(credentials),
+	},
 });
 ```
 
 ### Process Properties
 
-- **Unique Port**: Each MCP gets its own port from range 49160-49999
-- **Isolation**: Separate Node.js process per MCP
-- **Environment**: Credentials passed via environment variables
-- **Monitoring**: Basic health checks via `/health` endpoint
+-   **Unique Port**: Each MCP gets its own port from range 49160-49999
+-   **Isolation**: Separate Node.js process per MCP
+-   **Environment**: Credentials passed via environment variables
+-   **Monitoring**: Basic health checks via `/health` endpoint
 
 ## MCP Server Structure
 
@@ -96,77 +99,83 @@ Each MCP server implements the official Model Context Protocol using JSON-RPC 2.
 ### MCP JSON-RPC 2.0 Protocol Endpoints
 
 **Main Protocol Endpoint:**
-- `POST /` - Primary JSON-RPC message handling
-- `POST /message` - Alternative JSON-RPC endpoint
+
+-   `POST /` - Primary JSON-RPC message handling
+-   `POST /message` - Alternative JSON-RPC endpoint
 
 **Supported JSON-RPC Methods:**
-- `initialize` - Server initialization and capability negotiation
-- `tools/list` - List available tools/actions
-- `tools/call` - Execute specific tools
-- `resources/list` - List available resources/data sources
-- `resources/read` - Read resource content
+
+-   `initialize` - Server initialization and capability negotiation
+-   `tools/list` - List available tools/actions
+-   `tools/call` - Execute specific tools
+-   `resources/list` - List available resources/data sources
+-   `resources/read` - Read resource content
 
 ### Example JSON-RPC Messages
 
 **Initialize Request:**
+
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "initialize",
-  "params": {
-    "protocolVersion": "2024-11-05",
-    "capabilities": {},
-    "clientInfo": {"name": "MCP Client", "version": "1.0.0"}
-  }
+	"jsonrpc": "2.0",
+	"id": 1,
+	"method": "initialize",
+	"params": {
+		"protocolVersion": "2024-11-05",
+		"capabilities": {},
+		"clientInfo": { "name": "MCP Client", "version": "1.0.0" }
+	}
 }
 ```
 
 **Initialize Response:**
+
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "protocolVersion": "2024-11-05",
-    "capabilities": {"tools": {}, "resources": {}},
-    "serverInfo": {"name": "Figma MCP Server", "version": "1.0.0"},
-    "instructions": "This is a Figma MCP server providing tools and resources for Figma API integration."
-  }
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"protocolVersion": "2024-11-05",
+		"capabilities": { "tools": {}, "resources": {} },
+		"serverInfo": { "name": "Figma MCP Server", "version": "1.0.0" },
+		"instructions": "This is a Figma MCP server providing tools and resources for Figma API integration."
+	}
 }
 ```
 
 **Tools List Request:**
+
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
-  "method": "tools/list"
+	"jsonrpc": "2.0",
+	"id": 2,
+	"method": "tools/list"
 }
 ```
 
 **Tool Call Request:**
+
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 3,
-  "method": "tools/call",
-  "params": {
-    "name": "get_figma_user_info",
-    "arguments": {}
-  }
+	"jsonrpc": "2.0",
+	"id": 3,
+	"method": "tools/call",
+	"params": {
+		"name": "get_figma_user_info",
+		"arguments": {}
+	}
 }
 ```
 
 ### Legacy REST Endpoints (for compatibility)
 
-- `GET /health` - Server health check
-- `GET /info` - Server information
-- `GET /tools` - List available tools
-- `POST /tools/:toolName` - Execute tools
-- `GET /resources` - List resources
-- `GET /resources/*` - Get resource content
-- `GET /me` - User info endpoint
+-   `GET /health` - Server health check
+-   `GET /info` - Server information
+-   `GET /tools` - List available tools
+-   `POST /tools/:toolName` - Execute tools
+-   `GET /resources` - List resources
+-   `GET /resources/*` - Get resource content
+-   `GET /me` - User info endpoint
 
 ## Adding New MCP Types
 
@@ -184,11 +193,11 @@ const credentials = JSON.parse(process.env.CREDENTIALS);
 
 // Implement service-specific endpoints
 app.get('/data', async (req, res) => {
-  // Make API calls using credentials
-  const response = await fetch('https://api.newservice.com/data', {
-    headers: { 'Authorization': `Bearer ${credentials.access_token}` }
-  });
-  res.json(await response.json());
+	// Make API calls using credentials
+	const response = await fetch('https://api.newservice.com/data', {
+		headers: { Authorization: `Bearer ${credentials.access_token}` },
+	});
+	res.json(await response.json());
 });
 
 app.listen(port);
@@ -197,7 +206,7 @@ app.listen(port);
 ### Step 2: Add to Database
 
 ```sql
-INSERT INTO mcp_types (name, display_name, description) 
+INSERT INTO mcp_types (name, display_name, description)
 VALUES ('newservice', 'New Service MCP', 'Access New Service data');
 ```
 
@@ -208,14 +217,14 @@ Add validation logic in `credentialValidationService.js`:
 ```javascript
 // Add to testAPICredentials function
 if (credentials.access_token && credentials.access_token.startsWith('ns_')) {
-  const response = await fetch('https://api.newservice.com/me', {
-    headers: { 'Authorization': `Bearer ${credentials.access_token}` }
-  });
-  
-  if (response.ok) {
-    result.valid = true;
-    result.api_info = await response.json();
-  }
+	const response = await fetch('https://api.newservice.com/me', {
+		headers: { Authorization: `Bearer ${credentials.access_token}` },
+	});
+
+	if (response.ok) {
+		result.valid = true;
+		result.api_info = await response.json();
+	}
 }
 ```
 
@@ -228,19 +237,22 @@ The new service will automatically appear in the frontend dropdown and work with
 ### Common Issues
 
 **MCP Server Won't Start:**
-- Check if port is available: `netstat -tlnp | grep :49162` (replace with actual assigned port)
-- Verify credentials are valid
-- Check server logs in console
+
+-   Check if port is available: `netstat -tlnp | grep :49162` (replace with actual assigned port)
+-   Verify credentials are valid
+-   Check server logs in console
 
 **Invalid Credentials:**
-- Ensure token format is correct (starts with proper prefix)
-- Test token manually with service API
-- Check token permissions/scopes
+
+-   Ensure token format is correct (starts with proper prefix)
+-   Test token manually with service API
+-   Check token permissions/scopes
 
 **Process Dies:**
-- Check for memory leaks
-- Verify all required dependencies are installed
-- Review error logs
+
+-   Check for memory leaks
+-   Verify all required dependencies are installed
+-   Review error logs
 
 ### Debug Commands
 
@@ -301,10 +313,10 @@ netstat -tlnp | grep :491
 ## Next Steps
 
 1. **Process Recovery**: Implement automatic restart of failed processes
-2. **Enhanced Monitoring**: Add detailed metrics and alerting  
+2. **Enhanced Monitoring**: Add detailed metrics and alerting
 3. **Credential Management**: Add token rotation and better security
 4. **Auto-generation**: Build system to create MCP servers from API documentation automatically
 
 ---
 
-*Last updated: 2025-07-10*
+_Last updated: 2025-07-10_

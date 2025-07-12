@@ -1,1 +1,1 @@
-{"version":3,"file":"getMCPInstances.d.ts","sourceRoot":"","sources":["../../../../src/controllers/mcpInstances/crud/getMCPInstances.js"],"names":[],"mappings":"AAEA;;;;GAIG;AACH,qCAHW,OAAO,OACP,QAAQ,iBAyDlB"}
+{"version":3,"file":"getMCPInstances.d.ts","sourceRoot":"","sources":["../../../../src/controllers/mcpInstances/crud/getMCPInstances.js"],"names":[],"mappings":"AAGA;;;;GAIG;AACH,qCAHW,OAAO,OACP,QAAQ,iBAyDlB"}

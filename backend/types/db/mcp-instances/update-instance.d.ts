@@ -4,5 +4,5 @@
  * @param {Object} updateData - Data to update
  * @returns {Promise<Object>} Updated instance
  */
-export function updateMCPInstance(instanceId: string, updateData: object): Promise<object>;
+export function updateMCPInstance(instanceId: string, updateData: Object): Promise<Object>;
 //# sourceMappingURL=update-instance.d.ts.map

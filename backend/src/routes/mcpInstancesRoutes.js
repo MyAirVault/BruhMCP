@@ -6,8 +6,8 @@ import { toggleMCP } from '../controllers/mcpInstances/operations/toggleMCP.js';
 import { deleteMCP } from '../controllers/mcpInstances/crud/deleteMCP.js';
 import { renewMCP } from '../controllers/mcpInstances/operations/renewMCP.js';
 import { editMCP } from '../controllers/mcpInstances/crud/editMCP.js';
-import { getMCPLogs } from '../controllers/mcpInstances/logs/getMCPLogs.js';
-import { exportMCPLogs } from '../controllers/mcpInstances/logs/exportMCPLogs.js';
+import { getMCPLogs } from '../controllers/mcpInstances/logging/getMCPLogs.js';
+import { exportMCPLogs } from '../controllers/mcpInstances/logging/exportMCPLogs.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();

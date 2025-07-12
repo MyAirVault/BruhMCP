@@ -3,5 +3,5 @@
  * @param {Object} instanceData - Instance data
  * @returns {Promise<Object>} Created instance
  */
-export function createMCPInstance(instanceData: object): Promise<object>;
+export function createMCPInstance(instanceData: Object): Promise<Object>;
 //# sourceMappingURL=create-instance.d.ts.map

@@ -8,24 +8,18 @@
  * @param {string} params.apiKey - API key for authentication
  * @returns {Promise<Object>} Tool execution result
  */
-export function handleToolExecution({
-	toolName,
-	args: _args,
-	mcpType,
-	serviceConfig,
-	apiKey,
-}: {
-	toolName: string;
-	args: object;
-	mcpType: string;
-	serviceConfig: object;
-	apiKey: string;
-}): Promise<object>;
+export function handleToolExecution({ toolName, args, mcpType, serviceConfig, apiKey }: {
+    toolName: string;
+    args: Object;
+    mcpType: string;
+    serviceConfig: Object;
+    apiKey: string;
+}): Promise<Object>;
 /**
  * Generate tools list based on service configuration
  * @param {Object} serviceConfig - Service configuration
  * @param {string} mcpType - MCP type
  * @returns {Array} List of available tools
  */
-export function generateTools(serviceConfig: object, mcpType: string): any[];
+export function generateTools(serviceConfig: Object, mcpType: string): any[];
 //# sourceMappingURL=tool-handlers.d.ts.map

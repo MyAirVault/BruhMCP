@@ -1,1 +1,1 @@
-{"version":3,"file":"update-instance.d.ts","sourceRoot":"","sources":["../../../src/db/mcp-instances/update-instance.js"],"names":[],"mappings":"AAEA;;;;;GAKG;AACH,8CAJW,MAAM,cACN,MAAM,GACJ,OAAO,CAAC,MAAM,CAAC,CA8B3B"}
+{"version":3,"file":"update-instance.d.ts","sourceRoot":"","sources":["../../../src/db/mcp-instances/update-instance.js"],"names":[],"mappings":"AAGA;;;;;GAKG;AACH,8CAJW,MAAM,cACN,MAAM,GACJ,OAAO,CAAC,MAAM,CAAC,CAwC3B"}
