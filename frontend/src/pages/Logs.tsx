@@ -112,17 +112,36 @@ const Logs: React.FC = () => {
   const handleExportLogs = async () => {
     try {
       if (isSpecificMCP && mcpId) {
-        // Use API export for specific MCP
-        const exportData = await logsService.exportMCPLogs(mcpId, {
+        // Use API export for specific MCP - backend now returns file directly
+        const exportData = {
           format: 'json',
           ...(timeFilter !== 'all' && { start_time: logsService.getTimeFilterDate(timeFilter) }),
           ...(levelFilter !== 'all' && { level: levelFilter })
+        };
+        
+        // Make direct API call to download file
+        const response = await fetch(`/api/v1/mcps/${mcpId}/logs/export`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(exportData),
         });
         
-        // Fetch the file content and trigger download
-        const response = await fetch(exportData.download_url);
         if (!response.ok) {
-          throw new Error(`Failed to fetch file: ${response.statusText}`);
+          throw new Error(`Failed to export logs: ${response.statusText}`);
+        }
+        
+        // Get filename from response headers or create default
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `logs_${mcpId}_${new Date().toISOString().split('T')[0]}.json`;
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
         }
         
         const blob = await response.blob();
@@ -130,7 +149,7 @@ const Logs: React.FC = () => {
         
         const link = document.createElement('a');
         link.href = url;
-        link.download = `logs_${mcpId}_${new Date().toISOString().split('T')[0]}.json`;
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

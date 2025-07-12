@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import logFileManager from '../../../services/process/log-file-manager.js';
 
 /**
  * Figma Service Configuration
@@ -63,8 +64,9 @@ export default {
 					};
 
 			// Log access attempt
-			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: GET ${baseURL}/me/files`, 'access', {
+			const mcpId = process.env.MCP_ID;
+			if (logFileManager && mcpId) {
+				logFileManager.writeLog(mcpId, 'info', `API Access: GET ${baseURL}/me/files`, 'access', {
 					action: 'list_files',
 				});
 			}
@@ -90,9 +92,9 @@ export default {
 					results.available_endpoints.push(`/me - ❌ ${userResponse.status} ${userResponse.statusText}`);
 
 					// Log API error
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'error',
 							`API Error: GET /me failed - ${userResponse.status} ${userResponse.statusText}`,
 							'error',
@@ -108,9 +110,9 @@ export default {
 				results.errors.push('Failed to get user info: ' + error.message);
 
 				// Log unexpected error
-				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(
-						global.mcpId,
+				if (logFileManager && mcpId) {
+					logFileManager.writeLog(
+						mcpId,
 						'error',
 						`User info fetch failed: ${error.message}`,
 						'error',
@@ -156,9 +158,9 @@ export default {
 						}
 
 						// Log API errors
-						if (global.logFileManager && global.mcpId) {
-							global.logFileManager.writeLog(
-								global.mcpId,
+						if (logFileManager && mcpId) {
+							logFileManager.writeLog(
+								mcpId,
 								'error',
 								`API Error: ${endpoint.name} failed - ${response.status} ${response.statusText}`,
 								'error',
@@ -175,9 +177,9 @@ export default {
 					results.errors.push(`${endpoint.name}: ${error.message}`);
 
 					// Log network errors
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'error',
 							`Network error for ${endpoint.name}: ${error.message}`,
 							'error',
@@ -193,9 +195,9 @@ export default {
 			}
 
 			// Log successful completion
-			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(
-					global.mcpId,
+			if (logFileManager && mcpId) {
+				logFileManager.writeLog(
+					mcpId,
 					'info',
 					`Files listed successfully: ${results.files.length} files, ${results.teams.length} teams`,
 					'access',
@@ -227,8 +229,9 @@ export default {
 			const url = `${baseURL}/teams/${teamId}/projects`;
 
 			// Log access attempt
-			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: GET ${url}`, 'access', {
+			const mcpId = process.env.MCP_ID;
+			if (logFileManager && mcpId) {
+				logFileManager.writeLog(mcpId, 'info', `API Access: GET ${url}`, 'access', {
 					action: 'get_team_projects',
 					teamId: teamId,
 				});
@@ -248,9 +251,9 @@ export default {
 					const data = await response.json();
 
 					// Log successful retrieval
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'info',
 							`Team projects retrieved successfully: ${data.projects?.length || 0} projects`,
 							'access',
@@ -265,9 +268,9 @@ export default {
 					return data;
 				} else {
 					// Log API error
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'error',
 							`API Error: GET team projects failed - ${response.status} ${response.statusText}`,
 							'error',
@@ -283,9 +286,9 @@ export default {
 				}
 			} catch (error) {
 				// Log unexpected error
-				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(
-						global.mcpId,
+				if (logFileManager && mcpId) {
+					logFileManager.writeLog(
+						mcpId,
 						'error',
 						`Get team projects failed: ${error.message}`,
 						'error',
@@ -307,8 +310,9 @@ export default {
 			const url = `${baseURL}/files/${fileKey}`;
 
 			// Log access attempt
-			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: GET ${url}`, 'access', {
+			const mcpId = process.env.MCP_ID;
+			if (logFileManager && mcpId) {
+				logFileManager.writeLog(mcpId, 'info', `API Access: GET ${url}`, 'access', {
 					action: 'get_file_details',
 					fileKey: fileKey,
 				});
@@ -328,9 +332,9 @@ export default {
 					const data = await response.json();
 
 					// Log successful retrieval
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'info',
 							`File details retrieved successfully: ${data.name || 'Unknown file'}`,
 							'access',
@@ -346,9 +350,9 @@ export default {
 					return data;
 				} else {
 					// Log API error
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'error',
 							`API Error: GET file details failed - ${response.status} ${response.statusText}`,
 							'error',
@@ -364,9 +368,9 @@ export default {
 				}
 			} catch (error) {
 				// Log unexpected error
-				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(
-						global.mcpId,
+				if (logFileManager && mcpId) {
+					logFileManager.writeLog(
+						mcpId,
 						'error',
 						`Get file details failed: ${error.message}`,
 						'error',
@@ -388,8 +392,9 @@ export default {
 			const url = `${baseURL}/files/${fileKey}/comments`;
 
 			// Log access attempt
-			if (global.logFileManager && global.mcpId) {
-				global.logFileManager.writeLog(global.mcpId, 'info', `API Access: POST ${url}`, 'access', {
+			const mcpId = process.env.MCP_ID;
+			if (logFileManager && mcpId) {
+				logFileManager.writeLog(mcpId, 'info', `API Access: POST ${url}`, 'access', {
 					action: 'create_comment',
 					fileKey: fileKey,
 				});
@@ -413,9 +418,9 @@ export default {
 					const data = await response.json();
 
 					// Log successful creation
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'info',
 							`Comment created successfully on file ${fileKey}`,
 							'access',
@@ -434,9 +439,9 @@ export default {
 					};
 				} else {
 					// Log API error
-					if (global.logFileManager && global.mcpId) {
-						global.logFileManager.writeLog(
-							global.mcpId,
+					if (logFileManager && mcpId) {
+						logFileManager.writeLog(
+							mcpId,
 							'error',
 							`API Error: POST comment failed - ${response.status} ${response.statusText}`,
 							'error',
@@ -452,9 +457,9 @@ export default {
 				}
 			} catch (error) {
 				// Log unexpected error
-				if (global.logFileManager && global.mcpId) {
-					global.logFileManager.writeLog(
-						global.mcpId,
+				if (logFileManager && mcpId) {
+					logFileManager.writeLog(
+						mcpId,
 						'error',
 						`Create comment failed: ${error.message}`,
 						'error',
