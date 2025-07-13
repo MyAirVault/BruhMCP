@@ -198,7 +198,7 @@ const SERVICE_CONFIG = {
 
 2. **Main Server Boot**
 
-    - Start main API server on port 3000
+    - Start main API server on port 5000
     - Initialize database connection
     - Prepare for service startup
 
@@ -338,7 +338,7 @@ pm2 start backend/src/mcp-servers/slack/index.js --name "mcp-slack"
 
 1. Check prerequisites (Node.js, PM2, database)
 2. Stop any existing PM2 processes
-3. Start main API server on port 3000
+3. Start main API server on port 5000
 4. Start each MCP service listed in the script
 5. Verify all services are healthy
 6. Save PM2 configuration for auto-restart
