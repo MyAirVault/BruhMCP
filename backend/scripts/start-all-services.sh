@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Phase 1 MCP Services Startup Script
-# Starts all MCP services via PM2 according to documentation
+# Phase 2 MCP Services Startup Script
+# Starts all MCP services via PM2 for the cache-based architecture
 
-echo "🚀 Starting MCP Services - Phase 1"
-echo "=================================="
+echo "🚀 Starting MCP Services - Phase 2 (Cache-Based Architecture)"
+echo "=============================================================="
 
 # Check prerequisites
 command -v node >/dev/null 2>&1 || { echo "❌ Node.js not installed"; exit 1; }
-command -v pm2 >/dev/null 2>&1 || { echo "❌ PM2 not installed"; exit 1; }
+command -v pm2 >/dev/null 2>&1 || { echo "❌ PM2 not installed. Install with: npm install -g pm2"; exit 1; }
 
 # Set script directory and backend root
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -21,60 +21,116 @@ echo "📁 MCP servers: $MCP_SERVERS_ROOT"
 # Change to backend directory
 cd "$BACKEND_ROOT" || { echo "❌ Failed to change to backend directory"; exit 1; }
 
-# Stop any existing MCP services
+# Function to start a service with PM2
+start_service() {
+    local service_name=$1
+    local service_path=$2
+    local service_port=$3
+    
+    echo "📋 Starting $service_name service..."
+    
+    # Check if service directory exists
+    if [ ! -d "$service_path" ]; then
+        echo "⚠️  $service_name service directory not found, skipping..."
+        return
+    fi
+    
+    # Check if index.js exists
+    if [ ! -f "$service_path/index.js" ]; then
+        echo "⚠️  $service_name service index.js not found, skipping..."
+        return
+    fi
+    
+    # Start the service with PM2
+    pm2 start "$service_path/index.js" --name "mcp-$service_name" \
+        --log-type json \
+        --merge-logs \
+        --max-restarts 10 \
+        --min-uptime "10s" \
+        --watch "$service_path" \
+        --ignore-watch "node_modules logs *.log" \
+        --env NODE_ENV=production \
+        --env SERVICE_NAME="$service_name" \
+        --env SERVICE_PORT="$service_port"
+    
+    echo "✅ $service_name service started with PM2"
+}
+
+# Stop any existing services first
 echo ""
 echo "🛑 Stopping existing MCP services..."
 pm2 delete mcp-figma 2>/dev/null || true
-# pm2 delete mcp-github 2>/dev/null || true
-# pm2 delete mcp-slack 2>/dev/null || true
-# pm2 delete mcp-notion 2>/dev/null || true
-# pm2 delete mcp-discord 2>/dev/null || true
+pm2 delete mcp-github 2>/dev/null || true
+pm2 delete mcp-slack 2>/dev/null || true
+pm2 delete mcp-notion 2>/dev/null || true
+pm2 delete mcp-discord 2>/dev/null || true
 
 echo ""
 echo "🏁 Starting MCP services..."
 
-# Start Figma service
-echo "📋 Starting Figma service..."
-pm2 start "$MCP_SERVERS_ROOT/figma/index.js" --name "mcp-figma" --log-type json
-
-# TODO: Uncomment as other services are implemented
-# echo "📋 Starting GitHub service..."
-# pm2 start "$MCP_SERVERS_ROOT/github/index.js" --name "mcp-github" --log-type json
-
-# echo "📋 Starting Slack service..."
-# pm2 start "$MCP_SERVERS_ROOT/slack/index.js" --name "mcp-slack" --log-type json
-
-# echo "📋 Starting Notion service..."
-# pm2 start "$MCP_SERVERS_ROOT/notion/index.js" --name "mcp-notion" --log-type json
-
-# echo "📋 Starting Discord service..."
-# pm2 start "$MCP_SERVERS_ROOT/discord/index.js" --name "mcp-discord" --log-type json
+# Start individual services with PM2
+start_service "figma" "$MCP_SERVERS_ROOT/figma" "49280"
+start_service "github" "$MCP_SERVERS_ROOT/github" "49294"
+start_service "slack" "$MCP_SERVERS_ROOT/slack" "49295"
+start_service "notion" "$MCP_SERVERS_ROOT/notion" "49296"
+start_service "discord" "$MCP_SERVERS_ROOT/discord" "49297"
 
 echo ""
 echo "⏳ Waiting for services to initialize..."
-sleep 5
+sleep 3
 
 echo ""
 echo "🔍 Checking service health..."
 
-# Health check for Figma service
-echo "🩺 Checking Figma service health..."
-if curl -f -s http://localhost:49280/health > /dev/null; then
-    echo "✅ Figma service is healthy"
-else
-    echo "❌ Figma service health check failed"
-fi
+# Health check function for PM2 services
+check_service_health() {
+    local service_name=$1
+    local port=$2
+    
+    local pm2_status=$(pm2 jlist | jq -r ".[] | select(.name==\"mcp-$service_name\") | .pm2_env.status" 2>/dev/null)
+    
+    if [ "$pm2_status" = "online" ]; then
+        echo "✅ $service_name service is running (PM2 status: online)"
+        
+        # Try health check if port is available
+        if command -v curl >/dev/null 2>&1; then
+            if curl -f -s http://localhost:$port/health > /dev/null 2>&1; then
+                echo "   🩺 Health check passed"
+            else
+                echo "   ⚠️  Health check endpoint not responding (service may still be starting)"
+            fi
+        fi
+    elif [ "$pm2_status" = "errored" ]; then
+        echo "❌ $service_name service failed to start (PM2 status: errored)"
+    elif [ "$pm2_status" = "stopped" ]; then
+        echo "⏸️  $service_name service is stopped"
+    elif [ -z "$pm2_status" ]; then
+        echo "❓ $service_name service not found in PM2"
+    else
+        echo "⚠️  $service_name service status: $pm2_status"
+    fi
+}
 
-# TODO: Add health checks for other services
-# echo "🩺 Checking GitHub service health..."
-# if curl -f -s http://localhost:49294/health > /dev/null; then
-#     echo "✅ GitHub service is healthy"
-# else
-#     echo "❌ GitHub service health check failed"
-# fi
+# Check each service
+check_service_health "figma" "49280"
+check_service_health "github" "49294"
+check_service_health "slack" "49295"
+check_service_health "notion" "49296"
+check_service_health "discord" "49297"
 
 echo ""
-echo "📊 PM2 status:"
+echo "🎉 MCP Services startup complete!"
+echo ""
+echo "📊 Service Status:"
+echo "Available services:"
+echo "  📐 Figma: http://localhost:49280/health"
+echo "  🐙 GitHub: http://localhost:49294/health"
+echo "  💬 Slack: http://localhost:49295/health"
+echo "  📝 Notion: http://localhost:49296/health"
+echo "  🎮 Discord: http://localhost:49297/health"
+
+echo ""
+echo "📊 PM2 Status:"
 pm2 status
 
 echo ""
@@ -82,20 +138,26 @@ echo "💾 Saving PM2 configuration..."
 pm2 save
 
 echo ""
-echo "🎉 MCP Services startup complete!"
-echo ""
-echo "Available services:"
-echo "  📐 Figma: http://localhost:49280/health"
-# echo "  🐙 GitHub: http://localhost:49294/health"
-# echo "  💬 Slack: http://localhost:XXXX/health"
-# echo "  📝 Notion: http://localhost:XXXX/health"
-# echo "  🎮 Discord: http://localhost:XXXX/health"
+echo "📝 Service Logs:"
+echo "  View all logs: pm2 logs"
+echo "  Individual logs: pm2 logs mcp-figma"
+echo "  Real-time logs: pm2 monit"
 
 echo ""
 echo "🛠️  Management commands:"
-echo "  pm2 status        - View all services"
-echo "  pm2 logs          - View all logs"
-echo "  pm2 logs mcp-figma - View Figma logs"
-echo "  pm2 restart all   - Restart all services"
-echo "  pm2 stop all      - Stop all services"
-echo "  pm2 delete all    - Delete all services"
+echo "  pm2 status           - View all services"
+echo "  pm2 restart all      - Restart all services"
+echo "  pm2 stop all         - Stop all services"
+echo "  pm2 delete all       - Delete all services"
+echo "  pm2 logs             - View all logs"
+echo "  pm2 monit            - Real-time monitoring"
+echo "  ./scripts/stop-all-services.sh - Stop script"
+echo ""
+echo "🔄 PM2 Features Active:"
+echo "  ✅ Auto-restart on crashes"
+echo "  ✅ Process monitoring"
+echo "  ✅ Log management"
+echo "  ✅ Cluster mode ready"
+echo "  ✅ File watching (development)"
+echo ""
+echo "ℹ️  Services integrate with main backend via credential cache system"

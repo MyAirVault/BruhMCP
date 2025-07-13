@@ -23,13 +23,12 @@ export function calculateExpirationDate(option) {
 }
 
 /**
- * Generate consistent access URL for MCP instances
- * @param {number|null} assignedPort - The port number assigned to the instance
+ * Generate consistent access URL for MCP instances in Phase 2 architecture
  * @param {string} instanceId - The instance UUID
  * @param {string} mcpTypeName - The MCP type name
- * @returns {string|null} The formatted access URL or null if no port assigned
+ * @returns {string} The formatted access URL through unified backend
  */
-export function generateAccessUrl(assignedPort, instanceId, mcpTypeName) {
-	if (!assignedPort) return null;
-	return `http://localhost:${assignedPort}/${instanceId}/mcp/${mcpTypeName}`;
+export function generateAccessUrl(instanceId, mcpTypeName) {
+	const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+	return `${baseUrl}/api/v1/mcp/${mcpTypeName}/${instanceId}`;
 }

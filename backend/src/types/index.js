@@ -32,7 +32,6 @@
  * @property {string} [api_key_id]
  * @property {string} [custom_name]
  * @property {number} instance_number
- * @property {number} [process_id]
  * @property {string} access_token
  * @property {('active'|'inactive'|'expired')} status
  * @property {boolean} is_active
@@ -104,13 +103,5 @@
  * @property {string} [error]
  */
 
-/**
- * @typedef {Object} ProcessInfo
- * @property {number} pid
- * @property {string} mcpId
- * @property {string} mcpType
- * @property {number} port
- * @property {('starting'|'running'|'stopping'|'stopped'|'crashed')} status
- */
 
 export {};

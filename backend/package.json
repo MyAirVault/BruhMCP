@@ -17,13 +17,15 @@
     "lint": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:migrate": "node src/db/scripts/migrate.js",
-    "verify": "node tests/verification/verification-runner.js",
-    "verify:port": "node -e \"import('./tests/verification/port-management.test.js').then(m => new m.default().runAllTests())\"",
-    "verify:cleanup": "node -e \"import('./tests/verification/cleanup.test.js').then(m => new m.default().runAllTests())\"",
-    "verify:duplicates": "node -e \"import('./tests/verification/duplicate-services.test.js').then(m => new m.default().runAllTests())\"",
     "test:mcp": "node test-mcp-compliance.js",
     "services:list": "node -e \"import('./src/mcp-servers/config/service-registry.js').then(m => m.serviceRegistry.loadServices().then(() => console.log('Available services:', m.serviceRegistry.getServiceNames())))\"",
-    "services:stats": "node -e \"import('./src/mcp-servers/config/service-registry.js').then(m => m.serviceRegistry.loadServices().then(() => console.log(JSON.stringify(m.serviceRegistry.getStats(), null, 2))))\""
+    "services:stats": "node -e \"import('./src/mcp-servers/config/service-registry.js').then(m => m.serviceRegistry.loadServices().then(() => console.log(JSON.stringify(m.serviceRegistry.getStats(), null, 2))))\"",
+    "services:start": "pm2 start ecosystem.config.js",
+    "services:stop": "pm2 delete ecosystem.config.js",
+    "services:restart": "pm2 restart ecosystem.config.js",
+    "services:status": "pm2 status",
+    "services:logs": "pm2 logs",
+    "services:monit": "pm2 monit"
   },
   "keywords": [],
   "author": "",
@@ -45,6 +47,7 @@
     "pg": "^8.16.3",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

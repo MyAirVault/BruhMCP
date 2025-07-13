@@ -1,6 +1,7 @@
 // @ts-check
 import { verifyJWT } from '../utils/jwt.js';
 import { findUserByEmail } from '../db/queries/userQueries.js';
+import loggingService from '../services/logging/loggingService.js';
 
 /**
  * Authentication middleware that validates JWT tokens from cookies
@@ -12,6 +13,12 @@ export async function authenticate(req, res, next) {
 	const token = req.cookies.authToken;
 
 	if (!token) {
+		loggingService.logAuthFailure('missing_token', {
+			ip: req.ip,
+			userAgent: req.get('User-Agent'),
+			endpoint: req.originalUrl
+		});
+
 		return res.status(401).json({
 			error: {
 				code: 'MISSING_AUTH_TOKEN',
@@ -23,6 +30,12 @@ export async function authenticate(req, res, next) {
 	const payload = verifyJWT(token);
 
 	if (!payload) {
+		loggingService.logAuthFailure('invalid_token', {
+			ip: req.ip,
+			userAgent: req.get('User-Agent'),
+			endpoint: req.originalUrl
+		});
+
 		return res.status(401).json({
 			error: {
 				code: 'INVALID_AUTH_TOKEN',
@@ -36,6 +49,13 @@ export async function authenticate(req, res, next) {
 		const user = await findUserByEmail(payload.email);
 
 		if (!user) {
+			loggingService.logAuthFailure('user_not_found', {
+				email: payload.email,
+				ip: req.ip,
+				userAgent: req.get('User-Agent'),
+				endpoint: req.originalUrl
+			});
+
 			return res.status(401).json({
 				error: {
 					code: 'USER_NOT_FOUND',
@@ -50,9 +70,23 @@ export async function authenticate(req, res, next) {
 			email: user.email,
 		};
 
+		// Log successful authentication
+		loggingService.logAuthSuccess(user.id, {
+			ip: req.ip,
+			userAgent: req.get('User-Agent'),
+			endpoint: req.originalUrl,
+			method: 'jwt'
+		});
+
 		next();
 	} catch (error) {
-		console.error('Authentication error:', error);
+		loggingService.logError(error, {
+			operation: 'authentication',
+			email: payload?.email,
+			ip: req.ip,
+			critical: false
+		});
+
 		return res.status(500).json({
 			error: {
 				code: 'AUTHENTICATION_ERROR',

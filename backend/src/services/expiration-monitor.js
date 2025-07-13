@@ -1,5 +1,5 @@
 import { getAllMCPInstances, updateMCPInstance, getMCPInstanceById } from '../db/queries/mcpInstancesQueries.js';
-import processManager from './processManager.js';
+import { invalidateInstanceCache } from './cacheInvalidationService.js';
 
 /**
  * Expiration monitoring service for MCP instances
@@ -76,22 +76,20 @@ class ExpirationMonitor {
 		try {
 			console.log(`🛑 Handling expired MCP instance ${instance.id}`);
 
-			// Terminate the process if it's running
-			if (instance.process_id) {
-				const terminated = await processManager.terminateProcess(instance.id);
-				if (terminated) {
-					console.log(`✅ Terminated process for expired MCP ${instance.id}`);
-				} else {
-					console.log(`⚠️  Process not found or already terminated for expired MCP ${instance.id}`);
+			// Invalidate cache for expired instance
+			if (instance.mcp_service_name) {
+				try {
+					await invalidateInstanceCache(instance.mcp_service_name, instance.id);
+					console.log(`✅ Cache invalidated for expired MCP ${instance.id}`);
+				} catch (cacheError) {
+					console.log(`⚠️  Cache invalidation failed for expired MCP ${instance.id}:`, cacheError.message);
 				}
 			}
 
 			// Update instance status to expired
 			await updateMCPInstance(instance.id, {
 				status: 'expired',
-				is_active: false,
-				process_id: null,
-				assigned_port: null,
+				is_active: false
 			});
 
 			console.log(`📋 MCP instance ${instance.id} marked as expired`);

@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import mcpTypesRoutes from './routes/mcpTypesRoutes.js';
 import apiKeysRoutes from './routes/apiKeysRoutes.js';
 import mcpInstancesRoutes from './routes/mcpInstancesRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Import middleware
 import { apiRateLimiter } from './utils/rateLimiter.js';
@@ -20,6 +21,10 @@ import { initializeDatabase } from './db/config.js';
 
 // Import expiration monitor
 import expirationMonitor from './services/expiration-monitor.js';
+
+// Import logging services
+import loggingService from './services/logging/loggingService.js';
+import logMaintenanceService from './services/logging/logMaintenanceService.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -42,6 +47,18 @@ app.use(apiRateLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Request logging middleware
+app.use((req, res, next) => {
+	const startTime = Date.now();
+	
+	res.on('finish', () => {
+		const responseTime = Date.now() - startTime;
+		loggingService.logAPIRequest(req, res, responseTime);
+	});
+	
+	next();
+});
 
 // Static files
 app.use(express.static('public'));
@@ -73,7 +90,7 @@ app.get('/api/v1/health', (_req, res) => {
 		timestamp: new Date().toISOString(),
 		services: {
 			database: 'healthy',
-			processManager: 'healthy',
+			cache: 'healthy',
 		},
 	});
 });
@@ -81,6 +98,7 @@ app.get('/api/v1/health', (_req, res) => {
 app.use('/api/v1/mcp-types', mcpTypesRoutes);
 app.use('/api/v1/api-keys', apiKeysRoutes);
 app.use('/api/v1/mcps', mcpInstancesRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // Instance-based MCP routing: /:instanceId/mcp/:mcpType/*
 app.use('/:instanceId/mcp/:mcpType', (req, res) => {
@@ -126,8 +144,17 @@ app.get('*', (req, res) => {
 
 // Global error handler
 // @ts-expect-error - Express error handler requires 4 parameters
-app.use((err, _req, res, _next) => {
-	console.error('Global error handler:', err);
+app.use((err, req, res, _next) => {
+	// Log error through logging service
+	loggingService.logError(err, {
+		userId: req.user?.id,
+		operation: 'global_error_handler',
+		endpoint: req.originalUrl,
+		method: req.method,
+		ip: req.ip,
+		critical: true
+	});
+
 	res.status(500).json({
 		error: {
 			code: 'INTERNAL_SERVER_ERROR',
@@ -138,6 +165,14 @@ app.use((err, _req, res, _next) => {
 
 // Start server
 const server = app.listen(port, async () => {
+	// Log server startup
+	loggingService.logServerStart({
+		port,
+		environment: process.env.NODE_ENV || 'development',
+		nodeVersion: process.version,
+		platform: process.platform
+	});
+
 	console.log(`🚀 Server is running on port ${port}`);
 	console.log(`📚 Health check: http://localhost:${port}/health`);
 	console.log(`🔐 Authentication: http://localhost:${port}/auth/request`);
@@ -162,6 +197,22 @@ const server = app.listen(port, async () => {
 		console.log('✅ Expiration monitor started');
 	} catch (error) {
 		console.error('❌ Failed to start expiration monitor:', error);
+		loggingService.logError(error, {
+			operation: 'expiration_monitor_start',
+			critical: true
+		});
+	}
+
+	// Start log maintenance service
+	try {
+		logMaintenanceService.startAutomatedMaintenance(24); // 24 hours interval
+		console.log('✅ Log maintenance service started');
+	} catch (error) {
+		console.error('❌ Failed to start log maintenance service:', error);
+		loggingService.logError(error, {
+			operation: 'log_maintenance_start',
+			critical: false
+		});
 	}
 
 	console.log('🎯 All startup checks completed');
@@ -170,9 +221,16 @@ const server = app.listen(port, async () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
 	console.log('🛑 SIGTERM received, shutting down gracefully...');
+	
+	// Log shutdown
+	loggingService.logServerStop({
+		reason: 'SIGTERM',
+		graceful: true
+	});
 
-	// Stop expiration monitor
+	// Stop services
 	expirationMonitor.stop();
+	logMaintenanceService.stopAutomatedMaintenance();
 
 	server.close(() => {
 		console.log('✅ Server closed');
@@ -182,9 +240,16 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
 	console.log('🛑 SIGINT received, shutting down gracefully...');
+	
+	// Log shutdown
+	loggingService.logServerStop({
+		reason: 'SIGINT',
+		graceful: true
+	});
 
-	// Stop expiration monitor
+	// Stop services
 	expirationMonitor.stop();
+	logMaintenanceService.stopAutomatedMaintenance();
 
 	server.close(() => {
 		console.log('✅ Server closed');

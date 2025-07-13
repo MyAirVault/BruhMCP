@@ -2,6 +2,7 @@ import { getMCPInstanceById } from '../../../db/queries/mcpInstancesQueries.js';
 import { validateCredentialsWithFormat } from '../../../services/instanceCredentialValidationService.js';
 import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
 import { pool } from '../../../db/config.js';
+import loggingService from '../../../services/logging/loggingService.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -143,6 +144,14 @@ export async function updateInstanceCredentials(req, res) {
 
 			// Log credential update event (without logging actual credentials)
 			console.log(`🔐 Credentials updated: ${id} (${serviceName}) by user ${userId}`);
+
+			// Audit log the credential update
+			loggingService.logCredentialUpdate(id, userId, {
+				service: serviceName,
+				success: true,
+				validationResult: 'success',
+				cacheInvalidated: true
+			});
 
 			res.status(200).json({
 				data: {

@@ -3,7 +3,7 @@ import { updateMCPTypeStats } from '../../../db/queries/mcpTypesQueries.js';
 import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
 import { pool } from '../../../db/config.js';
 import { logDeletionEvent, trackDeletionMetrics } from '../../../utils/deletionAudit.js';
-import processManager from '../../../services/processManager.js';
+import loggingService from '../../../services/logging/loggingService.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -102,18 +102,15 @@ export async function deleteMCP(req, res) {
 			// Don't fail the deletion - background watcher will clean up cache
 		});
 
-		// Step 4: Legacy process cleanup (if needed)
-		if (instance.process_id) {
-			try {
-				console.log(`🔄 Terminating process ${instance.process_id} for instance ${id}`);
-				await processManager.terminateProcess(id);
-			} catch (processError) {
-				console.warn(`⚠️ Failed to stop process for instance ${id}:`, processError);
-				// Continue - process cleanup is not critical
-			}
-		}
+		// Step 4: Process cleanup no longer needed with new architecture
 
 		console.log(`✅ MCP instance ${id} deleted successfully`);
+
+		// Audit log the deletion
+		loggingService.logInstanceDeleted(id, userId, {
+			service: serviceName,
+			cacheInvalidated: true
+		});
 
 		// Step 5: Success response
 		res.status(200).json({
