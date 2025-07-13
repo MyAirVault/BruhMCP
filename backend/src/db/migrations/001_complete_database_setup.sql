@@ -41,6 +41,8 @@ CREATE TABLE mcp_table (
     port INTEGER UNIQUE NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('api_key', 'oauth')),
     is_active BOOLEAN DEFAULT true,
+    total_instances_created INTEGER DEFAULT 0,
+    active_instances_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -94,6 +96,8 @@ CREATE INDEX idx_mcp_service_table_last_renewed_at ON mcp_service_table(last_ren
 
 -- Add column comments for documentation
 COMMENT ON COLUMN mcp_table.is_active IS 'Global service enable/disable control - when false, no new instances can be created';
+COMMENT ON COLUMN mcp_table.total_instances_created IS 'Total number of instances ever created for this service across all users';
+COMMENT ON COLUMN mcp_table.active_instances_count IS 'Current number of active instances for this service across all users';
 COMMENT ON COLUMN mcp_service_table.status IS 'Instance status: active (usable), inactive (user disabled), expired (automatically disabled)';
 COMMENT ON COLUMN mcp_service_table.expires_at IS 'When this instance expires (NULL = never expires)';
 COMMENT ON COLUMN mcp_service_table.last_used_at IS 'Last time this instance was accessed via API';

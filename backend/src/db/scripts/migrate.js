@@ -7,11 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const migrations = [
-	'001_create_users_table.sql',
-	'002_create_mcp_types_table.sql',
-	'003_create_api_keys_table.sql',
-	'004_create_mcp_instances_table.sql',
-	'006_update_port_range.sql',
+	'001_complete_database_setup.sql',
 ];
 
 async function runMigrations() {

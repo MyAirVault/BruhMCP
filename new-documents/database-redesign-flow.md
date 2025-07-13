@@ -31,6 +31,8 @@ _Note: No password field - authentication handled via magic link system_
 -   **Port**: Static port number for nginx routing (49160, 49294, etc.)
 -   **Type**: Authentication method ("api_key" or "oauth")
 -   **Is Active**: BOOLEAN (global service enable/disable control)
+-   **Total Instances Created**: INTEGER (total number of instances ever created for this service across all users)
+-   **Active Instances Count**: INTEGER (current number of active instances for this service across all users)
 -   **Created At**: Service registration timestamp
 -   **Updated At**: Last modification timestamp
 
