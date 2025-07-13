@@ -1,99 +1,166 @@
-# Phase 1: Service Management and Startup Flow
+# Phase 1: Multi-Tenant MCP Service Management and Startup Flow
 
 ## Overview
 
-Phase 1 focuses on automatically starting all MCP services when the server boots up. Each service will have its own entry point (index.js) that listens for requests, configures MCP endpoints from the service's API, and runs as a separate process managed by PM2.
+Phase 1 focuses on automatically starting all MCP services with multi-tenant architecture support. Each service runs independently with instance-based routing, allowing multiple users to access the same service with complete isolation. Services boot up without requiring database connections and dynamically handle user instances through database-driven authentication.
 
 ## Core Objectives
 
-1. **Individual Service Entry Points**: Each service gets its own index.js file that starts independently
-2. **MCP Endpoint Configuration**: Services configure their MCP endpoints based on their specific API
-3. **PM2 Process Management**: Each service runs as a separate PM2 process
-4. **Manual Service Management**: start services by creating folders and updating bash script
-5. **Service Health Monitoring**: Ensure all services are running and responding correctly
+1. **Multi-Tenant Service Architecture**: Each service supports multiple users through instance-based routing
+2. **Independent Service Startup**: Services start without database dependencies and handle instances dynamically
+3. **Instance-Based Authentication**: Database-driven credential lookup per user instance
+4. **Complete User Isolation**: Each user's requests use their specific credentials with full separation
+5. **PM2 Process Management**: Each service runs as a separate PM2 process with multi-user support
+6. **Service Health Monitoring**: Global and instance-specific health checks
 
 ## Architecture Overview
 
 ### Service Structure
 
-All services are implemented in `backend/src/mcp-servers/` with this structure:
+All services are implemented in `backend/src/mcp-servers/` with this multi-tenant structure:
 
 ```
 backend/src/mcp-servers/
 ├── figma/
-│   ├── index.js          # Entry point - starts the service
-│   ├── endpoints/        # MCP protocol endpoints
-│   ├── api/              # Service-specific API logic
-│   └── utils/            # Helper functions
+│   ├── index.js               # Entry point - multi-tenant routing
+│   ├── endpoints/             # MCP protocol endpoints
+│   ├── api/                   # Service-specific API logic
+│   ├── utils/                 # Helper functions
+│   ├── services/
+│   │   └── database.js        # Instance credential lookup
+│   └── middleware/
+│       └── instance-auth.js   # Instance authentication
 ├── github/
-│   ├── index.js          # Entry point - starts the service
-│   ├── endpoints/        # MCP protocol endpoints
-│   ├── api/              # Service-specific API logic
-│   └── utils/            # Helper functions
+│   ├── index.js               # Entry point - multi-tenant routing
+│   ├── endpoints/             # MCP protocol endpoints
+│   ├── api/                   # Service-specific API logic
+│   ├── utils/                 # Helper functions
+│   ├── services/
+│   │   └── database.js        # Instance credential lookup
+│   └── middleware/
+│       └── instance-auth.js   # Instance authentication
 └── slack/
-    ├── index.js          # Entry point - starts the service
-    ├── endpoints/        # MCP protocol endpoints
-    ├── api/              # Service-specific API logic
-    └── utils/            # Helper functions
+    ├── index.js               # Entry point - multi-tenant routing
+    ├── endpoints/             # MCP protocol endpoints
+    ├── api/                   # Service-specific API logic
+    ├── utils/                 # Helper functions
+    ├── services/
+    │   └── database.js        # Instance credential lookup
+    └── middleware/
+        └── instance-auth.js   # Instance authentication
 ```
 
-### How Each Service Works
+### How Each Multi-Tenant Service Works
 
 1. **index.js**: Main entry point that:
 
     - Contains service configuration (port, name, auth type) directly in the file
-    - Sets up Express server on the configured port
-    - Loads endpoints from the endpoints/ folder
-    - Configures MCP protocol handlers
-    - Starts listening for requests
+    - Sets up Express server with multi-tenant routing (`:instanceId` parameters)
+    - Configures both global and instance-specific endpoints
+    - Uses instance authentication middleware for protected endpoints
+    - Starts listening for requests without database dependencies
 
 2. **endpoints/** folder: Contains MCP protocol endpoints:
 
-    - `health.js` - Health check endpoint
-    - `tools.js` - Available tools endpoint
-    - `call.js` - Tool execution endpoint
+    - `health.js` - Health check handlers (global and instance-specific)
+    - `tools.js` - Available tools endpoint with MCP compliance
+    - `call.js` - Tool execution endpoint with user credential integration
     - Service-specific endpoint files
 
 3. **api/** folder: Service-specific API logic:
 
-    - External API integration code
+    - External API integration code using user credentials
     - Data transformation functions
-    - Service-specific business logic
+    - Service-specific business logic with user context
 
-4. **utils/** folder: Helper functions and utilities:
+4. **services/** folder: Multi-tenant service layer:
+
+    - `database.js` - Instance credential lookup and validation
+    - Usage tracking and analytics per instance
+    - Instance status management (active/inactive/expired)
+
+5. **middleware/** folder: Authentication and routing:
+
+    - `instance-auth.js` - Instance-based authentication middleware
+    - UUID validation and database credential lookup
+    - User isolation and request context management
+
+6. **utils/** folder: Helper functions and utilities:
     - Common utility functions
-    - Authentication helpers
-    - Data validation functions
+    - Input validation and sanitization
+    - Shared service utilities
+
+### Multi-Tenant URL Structure
+
+**Global Endpoints (Service-level):**
+```
+GET  /health                                    # Service health check
+```
+
+**Instance-Based Endpoints (User-specific):**
+```
+GET  /:instanceId/health                        # Instance health check
+GET  /:instanceId/mcp/tools                     # MCP tools discovery
+POST /:instanceId/mcp/call                      # MCP tool execution
+GET  /:instanceId/api/files/:fileKey            # Direct API access
+```
+
+**Production URLs through Nginx:**
+```
+https://domain.com/figma/550e8400-e29b-41d4-a716-446655440000/mcp/call
+https://domain.com/github/7c4a8d09-6f91-4c87-b9e2-3f2d4e5a6b7c/mcp/call
+https://domain.com/slack/a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d/mcp/call
+```
+
+**Request Flow:**
+1. Nginx routes `/figma/*` to `localhost:49280`
+2. Service extracts `instanceId` from path
+3. Database lookup for user credentials
+4. Tool execution with user-specific API key
+5. Complete user isolation and tracking
 
 ## Step-by-Step Implementation Process
 
-### Step 1: Create Service Implementation
+### Step 1: Create Multi-Tenant Service Implementation
 
 1. **Create service folder** in `backend/src/mcp-servers/servicename/`
 
-2. **Implement index.js** entry point:
+2. **Implement index.js** entry point with multi-tenant routing:
 
     - Define service configuration directly in file (name, port, auth type)
-    - Set up Express server on configured port
-    - Load and register endpoint handlers from endpoints/ folder
-    - Start listening for requests
+    - Set up Express server with instance-based routing (`/:instanceId/*`)
+    - Configure both global and instance-specific endpoints
+    - Load instance authentication middleware
+    - Start listening for requests without database dependencies
 
 3. **Create endpoints/** folder with MCP handlers:
 
-    - `health.js` - Health check endpoint
-    - `tools.js` - List available tools
-    - `call.js` - Execute tool calls
+    - `health.js` - Health check handlers (global and instance-specific)
+    - `tools.js` - List available tools with MCP compliance
+    - `call.js` - Execute tool calls with user credential integration
     - Service-specific endpoints as needed
 
 4. **Build api/** folder with service logic:
 
-    - External API integration
-    - Data processing and transformation
-    - Business logic specific to the service
+    - External API integration using user-specific credentials
+    - Data processing and transformation with user context
+    - Business logic specific to the service with isolation
 
-5. **Add utils/** folder for helpers:
+5. **Create services/** folder for multi-tenant logic:
+
+    - `database.js` - Instance credential lookup and validation
+    - Usage tracking and analytics per instance
+    - Instance status management (active/inactive/expired)
+
+6. **Add middleware/** folder for authentication:
+
+    - `instance-auth.js` - Instance-based authentication middleware
+    - UUID validation and database credential lookup
+    - User isolation and request context management
+
+7. **Add utils/** folder for helpers:
     - Common utility functions
-    - Authentication and validation helpers
+    - Input validation and sanitization
     - Shared service utilities
 
 ### Step 2: Update Startup Script
@@ -160,7 +227,7 @@ Each service defines its configuration directly in index.js:
 // Service configuration
 const SERVICE_CONFIG = {
 	name: 'Figma',
-	port: 49160,
+	port: <port>,
 	authType: 'api_key',
 	description: 'Access Figma files and designs',
 	version: '1.0.0',
@@ -274,7 +341,7 @@ Each service provides a `/health` endpoint that returns:
 	"status": "healthy",
 	"uptime": 3600,
 	"timestamp": "2024-01-15T10:30:00Z",
-	"port": 49160,
+	"port": "<port>",
 	"version": "1.0.0"
 }
 ```
