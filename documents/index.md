@@ -46,6 +46,17 @@ Contains documentation for client-side components and user interface:
 - **[How to Create MCP Servers](./how-to-create-mcp-servers-simple.md)** - Comprehensive step-by-step guide for creating MCP servers from any API documentation
 - **[Automated MCP Generation](./automated-mcp.md)** - Detailed implementation plan for creating an automated MCP server generation system that transforms REST APIs into MCP servers using OpenAPI documentation
 
+### Shared Instances Architecture (`/shared-instances/`)
+**NEW** - Complete documentation for the migration from dynamic service creation to shared instance architecture:
+
+- **[README](../shared-instances/README.md)** - Overview of shared instances architecture and key concepts
+- **[Architecture Overview](../shared-instances/architecture-overview.md)** - Detailed comparison of current vs target architecture with service flow examples
+- **[Migration Plan](../shared-instances/migration-plan.md)** - Step-by-step migration guide with timeline and risk mitigation
+- **[Technical Implementation](../shared-instances/technical-implementation.md)** - Complete code examples and implementation patterns
+- **[Database Schema](../shared-instances/database-schema.md)** - New database structure and migration scripts
+- **[Service Isolation](../shared-instances/service-isolation.md)** - Security patterns and user isolation strategies
+- **[Figma Service Example](../shared-instances/examples/figma-service-example.md)** - Complete walkthrough using Figma as a concrete example
+
 ### Architecture Documentation (New - 2025-07-10)
 - **[Component Organization Patterns](./component-organization-patterns.md)** - Comprehensive guide to the new component organization patterns implementing CLAUDE.md compliance
 - **[Custom Hooks and Utilities](./custom-hooks-utilities.md)** - Documentation for custom hooks and utility functions that support the refactored architecture

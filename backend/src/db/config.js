@@ -44,7 +44,7 @@ export async function testConnection() {
  * Check if required database tables exist
  */
 export async function checkDatabaseTables() {
-	const requiredTables = ['users', 'mcp_types', 'api_keys', 'mcp_instances'];
+	const requiredTables = ['users', 'mcp_table', 'mcp_service_table'];
 	
 	try {
 		const client = await pool.connect();
