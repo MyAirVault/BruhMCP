@@ -11,6 +11,9 @@ import { healthCheck } from './endpoints/health.js';
 import { getTools } from './endpoints/tools.js';
 import { executeToolCall } from './endpoints/call.js';
 import { createInstanceAuthMiddleware, createPublicMiddleware } from './middleware/instance-auth.js';
+import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
 
 // Service configuration (from database)
 const SERVICE_CONFIG = {
@@ -24,6 +27,9 @@ const SERVICE_CONFIG = {
 
 console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVICE_CONFIG.port}`);
 
+// Initialize Phase 2 credential caching system
+initializeCredentialCache();
+
 // Initialize Express app
 const app = express();
 
@@ -32,9 +38,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Create authentication middleware
-const instanceAuthMiddleware = createInstanceAuthMiddleware();
-const publicMiddleware = createPublicMiddleware();
+// Add cache performance monitoring in development
+if (process.env.NODE_ENV === 'development') {
+	app.use(createCachePerformanceMiddleware());
+}
+
+// Create authentication middleware (Phase 2 with caching)
+const credentialAuthMiddleware = createCredentialAuthMiddleware();
+const lightweightAuthMiddleware = createLightweightAuthMiddleware();
+
+// Legacy middleware (fallback - keeping for compatibility)
+// const instanceAuthMiddleware = createInstanceAuthMiddleware();
+// const publicMiddleware = createPublicMiddleware();
 
 // Global health endpoint (no instance required)
 app.get('/health', (_, res) => {
@@ -54,8 +69,8 @@ app.get('/health', (_, res) => {
 
 // Instance-based endpoints with multi-tenant routing
 
-// Instance health endpoint
-app.get('/:instanceId/health', publicMiddleware, (req, res) => {
+// Instance health endpoint (using lightweight auth - no credential caching needed)
+app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
   try {
     const healthStatus = {
       ...healthCheck(SERVICE_CONFIG),
@@ -75,8 +90,8 @@ app.get('/:instanceId/health', publicMiddleware, (req, res) => {
   }
 });
 
-// Get available tools (no auth required for discovery)
-app.get('/:instanceId/mcp/tools', publicMiddleware, (req, res) => {
+// Get available tools (using lightweight auth - basic validation only)
+app.get('/:instanceId/mcp/tools', lightweightAuthMiddleware, (req, res) => {
   try {
     const tools = {
       ...getTools(),
@@ -94,8 +109,8 @@ app.get('/:instanceId/mcp/tools', publicMiddleware, (req, res) => {
   }
 });
 
-// Execute tool calls (requires instance authentication)
-app.post('/:instanceId/mcp/call', instanceAuthMiddleware, async (req, res) => {
+// Execute tool calls (requires full credential authentication with caching)
+app.post('/:instanceId/mcp/call', credentialAuthMiddleware, async (req, res) => {
   try {
     const { name, arguments: args } = req.body;
     
@@ -120,7 +135,8 @@ app.post('/:instanceId/mcp/call', instanceAuthMiddleware, async (req, res) => {
     res.json({
       ...result,
       instanceId: req.instanceId,
-      userId: req.instance?.user_id
+      userId: req.userId,
+      cache_hit: req.cacheHit
     });
     
   } catch (error) {
@@ -141,8 +157,8 @@ app.post('/:instanceId/mcp/call', instanceAuthMiddleware, async (req, res) => {
 
 // Additional endpoints for direct API access (authenticated)
 
-// Get file info directly
-app.get('/:instanceId/api/files/:fileKey', instanceAuthMiddleware, async (req, res) => {
+// Get file info directly (requires full credential authentication with caching)
+app.get('/:instanceId/api/files/:fileKey', credentialAuthMiddleware, async (req, res) => {
   try {
     const { fileKey } = req.params;
     const result = await executeToolCall('get_figma_file', { fileKey }, req.figmaApiKey || '');
@@ -160,8 +176,8 @@ app.get('/:instanceId/api/files/:fileKey', instanceAuthMiddleware, async (req, r
   }
 });
 
-// Get components directly
-app.get('/:instanceId/api/files/:fileKey/components', instanceAuthMiddleware, async (req, res) => {
+// Get components directly (requires full credential authentication with caching)
+app.get('/:instanceId/api/files/:fileKey/components', credentialAuthMiddleware, async (req, res) => {
   try {
     const { fileKey } = req.params;
     const result = await executeToolCall('get_figma_components', { fileKey }, req.figmaApiKey || '');
@@ -178,6 +194,29 @@ app.get('/:instanceId/api/files/:fileKey/components', instanceAuthMiddleware, as
     });
   }
 });
+
+// Debug endpoint for cache monitoring (development only)
+if (process.env.NODE_ENV === 'development') {
+  app.get('/debug/cache-status', (_, res) => {
+    try {
+      const cacheStats = getCacheStatistics();
+      const watcherStatus = getWatcherStatus();
+      
+      res.json({
+        service: SERVICE_CONFIG.name,
+        cache_statistics: cacheStats,
+        watcher_status: watcherStatus,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({
+        error: 'Failed to get cache status',
+        message: errorMessage
+      });
+    }
+  });
+}
 
 // Error handling middleware
 /**
@@ -222,11 +261,16 @@ const server = app.listen(SERVICE_CONFIG.port, () => {
   console.log(`📞 MCP Call: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp/call`);
   console.log(`📁 File API: GET http://localhost:${SERVICE_CONFIG.port}/:instanceId/api/files/:fileKey`);
   console.log(`🌐 Multi-tenant architecture enabled with instance-based routing`);
+  console.log(`🚀 Phase 2: Credential caching system enabled`);
+  
+  // Start Phase 2 credential watcher for background maintenance
+  startCredentialWatcher();
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
+  stopCredentialWatcher();
   server.close(() => {
     console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
     process.exit(0);
@@ -235,6 +279,7 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
+  stopCredentialWatcher();
   server.close(() => {
     console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
     process.exit(0);

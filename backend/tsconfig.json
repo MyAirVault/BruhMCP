@@ -35,8 +35,8 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["node"]
+    "types": ["node", "@types/express"]
   },
-  "include": ["src/**/*.js"],
+  "include": ["src/**/*.js", "src/**/*.d.ts"],
   "exclude": ["node_modules/**/*", "coverage/**/*", "eslint.config.js"]
 }

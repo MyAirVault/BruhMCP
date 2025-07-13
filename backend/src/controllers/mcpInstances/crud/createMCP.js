@@ -8,6 +8,9 @@ import { pool } from '../../../db/config.js';
 import { createMCPSchema } from '../schemas.js';
 import { calculateExpirationDate } from '../utils.js';
 
+/** @typedef {import('express').Request} Request */
+/** @typedef {import('express').Response} Response */
+
 /**
  * Create new MCP instance with multi-tenant support
  * @param {Request} req - Express request object
@@ -15,7 +18,15 @@ import { calculateExpirationDate } from '../utils.js';
  */
 export async function createMCP(req, res) {
 	try {
-		const userId = req.user.id;
+		const userId = req.user?.id;
+		if (!userId) {
+			return res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User authentication required'
+				}
+			});
+		}
 
 		// Validate request body
 		const validationResult = createMCPSchema.safeParse(req.body);
@@ -33,7 +44,7 @@ export async function createMCP(req, res) {
 			});
 		}
 
-		const { mcp_type, custom_name, expiration_option, credentials, config } = validationResult.data;
+		const { mcp_type, custom_name, expiration_option, credentials } = validationResult.data;
 
 		// Check user instance limits
 		const userInstancesQuery = `
@@ -44,8 +55,8 @@ export async function createMCP(req, res) {
 		`;
 		
 		const userInstancesResult = await pool.query(userInstancesQuery, [userId]);
-		const currentInstances = parseInt(userInstancesResult.rows[0].count);
-		const maxInstances = parseInt(process.env.MCP_MAX_INSTANCES) || 10;
+		const currentInstances = Number(userInstancesResult.rows[0].count);
+		const maxInstances = Number(process.env.MCP_MAX_INSTANCES) || 10;
 
 		if (currentInstances >= maxInstances) {
 			return res.status(400).json({
@@ -238,11 +249,12 @@ export async function createMCP(req, res) {
 
 	} catch (error) {
 		console.error('Error creating MCP instance:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
 				message: 'An unexpected error occurred',
-				details: process.env.NODE_ENV === 'development' ? error.message : undefined
+				details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
 			},
 		});
 	}
@@ -251,10 +263,20 @@ export async function createMCP(req, res) {
 /**
  * Validate credentials against external service (optional)
  * This can be called before instance creation for real-time validation
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
  */
 export async function validateMCPCredentials(req, res) {
 	try {
-		const { mcp_type, credentials } = req.body;
+		const { mcp_type } = req.body;
+		if (!mcp_type) {
+			return res.status(400).json({
+				error: {
+					code: 'MISSING_PARAMETER',
+					message: 'mcp_type is required'
+				}
+			});
+		}
 
 		// Get service configuration
 		const mcpServiceQuery = `
@@ -282,7 +304,6 @@ export async function validateMCPCredentials(req, res) {
 			const serviceUrl = `http://localhost:${mcpService.port}/health`;
 			const testResponse = await fetch(serviceUrl, {
 				method: 'GET',
-				timeout: 5000,
 			});
 
 			if (testResponse.ok) {
@@ -301,10 +322,11 @@ export async function validateMCPCredentials(req, res) {
 				});
 			}
 		} catch (serviceError) {
+			const errorMessage = serviceError instanceof Error ? serviceError.message : String(serviceError);
 			res.status(400).json({
 				valid: false,
 				error: 'Unable to validate credentials - service unavailable',
-				details: serviceError.message
+				details: errorMessage
 			});
 		}
 

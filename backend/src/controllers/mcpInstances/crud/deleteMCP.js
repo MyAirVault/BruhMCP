@@ -1,6 +1,9 @@
 import { getMCPInstanceById, deleteMCPInstance } from '../../../db/queries/mcpInstancesQueries.js';
 import processManager from '../../../services/processManager.js';
 
+/** @typedef {import('express').Request} Request */
+/** @typedef {import('express').Response} Response */
+
 /**
  * Delete MCP instance
  * @param {Request} req - Express request object
@@ -8,8 +11,25 @@ import processManager from '../../../services/processManager.js';
  */
 export async function deleteMCP(req, res) {
 	try {
-		const userId = req.user.id;
+		const userId = req.user?.id;
+		if (!userId) {
+			return res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User authentication required'
+				}
+			});
+		}
+		
 		const { id } = req.params;
+		if (!id) {
+			return res.status(400).json({
+				error: {
+					code: 'MISSING_PARAMETER',
+					message: 'Instance ID is required'
+				}
+			});
+		}
 
 		const instance = await getMCPInstanceById(id, userId);
 		if (!instance) {
@@ -34,7 +54,7 @@ export async function deleteMCP(req, res) {
 
 		console.log(`✅ MCP instance ${id} deleted successfully`);
 
-		res.json({
+		res.status(200).json({
 			data: {
 				message: 'MCP instance and credentials permanently deleted',
 			},
