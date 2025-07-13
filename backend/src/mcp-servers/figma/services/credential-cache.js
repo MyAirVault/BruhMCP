@@ -149,3 +149,77 @@ export function clearCredentialCache() {
 export function peekCachedCredential(instanceId) {
 	return figmaCredentialCache.get(instanceId) || null;
 }
+
+/**
+ * Update cached credential metadata (status, expiration) without changing the credential itself
+ * Used for status changes and renewals to keep cache in sync
+ * @param {string} instanceId - UUID of the service instance
+ * @param {Object} updates - Updates to apply to cache entry
+ * @param {string} [updates.status] - New instance status
+ * @param {string} [updates.expires_at] - New expiration timestamp
+ * @returns {boolean} True if cache entry was updated, false if not found
+ */
+export function updateCachedCredentialMetadata(instanceId, updates) {
+	const cached = figmaCredentialCache.get(instanceId);
+	if (!cached) {
+		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
+		return false;
+	}
+
+	// Update metadata fields
+	if (updates.expires_at !== undefined) {
+		cached.expires_at = updates.expires_at;
+		console.log(`📅 Updated cached expiration for instance ${instanceId}: ${updates.expires_at}`);
+	}
+
+	if (updates.status !== undefined) {
+		cached.status = updates.status;
+		console.log(`🔄 Updated cached status for instance ${instanceId}: ${updates.status}`);
+	}
+
+	// Update last modified timestamp
+	cached.last_modified = new Date().toISOString();
+
+	figmaCredentialCache.set(instanceId, cached);
+	return true;
+}
+
+/**
+ * Remove expired or inactive instances from cache
+ * Called by background watcher and status change operations
+ * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
+ * @returns {number} Number of entries removed
+ */
+export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+	let removedCount = 0;
+	const now = new Date();
+
+	for (const [instanceId, cached] of figmaCredentialCache.entries()) {
+		let shouldRemove = false;
+		let removeReason = '';
+
+		// Remove expired entries
+		if (cached.expires_at && new Date(cached.expires_at) < now) {
+			shouldRemove = true;
+			removeReason = 'expired';
+		}
+
+		// Remove inactive entries (if status is tracked in cache)
+		if (cached.status && ['inactive', 'expired'].includes(cached.status)) {
+			shouldRemove = true;
+			removeReason = cached.status;
+		}
+
+		if (shouldRemove) {
+			figmaCredentialCache.delete(instanceId);
+			removedCount++;
+			console.log(`🗑️ Removed ${removeReason} cache entry for instance: ${instanceId}`);
+		}
+	}
+
+	if (removedCount > 0) {
+		console.log(`🧹 Cache cleanup (${reason}): removed ${removedCount} invalid entries`);
+	}
+
+	return removedCount;
+}
