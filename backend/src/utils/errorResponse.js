@@ -1,0 +1,191 @@
+/**
+ * Standardized error response utility
+ * Provides consistent error formatting across the entire backend
+ * @fileoverview Creates uniform error responses for all API endpoints
+ */
+
+/**
+ * Standard error response structure
+ * @typedef {Object} ErrorResponse
+ * @property {Object} error - Error details
+ * @property {string} error.code - Error code (e.g., 'VALIDATION_ERROR', 'NOT_FOUND')
+ * @property {string} error.message - Human-readable error message
+ * @property {Array<Object>} [error.details] - Additional error details (for validation errors)
+ * @property {string} [error.instanceId] - Instance ID if applicable
+ * @property {string} [error.userId] - User ID if applicable
+ * @property {string} error.timestamp - ISO timestamp of when error occurred
+ */
+
+/**
+ * Creates a standardized error response
+ * @param {number} statusCode - HTTP status code
+ * @param {string} code - Error code (uppercase with underscores)
+ * @param {string} message - Human-readable error message
+ * @param {Object} [options] - Additional options
+ * @param {Array<Object>} [options.details] - Validation error details
+ * @param {string} [options.instanceId] - Instance ID
+ * @param {string} [options.userId] - User ID
+ * @param {Object} [options.metadata] - Additional metadata
+ * @returns {Object} Standardized error response object
+ */
+export function createErrorResponse(statusCode, code, message, options = {}) {
+	const errorResponse = {
+		error: {
+			code,
+			message,
+			timestamp: new Date().toISOString(),
+		},
+	};
+
+	// Add optional fields if provided
+	if (options.details && Array.isArray(options.details)) {
+		errorResponse.error.details = options.details;
+	}
+
+	if (options.instanceId) {
+		errorResponse.error.instanceId = options.instanceId;
+	}
+
+	if (options.userId) {
+		errorResponse.error.userId = options.userId;
+	}
+
+	if (options.metadata && typeof options.metadata === 'object') {
+		errorResponse.error.metadata = options.metadata;
+	}
+
+	return errorResponse;
+}
+
+/**
+ * Sends a standardized error response
+ * @param {import('express').Response} res - Express response object
+ * @param {number} statusCode - HTTP status code
+ * @param {string} code - Error code
+ * @param {string} message - Error message
+ * @param {Object} [options] - Additional options
+ */
+export function sendErrorResponse(res, statusCode, code, message, options = {}) {
+	const errorResponse = createErrorResponse(statusCode, code, message, options);
+	res.status(statusCode).json(errorResponse);
+}
+
+/**
+ * Common error response helpers for frequent use cases
+ */
+export const ErrorResponses = {
+	// Authentication & Authorization
+	unauthorized: (res, message = 'Authentication required', options = {}) =>
+		sendErrorResponse(res, 401, 'UNAUTHORIZED', message, options),
+
+	forbidden: (res, message = 'Access denied', options = {}) =>
+		sendErrorResponse(res, 403, 'FORBIDDEN', message, options),
+
+	invalidToken: (res, message = 'Invalid or expired authentication token', options = {}) =>
+		sendErrorResponse(res, 401, 'INVALID_AUTH_TOKEN', message, options),
+
+	missingToken: (res, message = 'Authentication token required', options = {}) =>
+		sendErrorResponse(res, 401, 'MISSING_AUTH_TOKEN', message, options),
+
+	// Validation
+	validation: (res, message = 'Invalid request parameters', details = [], options = {}) =>
+		sendErrorResponse(res, 400, 'VALIDATION_ERROR', message, { ...options, details }),
+
+	invalidInput: (res, message = 'Invalid input provided', options = {}) =>
+		sendErrorResponse(res, 400, 'INVALID_INPUT', message, options),
+
+	missingField: (res, field, options = {}) =>
+		sendErrorResponse(res, 400, 'MISSING_FIELD', `Required field '${field}' is missing`, options),
+
+	// Resource Management
+	notFound: (res, resource = 'Resource', options = {}) =>
+		sendErrorResponse(res, 404, 'NOT_FOUND', `${resource} not found`, options),
+
+	alreadyExists: (res, resource = 'Resource', options = {}) =>
+		sendErrorResponse(res, 409, 'ALREADY_EXISTS', `${resource} already exists`, options),
+
+	// Instance-specific
+	instanceNotFound: (res, instanceId, options = {}) =>
+		sendErrorResponse(res, 404, 'INSTANCE_NOT_FOUND', 'MCP instance not found or access denied', {
+			instanceId,
+			...options,
+		}),
+
+	instanceUnavailable: (res, instanceId, options = {}) =>
+		sendErrorResponse(res, 502, 'INSTANCE_NOT_AVAILABLE', `MCP instance is not available or not running`, {
+			instanceId,
+			...options,
+		}),
+
+	// Service Management
+	serviceDisabled: (res, serviceName, options = {}) =>
+		sendErrorResponse(res, 503, 'SERVICE_DISABLED', `${serviceName} service is currently disabled`, options),
+
+	serviceUnavailable: (res, serviceName = 'Service', options = {}) =>
+		sendErrorResponse(res, 503, 'SERVICE_UNAVAILABLE', `${serviceName} is temporarily unavailable`, options),
+
+	// Rate Limiting
+	rateLimited: (res, message = 'Too many requests', options = {}) =>
+		sendErrorResponse(res, 429, 'RATE_LIMITED', message, options),
+
+	// Server Errors
+	internal: (res, message = 'Internal server error', options = {}) =>
+		sendErrorResponse(res, 500, 'INTERNAL_ERROR', message, options),
+
+	databaseError: (res, message = 'Database operation failed', options = {}) =>
+		sendErrorResponse(res, 500, 'DATABASE_ERROR', message, options),
+
+	// External API Errors
+	externalApiError: (res, service, message = 'External service error', options = {}) =>
+		sendErrorResponse(res, 502, 'EXTERNAL_API_ERROR', `${service}: ${message}`, options),
+
+	credentialsInvalid: (res, service, options = {}) =>
+		sendErrorResponse(res, 400, 'INVALID_CREDENTIALS', `Invalid credentials for ${service}`, options),
+};
+
+/**
+ * Converts Zod validation errors to standard format
+ * @param {import('zod').ZodError} zodError - Zod validation error
+ * @returns {Array<Object>} Formatted validation details
+ */
+export function formatZodErrors(zodError) {
+	return zodError.errors.map(err => ({
+		field: err.path.join('.'),
+		message: err.message,
+		code: err.code,
+	}));
+}
+
+/**
+ * Error handler middleware for Express
+ * Catches unhandled errors and formats them consistently
+ * @param {Error} err - Error object
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ */
+export function errorHandler(err, req, res, next) {
+	console.error(`Unhandled error on ${req.method} ${req.originalUrl}:`, err);
+
+	// Check if response was already sent
+	if (res.headersSent) {
+		return next(err);
+	}
+
+	// Handle specific error types
+	if (err.name === 'ValidationError') {
+		return ErrorResponses.validation(res, err.message);
+	}
+
+	if (err.name === 'UnauthorizedError') {
+		return ErrorResponses.unauthorized(res, err.message);
+	}
+
+	// Default internal server error
+	ErrorResponses.internal(res, 'An unexpected error occurred', {
+		metadata: {
+			path: req.originalUrl,
+			method: req.method,
+		},
+	});
+}

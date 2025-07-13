@@ -10,10 +10,10 @@ import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
 import { getTools } from './endpoints/tools.js';
 import { executeToolCall } from './endpoints/call.js';
-import { createInstanceAuthMiddleware, createPublicMiddleware } from './middleware/instance-auth.js';
 import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
 import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
 import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
+import { ErrorResponses } from '../../utils/errorResponse.js';
 
 // Service configuration (from database)
 const SERVICE_CONFIG = {
@@ -47,9 +47,6 @@ if (process.env.NODE_ENV === 'development') {
 const credentialAuthMiddleware = createCredentialAuthMiddleware();
 const lightweightAuthMiddleware = createLightweightAuthMiddleware();
 
-// Legacy middleware (fallback - keeping for compatibility)
-// const instanceAuthMiddleware = createInstanceAuthMiddleware();
-// const publicMiddleware = createPublicMiddleware();
 
 // Global health endpoint (no instance required)
 app.get('/health', (_, res) => {
@@ -58,11 +55,8 @@ app.get('/health', (_, res) => {
     res.json(healthStatus);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({
-      service: SERVICE_CONFIG.name,
-      status: 'unhealthy',
-      error: errorMessage,
-      timestamp: new Date().toISOString()
+    ErrorResponses.internal(res, `${SERVICE_CONFIG.displayName} service health check failed`, {
+      metadata: { service: SERVICE_CONFIG.name, errorMessage }
     });
   }
 });
@@ -80,12 +74,9 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
     res.json(healthStatus);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({
-      service: SERVICE_CONFIG.name,
-      status: 'unhealthy',
-      error: errorMessage,
+    ErrorResponses.internal(res, `${SERVICE_CONFIG.displayName} instance health check failed`, {
       instanceId: req.instanceId,
-      timestamp: new Date().toISOString()
+      metadata: { service: SERVICE_CONFIG.name, errorMessage }
     });
   }
 });
@@ -101,10 +92,9 @@ app.get('/:instanceId/mcp/tools', lightweightAuthMiddleware, (req, res) => {
     res.json(tools);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({
-      error: 'Failed to retrieve tools',
-      message: errorMessage,
-      instanceId: req.instanceId
+    ErrorResponses.internal(res, 'Failed to retrieve tools', {
+      instanceId: req.instanceId,
+      metadata: { errorMessage }
     });
   }
 });
@@ -115,19 +105,11 @@ app.post('/:instanceId/mcp/call', credentialAuthMiddleware, async (req, res) => 
     const { name, arguments: args } = req.body;
     
     if (!name) {
-      return res.status(400).json({
-        error: 'Tool name is required',
-        message: 'Request body must include "name" field',
-        instanceId: req.instanceId
-      });
+      return ErrorResponses.missingField(res, 'name', { instanceId: req.instanceId });
     }
     
     if (!args) {
-      return res.status(400).json({
-        error: 'Tool arguments are required',
-        message: 'Request body must include "arguments" field',
-        instanceId: req.instanceId
-      });
+      return ErrorResponses.missingField(res, 'arguments', { instanceId: req.instanceId });
     }
     
     // Execute the tool call with the instance's API key
@@ -141,16 +123,12 @@ app.post('/:instanceId/mcp/call', credentialAuthMiddleware, async (req, res) => 
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({
-      error: 'Tool execution failed',
-      message: errorMessage,
+    ErrorResponses.internal(res, 'Tool execution failed', {
       instanceId: req.instanceId,
-      content: [
-        {
-          type: 'text',
-          text: `Error: ${errorMessage}`
-        }
-      ]
+      metadata: { 
+        errorMessage,
+        content: [{ type: 'text', text: `Error: ${errorMessage}` }]
+      }
     });
   }
 });
@@ -228,27 +206,26 @@ if (process.env.NODE_ENV === 'development') {
 app.use((err, _, res, __) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: errorMessage,
-    service: SERVICE_CONFIG.name
+  ErrorResponses.internal(res, 'Internal server error', {
+    metadata: { service: SERVICE_CONFIG.name, errorMessage }
   });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Endpoint not found',
-    message: `${req.method} ${req.originalUrl} is not supported`,
-    service: SERVICE_CONFIG.name,
-    availableEndpoints: [
-      'GET /health (global)',
-      'GET /:instanceId/health',
-      'GET /:instanceId/mcp/tools',
-      'POST /:instanceId/mcp/call',
-      'GET /:instanceId/api/files/:fileKey',
-      'GET /:instanceId/api/files/:fileKey/components'
-    ]
+  ErrorResponses.notFound(res, 'Endpoint', {
+    metadata: {
+      service: SERVICE_CONFIG.name,
+      requested: `${req.method} ${req.originalUrl}`,
+      availableEndpoints: [
+        'GET /health (global)',
+        'GET /:instanceId/health',
+        'GET /:instanceId/mcp/tools',
+        'POST /:instanceId/mcp/call',
+        'GET /:instanceId/api/files/:fileKey',
+        'GET /:instanceId/api/files/:fileKey/components'
+      ]
+    }
   });
 });
 

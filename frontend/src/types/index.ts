@@ -41,9 +41,8 @@ export interface MCPInstance {
   instance_number: number;
   access_token: string;
   access_url: string;
-  assigned_port: number;
   process_id?: number;
-  status: 'active' | 'inactive' | 'expired' | 'pending';
+  status: 'active' | 'inactive' | 'expired';
   is_active: boolean;
   expiration_option: string;
   expires_at: string;

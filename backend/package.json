@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "lsof -ti:5000 | xargs -r kill && nodemon src/index.js",
-    "dev:with-services": "./scripts/start-all-services.sh && npm run dev",
+    "dev:all-services": "./scripts/start-all-services.sh && npm run dev",
     "build": "tsc",
     "build:frontend": "cd ../frontend && npm run build && rm -rf ../backend/public/* && cp -r dist/* ../backend/public/",
     "start": "npm run build:frontend && node src/index.js",

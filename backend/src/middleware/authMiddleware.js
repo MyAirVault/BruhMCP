@@ -2,6 +2,7 @@
 import { verifyJWT } from '../utils/jwt.js';
 import { findUserByEmail } from '../db/queries/userQueries.js';
 import loggingService from '../services/logging/loggingService.js';
+import { ErrorResponses } from '../utils/errorResponse.js';
 
 /**
  * Authentication middleware that validates JWT tokens from cookies
@@ -19,12 +20,7 @@ export async function authenticate(req, res, next) {
 			endpoint: req.originalUrl
 		});
 
-		return res.status(401).json({
-			error: {
-				code: 'MISSING_AUTH_TOKEN',
-				message: 'Authentication required',
-			},
-		});
+		return ErrorResponses.missingToken(res);
 	}
 
 	const payload = verifyJWT(token);
@@ -36,12 +32,7 @@ export async function authenticate(req, res, next) {
 			endpoint: req.originalUrl
 		});
 
-		return res.status(401).json({
-			error: {
-				code: 'INVALID_AUTH_TOKEN',
-				message: 'Invalid or expired authentication token',
-			},
-		});
+		return ErrorResponses.invalidToken(res);
 	}
 
 	try {
@@ -56,12 +47,7 @@ export async function authenticate(req, res, next) {
 				endpoint: req.originalUrl
 			});
 
-			return res.status(401).json({
-				error: {
-					code: 'USER_NOT_FOUND',
-					message: 'User not found',
-				},
-			});
+			return ErrorResponses.unauthorized(res, 'User not found');
 		}
 
 		// Add user info to request object
@@ -87,12 +73,7 @@ export async function authenticate(req, res, next) {
 			critical: false
 		});
 
-		return res.status(500).json({
-			error: {
-				code: 'AUTHENTICATION_ERROR',
-				message: 'Authentication failed',
-			},
-		});
+		return ErrorResponses.internal(res, 'Authentication failed');
 	}
 }
 

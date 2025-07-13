@@ -4,9 +4,11 @@
  */
 
 import { randomUUID } from 'crypto';
-import { pool } from '../../../db/config.js';
 import { createMCPSchema } from '../schemas.js';
 import { calculateExpirationDate } from '../utils.js';
+import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
+import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats } from '../../../db/queries/mcpInstancesQueries.js';
+import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -20,92 +22,41 @@ export async function createMCP(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
-			return res.status(401).json({
-				error: {
-					code: 'UNAUTHORIZED',
-					message: 'User authentication required'
-				}
-			});
+			return ErrorResponses.unauthorized(res, 'User authentication required');
 		}
 
 		// Validate request body
 		const validationResult = createMCPSchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			return res.status(400).json({
-				error: {
-					code: 'VALIDATION_ERROR',
-					message: 'Invalid request parameters',
-					details: validationResult.error.errors.map(err => ({
-						field: err.path.join('.'),
-						message: err.message,
-					})),
-				},
-			});
+			return ErrorResponses.validation(res, 'Invalid request parameters', formatZodErrors(validationResult.error));
 		}
 
 		const { mcp_type, custom_name, expiration_option, credentials } = validationResult.data;
 
 		// Check user instance limits
-		const userInstancesQuery = `
-			SELECT COUNT(*) as count 
-			FROM mcp_service_table ms
-			JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
-			WHERE ms.user_id = $1 AND ms.status != 'deleted'
-		`;
-		
-		const userInstancesResult = await pool.query(userInstancesQuery, [userId]);
-		const currentInstances = Number(userInstancesResult.rows[0].count);
+		const currentInstances = await getUserInstanceCount(userId);
 		const maxInstances = Number(process.env.MCP_MAX_INSTANCES) || 10;
 
 		if (currentInstances >= maxInstances) {
-			return res.status(400).json({
-				error: {
-					code: 'INSTANCE_LIMIT',
-					message: `Maximum instances per user reached (${maxInstances})`,
-					details: {
-						current: currentInstances,
-						maximum: maxInstances
-					}
-				},
+			return ErrorResponses.forbidden(res, `Maximum instances per user reached (${maxInstances})`, {
+				userId,
+				metadata: {
+					current: currentInstances,
+					maximum: maxInstances
+				}
 			});
 		}
 
 		// Get MCP service definition
-		const mcpServiceQuery = `
-			SELECT 
-				mcp_service_id, 
-				mcp_service_name, 
-				display_name, 
-				type, 
-				port, 
-				is_active,
-				total_instances_created,
-				active_instances_count
-			FROM mcp_table 
-			WHERE mcp_service_name = $1
-		`;
+		const mcpService = await getMCPTypeByName(mcp_type);
 		
-		const mcpServiceResult = await pool.query(mcpServiceQuery, [mcp_type]);
-		
-		if (mcpServiceResult.rows.length === 0) {
-			return res.status(404).json({
-				error: {
-					code: 'SERVICE_NOT_FOUND',
-					message: `MCP service '${mcp_type}' not found`,
-				},
-			});
+		if (!mcpService) {
+			return ErrorResponses.notFound(res, `MCP service '${mcp_type}'`);
 		}
 
-		const mcpService = mcpServiceResult.rows[0];
-
 		if (!mcpService.is_active) {
-			return res.status(503).json({
-				error: {
-					code: 'SERVICE_DISABLED',
-					message: `MCP service '${mcp_type}' is currently disabled`,
-				},
-			});
+			return ErrorResponses.serviceDisabled(res, mcp_type);
 		}
 
 		// Validate credentials based on auth type (Authentication Contract Enforcement)
@@ -158,66 +109,28 @@ export async function createMCP(req, res) {
 		const clientId = mcpService.type === 'oauth' ? credentials.client_id : null;
 		const clientSecret = mcpService.type === 'oauth' ? credentials.client_secret : null;
 
-		// Insert into mcp_service_table (new schema)
-		const insertInstanceQuery = `
-			INSERT INTO mcp_service_table (
-				instance_id,
-				user_id,
-				mcp_service_id,
-				api_key,
-				client_id,
-				client_secret,
-				status,
-				expires_at,
-				last_used_at,
-				usage_count,
-				custom_name,
-				renewed_count,
-				last_renewed_at,
-				credentials_updated_at,
-				created_at,
-				updated_at
-			) VALUES (
-				$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
-			) RETURNING *
-		`;
-
-		const insertResult = await pool.query(insertInstanceQuery, [
-			instanceId,
+		// Create MCP instance using abstracted function
+		const createdInstance = await createMCPInstance({
 			userId,
-			mcpService.mcp_service_id,
+			mcpServiceId: mcpService.mcp_service_id,
+			customName: custom_name || `${mcpService.display_name} Instance`,
 			apiKey,
 			clientId,
 			clientSecret,
-			'active',
-			expiresAt,
-			null, // last_used_at
-			0,    // usage_count
-			custom_name || `${mcpService.display_name} Instance`,
-			0,    // renewed_count
-			null, // last_renewed_at
-			new Date(), // credentials_updated_at
-		]);
-
-		const createdInstance = insertResult.rows[0];
+			expiresAt
+		});
 
 		// Update service statistics
-		const updateStatsQuery = `
-			UPDATE mcp_table 
-			SET 
-				total_instances_created = total_instances_created + 1,
-				active_instances_count = active_instances_count + 1,
-				updated_at = NOW()
-			WHERE mcp_service_id = $1
-		`;
-		
-		await pool.query(updateStatsQuery, [mcpService.mcp_service_id]);
+		await updateMCPServiceStats(mcpService.mcp_service_id, {
+			totalInstancesIncrement: 1,
+			activeInstancesIncrement: 1
+		});
 
-		// Build instance URL for multi-tenant architecture
-		const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-		const instanceUrl = `${baseUrl}/${mcpService.mcp_service_name}/${instanceId}`;
+		// Build instance URL using PUBLIC_DOMAIN for consistent format
+		const publicDomain = process.env.PUBLIC_DOMAIN || 'http://localhost:5000';
+		const instanceUrl = `${publicDomain}/${mcpService.mcp_service_name}/${createdInstance.instance_id}`;
 
-		console.log(`✅ MCP instance created: ${instanceId} for user ${userId} (${mcpService.mcp_service_name})`);
+		console.log(`✅ MCP instance created: ${createdInstance.instance_id} for user ${userId} (${mcpService.mcp_service_name})`);
 
 		// Return response with instance-based URL
 		res.status(201).json({

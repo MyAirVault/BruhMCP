@@ -1,6 +1,7 @@
 // @ts-check
 import { z } from 'zod';
 import { authService } from '../services/authService.js';
+import { ErrorResponses, formatZodErrors } from '../utils/errorResponse.js';
 
 // Zod validation schemas
 const authRequestSchema = z.object({
@@ -22,16 +23,7 @@ export async function requestToken(req, res) {
 		const validationResult = authRequestSchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			return res.status(400).json({
-				error: {
-					code: 'VALIDATION_ERROR',
-					message: 'Invalid request parameters',
-					details: validationResult.error.errors.map(err => ({
-						field: err.path.join('.'),
-						message: err.message,
-					})),
-				},
-			});
+			return ErrorResponses.validation(res, 'Invalid request parameters', formatZodErrors(validationResult.error));
 		}
 
 		const { email } = validationResult.data;
@@ -39,24 +31,14 @@ export async function requestToken(req, res) {
 		// Check email format more strictly
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
-			return res.status(400).json({
-				error: {
-					code: 'INVALID_EMAIL',
-					message: 'Invalid email format',
-				},
-			});
+			return ErrorResponses.invalidInput(res, 'Invalid email format');
 		}
 
 		// Request token from auth service
 		const result = await authService.requestToken(email);
 
 		if (!result.success) {
-			return res.status(500).json({
-				error: {
-					code: 'TOKEN_GENERATION_FAILED',
-					message: 'Failed to generate authentication token',
-				},
-			});
+			return ErrorResponses.internal(res, 'Failed to generate authentication token');
 		}
 
 		// Log magic link to console
@@ -79,12 +61,7 @@ export async function requestToken(req, res) {
 		return res.status(200).json(response);
 	} catch (error) {
 		console.error('Error in requestToken:', error);
-		return res.status(500).json({
-			error: {
-				code: 'INTERNAL_SERVER_ERROR',
-				message: 'An unexpected error occurred',
-			},
-		});
+		return ErrorResponses.internal(res, 'An unexpected error occurred');
 	}
 }
 
@@ -99,16 +76,7 @@ export async function verifyToken(req, res) {
 		const validationResult = authVerifySchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			return res.status(400).json({
-				error: {
-					code: 'VALIDATION_ERROR',
-					message: 'Invalid request parameters',
-					details: validationResult.error.errors.map(err => ({
-						field: err.path.join('.'),
-						message: err.message,
-					})),
-				},
-			});
+			return ErrorResponses.validation(res, 'Invalid request parameters', formatZodErrors(validationResult.error));
 		}
 
 		const { token } = validationResult.data;
@@ -117,19 +85,13 @@ export async function verifyToken(req, res) {
 		const result = await authService.verifyToken(token);
 
 		if (!result.success) {
-			const statusCode = result.error === 'TOKEN_NOT_FOUND' ? 401 : result.error === 'TOKEN_EXPIRED' ? 401 : 400;
-
-			return res.status(statusCode).json({
-				error: {
-					code: result.error,
-					message:
-						result.error === 'TOKEN_NOT_FOUND'
-							? 'Authentication token not found'
-							: result.error === 'TOKEN_EXPIRED'
-								? 'Authentication token expired'
-								: 'Token verification failed',
-				},
-			});
+			if (result.error === 'TOKEN_NOT_FOUND') {
+				return ErrorResponses.invalidToken(res, 'Authentication token not found');
+			} else if (result.error === 'TOKEN_EXPIRED') {
+				return ErrorResponses.invalidToken(res, 'Authentication token expired');
+			} else {
+				return ErrorResponses.invalidInput(res, 'Token verification failed');
+			}
 		}
 
 		// Set JWT as HTTP-only cookie
@@ -151,12 +113,7 @@ export async function verifyToken(req, res) {
 		});
 	} catch (error) {
 		console.error('Error in verifyToken:', error);
-		return res.status(500).json({
-			error: {
-				code: 'INTERNAL_SERVER_ERROR',
-				message: 'An unexpected error occurred',
-			},
-		});
+		return ErrorResponses.internal(res, 'An unexpected error occurred');
 	}
 }
 
@@ -177,12 +134,7 @@ export async function getCurrentUser(req, res) {
 		});
 	} catch (error) {
 		console.error('Error in getCurrentUser:', error);
-		return res.status(500).json({
-			error: {
-				code: 'INTERNAL_SERVER_ERROR',
-				message: 'An unexpected error occurred',
-			},
-		});
+		return ErrorResponses.internal(res, 'An unexpected error occurred');
 	}
 }
 
@@ -206,11 +158,6 @@ export async function logout(_req, res) {
 		});
 	} catch (error) {
 		console.error('Error in logout:', error);
-		return res.status(500).json({
-			error: {
-				code: 'INTERNAL_SERVER_ERROR',
-				message: 'An unexpected error occurred',
-			},
-		});
+		return ErrorResponses.internal(res, 'An unexpected error occurred');
 	}
 }

@@ -14,11 +14,11 @@ async function main() {
 	try {
 		// Get all active MCP instances
 		const query = `
-			SELECT mi.*, mt.name as mcp_type, mt.display_name 
-			FROM mcp_instances mi
-			JOIN mcp_types mt ON mi.mcp_type_id = mt.id
-			WHERE mi.status = 'active'
-			ORDER BY mi.created_at DESC
+			SELECT ms.*, mt.mcp_service_name as mcp_type, mt.display_name 
+			FROM mcp_service_table ms
+			JOIN mcp_table mt ON ms.mcp_service_id = mt.mcp_service_id
+			WHERE ms.status = 'active'
+			ORDER BY ms.created_at DESC
 		`;
 		const result = await pool.query(query);
 		const instances = result.rows;

@@ -313,3 +313,108 @@ export async function bulkMarkInstancesExpired(instanceIds) {
 	const result = await pool.query(query, instanceIds);
 	return result.rowCount;
 }
+
+/**
+ * Get user instance count by status
+ * @param {string} userId - User ID
+ * @param {string} [status] - Optional status filter (if not provided, counts non-deleted instances)
+ * @returns {Promise<number>} Number of instances
+ */
+export async function getUserInstanceCount(userId, status = null) {
+	let query = `
+		SELECT COUNT(*) as count 
+		FROM mcp_service_table ms
+		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+		WHERE ms.user_id = $1
+	`;
+	const params = [userId];
+	
+	if (status) {
+		query += ' AND ms.status = $2';
+		params.push(status);
+	} else {
+		query += ' AND ms.status != $2';
+		params.push('deleted');
+	}
+	
+	const result = await pool.query(query, params);
+	return parseInt(result.rows[0].count);
+}
+
+/**
+ * Create new MCP instance with transaction support
+ * @param {Object} instanceData - Instance data
+ * @param {string} instanceData.userId - User ID
+ * @param {string} instanceData.mcpServiceId - MCP service ID
+ * @param {string} instanceData.customName - Custom instance name
+ * @param {string} [instanceData.apiKey] - API key for api_key type services
+ * @param {string} [instanceData.clientId] - Client ID for oauth type services
+ * @param {string} [instanceData.clientSecret] - Client secret for oauth type services
+ * @param {Date} [instanceData.expiresAt] - Expiration date
+ * @returns {Promise<Object>} Created instance record
+ */
+export async function createMCPInstance(instanceData) {
+	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt } = instanceData;
+	
+	const query = `
+		INSERT INTO mcp_service_table (
+			user_id,
+			mcp_service_id,
+			custom_name,
+			api_key,
+			client_id,
+			client_secret,
+			status,
+			expires_at,
+			credentials_updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, NOW())
+		RETURNING *
+	`;
+	
+	const params = [userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt];
+	const result = await pool.query(query, params);
+	return result.rows[0];
+}
+
+/**
+ * Update MCP service statistics (increment counters)
+ * @param {string} serviceId - Service ID
+ * @param {Object} updates - Statistics updates
+ * @param {number} [updates.totalInstancesIncrement] - Increment total instances by this amount
+ * @param {number} [updates.activeInstancesIncrement] - Increment active instances by this amount
+ * @returns {Promise<Object|null>} Updated service record
+ */
+export async function updateMCPServiceStats(serviceId, updates) {
+	const setClauses = [];
+	const params = [];
+	let paramIndex = 1;
+	
+	if (updates.totalInstancesIncrement !== undefined) {
+		setClauses.push(`total_instances_created = total_instances_created + $${paramIndex}`);
+		params.push(updates.totalInstancesIncrement);
+		paramIndex++;
+	}
+	
+	if (updates.activeInstancesIncrement !== undefined) {
+		setClauses.push(`active_instances_count = active_instances_count + $${paramIndex}`);
+		params.push(updates.activeInstancesIncrement);
+		paramIndex++;
+	}
+	
+	if (setClauses.length === 0) {
+		throw new Error('No statistics updates provided');
+	}
+	
+	setClauses.push(`updated_at = NOW()`);
+	params.push(serviceId);
+	
+	const query = `
+		UPDATE mcp_table 
+		SET ${setClauses.join(', ')}
+		WHERE mcp_service_id = $${paramIndex}
+		RETURNING *
+	`;
+	
+	const result = await pool.query(query, params);
+	return result.rows[0] || null;
+}

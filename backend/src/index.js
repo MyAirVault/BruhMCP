@@ -13,6 +13,7 @@ import adminRoutes from './routes/adminRoutes.js';
 
 // Import middleware
 import { apiRateLimiter } from './utils/rateLimiter.js';
+import { errorHandler } from './utils/errorResponse.js';
 
 // Import database
 import { initializeDatabase } from './db/config.js';
@@ -24,6 +25,7 @@ import expirationMonitor from './services/expiration-monitor.js';
 
 // Import logging services
 import loggingService from './services/logging/loggingService.js';
+import { ErrorResponses } from './utils/errorResponse.js';
 import logMaintenanceService from './services/logging/logMaintenanceService.js';
 
 const app = express();
@@ -100,43 +102,19 @@ app.use('/api/v1/api-keys', apiKeysRoutes);
 app.use('/api/v1/mcps', mcpInstancesRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
-// Instance-based MCP routing: /:instanceId/mcp/:mcpType/*
-app.use('/:instanceId/mcp/:mcpType', (req, res) => {
-	const { instanceId, mcpType } = req.params;
-	console.log(`🔄 Instance routing request: ${instanceId}/mcp/${mcpType} from ${req.ip}`);
-
-	// Forward to appropriate MCP instance port
-	// This will be handled by the process manager to route to the correct instance
-	res.status(502).json({
-		error: {
-			code: 'INSTANCE_NOT_AVAILABLE',
-			message: `MCP instance ${instanceId} is not available or not running`,
-			instanceId,
-			mcpType,
-		},
-	});
-});
 
 // SPA fallback - serve index.html for non-API routes
 app.get('*', (req, res) => {
 	// Don't serve SPA for API routes
 	if (req.path.startsWith('/api/') || req.path.startsWith('/auth/') || req.path.startsWith('/health')) {
-		return res.status(404).json({
-			error: {
-				code: 'NOT_FOUND',
-				message: 'The requested resource was not found',
-			},
-		});
+		return ErrorResponses.notFound(res, 'API endpoint');
 	}
 	
 	// Serve index.html for all other routes (SPA routing)
 	res.sendFile('index.html', { root: 'public' }, (err) => {
 		if (err) {
-			res.status(404).json({
-				error: {
-					code: 'FRONTEND_NOT_FOUND',
-					message: 'Frontend not built. Run npm run build:frontend',
-				},
+			ErrorResponses.notFound(res, 'Frontend', {
+				metadata: { suggestion: 'Run npm run build:frontend' }
 			});
 		}
 	});
@@ -144,7 +122,7 @@ app.get('*', (req, res) => {
 
 // Global error handler
 // @ts-expect-error - Express error handler requires 4 parameters
-app.use((err, req, res, _next) => {
+app.use((err, req, res, next) => {
 	// Log error through logging service
 	loggingService.logError(err, {
 		userId: req.user?.id,
@@ -155,12 +133,8 @@ app.use((err, req, res, _next) => {
 		critical: true
 	});
 
-	res.status(500).json({
-		error: {
-			code: 'INTERNAL_SERVER_ERROR',
-			message: 'An unexpected error occurred',
-		},
-	});
+	// Use standardized error handler
+	errorHandler(err, req, res, next);
 });
 
 // Start server

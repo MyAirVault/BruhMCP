@@ -23,12 +23,12 @@ export function calculateExpirationDate(option) {
 }
 
 /**
- * Generate consistent access URL for MCP instances in Phase 2 architecture
+ * Generate consistent access URL for MCP instances
  * @param {string} instanceId - The instance UUID
  * @param {string} mcpTypeName - The MCP type name
- * @returns {string} The formatted access URL through unified backend
+ * @returns {string} The formatted access URL in format <domain>/<mcp>/uuid
  */
 export function generateAccessUrl(instanceId, mcpTypeName) {
-	const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
-	return `${baseUrl}/api/v1/mcp/${mcpTypeName}/${instanceId}`;
+	const publicDomain = process.env.PUBLIC_DOMAIN || 'http://localhost:5000';
+	return `${publicDomain}/${mcpTypeName}/${instanceId}`;
 }

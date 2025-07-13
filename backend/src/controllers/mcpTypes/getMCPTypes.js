@@ -1,4 +1,5 @@
-import { pool } from '../../db/config.js';
+import { getAllMCPTypes } from '../../db/queries/mcpTypesQueries.js';
+import { ErrorResponses } from '../../utils/errorResponse.js';
 
 /**
  * Get all MCP services (updated for multi-tenant architecture)
@@ -10,35 +11,24 @@ export async function getMCPTypes(req, res) {
 		const { active } = req.query;
 		const activeOnly = active === 'true';
 
-		// Query the new mcp_table
-		let query = `
-			SELECT 
-				mcp_service_id as id,
-				mcp_service_name as name,
-				display_name,
-				description,
-				icon_url_path as icon_url,
-				port,
-				type,
-				is_active,
-				total_instances_created,
-				active_instances_count,
-				created_at,
-				updated_at
-			FROM mcp_table
-		`;
-
-		const params = [];
+		// Get MCP types using abstracted query function
+		const mcpTypesRaw = await getAllMCPTypes(activeOnly);
 		
-		if (activeOnly) {
-			query += ' WHERE is_active = $1';
-			params.push(true);
-		}
-
-		query += ' ORDER BY display_name ASC';
-
-		const result = await pool.query(query, params);
-		const mcpTypes = result.rows;
+		// Transform to match the expected format for this controller
+		const mcpTypes = mcpTypesRaw.map(type => ({
+			id: type.mcp_service_id,
+			name: type.mcp_service_name,
+			display_name: type.display_name,
+			description: type.description,
+			icon_url: type.icon_url_path,
+			port: type.port,
+			type: type.type,
+			is_active: type.is_active,
+			total_instances_created: type.total_instances_created,
+			active_instances_count: type.active_instances_count,
+			created_at: type.created_at,
+			updated_at: type.updated_at
+		}));
 
 		// Transform the response to match API specification
 		const formattedMcpTypes = mcpTypes.map(mcpType => {
@@ -99,11 +89,6 @@ export async function getMCPTypes(req, res) {
 		});
 	} catch (error) {
 		console.error('Error fetching MCP types:', error);
-		res.status(500).json({
-			error: {
-				code: 'INTERNAL_ERROR',
-				message: 'Failed to fetch MCP types',
-			},
-		});
+		return ErrorResponses.internal(res, 'Failed to fetch MCP types');
 	}
 }

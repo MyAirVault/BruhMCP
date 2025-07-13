@@ -1,4 +1,5 @@
 import { getMCPInstanceById } from '../db/queries/mcpInstancesQueries.js';
+import { ErrorResponses } from '../utils/errorResponse.js';
 
 /**
  * Middleware to check if MCP instance is active and accessible
@@ -13,9 +14,7 @@ export async function checkMCPAccess(req, res, next) {
 		const mcpIdIndex = pathParts.findIndex(part => part.length === 36); // UUID length
 
 		if (mcpIdIndex === -1) {
-			return res.status(400).json({
-				error: 'Invalid MCP instance ID in request path',
-			});
+			return ErrorResponses.invalidInput(res, 'Invalid MCP instance ID in request path');
 		}
 
 		const mcpId = pathParts[mcpIdIndex];
@@ -24,25 +23,21 @@ export async function checkMCPAccess(req, res, next) {
 		const mcpInstance = await getMCPInstanceById(mcpId);
 
 		if (!mcpInstance) {
-			return res.status(404).json({
-				error: 'MCP instance not found',
-			});
+			return ErrorResponses.instanceNotFound(res, mcpId);
 		}
 
 		// Check if MCP is active
 		if (!mcpInstance.is_active || mcpInstance.status !== 'active') {
-			return res.status(403).json({
-				error: 'MCP instance is not active',
-				status: mcpInstance.status,
-				is_active: mcpInstance.is_active,
+			return ErrorResponses.instanceUnavailable(res, mcpId, {
+				metadata: { status: mcpInstance.status, is_active: mcpInstance.is_active }
 			});
 		}
 
 		// Check if MCP is expired
 		if (mcpInstance.expires_at && new Date() > mcpInstance.expires_at) {
-			return res.status(403).json({
-				error: 'MCP instance has expired',
-				expired_at: mcpInstance.expires_at,
+			return ErrorResponses.forbidden(res, 'MCP instance has expired', {
+				instanceId: mcpId,
+				metadata: { expired_at: mcpInstance.expires_at }
 			});
 		}
 
@@ -52,9 +47,7 @@ export async function checkMCPAccess(req, res, next) {
 		next();
 	} catch (error) {
 		console.error('Error checking MCP access:', error);
-		res.status(500).json({
-			error: 'Failed to validate MCP access',
-		});
+		return ErrorResponses.internal(res, 'Failed to validate MCP access');
 	}
 }
 

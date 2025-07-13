@@ -24,19 +24,19 @@ export async function getMCPInstance(req, res) {
 
 		// Format response
 		const formattedInstance = {
-			id: instance.id,
+			id: instance.instance_id,
 			custom_name: instance.custom_name,
 			instance_number: instance.instance_number,
 			access_token: instance.access_token,
-			access_url: generateAccessUrl(instance.id, instance.mcp_type_name),
+			access_url: generateAccessUrl(instance.instance_id, instance.mcp_service_name),
 			status: instance.status,
 			is_active: instance.is_active,
 			expiration_option: instance.expiration_option,
 			expires_at: instance.expires_at,
 			mcp_type: {
-				name: instance.mcp_type_name,
-				display_name: instance.mcp_type_display_name,
-				icon_url: instance.mcp_type_icon_url,
+				name: instance.mcp_service_name,
+				display_name: instance.display_name,
+				type: instance.type,
 			},
 			config: instance.config,
 			created_at: instance.created_at,

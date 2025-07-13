@@ -4,9 +4,9 @@
 BEGIN;
 
 -- Drop all existing tables (order matters due to foreign keys)
-DROP TABLE IF EXISTS mcp_instances CASCADE;
+DROP TABLE IF EXISTS mcp_service_table CASCADE;
 DROP TABLE IF EXISTS api_keys CASCADE;
-DROP TABLE IF EXISTS mcp_types CASCADE;
+DROP TABLE IF EXISTS mcp_table CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- Create or replace the timestamp trigger function

@@ -57,6 +57,31 @@ export const apiService = {
     return makeRequest<MCPType>(`/mcp-types/${name}`);
   },
 
+  // MCP Credentials Validation
+  validateMCPCredentials: async (data: {
+    mcp_type: string;
+    credentials: Record<string, string>;
+  }): Promise<{
+    valid: boolean;
+    message: string;
+    service?: {
+      name: string;
+      type: string;
+    };
+  }> => {
+    return makeRequest<{
+      valid: boolean;
+      message: string;
+      service?: {
+        name: string;
+        type: string;
+      };
+    }>('/mcps/validate-credentials', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   // MCP Instances
   createMCP: async (data: {
     mcp_type: string;
@@ -104,16 +129,16 @@ export const apiService = {
     expiration_option: string;
   }): Promise<{ id: string; status: string; expires_at: string; message: string }> => {
     return makeRequest<{ id: string; status: string; expires_at: string; message: string }>(`/mcps/${id}/renew`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
 
   toggleMCP: async (id: string, data: {
-    is_active: boolean;
-  }): Promise<{ id: string; is_active: boolean; message: string }> => {
-    return makeRequest<{ id: string; is_active: boolean; message: string }>(`/mcps/${id}/toggle`, {
-      method: 'PUT',
+    status: 'active' | 'inactive';
+  }): Promise<{ id: string; status: string; message: string }> => {
+    return makeRequest<{ id: string; status: string; message: string }>(`/mcps/${id}/status`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
@@ -122,14 +147,79 @@ export const apiService = {
     custom_name?: string;
     credentials?: Record<string, string>;
   }): Promise<{ id: string; custom_name: string; message: string }> => {
-    return makeRequest<{ id: string; custom_name: string; message: string }>(`/mcps/${id}/edit`, {
-      method: 'PUT',
+    return makeRequest<{ id: string; custom_name: string; message: string }>(`/mcps/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
 
-  deleteMCP: async (id: string): Promise<{ message: string }> => {
-    return makeRequest<{ message: string }>(`/mcps/${id}`, {
+  updateMCPName: async (id: string, data: {
+    custom_name: string;
+  }): Promise<{ id: string; custom_name: string; message: string }> => {
+    return makeRequest<{ id: string; custom_name: string; message: string }>(`/mcps/${id}/name`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateMCPCredentials: async (id: string, data: {
+    credentials: Record<string, string>;
+  }): Promise<{ id: string; message: string }> => {
+    return makeRequest<{ id: string; message: string }>(`/mcps/${id}/credentials`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  validateInstanceCredentials: async (id: string, data: {
+    credentials: Record<string, string>;
+  }): Promise<{
+    valid: boolean;
+    message: string;
+    api_info?: {
+      service: string;
+      quota_remaining?: number;
+      permissions?: string[];
+    };
+  }> => {
+    return makeRequest<{
+      valid: boolean;
+      message: string;
+      api_info?: {
+        service: string;
+        quota_remaining?: number;
+        permissions?: string[];
+      };
+    }>(`/mcps/${id}/credentials/validate`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteMCP: async (id: string): Promise<{
+    message: string;
+    instance_id: string;
+    service_type: string;
+    deleted_at: string;
+    details: {
+      instance_id: string;
+      service_type: string;
+      custom_name: string;
+      user_id: string;
+    };
+  }> => {
+    return makeRequest<{
+      message: string;
+      instance_id: string;
+      service_type: string;
+      deleted_at: string;
+      details: {
+        instance_id: string;
+        service_type: string;
+        custom_name: string;
+        user_id: string;
+      };
+    }>(`/mcps/${id}`, {
       method: 'DELETE',
     });
   },
@@ -205,26 +295,46 @@ export const apiService = {
   },
 
   exportMCPLogs: async (mcpId: string, data: {
-    format: string;
+    format: 'json' | 'csv' | 'txt';
     start_time?: string;
     end_time?: string;
-  }): Promise<{
-    download_url: string;
-    expires_at: string;
-    size_bytes: number;
-    format: string;
-    total_logs: number;
-  }> => {
-    return makeRequest<{
-      download_url: string;
-      expires_at: string;
-      size_bytes: number;
-      format: string;
-      total_logs: number;
-    }>(`/mcps/${mcpId}/logs/export`, {
+    level?: 'debug' | 'info' | 'warn' | 'error';
+  }): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/mcps/${mcpId}/logs/export`, {
       method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`${errorData.error.code}: ${errorData.error.message}`);
+    }
+
+    // Get filename from Content-Disposition header or generate one
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let filename = `logs_${mcpId}_${new Date().toISOString().split('T')[0]}.${data.format}`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+
+    // Create blob and download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 
   getAllMCPLogs: async (params?: {
@@ -289,62 +399,4 @@ export const apiService = {
     return filteredLogs;
   },
 
-  // Settings
-  getSettings: async (): Promise<{
-    user: {
-      id: string;
-      email: string;
-      name: string;
-    };
-    preferences: {
-      default_expiration_minutes: number;
-      notifications_enabled: boolean;
-    };
-    limits: {
-      max_concurrent_mcps: number;
-      max_instances_per_user: number;
-      max_api_keys: number;
-    };
-  }> => {
-    return makeRequest<{
-      user: {
-        id: string;
-        email: string;
-        name: string;
-      };
-      preferences: {
-        default_expiration_minutes: number;
-        notifications_enabled: boolean;
-      };
-      limits: {
-        max_concurrent_mcps: number;
-        max_instances_per_user: number;
-        max_api_keys: number;
-      };
-    }>('/settings');
-  },
-
-  updateSettings: async (data: {
-    preferences: {
-      default_expiration_minutes?: number;
-      notifications_enabled?: boolean;
-    };
-  }): Promise<{
-    message: string;
-    preferences: {
-      default_expiration_minutes: number;
-      notifications_enabled: boolean;
-    };
-  }> => {
-    return makeRequest<{
-      message: string;
-      preferences: {
-        default_expiration_minutes: number;
-        notifications_enabled: boolean;
-      };
-    }>('/settings', {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
 };

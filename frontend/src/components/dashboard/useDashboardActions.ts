@@ -126,7 +126,7 @@ export const useDashboardActions = ({
     onToggleActive: (mcp: MCPItem) => {
       openConfirmationModal('toggle-active', mcp, async () => {
         try {
-          await apiService.toggleMCP(mcp.id, { is_active: true });
+          await apiService.toggleMCP(mcp.id, { status: 'active' });
           await refreshMCPList();
         } catch (error) {
           console.error('Failed to toggle MCP to active:', error);
@@ -136,7 +136,7 @@ export const useDashboardActions = ({
     onToggleInactive: (mcp: MCPItem) => {
       openConfirmationModal('toggle-inactive', mcp, async () => {
         try {
-          await apiService.toggleMCP(mcp.id, { is_active: false });
+          await apiService.toggleMCP(mcp.id, { status: 'inactive' });
           await refreshMCPList();
         } catch (error) {
           console.error('Failed to toggle MCP to inactive:', error);
