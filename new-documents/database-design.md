@@ -124,7 +124,7 @@ Validation: Ensure both oauth fields provided, reject api_key
 7. **Initialize management fields** (renewed_count = 0, credentials_updated_at = NOW())
 8. **Link instance to user** via User ID foreign key
 9. **Link instance to service type** via MCP Service ID foreign key
-10. **Return instance URL** to user: `<domain>/<mcp-service-name>/<instance-id>`
+10. **Return instance URL** to user: `<domain>/<mcp_service_name>/<instance-id>`
 
 ### Step 4: Service Access
 
@@ -196,7 +196,7 @@ Validation: Ensure both oauth fields provided, reject api_key
 ### URL Pattern
 
 ```
-https://domain.com/<mcp-service-id>/<instance-id>/<endpoint>
+https://domain.com/<mcp_service_name>/<instance-id>/<endpoint>
 ```
 
 ### Examples
@@ -251,7 +251,7 @@ Complete request isolation and proper response handling
 
 ### URL Components
 
--   **mcp-service-id**: Service identifier (figma, github, slack) - determines routing
+-   **mcp_service_name**: Service identifier (figma, github, slack) - determines routing
 -   **instance-id**: User instance UUID - identifies specific user credentials
 -   **endpoint**: Service-specific API endpoint
 

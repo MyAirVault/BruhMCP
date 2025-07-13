@@ -27,8 +27,8 @@ export async function getInstanceCredentials(instanceId) {
       m.display_name,
       m.type as auth_type,
       m.is_active as service_active
-    FROM mcp_service ms
-    JOIN mcp m ON ms.mcp_service_id = m.mcp_service_id
+    FROM mcp_service_table ms
+    JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
     WHERE ms.instance_id = $1
       AND m.mcp_service_name = 'figma'
   `;
@@ -121,7 +121,7 @@ export function validateInstanceAccess(instance) {
  */
 export async function updateUsageTracking(instanceId) {
 	const query = `
-    UPDATE mcp_service 
+    UPDATE mcp_service_table 
     SET 
       usage_count = usage_count + 1,
       last_used_at = NOW(),

@@ -1,7 +1,7 @@
-import { getAllMCPTypes } from '../../db/queries/mcpTypesQueries.js';
+import { pool } from '../../db/config.js';
 
 /**
- * Get all MCP types
+ * Get all MCP services (updated for multi-tenant architecture)
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  */
@@ -10,27 +10,68 @@ export async function getMCPTypes(req, res) {
 		const { active } = req.query;
 		const activeOnly = active === 'true';
 
-		const mcpTypes = await getAllMCPTypes({ activeOnly });
+		// Query the new mcp_table
+		let query = `
+			SELECT 
+				mcp_service_id as id,
+				mcp_service_name as name,
+				display_name,
+				description,
+				icon_url_path as icon_url,
+				port,
+				type,
+				is_active,
+				total_instances_created,
+				active_instances_count,
+				created_at,
+				updated_at
+			FROM mcp_table
+		`;
+
+		const params = [];
+		
+		if (activeOnly) {
+			query += ' WHERE is_active = $1';
+			params.push(true);
+		}
+
+		query += ' ORDER BY display_name ASC';
+
+		const result = await pool.query(query, params);
+		const mcpTypes = result.rows;
 
 		// Transform the response to match API specification
 		const formattedMcpTypes = mcpTypes.map(mcpType => {
-			// Handle both old format (string array) and new format (object array)
+			// Generate required fields based on auth type
 			let requiredFields = [];
-			if (mcpType.required_credentials && Array.isArray(mcpType.required_credentials)) {
-				if (mcpType.required_credentials.length > 0) {
-					if (typeof mcpType.required_credentials[0] === 'string') {
-						// Old format: string array
-						requiredFields = mcpType.required_credentials.map(field => ({
-							name: field,
-							type: 'string',
-							description: `${field.replace('_', ' ')} for ${mcpType.display_name}`,
-							required: true,
-						}));
-					} else {
-						// New format: object array
-						requiredFields = mcpType.required_credentials;
+			
+			if (mcpType.type === 'api_key') {
+				requiredFields = [
+					{
+						name: 'api_key',
+						type: 'string',
+						description: `API key for ${mcpType.display_name}`,
+						required: true,
+						placeholder: 'Enter your API key...'
 					}
-				}
+				];
+			} else if (mcpType.type === 'oauth') {
+				requiredFields = [
+					{
+						name: 'client_id',
+						type: 'string',
+						description: `Client ID for ${mcpType.display_name}`,
+						required: true,
+						placeholder: 'Enter your client ID...'
+					},
+					{
+						name: 'client_secret',
+						type: 'string',
+						description: `Client Secret for ${mcpType.display_name}`,
+						required: true,
+						placeholder: 'Enter your client secret...'
+					}
+				];
 			}
 
 			return {
@@ -39,10 +80,14 @@ export async function getMCPTypes(req, res) {
 				display_name: mcpType.display_name,
 				description: mcpType.description,
 				icon_url: mcpType.icon_url,
-				config_template: mcpType.config_template,
-				resource_limits: mcpType.resource_limits,
+				port: mcpType.port,
+				type: mcpType.type,
 				is_active: mcpType.is_active,
+				total_instances_created: mcpType.total_instances_created,
+				active_instances_count: mcpType.active_instances_count,
 				required_fields: requiredFields,
+				created_at: mcpType.created_at,
+				updated_at: mcpType.updated_at
 			};
 		});
 
