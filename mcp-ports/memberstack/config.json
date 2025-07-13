@@ -1,0 +1,25 @@
+{
+  "name": "memberstack",
+  "displayName": "Memberstack",
+  "description": "memberstack integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/memberstack.svg",
+  "port": 49363 ,
+  "api": {
+    "baseURL": "https://api.memberstack.com",
+    "version": "v1",
+    "documentation": "https://docs.memberstack.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "memberstack API Key"
+      }
+    ]
+  },
+  "tools": []
+}

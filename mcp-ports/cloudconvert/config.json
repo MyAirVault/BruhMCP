@@ -1,0 +1,25 @@
+{
+  "name": "cloudconvert",
+  "displayName": "Cloudconvert",
+  "description": "cloudconvert integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/cloudconvert.svg",
+  "port": 49236  ,
+  "api": {
+    "baseURL": "https://api.cloudconvert.com",
+    "version": "v1",
+    "documentation": "https://docs.cloudconvert.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "cloudconvert API Key"
+      }
+    ]
+  },
+  "tools": []
+}

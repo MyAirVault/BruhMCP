@@ -1,0 +1,25 @@
+{
+  "name": "breezyhr",
+  "displayName": "Breezyhr",
+  "description": "breezyhr integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/breezyhr.svg",
+  "port": 49212  ,
+  "api": {
+    "baseURL": "https://api.breezyhr.com",
+    "version": "v1",
+    "documentation": "https://docs.breezyhr.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "breezyhr API Key"
+      }
+    ]
+  },
+  "tools": []
+}

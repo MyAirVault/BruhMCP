@@ -1,0 +1,25 @@
+{
+  "name": "factorial",
+  "displayName": "Factorial",
+  "description": "factorial integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/factorial.svg",
+  "port": 49279 ,
+  "api": {
+    "baseURL": "https://api.factorial.com",
+    "version": "v1",
+    "documentation": "https://docs.factorial.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "factorial API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "confluence",
+  "displayName": "Confluence",
+  "description": "confluence integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/confluence.svg",
+  "port": 49245 ,
+  "api": {
+    "baseURL": "https://api.confluence.com",
+    "version": "v1",
+    "documentation": "https://docs.confluence.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "confluence API Key"
+      }
+    ]
+  },
+  "tools": []
+}

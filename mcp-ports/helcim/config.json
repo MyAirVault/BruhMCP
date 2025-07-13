@@ -1,0 +1,25 @@
+{
+  "name": "helcim",
+  "displayName": "Helcim",
+  "description": "helcim integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/helcim.svg",
+  "port": 49318 ,
+  "api": {
+    "baseURL": "https://api.helcim.com",
+    "version": "v1",
+    "documentation": "https://docs.helcim.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "helcim API Key"
+      }
+    ]
+  },
+  "tools": []
+}

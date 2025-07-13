@@ -1,0 +1,234 @@
+{
+  "name": "harvest",
+  "displayName": "Harvest",
+  "description": "Harvest is a time-tracking and invoicing tool designed for teams and freelancers",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/harvest.svg",
+  "port": 49317  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/harvest"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Harvest OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Harvest OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["harvest:read", "harvest:write"],
+      "authorization_url": "https://id.getharvest.com/oauth2/authorize",
+      "token_url": "https://id.getharvest.com/api/v2/oauth2/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_client",
+      "description": "Create a new client",
+      "endpoint": "/tools/harvest/create_client",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Client name"
+        },
+        "address": {
+          "type": "string",
+          "required": false,
+          "description": "Client address"
+        },
+        "currency": {
+          "type": "string",
+          "required": false,
+          "description": "Client currency"
+        }
+      }
+    },
+    {
+      "name": "create_client_contact",
+      "description": "Create a new client contact",
+      "endpoint": "/tools/harvest/create_client_contact",
+      "method": "POST",
+      "parameters": {
+        "client_id": {
+          "type": "string",
+          "required": true,
+          "description": "Client ID"
+        },
+        "first_name": {
+          "type": "string",
+          "required": true,
+          "description": "Contact first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": true,
+          "description": "Contact last name"
+        },
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Contact email"
+        },
+        "phone_office": {
+          "type": "string",
+          "required": false,
+          "description": "Contact office phone"
+        }
+      }
+    },
+    {
+      "name": "create_estimate",
+      "description": "Create a new estimate",
+      "endpoint": "/tools/harvest/create_estimate",
+      "method": "POST",
+      "parameters": {
+        "client_id": {
+          "type": "string",
+          "required": true,
+          "description": "Client ID"
+        },
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Estimate subject"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Estimate notes"
+        }
+      }
+    },
+    {
+      "name": "create_invoice",
+      "description": "Create a new invoice",
+      "endpoint": "/tools/harvest/create_invoice",
+      "method": "POST",
+      "parameters": {
+        "client_id": {
+          "type": "string",
+          "required": true,
+          "description": "Client ID"
+        },
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Invoice subject"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Invoice notes"
+        }
+      }
+    },
+    {
+      "name": "create_project",
+      "description": "Create a new project",
+      "endpoint": "/tools/harvest/create_project",
+      "method": "POST",
+      "parameters": {
+        "client_id": {
+          "type": "string",
+          "required": true,
+          "description": "Client ID"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Project name"
+        },
+        "code": {
+          "type": "string",
+          "required": false,
+          "description": "Project code"
+        },
+        "is_billable": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether project is billable"
+        }
+      }
+    },
+    {
+      "name": "create_time_entry",
+      "description": "Create a new time entry",
+      "endpoint": "/tools/harvest/create_time_entry",
+      "method": "POST",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID"
+        },
+        "spent_date": {
+          "type": "string",
+          "required": true,
+          "description": "Date time was spent (YYYY-MM-DD)"
+        },
+        "hours": {
+          "type": "number",
+          "required": false,
+          "description": "Hours spent"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Time entry notes"
+        }
+      }
+    },
+    {
+      "name": "create_user",
+      "description": "Create a new user",
+      "endpoint": "/tools/harvest/create_user",
+      "method": "POST",
+      "parameters": {
+        "first_name": {
+          "type": "string",
+          "required": true,
+          "description": "User first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": true,
+          "description": "User last name"
+        },
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "User email"
+        },
+        "telephone": {
+          "type": "string",
+          "required": false,
+          "description": "User telephone"
+        },
+        "timezone": {
+          "type": "string",
+          "required": false,
+          "description": "User timezone"
+        }
+      }
+    }
+  ]
+}

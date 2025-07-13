@@ -1,0 +1,235 @@
+{
+  "name": "mailchimp",
+  "displayName": "Mailchimp",
+  "description": "Email marketing and automation platform providing campaign templates, audience segmentation, and performance analytics",
+  "category": "marketing",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/mailchimp.svg",
+  "port": 49356  ,
+  "api": {
+    "baseURL": "https://{subdomain}.api.mailchimp.com/3.0",
+    "version": "3.0",
+    "documentation": "https://mailchimp.com/developer/"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Mailchimp OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Mailchimp OAuth App Client Secret"
+      },
+      {
+        "name": "subdomain",
+        "type": "text",
+        "required": true,
+        "description": "Mailchimp API subdomain (e.g., us21)",
+        "default": "us21"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [],
+      "authorization_url": "https://login.mailchimp.com/oauth2/authorize",
+      "token_url": "https://login.mailchimp.com/oauth2/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "list_campaigns",
+      "description": "List all campaigns",
+      "endpoint": "/campaigns",
+      "method": "GET",
+      "parameters": {
+        "count": {
+          "type": "number",
+          "required": false,
+          "description": "Number of campaigns to return",
+          "default": 10
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Starting point for campaigns list",
+          "default": 0
+        }
+      }
+    },
+    {
+      "name": "get_campaign_info",
+      "description": "Get information about a specific campaign",
+      "endpoint": "/campaigns/{campaign_id}",
+      "method": "GET",
+      "parameters": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "add_campaign",
+      "description": "Create a new campaign",
+      "endpoint": "/campaigns",
+      "method": "POST",
+      "parameters": {
+        "type": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign type (regular, plaintext, absplit, rss, variate)"
+        },
+        "recipients": {
+          "type": "object",
+          "required": true,
+          "description": "Campaign recipients settings including list_id"
+        },
+        "settings": {
+          "type": "object",
+          "required": true,
+          "description": "Campaign settings including subject_line, from_name, reply_to"
+        }
+      }
+    },
+    {
+      "name": "send_campaign",
+      "description": "Send a campaign",
+      "endpoint": "/campaigns/{campaign_id}/actions/send",
+      "method": "POST",
+      "parameters": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign ID to send"
+        }
+      }
+    },
+    {
+      "name": "get_lists_info",
+      "description": "Get information about all lists",
+      "endpoint": "/lists",
+      "method": "GET",
+      "parameters": {
+        "count": {
+          "type": "number",
+          "required": false,
+          "description": "Number of lists to return",
+          "default": 10
+        }
+      }
+    },
+    {
+      "name": "add_list_member",
+      "description": "Add a member to a list",
+      "endpoint": "/lists/{list_id}/members",
+      "method": "POST",
+      "parameters": {
+        "list_id": {
+          "type": "string",
+          "required": true,
+          "description": "List ID to add member to"
+        },
+        "email_address": {
+          "type": "string",
+          "required": true,
+          "description": "Member email address"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "description": "Member status (subscribed, unsubscribed, cleaned, pending)"
+        },
+        "merge_fields": {
+          "type": "object",
+          "required": false,
+          "description": "Merge fields for the member"
+        }
+      }
+    },
+    {
+      "name": "search_members",
+      "description": "Search for members",
+      "endpoint": "/search-members",
+      "method": "GET",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "list_id": {
+          "type": "string",
+          "required": false,
+          "description": "Specific list ID to search in"
+        }
+      }
+    },
+    {
+      "name": "list_recent_activity",
+      "description": "List recent activity for the account",
+      "endpoint": "/activity",
+      "method": "GET",
+      "parameters": {
+        "count": {
+          "type": "number",
+          "required": false,
+          "description": "Number of activity items to return",
+          "default": 10
+        }
+      }
+    },
+    {
+      "name": "add_automation",
+      "description": "Create a new automation",
+      "endpoint": "/automations",
+      "method": "POST",
+      "parameters": {
+        "recipients": {
+          "type": "object",
+          "required": true,
+          "description": "Automation recipients settings"
+        },
+        "settings": {
+          "type": "object",
+          "required": true,
+          "description": "Automation settings including title"
+        },
+        "trigger_settings": {
+          "type": "object",
+          "required": true,
+          "description": "Trigger settings for the automation"
+        }
+      }
+    },
+    {
+      "name": "add_campaign_feedback",
+      "description": "Add feedback to a campaign",
+      "endpoint": "/campaigns/{campaign_id}/feedback",
+      "method": "POST",
+      "parameters": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign ID to add feedback to"
+        },
+        "message": {
+          "type": "string",
+          "required": true,
+          "description": "Feedback message"
+        },
+        "is_complete": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether the feedback is complete",
+          "default": false
+        }
+      }
+    }
+  ]
+}

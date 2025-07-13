@@ -1,0 +1,98 @@
+{
+  "name": "ably",
+  "displayName": "Ably",
+  "description": "Ably is a real-time messaging platform helping developers build live features, including chat and data synchronization",
+  "category": "developer",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/ably.svg",
+  "port": 49160    ,
+  "api": {
+    "baseURL": "https://rest.ably.io",
+    "version": "v1",
+    "documentation": "https://ably.com/docs/rest"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Ably API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "publish_message",
+      "description": "Publish a message to a channel",
+      "endpoint": "/channels/{channel}/messages",
+      "method": "POST",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel name"
+        },
+        "data": {
+          "type": "string",
+          "required": true,
+          "description": "Message data"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Message name"
+        }
+      }
+    },
+    {
+      "name": "get_channel_history",
+      "description": "Retrieve message history for a channel",
+      "endpoint": "/channels/{channel}/messages",
+      "method": "GET",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel name"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of messages to retrieve"
+        }
+      }
+    },
+    {
+      "name": "get_presence",
+      "description": "Get presence information for a channel",
+      "endpoint": "/channels/{channel}/presence",
+      "method": "GET",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel name"
+        }
+      }
+    },
+    {
+      "name": "get_stats",
+      "description": "Retrieve application statistics",
+      "endpoint": "/stats",
+      "method": "GET",
+      "parameters": {
+        "start": {
+          "type": "string",
+          "required": false,
+          "description": "Start time for statistics"
+        },
+        "end": {
+          "type": "string",
+          "required": false,
+          "description": "End time for statistics"
+        }
+      }
+    }
+  ]
+}

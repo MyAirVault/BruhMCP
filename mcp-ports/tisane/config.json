@@ -1,0 +1,25 @@
+{
+  "name": "tisane",
+  "displayName": "Tisane",
+  "description": "tisane integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tisane.svg",
+  "port": 49490 ,
+  "api": {
+    "baseURL": "https://api.tisane.com",
+    "version": "v1",
+    "documentation": "https://docs.tisane.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "tisane API Key"
+      }
+    ]
+  },
+  "tools": []
+}

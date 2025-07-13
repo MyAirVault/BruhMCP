@@ -1,0 +1,195 @@
+{
+  "name": "textrazor",
+  "displayName": "TextRazor",
+  "description": "TextRazor is a natural language processing API that extracts meaning, entities, and relationships from text",
+  "category": "ai",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/text.svg",
+  "port": 49483  ,
+  "api": {
+    "baseURL": "https://api.textrazor.com",
+    "version": "v1",
+    "documentation": "https://www.textrazor.com/docs"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "TextRazor API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "get_account_info",
+      "description": "Get account information and usage statistics",
+      "endpoint": "/account",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "classify_text",
+      "description": "Classify text into predefined categories",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to classify"
+        },
+        "classifiers": {
+          "type": "string",
+          "required": true,
+          "description": "Classifier names to use"
+        }
+      }
+    },
+    {
+      "name": "analyze_dependency_trees",
+      "description": "Analyze grammatical dependency relationships in text",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to analyze"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Extractors to use (include 'dependency-trees')"
+        }
+      }
+    },
+    {
+      "name": "extract_entities",
+      "description": "Extract named entities from text",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to analyze"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Extractors to use (include 'entities')"
+        }
+      }
+    },
+    {
+      "name": "extract_phrases",
+      "description": "Extract key phrases from text",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to analyze"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Extractors to use (include 'phrases')"
+        }
+      }
+    },
+    {
+      "name": "extract_relations",
+      "description": "Extract grammatical relations from text",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to analyze"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Extractors to use (include 'relations')"
+        }
+      }
+    },
+    {
+      "name": "extract_word_senses",
+      "description": "Extract word senses and meanings from text",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to analyze"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Extractors to use (include 'senses')"
+        }
+      }
+    },
+    {
+      "name": "spelling_correction",
+      "description": "Perform spelling correction on text",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to correct"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Extractors to use (include 'spelling')"
+        }
+      }
+    },
+    {
+      "name": "comprehensive_analysis",
+      "description": "Perform comprehensive content analysis with multiple extractors",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to analyze"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Comma-separated list of extractors (entities,topics,words,phrases,dependency-trees,relations,entailments,senses,spelling)"
+        }
+      }
+    },
+    {
+      "name": "extract_topics",
+      "description": "Extract topics and themes from text",
+      "endpoint": "/analyze",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to analyze"
+        },
+        "extractors": {
+          "type": "string",
+          "required": false,
+          "description": "Extractors to use (include 'topics')"
+        }
+      }
+    }
+  ]
+}

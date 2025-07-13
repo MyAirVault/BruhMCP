@@ -1,0 +1,25 @@
+{
+  "name": "bamboohr",
+  "displayName": "Bamboohr",
+  "description": "bamboohr integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bamboohr.svg",
+  "port": 49190  ,
+  "api": {
+    "baseURL": "https://api.bamboohr.com",
+    "version": "v1",
+    "documentation": "https://docs.bamboohr.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "bamboohr API Key"
+      }
+    ]
+  },
+  "tools": []
+}

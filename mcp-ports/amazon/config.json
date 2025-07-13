@@ -1,0 +1,25 @@
+{
+  "name": "amazon",
+  "displayName": "Amazon",
+  "description": "amazon integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/amazon.svg",
+  "port": 49175  ,
+  "api": {
+    "baseURL": "https://api.amazon.com",
+    "version": "v1",
+    "documentation": "https://docs.amazon.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "amazon API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,195 @@
+{
+  "name": "dialpad",
+  "displayName": "Dialpad",
+  "description": "Dialpad is a cloud-based business phone system and contact center platform that enables voice, video, messages and meetings across your existing devices",
+  "category": "collaboration",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/dialpad.svg",
+  "port": 49258  ,
+  "api": {
+    "baseURL": "https://dialpad.com/api",
+    "version": "v2",
+    "documentation": "https://developers.dialpad.com/reference"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Dialpad App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Dialpad App Client Secret"
+      },
+      {
+        "name": "bearer_token",
+        "type": "password",
+        "required": false,
+        "description": "Dialpad Bearer Token"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["full"],
+      "authorization_url": "https://dialpad.com/oauth2/authorize",
+      "token_url": "https://dialpad.com/oauth2/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "add_operator",
+      "description": "Add operator to call center",
+      "endpoint": "/operators",
+      "method": "POST",
+      "parameters": {
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID to add as operator"
+        },
+        "call_center_id": {
+          "type": "string",
+          "required": true,
+          "description": "Call center ID to add operator to"
+        }
+      }
+    },
+    {
+      "name": "assign_phone_number",
+      "description": "Assign phone number to user, department, or call center",
+      "endpoint": "/phone-numbers/assign",
+      "method": "POST",
+      "parameters": {
+        "phone_number": {
+          "type": "string",
+          "required": true,
+          "description": "Phone number to assign"
+        },
+        "target_type": {
+          "type": "string",
+          "required": true,
+          "description": "Type of target (user, department, call_center)"
+        },
+        "target_id": {
+          "type": "string",
+          "required": true,
+          "description": "Target ID to assign number to"
+        }
+      }
+    },
+    {
+      "name": "configure_call_center",
+      "description": "Configure call center settings",
+      "endpoint": "/call-centers/{call_center_id}/config",
+      "method": "PUT",
+      "parameters": {
+        "call_center_id": {
+          "type": "string",
+          "required": true,
+          "description": "Call center ID to configure"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Call center name"
+        },
+        "settings": {
+          "type": "object",
+          "required": false,
+          "description": "Call center configuration settings"
+        }
+      }
+    },
+    {
+      "name": "initiate_outbound_call",
+      "description": "Initiate outbound call",
+      "endpoint": "/calls",
+      "method": "POST",
+      "parameters": {
+        "from_number": {
+          "type": "string",
+          "required": true,
+          "description": "Caller phone number"
+        },
+        "to_number": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient phone number"
+        },
+        "user_id": {
+          "type": "string",
+          "required": false,
+          "description": "User ID initiating the call"
+        }
+      }
+    },
+    {
+      "name": "create_ivr",
+      "description": "Create custom IVR system",
+      "endpoint": "/ivr",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "IVR system name"
+        },
+        "menu_options": {
+          "type": "array",
+          "required": true,
+          "description": "IVR menu options configuration"
+        },
+        "greeting_message": {
+          "type": "string",
+          "required": false,
+          "description": "IVR greeting message"
+        }
+      }
+    },
+    {
+      "name": "attach_call_label",
+      "description": "Attach label to call",
+      "endpoint": "/calls/{call_id}/labels",
+      "method": "POST",
+      "parameters": {
+        "call_id": {
+          "type": "string",
+          "required": true,
+          "description": "Call ID to attach label to"
+        },
+        "label": {
+          "type": "string",
+          "required": true,
+          "description": "Label to attach"
+        }
+      }
+    },
+    {
+      "name": "manage_access_control",
+      "description": "Manage access control policies",
+      "endpoint": "/access-control",
+      "method": "POST",
+      "parameters": {
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID to set permissions for"
+        },
+        "permissions": {
+          "type": "array",
+          "required": true,
+          "description": "List of permissions to grant"
+        },
+        "scope": {
+          "type": "string",
+          "required": false,
+          "description": "Scope of permissions (department, call_center, global)"
+        }
+      }
+    }
+  ]
+}

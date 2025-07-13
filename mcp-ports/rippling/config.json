@@ -1,0 +1,25 @@
+{
+  "name": "rippling",
+  "displayName": "Rippling",
+  "description": "rippling integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/rippling.svg",
+  "port": 49433 ,
+  "api": {
+    "baseURL": "https://api.rippling.com",
+    "version": "v1",
+    "documentation": "https://docs.rippling.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "rippling API Key"
+      }
+    ]
+  },
+  "tools": []
+}

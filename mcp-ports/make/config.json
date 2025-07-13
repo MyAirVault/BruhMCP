@@ -1,0 +1,25 @@
+{
+  "name": "make",
+  "displayName": "Make",
+  "description": "make integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/make.svg",
+  "port": 49359  ,
+  "api": {
+    "baseURL": "https://api.make.com",
+    "version": "v1",
+    "documentation": "https://docs.make.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "make API Key"
+      }
+    ]
+  },
+  "tools": []
+}

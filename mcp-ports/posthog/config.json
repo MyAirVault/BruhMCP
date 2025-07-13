@@ -1,0 +1,133 @@
+{
+  "name": "posthog",
+  "displayName": "PostHog",
+  "description": "Open-source product analytics platform tracking user interactions and behaviors",
+  "category": "analytics",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/posthog.svg",
+  "port": 49411  ,
+  "api": {
+    "baseURL": "https://app.posthog.com/api/",
+    "version": "v1",
+    "documentation": "https://posthog.com/docs/api"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "subdomain",
+        "type": "text",
+        "required": false,
+        "description": "PostHog subdomain (defaults to 'us')",
+        "default": "us"
+      },
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "PostHog API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "list_projects",
+      "description": "List projects in organization with pagination",
+      "endpoint": "/api/projects/",
+      "method": "GET",
+      "parameters": {
+        "organization_id": {
+          "type": "string",
+          "required": true,
+          "description": "Organization ID"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to return per page"
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "The initial index from which to return the results"
+        }
+      }
+    },
+    {
+      "name": "list_project_group_types",
+      "description": "List project group types by ID",
+      "endpoint": "/api/projects/{project_id}/groups_types/",
+      "method": "GET",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID to get group types for"
+        }
+      }
+    },
+    {
+      "name": "add_dashboard_collaborators",
+      "description": "Add dashboard collaborators with access level",
+      "endpoint": "/api/projects/{project_id}/dashboards/{dashboard_id}/collaborators/",
+      "method": "POST",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "dashboard_id": {
+          "type": "number",
+          "required": true,
+          "description": "Dashboard ID"
+        },
+        "user_uuid": {
+          "type": "string",
+          "required": true,
+          "description": "User UUID to add as collaborator"
+        }
+      }
+    },
+    {
+      "name": "get_events",
+      "description": "Get events for analysis",
+      "endpoint": "/api/projects/{project_id}/events/",
+      "method": "GET",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "event": {
+          "type": "string",
+          "required": false,
+          "description": "Event name filter"
+        }
+      }
+    },
+    {
+      "name": "create_insight",
+      "description": "Create a new insight",
+      "endpoint": "/api/projects/{project_id}/insights/",
+      "method": "POST",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Insight name"
+        },
+        "filters": {
+          "type": "object",
+          "required": true,
+          "description": "Insight filters configuration"
+        }
+      }
+    }
+  ]
+}

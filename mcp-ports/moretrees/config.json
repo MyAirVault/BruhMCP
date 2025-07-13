@@ -1,0 +1,25 @@
+{
+  "name": "moretrees",
+  "displayName": "Moretrees",
+  "description": "moretrees integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/moretrees.svg",
+  "port": 49379 ,
+  "api": {
+    "baseURL": "https://api.moretrees.com",
+    "version": "v1",
+    "documentation": "https://docs.moretrees.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "moretrees API Key"
+      }
+    ]
+  },
+  "tools": []
+}

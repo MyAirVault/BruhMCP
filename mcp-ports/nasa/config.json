@@ -1,0 +1,25 @@
+{
+  "name": "nasa",
+  "displayName": "Nasa",
+  "description": "nasa integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/nasa.svg",
+  "port": 49383  ,
+  "api": {
+    "baseURL": "https://api.nasa.com",
+    "version": "v1",
+    "documentation": "https://docs.nasa.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "nasa API Key"
+      }
+    ]
+  },
+  "tools": []
+}

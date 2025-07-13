@@ -1,0 +1,156 @@
+{
+  "name": "zoom",
+  "displayName": "Zoom",
+  "description": "Zoom is a video conferencing and online meeting platform featuring breakout rooms, screen sharing, and integrations",
+  "category": "communication",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/zoom.svg",
+  "port": 49531  ,
+  "api": {
+    "baseURL": "https://api.zoom.us/v2",
+    "version": "v2",
+    "documentation": "https://v3.docs.composio.dev/tools/zoom"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Zoom OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Zoom OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["meeting:read:admin", "meeting:write:admin", "webinar:read:admin", "webinar:write:admin"],
+      "authorization_url": "https://zoom.us/oauth/authorize",
+      "token_url": "https://zoom.us/oauth/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_meeting",
+      "description": "Create a new Zoom meeting",
+      "endpoint": "/tools/zoom/create_meeting",
+      "method": "POST",
+      "parameters": {
+        "topic": {
+          "type": "string",
+          "required": true,
+          "description": "Meeting topic"
+        },
+        "type": {
+          "type": "number",
+          "required": false,
+          "description": "Meeting type (1=instant, 2=scheduled, 3=recurring)"
+        },
+        "start_time": {
+          "type": "string",
+          "required": false,
+          "description": "Meeting start time (ISO 8601 format)"
+        },
+        "duration": {
+          "type": "number",
+          "required": false,
+          "description": "Meeting duration in minutes"
+        }
+      }
+    },
+    {
+      "name": "delete_meeting_registrant",
+      "description": "Delete a meeting registrant",
+      "endpoint": "/tools/zoom/delete_meeting_registrant",
+      "method": "DELETE",
+      "parameters": {
+        "meeting_id": {
+          "type": "string",
+          "required": true,
+          "description": "Meeting ID"
+        },
+        "registrant_id": {
+          "type": "string",
+          "required": true,
+          "description": "Registrant ID to delete"
+        }
+      }
+    },
+    {
+      "name": "get_meeting_details",
+      "description": "Get meeting details",
+      "endpoint": "/tools/zoom/get_meeting_details",
+      "method": "GET",
+      "parameters": {
+        "meeting_id": {
+          "type": "string",
+          "required": true,
+          "description": "Meeting ID"
+        }
+      }
+    },
+    {
+      "name": "list_meetings",
+      "description": "List meetings for a user",
+      "endpoint": "/tools/zoom/list_meetings",
+      "method": "GET",
+      "parameters": {
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID"
+        },
+        "type": {
+          "type": "string",
+          "required": false,
+          "description": "Meeting type filter (scheduled, live, upcoming)"
+        }
+      }
+    },
+    {
+      "name": "add_meeting_registrants",
+      "description": "Add meeting registrants",
+      "endpoint": "/tools/zoom/add_meeting_registrants",
+      "method": "POST",
+      "parameters": {
+        "meeting_id": {
+          "type": "string",
+          "required": true,
+          "description": "Meeting ID"
+        },
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "Registrant email"
+        },
+        "first_name": {
+          "type": "string",
+          "required": true,
+          "description": "Registrant first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": true,
+          "description": "Registrant last name"
+        }
+      }
+    },
+    {
+      "name": "get_meeting_recordings",
+      "description": "Get meeting recordings",
+      "endpoint": "/tools/zoom/get_meeting_recordings",
+      "method": "GET",
+      "parameters": {
+        "meeting_id": {
+          "type": "string",
+          "required": true,
+          "description": "Meeting ID"
+        }
+      }
+    }
+  ]
+}

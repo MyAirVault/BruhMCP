@@ -1,0 +1,25 @@
+{
+  "name": "nasdaq",
+  "displayName": "Nasdaq",
+  "description": "nasdaq integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/nasdaq.svg",
+  "port": 49384 ,
+  "api": {
+    "baseURL": "https://api.nasdaq.com",
+    "version": "v1",
+    "documentation": "https://docs.nasdaq.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "nasdaq API Key"
+      }
+    ]
+  },
+  "tools": []
+}

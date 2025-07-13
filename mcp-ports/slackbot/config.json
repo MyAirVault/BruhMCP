@@ -1,0 +1,362 @@
+{
+  "name": "slackbot",
+  "displayName": "Slackbot",
+  "description": "Slackbot automates responses and reminders within Slack, assisting with tasks like onboarding, FAQs, and notifications",
+  "category": "collaboration",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/slack.svg",
+  "port": 49459  ,
+  "api": {
+    "baseURL": "https://slack.com/api",
+    "version": "v1",
+    "documentation": "https://api.slack.com/methods"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Slack App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Slack App Client Secret"
+      },
+      {
+        "name": "oauth_redirect_uri",
+        "type": "text",
+        "required": false,
+        "description": "OAuth redirect URI",
+        "default": "https://backend.composio.dev/api/v1/auth-apps/add"
+      },
+      {
+        "name": "bearer_token",
+        "type": "password",
+        "required": false,
+        "description": "Bearer token for API access"
+      },
+      {
+        "name": "verification_token",
+        "type": "password",
+        "required": false,
+        "description": "Slack App Verification Token"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["channels:history", "chat:write", "team:read", "channels:read", "users:read", "reminders:write", "reactions:read", "reactions:write", "emoji:read"],
+      "authorization_url": "https://slack.com/oauth/v2/authorize",
+      "token_url": "https://slack.com/api/oauth.v2.access"
+    }
+  },
+  "tools": [
+    {
+      "name": "add_reaction_to_message",
+      "description": "Add reaction to message",
+      "endpoint": "/reactions.add",
+      "method": "POST",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel containing the message"
+        },
+        "timestamp": {
+          "type": "string",
+          "required": true,
+          "description": "Timestamp of message to react to"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Emoji name (without colons)"
+        }
+      }
+    },
+    {
+      "name": "create_reminder",
+      "description": "Create a reminder",
+      "endpoint": "/reminders.add",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Content of the reminder"
+        },
+        "time": {
+          "type": "string",
+          "required": true,
+          "description": "When the reminder should occur"
+        },
+        "user": {
+          "type": "string",
+          "required": false,
+          "description": "User to send reminder to"
+        }
+      }
+    },
+    {
+      "name": "fetch_conversation_history",
+      "description": "Fetch conversation history",
+      "endpoint": "/conversations.history",
+      "method": "GET",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel ID to fetch history from"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of messages to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "list_conversations",
+      "description": "List conversations",
+      "endpoint": "/conversations.list",
+      "method": "GET",
+      "parameters": {
+        "types": {
+          "type": "string",
+          "required": false,
+          "description": "Types of conversations to include",
+          "default": "public_channel"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of items to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "list_slack_team_users",
+      "description": "List Slack team users",
+      "endpoint": "/users.list",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of users to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "remove_reaction_from_item",
+      "description": "Remove reaction from item",
+      "endpoint": "/reactions.remove",
+      "method": "POST",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel containing the message"
+        },
+        "timestamp": {
+          "type": "string",
+          "required": true,
+          "description": "Timestamp of message"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Emoji name to remove"
+        }
+      }
+    },
+    {
+      "name": "schedule_message",
+      "description": "Schedule message",
+      "endpoint": "/chat.scheduleMessage",
+      "method": "POST",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel to send message to"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Message text"
+        },
+        "post_at": {
+          "type": "string",
+          "required": true,
+          "description": "Unix timestamp when to send the message"
+        }
+      }
+    },
+    {
+      "name": "search_messages",
+      "description": "Search messages",
+      "endpoint": "/search.messages",
+      "method": "GET",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "count": {
+          "type": "number",
+          "required": false,
+          "description": "Number of items to return",
+          "default": 20
+        }
+      }
+    },
+    {
+      "name": "send_message_to_slack_channel",
+      "description": "Send a message to Slack channel",
+      "endpoint": "/chat.postMessage",
+      "method": "POST",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel ID or name to send message to"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Message text to send"
+        },
+        "thread_ts": {
+          "type": "string",
+          "required": false,
+          "description": "Timestamp of parent message to reply in thread"
+        }
+      }
+    },
+    {
+      "name": "update_slack_message",
+      "description": "Update a Slack message",
+      "endpoint": "/chat.update",
+      "method": "POST",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": true,
+          "description": "Channel ID containing the message"
+        },
+        "ts": {
+          "type": "string",
+          "required": true,
+          "description": "Timestamp of message to update"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "New message text"
+        }
+      }
+    },
+    {
+      "name": "set_snooze_duration",
+      "description": "Set snooze duration",
+      "endpoint": "/dnd.setSnooze",
+      "method": "POST",
+      "parameters": {
+        "num_minutes": {
+          "type": "number",
+          "required": true,
+          "description": "Number of minutes to snooze"
+        }
+      }
+    },
+    {
+      "name": "add_emoji_alias",
+      "description": "Add emoji alias",
+      "endpoint": "/admin.emoji.addAlias",
+      "method": "POST",
+      "parameters": {
+        "alias_for": {
+          "type": "string",
+          "required": true,
+          "description": "Emoji to alias"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Alias name"
+        }
+      }
+    },
+    {
+      "name": "add_custom_emoji",
+      "description": "Add custom emoji",
+      "endpoint": "/admin.emoji.add",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of emoji"
+        },
+        "url": {
+          "type": "string",
+          "required": true,
+          "description": "URL of emoji image"
+        }
+      }
+    },
+    {
+      "name": "add_remote_file",
+      "description": "Add remote file",
+      "endpoint": "/files.remote.add",
+      "method": "POST",
+      "parameters": {
+        "external_url": {
+          "type": "string",
+          "required": true,
+          "description": "URL of remote file"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Title of file"
+        },
+        "filetype": {
+          "type": "string",
+          "required": false,
+          "description": "File type"
+        }
+      }
+    },
+    {
+      "name": "add_star_to_item",
+      "description": "Add a star to an item",
+      "endpoint": "/stars.add",
+      "method": "POST",
+      "parameters": {
+        "channel": {
+          "type": "string",
+          "required": false,
+          "description": "Channel containing the item"
+        },
+        "timestamp": {
+          "type": "string",
+          "required": false,
+          "description": "Timestamp of message to star"
+        },
+        "file": {
+          "type": "string",
+          "required": false,
+          "description": "File to star"
+        }
+      }
+    }
+  ]
+}

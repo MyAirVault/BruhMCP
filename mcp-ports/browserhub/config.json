@@ -1,0 +1,25 @@
+{
+  "name": "browserhub",
+  "displayName": "Browserhub",
+  "description": "browserhub integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/browserhub.svg",
+  "port": 49221  ,
+  "api": {
+    "baseURL": "https://api.browserhub.com",
+    "version": "v1",
+    "documentation": "https://docs.browserhub.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "browserhub API Key"
+      }
+    ]
+  },
+  "tools": []
+}

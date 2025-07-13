@@ -1,0 +1,25 @@
+{
+  "name": "wati",
+  "displayName": "Wati",
+  "description": "wati integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/wati.svg",
+  "port": 49505  ,
+  "api": {
+    "baseURL": "https://api.wati.com",
+    "version": "v1",
+    "documentation": "https://docs.wati.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "wati API Key"
+      }
+    ]
+  },
+  "tools": []
+}

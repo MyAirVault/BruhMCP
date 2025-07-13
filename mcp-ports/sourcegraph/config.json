@@ -1,0 +1,25 @@
+{
+  "name": "sourcegraph",
+  "displayName": "Sourcegraph",
+  "description": "sourcegraph integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/sourcegraph.svg",
+  "port": 49463 ,
+  "api": {
+    "baseURL": "https://api.sourcegraph.com",
+    "version": "v1",
+    "documentation": "https://docs.sourcegraph.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "sourcegraph API Key"
+      }
+    ]
+  },
+  "tools": []
+}

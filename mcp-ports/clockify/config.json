@@ -1,0 +1,25 @@
+{
+  "name": "clockify",
+  "displayName": "Clockify",
+  "description": "clockify integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/clockify.svg",
+  "port": 49234  ,
+  "api": {
+    "baseURL": "https://api.clockify.com",
+    "version": "v1",
+    "documentation": "https://docs.clockify.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "clockify API Key"
+      }
+    ]
+  },
+  "tools": []
+}

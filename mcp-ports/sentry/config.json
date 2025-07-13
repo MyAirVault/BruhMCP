@@ -1,0 +1,245 @@
+{
+  "name": "sentry",
+  "displayName": "Sentry",
+  "description": "Sentry is an error tracking and monitoring tool for developers, allowing integration and management of project issues, releases, and team collaboration",
+  "category": "monitoring",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/sentry.svg",
+  "port": 49448  ,
+  "api": {
+    "baseURL": "https://sentry.io/api/0",
+    "version": "0",
+    "documentation": "https://docs.sentry.io/api/"
+  },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "name": "token",
+        "type": "password",
+        "required": true,
+        "description": "Sentry Bearer Token"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "get_project_info",
+      "description": "Access project information",
+      "endpoint": "/projects/{organization_slug}/{project_slug}/",
+      "method": "GET",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "project_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Project slug"
+        }
+      }
+    },
+    {
+      "name": "list_project_issues",
+      "description": "Retrieve project issues list",
+      "endpoint": "/projects/{organization_slug}/{project_slug}/issues/",
+      "method": "GET",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "project_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Project slug"
+        },
+        "statsPeriod": {
+          "type": "string",
+          "required": false,
+          "description": "Time period for stats (e.g., '24h', '14d')"
+        },
+        "query": {
+          "type": "string",
+          "required": false,
+          "description": "Search query to filter issues"
+        },
+        "sort": {
+          "type": "string",
+          "required": false,
+          "description": "Sort order (date, new, priority, freq, user)"
+        }
+      }
+    },
+    {
+      "name": "update_project",
+      "description": "Update project details",
+      "endpoint": "/projects/{organization_slug}/{project_slug}/",
+      "method": "PUT",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "project_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Project slug"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Project name"
+        },
+        "slug": {
+          "type": "string",
+          "required": false,
+          "description": "Project slug"
+        },
+        "platform": {
+          "type": "string",
+          "required": false,
+          "description": "Project platform"
+        }
+      }
+    },
+    {
+      "name": "create_project_key",
+      "description": "Create project keys",
+      "endpoint": "/projects/{organization_slug}/{project_slug}/keys/",
+      "method": "POST",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "project_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Project slug"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Key name"
+        },
+        "public": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether key is public"
+        }
+      }
+    },
+    {
+      "name": "add_organization_member",
+      "description": "Add organization member",
+      "endpoint": "/organizations/{organization_slug}/members/",
+      "method": "POST",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "Member email address"
+        },
+        "role": {
+          "type": "string",
+          "required": false,
+          "description": "Member role (member, admin, manager, owner)"
+        },
+        "teams": {
+          "type": "array",
+          "required": false,
+          "description": "Array of team slugs to add member to"
+        }
+      }
+    },
+    {
+      "name": "create_organization_team",
+      "description": "Create organization team",
+      "endpoint": "/organizations/{organization_slug}/teams/",
+      "method": "POST",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Team name"
+        },
+        "slug": {
+          "type": "string",
+          "required": false,
+          "description": "Team slug"
+        }
+      }
+    },
+    {
+      "name": "create_organization_release",
+      "description": "Manage organization releases",
+      "endpoint": "/organizations/{organization_slug}/releases/",
+      "method": "POST",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "description": "Release version"
+        },
+        "ref": {
+          "type": "string",
+          "required": false,
+          "description": "Git commit reference"
+        },
+        "url": {
+          "type": "string",
+          "required": false,
+          "description": "Release URL"
+        },
+        "projects": {
+          "type": "array",
+          "required": true,
+          "description": "Array of project slugs"
+        }
+      }
+    },
+    {
+      "name": "add_team_member",
+      "description": "Add team member",
+      "endpoint": "/teams/{organization_slug}/{team_slug}/members/",
+      "method": "POST",
+      "parameters": {
+        "organization_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Organization slug"
+        },
+        "team_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Team slug"
+        },
+        "user": {
+          "type": "string",
+          "required": true,
+          "description": "User ID or email"
+        }
+      }
+    }
+  ]
+}

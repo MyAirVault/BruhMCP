@@ -1,0 +1,25 @@
+{
+  "name": "heygen",
+  "displayName": "Heygen",
+  "description": "heygen integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/heygen.svg",
+  "port": 49319 ,
+  "api": {
+    "baseURL": "https://api.heygen.com",
+    "version": "v1",
+    "documentation": "https://docs.heygen.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "heygen API Key"
+      }
+    ]
+  },
+  "tools": []
+}

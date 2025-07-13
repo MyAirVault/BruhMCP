@@ -1,0 +1,25 @@
+{
+  "name": "venly",
+  "displayName": "Venly",
+  "description": "venly integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/venly.svg",
+  "port": 49499 ,
+  "api": {
+    "baseURL": "https://api.venly.com",
+    "version": "v1",
+    "documentation": "https://docs.venly.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "venly API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "zohobooks",
+  "displayName": "Zohobooks",
+  "description": "zohobooks integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/zohobooks.svg",
+  "port": 49526  ,
+  "api": {
+    "baseURL": "https://api.zohobooks.com",
+    "version": "v1",
+    "documentation": "https://docs.zohobooks.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "zohobooks API Key"
+      }
+    ]
+  },
+  "tools": []
+}

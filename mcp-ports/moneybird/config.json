@@ -1,0 +1,25 @@
+{
+  "name": "moneybird",
+  "displayName": "Moneybird",
+  "description": "moneybird integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/moneybird.svg",
+  "port": 49376  ,
+  "api": {
+    "baseURL": "https://api.moneybird.com",
+    "version": "v1",
+    "documentation": "https://docs.moneybird.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "moneybird API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "starton",
+  "displayName": "Starton",
+  "description": "starton integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/starton.svg",
+  "port": 49469 ,
+  "api": {
+    "baseURL": "https://api.starton.com",
+    "version": "v1",
+    "documentation": "https://docs.starton.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "starton API Key"
+      }
+    ]
+  },
+  "tools": []
+}

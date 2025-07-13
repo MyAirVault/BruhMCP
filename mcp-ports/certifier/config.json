@@ -1,0 +1,25 @@
+{
+  "name": "certifier",
+  "displayName": "Certifier",
+  "description": "certifier integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/certifier.svg",
+  "port": 49230  ,
+  "api": {
+    "baseURL": "https://api.certifier.com",
+    "version": "v1",
+    "documentation": "https://docs.certifier.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "certifier API Key"
+      }
+    ]
+  },
+  "tools": []
+}

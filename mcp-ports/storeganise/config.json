@@ -1,0 +1,25 @@
+{
+  "name": "storeganise",
+  "displayName": "Storeganise",
+  "description": "storeganise integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/storeganise.svg",
+  "port": 49470  ,
+  "api": {
+    "baseURL": "https://api.storeganise.com",
+    "version": "v1",
+    "documentation": "https://docs.storeganise.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "storeganise API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "lemonsqueezy",
+  "displayName": "Lemonsqueezy",
+  "description": "lemonsqueezy integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/lemonsqueezy.svg",
+  "port": 49345  ,
+  "api": {
+    "baseURL": "https://api.lemonsqueezy.com",
+    "version": "v1",
+    "documentation": "https://docs.lemonsqueezy.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "lemonsqueezy API Key"
+      }
+    ]
+  },
+  "tools": []
+}

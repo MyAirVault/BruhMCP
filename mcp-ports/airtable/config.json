@@ -1,0 +1,311 @@
+{
+  "name": "airtable",
+  "displayName": "Airtable",
+  "description": "Merges spreadsheet functionality with database power, enabling teams to organize projects, track tasks, and collaborate",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/airtable.svg",
+  "port": 49171    ,
+  "api": {
+    "baseURL": "https://api.airtable.com/v0",
+    "version": "v0",
+    "documentation": "https://airtable.com/developers/web/api/introduction"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "Airtable Personal Access Token"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [
+        "data.records:read",
+        "data.records:write",
+        "data.recordComments:read",
+        "data.recordComments:write",
+        "schema.bases:read",
+        "schema.bases:write",
+        "user.email:read"
+      ],
+      "authorization_url": "https://airtable.com/oauth2/v1/authorize",
+      "token_url": "https://airtable.com/oauth2/v1/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "list_bases",
+      "description": "List all accessible bases",
+      "endpoint": "/meta/bases",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "get_base_schema",
+      "description": "Get base schema information",
+      "endpoint": "/meta/bases/{baseId}/tables",
+      "method": "GET",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID to get schema for"
+        }
+      }
+    },
+    {
+      "name": "list_records",
+      "description": "List records from a table",
+      "endpoint": "/{baseId}/{tableIdOrName}",
+      "method": "GET",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "maxRecords": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of records to return",
+          "default": 100
+        },
+        "view": {
+          "type": "string",
+          "required": false,
+          "description": "View name or ID"
+        },
+        "filterByFormula": {
+          "type": "string",
+          "required": false,
+          "description": "Airtable formula to filter records"
+        }
+      }
+    },
+    {
+      "name": "get_record",
+      "description": "Get a specific record",
+      "endpoint": "/{baseId}/{tableIdOrName}/{recordId}",
+      "method": "GET",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "recordId": {
+          "type": "string",
+          "required": true,
+          "description": "Record ID"
+        }
+      }
+    },
+    {
+      "name": "create_record",
+      "description": "Create a new record",
+      "endpoint": "/{baseId}/{tableIdOrName}",
+      "method": "POST",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "fields": {
+          "type": "object",
+          "required": true,
+          "description": "Record fields as key-value pairs"
+        }
+      }
+    },
+    {
+      "name": "create_multiple_records",
+      "description": "Create multiple records at once",
+      "endpoint": "/{baseId}/{tableIdOrName}",
+      "method": "POST",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "records": {
+          "type": "array",
+          "required": true,
+          "description": "Array of record objects with fields"
+        }
+      }
+    },
+    {
+      "name": "update_record",
+      "description": "Update an existing record",
+      "endpoint": "/{baseId}/{tableIdOrName}/{recordId}",
+      "method": "PATCH",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "recordId": {
+          "type": "string",
+          "required": true,
+          "description": "Record ID to update"
+        },
+        "fields": {
+          "type": "object",
+          "required": true,
+          "description": "Fields to update as key-value pairs"
+        }
+      }
+    },
+    {
+      "name": "update_multiple_records",
+      "description": "Update multiple records at once",
+      "endpoint": "/{baseId}/{tableIdOrName}",
+      "method": "PATCH",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "records": {
+          "type": "array",
+          "required": true,
+          "description": "Array of record objects with id and fields to update"
+        }
+      }
+    },
+    {
+      "name": "delete_record",
+      "description": "Delete a record",
+      "endpoint": "/{baseId}/{tableIdOrName}/{recordId}",
+      "method": "DELETE",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "recordId": {
+          "type": "string",
+          "required": true,
+          "description": "Record ID to delete"
+        }
+      }
+    },
+    {
+      "name": "delete_multiple_records",
+      "description": "Delete multiple records at once",
+      "endpoint": "/{baseId}/{tableIdOrName}",
+      "method": "DELETE",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "records": {
+          "type": "array",
+          "required": true,
+          "description": "Array of record IDs to delete"
+        }
+      }
+    },
+    {
+      "name": "create_table",
+      "description": "Create a new table in a base",
+      "endpoint": "/meta/bases/{baseId}/tables",
+      "method": "POST",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID to create table in"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Table name"
+        },
+        "fields": {
+          "type": "array",
+          "required": true,
+          "description": "Array of field definitions"
+        }
+      }
+    },
+    {
+      "name": "create_field",
+      "description": "Create a new field in a table",
+      "endpoint": "/meta/bases/{baseId}/tables/{tableIdOrName}/fields",
+      "method": "POST",
+      "parameters": {
+        "baseId": {
+          "type": "string",
+          "required": true,
+          "description": "Base ID"
+        },
+        "tableIdOrName": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID or name"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Field name"
+        },
+        "type": {
+          "type": "string",
+          "required": true,
+          "description": "Field type (singleLineText, email, url, etc.)"
+        }
+      }
+    }
+  ]
+}

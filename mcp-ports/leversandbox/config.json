@@ -1,0 +1,25 @@
+{
+  "name": "leversandbox",
+  "displayName": "Leversandbox",
+  "description": "leversandbox integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/leversandbox.svg",
+  "port": 49347 ,
+  "api": {
+    "baseURL": "https://api.leversandbox.com",
+    "version": "v1",
+    "documentation": "https://docs.leversandbox.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "leversandbox API Key"
+      }
+    ]
+  },
+  "tools": []
+}

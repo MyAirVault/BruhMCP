@@ -1,0 +1,289 @@
+{
+  "name": "zoominfo",
+  "displayName": "ZoomInfo",
+  "description": "Data enrichment and search platform for business intelligence, offering tools to find and analyze company and contact information",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/zoominfo.svg",
+  "port": 49532  ,
+  "api": {
+    "baseURL": "https://api.zoominfo.com",
+    "version": "v1",
+    "documentation": "https://api-docs.zoominfo.com/"
+  },
+  "auth": {
+    "type": "bearer_token",
+    "fields": [
+      {
+        "name": "access_token",
+        "type": "password",
+        "required": true,
+        "description": "ZoomInfo Access Token"
+      },
+      {
+        "name": "username",
+        "type": "text",
+        "required": true,
+        "description": "ZoomInfo Username"
+      },
+      {
+        "name": "password",
+        "type": "password",
+        "required": true,
+        "description": "ZoomInfo Password"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "search_news",
+      "description": "Retrieves news articles based on search criteria",
+      "endpoint": "/v1/news/search",
+      "method": "POST",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query for news articles"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to return",
+          "default": 10
+        },
+        "startDate": {
+          "type": "string",
+          "required": false,
+          "description": "Start date for news search (YYYY-MM-DD)"
+        },
+        "endDate": {
+          "type": "string",
+          "required": false,
+          "description": "End date for news search (YYYY-MM-DD)"
+        }
+      }
+    },
+    {
+      "name": "enrich_company",
+      "description": "Provides detailed company information",
+      "endpoint": "/v1/enrich/company",
+      "method": "POST",
+      "parameters": {
+        "companyName": {
+          "type": "string",
+          "required": false,
+          "description": "Company name to enrich"
+        },
+        "website": {
+          "type": "string",
+          "required": false,
+          "description": "Company website domain"
+        },
+        "companyId": {
+          "type": "string",
+          "required": false,
+          "description": "ZoomInfo company ID"
+        },
+        "ticker": {
+          "type": "string",
+          "required": false,
+          "description": "Stock ticker symbol"
+        }
+      }
+    },
+    {
+      "name": "enrich_contact",
+      "description": "Retrieves detailed contact information",
+      "endpoint": "/v1/enrich/contact",
+      "method": "POST",
+      "parameters": {
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Contact email address"
+        },
+        "firstName": {
+          "type": "string",
+          "required": false,
+          "description": "Contact first name"
+        },
+        "lastName": {
+          "type": "string",
+          "required": false,
+          "description": "Contact last name"
+        },
+        "companyName": {
+          "type": "string",
+          "required": false,
+          "description": "Company name"
+        },
+        "personId": {
+          "type": "string",
+          "required": false,
+          "description": "ZoomInfo person ID"
+        }
+      }
+    },
+    {
+      "name": "enrich_intent",
+      "description": "Offers insights into company and contact intent signals",
+      "endpoint": "/v1/enrich/intent",
+      "method": "POST",
+      "parameters": {
+        "companyId": {
+          "type": "string",
+          "required": true,
+          "description": "ZoomInfo company ID"
+        },
+        "topics": {
+          "type": "array",
+          "required": false,
+          "description": "Array of intent topics to search for"
+        },
+        "startDate": {
+          "type": "string",
+          "required": false,
+          "description": "Start date for intent data"
+        },
+        "endDate": {
+          "type": "string",
+          "required": false,
+          "description": "End date for intent data"
+        }
+      }
+    },
+    {
+      "name": "enrich_location",
+      "description": "Provides location-based company information",
+      "endpoint": "/v1/enrich/location",
+      "method": "POST",
+      "parameters": {
+        "address": {
+          "type": "string",
+          "required": false,
+          "description": "Physical address"
+        },
+        "city": {
+          "type": "string",
+          "required": false,
+          "description": "City name"
+        },
+        "state": {
+          "type": "string",
+          "required": false,
+          "description": "State or province"
+        },
+        "country": {
+          "type": "string",
+          "required": false,
+          "description": "Country"
+        },
+        "zipCode": {
+          "type": "string",
+          "required": false,
+          "description": "ZIP or postal code"
+        }
+      }
+    },
+    {
+      "name": "enrich_technology",
+      "description": "Offers technology-related company insights",
+      "endpoint": "/v1/enrich/technology",
+      "method": "POST",
+      "parameters": {
+        "companyId": {
+          "type": "string",
+          "required": true,
+          "description": "ZoomInfo company ID"
+        },
+        "categories": {
+          "type": "array",
+          "required": false,
+          "description": "Technology categories to filter by"
+        },
+        "includeHistorical": {
+          "type": "boolean",
+          "required": false,
+          "description": "Include historical technology data",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "search_companies",
+      "description": "Search for companies based on criteria",
+      "endpoint": "/v1/search/company",
+      "method": "POST",
+      "parameters": {
+        "companyName": {
+          "type": "string",
+          "required": false,
+          "description": "Company name to search for"
+        },
+        "industry": {
+          "type": "string",
+          "required": false,
+          "description": "Industry filter"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Location filter"
+        },
+        "revenueMin": {
+          "type": "number",
+          "required": false,
+          "description": "Minimum revenue"
+        },
+        "revenueMax": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum revenue"
+        },
+        "employeeCountMin": {
+          "type": "number",
+          "required": false,
+          "description": "Minimum employee count"
+        },
+        "employeeCountMax": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum employee count"
+        }
+      }
+    },
+    {
+      "name": "search_contacts",
+      "description": "Search for contacts based on criteria",
+      "endpoint": "/v1/search/contact",
+      "method": "POST",
+      "parameters": {
+        "firstName": {
+          "type": "string",
+          "required": false,
+          "description": "First name"
+        },
+        "lastName": {
+          "type": "string",
+          "required": false,
+          "description": "Last name"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "Job title"
+        },
+        "companyName": {
+          "type": "string",
+          "required": false,
+          "description": "Company name"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Location"
+        }
+      }
+    }
+  ]
+}

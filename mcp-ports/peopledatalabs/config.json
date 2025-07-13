@@ -1,0 +1,256 @@
+{
+  "name": "peopledatalabs",
+  "displayName": "PeopleDataLabs",
+  "description": "B2B data enrichment and identity resolution platform for building enriched user profiles and company data",
+  "category": "analytics",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/peoplegroup.svg",
+  "port": 49405  ,
+  "api": {
+    "baseURL": "https://api.peopledatalabs.com",
+    "version": "v5",
+    "documentation": "https://v3.docs.composio.dev/tools/peopledatalabs"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "PeopleDataLabs API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "autocomplete_field_suggestions",
+      "description": "Get autocomplete suggestions for field values",
+      "endpoint": "/v5/autocomplete",
+      "method": "GET",
+      "parameters": {
+        "field": {
+          "type": "string",
+          "required": true,
+          "description": "Field name to get suggestions for"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to get autocomplete suggestions for"
+        },
+        "size": {
+          "type": "number",
+          "required": false,
+          "description": "Number of suggestions to return",
+          "default": 10
+        }
+      }
+    },
+    {
+      "name": "clean_company_data",
+      "description": "Clean and standardize company data",
+      "endpoint": "/v5/company/clean",
+      "method": "GET",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Company name to clean"
+        },
+        "website": {
+          "type": "string",
+          "required": false,
+          "description": "Company website"
+        },
+        "profile": {
+          "type": "string",
+          "required": false,
+          "description": "Company profile URL"
+        }
+      }
+    },
+    {
+      "name": "clean_location_data",
+      "description": "Clean and standardize location data",
+      "endpoint": "/v5/location/clean",
+      "method": "GET",
+      "parameters": {
+        "location": {
+          "type": "string",
+          "required": true,
+          "description": "Location string to clean"
+        }
+      }
+    },
+    {
+      "name": "person_search",
+      "description": "Search for persons using Elasticsearch queries",
+      "endpoint": "/v5/person/search",
+      "method": "GET",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Elasticsearch query string"
+        },
+        "size": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to return",
+          "default": 10
+        },
+        "from": {
+          "type": "number",
+          "required": false,
+          "description": "Offset for pagination",
+          "default": 0
+        },
+        "scroll_token": {
+          "type": "string",
+          "required": false,
+          "description": "Scroll token for pagination"
+        }
+      }
+    },
+    {
+      "name": "enrich_company_data",
+      "description": "Enrich company data with additional information",
+      "endpoint": "/v5/company/enrich",
+      "method": "GET",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Company name"
+        },
+        "website": {
+          "type": "string",
+          "required": false,
+          "description": "Company website"
+        },
+        "domain": {
+          "type": "string",
+          "required": false,
+          "description": "Company domain"
+        },
+        "profile": {
+          "type": "string",
+          "required": false,
+          "description": "Company profile URL"
+        },
+        "ticker": {
+          "type": "string",
+          "required": false,
+          "description": "Stock ticker symbol"
+        }
+      }
+    },
+    {
+      "name": "enrich_ip_data",
+      "description": "Enrich IP address with location and company data",
+      "endpoint": "/v5/ip/enrich",
+      "method": "GET",
+      "parameters": {
+        "ip": {
+          "type": "string",
+          "required": true,
+          "description": "IP address to enrich"
+        }
+      }
+    },
+    {
+      "name": "enrich_person_data",
+      "description": "Enrich person data with additional information",
+      "endpoint": "/v5/person/enrich",
+      "method": "GET",
+      "parameters": {
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Person's email address"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Person's phone number"
+        },
+        "first_name": {
+          "type": "string",
+          "required": false,
+          "description": "Person's first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": false,
+          "description": "Person's last name"
+        },
+        "company": {
+          "type": "string",
+          "required": false,
+          "description": "Person's company"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Person's location"
+        },
+        "profile": {
+          "type": "string",
+          "required": false,
+          "description": "Person's profile URL"
+        }
+      }
+    },
+    {
+      "name": "enrich_skill_data",
+      "description": "Enrich skill data with additional information",
+      "endpoint": "/v5/skill/enrich",
+      "method": "GET",
+      "parameters": {
+        "skill": {
+          "type": "string",
+          "required": true,
+          "description": "Skill name to enrich"
+        }
+      }
+    },
+    {
+      "name": "identify_person_data",
+      "description": "Identify person using partial information",
+      "endpoint": "/v5/person/identify",
+      "method": "GET",
+      "parameters": {
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Person's email address"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Person's phone number"
+        },
+        "first_name": {
+          "type": "string",
+          "required": false,
+          "description": "Person's first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": false,
+          "description": "Person's last name"
+        },
+        "company": {
+          "type": "string",
+          "required": false,
+          "description": "Person's company"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Person's location"
+        }
+      }
+    }
+  ]
+}

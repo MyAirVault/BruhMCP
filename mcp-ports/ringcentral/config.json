@@ -1,0 +1,25 @@
+{
+  "name": "ringcentral",
+  "displayName": "Ringcentral",
+  "description": "ringcentral integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/ringcentral.svg",
+  "port": 49432 ,
+  "api": {
+    "baseURL": "https://api.ringcentral.com",
+    "version": "v1",
+    "documentation": "https://docs.ringcentral.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "ringcentral API Key"
+      }
+    ]
+  },
+  "tools": []
+}

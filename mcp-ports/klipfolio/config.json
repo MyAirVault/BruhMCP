@@ -1,0 +1,25 @@
+{
+  "name": "klipfolio",
+  "displayName": "Klipfolio",
+  "description": "klipfolio integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/klipfolio.svg",
+  "port": 49337  ,
+  "api": {
+    "baseURL": "https://api.klipfolio.com",
+    "version": "v1",
+    "documentation": "https://docs.klipfolio.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "klipfolio API Key"
+      }
+    ]
+  },
+  "tools": []
+}

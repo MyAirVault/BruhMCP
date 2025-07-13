@@ -1,0 +1,25 @@
+{
+  "name": "composiosearch",
+  "displayName": "Composiosearch",
+  "description": "composiosearch integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/composiosearch.svg",
+  "port": 49244  ,
+  "api": {
+    "baseURL": "https://api.composiosearch.com",
+    "version": "v1",
+    "documentation": "https://docs.composiosearch.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "composiosearch API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "betterproposals",
+  "displayName": "Betterproposals",
+  "description": "betterproposals integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/betterproposals.svg",
+  "port": 49197  ,
+  "api": {
+    "baseURL": "https://api.betterproposals.com",
+    "version": "v1",
+    "documentation": "https://docs.betterproposals.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "betterproposals API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "cloudinary",
+  "displayName": "Cloudinary",
+  "description": "cloudinary integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/cloudinary.svg",
+  "port": 49238  ,
+  "api": {
+    "baseURL": "https://api.cloudinary.com",
+    "version": "v1",
+    "documentation": "https://docs.cloudinary.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "cloudinary API Key"
+      }
+    ]
+  },
+  "tools": []
+}

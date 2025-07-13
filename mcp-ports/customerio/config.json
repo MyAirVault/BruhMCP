@@ -1,0 +1,25 @@
+{
+  "name": "customerio",
+  "displayName": "Customerio",
+  "description": "customerio integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/customerio.svg",
+  "port": 49249 ,
+  "api": {
+    "baseURL": "https://api.customerio.com",
+    "version": "v1",
+    "documentation": "https://docs.customerio.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "customerio API Key"
+      }
+    ]
+  },
+  "tools": []
+}

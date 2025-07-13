@@ -1,0 +1,25 @@
+{
+  "name": "elasticsearch",
+  "displayName": "Elasticsearch",
+  "description": "elasticsearch integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/elasticsearch.svg",
+  "port": 49268  ,
+  "api": {
+    "baseURL": "https://api.elasticsearch.com",
+    "version": "v1",
+    "documentation": "https://docs.elasticsearch.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "elasticsearch API Key"
+      }
+    ]
+  },
+  "tools": []
+}

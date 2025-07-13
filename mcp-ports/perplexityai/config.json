@@ -1,0 +1,84 @@
+{
+  "name": "perplexityai",
+  "displayName": "Perplexity AI",
+  "description": "Perplexity AI provides conversational AI models for generating human-like text responses with citations and advanced search capabilities",
+  "category": "ai",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/perplexity.svg",
+  "port": 49406  ,
+  "api": {
+    "baseURL": "https://api.perplexity.ai",
+    "version": "v1",
+    "documentation": "https://docs.perplexity.ai"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Perplexity AI API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "perplexity_ai_search",
+      "description": "Generate AI responses with optional citations and images using Perplexity AI models",
+      "endpoint": "/chat/completions",
+      "method": "POST",
+      "parameters": {
+        "model": {
+          "type": "string",
+          "required": false,
+          "description": "AI model to use (default: sonar)"
+        },
+        "systemContent": {
+          "type": "string",
+          "required": true,
+          "description": "System message content"
+        },
+        "userContent": {
+          "type": "string",
+          "required": true,
+          "description": "User message content"
+        },
+        "temperature": {
+          "type": "number",
+          "required": false,
+          "description": "Sampling temperature (0-2)"
+        },
+        "max_tokens": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum tokens in response"
+        },
+        "top_k": {
+          "type": "number",
+          "required": false,
+          "description": "Top-k sampling parameter"
+        },
+        "top_p": {
+          "type": "number",
+          "required": false,
+          "description": "Top-p sampling parameter"
+        },
+        "return_citations": {
+          "type": "boolean",
+          "required": false,
+          "description": "Include citations in response"
+        },
+        "return_images": {
+          "type": "boolean",
+          "required": false,
+          "description": "Include images in response"
+        },
+        "stream": {
+          "type": "boolean",
+          "required": false,
+          "description": "Stream response tokens"
+        }
+      }
+    }
+  ]
+}

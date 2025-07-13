@@ -1,0 +1,25 @@
+{
+  "name": "battlenet",
+  "displayName": "Battlenet",
+  "description": "battlenet integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/battlenet.svg",
+  "port": 49194  ,
+  "api": {
+    "baseURL": "https://api.battlenet.com",
+    "version": "v1",
+    "documentation": "https://docs.battlenet.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "battlenet API Key"
+      }
+    ]
+  },
+  "tools": []
+}

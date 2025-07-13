@@ -1,0 +1,25 @@
+{
+  "name": "signwell",
+  "displayName": "Signwell",
+  "description": "signwell integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/signwell.svg",
+  "port": 49456  ,
+  "api": {
+    "baseURL": "https://api.signwell.com",
+    "version": "v1",
+    "documentation": "https://docs.signwell.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "signwell API Key"
+      }
+    ]
+  },
+  "tools": []
+}

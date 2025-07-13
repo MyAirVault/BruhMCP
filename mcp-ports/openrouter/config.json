@@ -1,0 +1,25 @@
+{
+  "name": "openrouter",
+  "displayName": "Openrouter",
+  "description": "openrouter integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/openrouter.svg",
+  "port": 49397 ,
+  "api": {
+    "baseURL": "https://api.openrouter.com",
+    "version": "v1",
+    "documentation": "https://docs.openrouter.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "openrouter API Key"
+      }
+    ]
+  },
+  "tools": []
+}

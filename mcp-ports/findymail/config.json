@@ -1,0 +1,25 @@
+{
+  "name": "findymail",
+  "displayName": "Findymail",
+  "description": "findymail integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/findymail.svg",
+  "port": 49282  ,
+  "api": {
+    "baseURL": "https://api.findymail.com",
+    "version": "v1",
+    "documentation": "https://docs.findymail.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "findymail API Key"
+      }
+    ]
+  },
+  "tools": []
+}

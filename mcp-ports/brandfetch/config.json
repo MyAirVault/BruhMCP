@@ -1,0 +1,132 @@
+{
+  "name": "brandfetch",
+  "displayName": "Brandfetch",
+  "description": "API that retrieves company logos, brand colors, and visual assets for maintaining consistent branding",
+  "category": "marketing",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/brandfolder.svg",
+  "port": 49211   ,
+  "api": {
+    "baseURL": "https://api.brandfetch.io/v2",
+    "version": "v2",
+    "documentation": "https://docs.brandfetch.com/"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Brandfetch API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "get_brand_info",
+      "description": "Retrieves comprehensive brand information including logos, colors, fonts, and company details",
+      "endpoint": "/brands/{identifier}",
+      "method": "GET",
+      "parameters": {
+        "identifier": {
+          "type": "string",
+          "required": true,
+          "description": "Domain or company identifier (e.g., 'apple.com' or 'Apple Inc.')"
+        }
+      }
+    },
+    {
+      "name": "get_company_info",
+      "description": "Retrieves detailed company information for a given brand identifier",
+      "endpoint": "/companies/{identifier}",
+      "method": "GET",
+      "parameters": {
+        "identifier": {
+          "type": "string",
+          "required": true,
+          "description": "Domain or company identifier"
+        }
+      }
+    },
+    {
+      "name": "get_brand_logo",
+      "description": "Fetches the latest logo for any brand with customizable dimensions",
+      "endpoint": "/brands/{identifier}/logos",
+      "method": "GET",
+      "parameters": {
+        "identifier": {
+          "type": "string",
+          "required": true,
+          "description": "Domain or company identifier"
+        },
+        "height": {
+          "type": "number",
+          "required": false,
+          "description": "Logo height in pixels"
+        },
+        "width": {
+          "type": "number",
+          "required": false,
+          "description": "Logo width in pixels"
+        },
+        "theme": {
+          "type": "string",
+          "required": false,
+          "description": "Logo theme (light, dark, auto)",
+          "default": "auto"
+        },
+        "format": {
+          "type": "string",
+          "required": false,
+          "description": "Image format (png, svg, webp)",
+          "default": "png"
+        }
+      }
+    },
+    {
+      "name": "get_brand_colors",
+      "description": "Retrieves brand color palette information",
+      "endpoint": "/brands/{identifier}/colors",
+      "method": "GET",
+      "parameters": {
+        "identifier": {
+          "type": "string",
+          "required": true,
+          "description": "Domain or company identifier"
+        }
+      }
+    },
+    {
+      "name": "get_brand_fonts",
+      "description": "Retrieves brand typography and font information",
+      "endpoint": "/brands/{identifier}/fonts",
+      "method": "GET",
+      "parameters": {
+        "identifier": {
+          "type": "string",
+          "required": true,
+          "description": "Domain or company identifier"
+        }
+      }
+    },
+    {
+      "name": "search_brands",
+      "description": "Search for brands by name or domain",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query (company name or domain)"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to return",
+          "default": 10
+        }
+      }
+    }
+  ]
+}

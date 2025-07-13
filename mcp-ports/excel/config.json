@@ -1,0 +1,25 @@
+{
+  "name": "excel",
+  "displayName": "Excel",
+  "description": "excel integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/excel.svg",
+  "port": 49276  ,
+  "api": {
+    "baseURL": "https://api.excel.com",
+    "version": "v1",
+    "documentation": "https://docs.excel.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "excel API Key"
+      }
+    ]
+  },
+  "tools": []
+}

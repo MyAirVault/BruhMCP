@@ -1,0 +1,25 @@
+{
+  "name": "cloudflare",
+  "displayName": "Cloudflare",
+  "description": "cloudflare integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/cloudflare.svg",
+  "port": 49237  ,
+  "api": {
+    "baseURL": "https://api.cloudflare.com",
+    "version": "v1",
+    "documentation": "https://docs.cloudflare.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "cloudflare API Key"
+      }
+    ]
+  },
+  "tools": []
+}

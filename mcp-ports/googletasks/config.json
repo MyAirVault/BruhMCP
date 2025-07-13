@@ -1,0 +1,253 @@
+{
+  "name": "googletasks",
+  "displayName": "Google Tasks",
+  "description": "Google Tasks provides a simple to-do list and task management system integrated into Gmail and Google Calendar",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googletasks.svg",
+  "port": 49310  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/googletasks"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Google OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Google OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["https://www.googleapis.com/auth/tasks"],
+      "authorization_url": "https://accounts.google.com/o/oauth2/auth",
+      "token_url": "https://oauth2.googleapis.com/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "clear_tasks",
+      "description": "Clear all tasks from a task list",
+      "endpoint": "/tools/googletasks/clear_tasks",
+      "method": "POST",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID to clear"
+        }
+      }
+    },
+    {
+      "name": "create_task_list",
+      "description": "Create a new task list",
+      "endpoint": "/tools/googletasks/create_task_list",
+      "method": "POST",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Task list title"
+        }
+      }
+    },
+    {
+      "name": "delete_task",
+      "description": "Delete a task",
+      "endpoint": "/tools/googletasks/delete_task",
+      "method": "DELETE",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID"
+        },
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to delete"
+        }
+      }
+    },
+    {
+      "name": "delete_task_list",
+      "description": "Delete a task list",
+      "endpoint": "/tools/googletasks/delete_task_list",
+      "method": "DELETE",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID to delete"
+        }
+      }
+    },
+    {
+      "name": "get_task",
+      "description": "Get task details",
+      "endpoint": "/tools/googletasks/get_task",
+      "method": "GET",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID"
+        },
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "get_task_list",
+      "description": "Get task list details",
+      "endpoint": "/tools/googletasks/get_task_list",
+      "method": "GET",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "insert_task",
+      "description": "Insert a new task",
+      "endpoint": "/tools/googletasks/insert_task",
+      "method": "POST",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Task title"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Task notes"
+        },
+        "due": {
+          "type": "string",
+          "required": false,
+          "description": "Due date (ISO format)"
+        }
+      }
+    },
+    {
+      "name": "list_tasks",
+      "description": "List tasks in a task list",
+      "endpoint": "/tools/googletasks/list_tasks",
+      "method": "GET",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID"
+        }
+      }
+    },
+    {
+      "name": "list_task_lists",
+      "description": "List all task lists",
+      "endpoint": "/tools/googletasks/list_task_lists",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "move_task",
+      "description": "Move a task to a different position",
+      "endpoint": "/tools/googletasks/move_task",
+      "method": "POST",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID"
+        },
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to move"
+        },
+        "parent": {
+          "type": "string",
+          "required": false,
+          "description": "Parent task ID"
+        },
+        "previous": {
+          "type": "string",
+          "required": false,
+          "description": "Previous sibling task ID"
+        }
+      }
+    },
+    {
+      "name": "update_task",
+      "description": "Update a task",
+      "endpoint": "/tools/googletasks/update_task",
+      "method": "PUT",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID"
+        },
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to update"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "New task title"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "New task notes"
+        },
+        "status": {
+          "type": "string",
+          "required": false,
+          "description": "Task status (needsAction, completed)"
+        }
+      }
+    },
+    {
+      "name": "update_task_list",
+      "description": "Update a task list",
+      "endpoint": "/tools/googletasks/update_task_list",
+      "method": "PUT",
+      "parameters": {
+        "tasklist_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task list ID to update"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "New task list title"
+        }
+      }
+    }
+  ]
+}

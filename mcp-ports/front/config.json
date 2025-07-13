@@ -1,0 +1,25 @@
+{
+  "name": "front",
+  "displayName": "Front",
+  "description": "front integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/front.svg",
+  "port": 49293 ,
+  "api": {
+    "baseURL": "https://api.front.com",
+    "version": "v1",
+    "documentation": "https://docs.front.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "front API Key"
+      }
+    ]
+  },
+  "tools": []
+}

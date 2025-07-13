@@ -1,0 +1,158 @@
+{
+  "name": "github",
+  "displayName": "GitHub",
+  "description": "GitHub is a code hosting platform for version control and collaboration, offering Git-based repository management",
+  "category": "developer",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg",
+  "port": 49294  ,
+  "api": {
+    "baseURL": "https://api.github.com",
+    "version": "v3",
+    "documentation": "https://docs.github.com/en/rest"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "GitHub OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "GitHub OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["public_repo", "user"],
+      "authorization_url": "https://github.com/login/oauth/authorize",
+      "token_url": "https://github.com/login/oauth/access_token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_issue",
+      "description": "Create a new issue in a repository",
+      "endpoint": "/repos/{owner}/{repo}/issues",
+      "method": "POST",
+      "parameters": {
+        "owner": {
+          "type": "string",
+          "required": true,
+          "description": "Repository owner username"
+        },
+        "repo": {
+          "type": "string",
+          "required": true,
+          "description": "Repository name"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Issue title"
+        },
+        "body": {
+          "type": "string",
+          "required": false,
+          "description": "Issue description"
+        }
+      }
+    },
+    {
+      "name": "create_pull_request",
+      "description": "Create a new pull request",
+      "endpoint": "/repos/{owner}/{repo}/pulls",
+      "method": "POST",
+      "parameters": {
+        "owner": {
+          "type": "string",
+          "required": true,
+          "description": "Repository owner username"
+        },
+        "repo": {
+          "type": "string",
+          "required": true,
+          "description": "Repository name"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Pull request title"
+        },
+        "head": {
+          "type": "string",
+          "required": true,
+          "description": "Branch to merge from"
+        },
+        "base": {
+          "type": "string",
+          "required": true,
+          "description": "Branch to merge into"
+        }
+      }
+    },
+    {
+      "name": "get_pull_request",
+      "description": "Get details of a specific pull request",
+      "endpoint": "/repos/{owner}/{repo}/pulls/{pull_number}",
+      "method": "GET",
+      "parameters": {
+        "owner": {
+          "type": "string",
+          "required": true,
+          "description": "Repository owner username"
+        },
+        "repo": {
+          "type": "string",
+          "required": true,
+          "description": "Repository name"
+        },
+        "pull_number": {
+          "type": "number",
+          "required": true,
+          "description": "Pull request number"
+        }
+      }
+    },
+    {
+      "name": "list_branches",
+      "description": "List all branches in a repository",
+      "endpoint": "/repos/{owner}/{repo}/branches",
+      "method": "GET",
+      "parameters": {
+        "owner": {
+          "type": "string",
+          "required": true,
+          "description": "Repository owner username"
+        },
+        "repo": {
+          "type": "string",
+          "required": true,
+          "description": "Repository name"
+        }
+      }
+    },
+    {
+      "name": "list_commits",
+      "description": "List commits in a repository",
+      "endpoint": "/repos/{owner}/{repo}/commits",
+      "method": "GET",
+      "parameters": {
+        "owner": {
+          "type": "string",
+          "required": true,
+          "description": "Repository owner username"
+        },
+        "repo": {
+          "type": "string",
+          "required": true,
+          "description": "Repository name"
+        }
+      }
+    }
+  ]
+}

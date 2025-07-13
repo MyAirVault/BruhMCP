@@ -1,0 +1,121 @@
+{
+  "name": "neon",
+  "displayName": "Neon",
+  "description": "Postgres, on a serverless platform designed to help you build reliable and scalable applications faster",
+  "category": "developer",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/neon.svg",
+  "port": 49386  ,
+  "api": {
+    "baseURL": "https://console.neon.tech/api/v2",
+    "version": "v2",
+    "documentation": "https://api-docs.neon.tech/"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Neon API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "create_project",
+      "description": "Create a new project with custom settings",
+      "endpoint": "/projects",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Project name"
+        },
+        "region_id": {
+          "type": "string",
+          "required": false,
+          "description": "Region ID for the project"
+        },
+        "default_endpoint_settings": {
+          "type": "object",
+          "required": false,
+          "description": "Default endpoint settings"
+        }
+      }
+    },
+    {
+      "name": "list_projects",
+      "description": "List all projects",
+      "endpoint": "/projects",
+      "method": "GET",
+      "parameters": {
+        "cursor": {
+          "type": "string",
+          "required": false,
+          "description": "Pagination cursor"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of projects to retrieve"
+        }
+      }
+    },
+    {
+      "name": "delete_project",
+      "description": "Delete a project by ID",
+      "endpoint": "/projects/{project_id}",
+      "method": "DELETE",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        }
+      }
+    },
+    {
+      "name": "create_branch_database",
+      "description": "Create a database in a branch",
+      "endpoint": "/projects/{project_id}/branches/{branch_id}/databases",
+      "method": "POST",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "branch_id": {
+          "type": "string",
+          "required": true,
+          "description": "Branch ID"
+        },
+        "database": {
+          "type": "object",
+          "required": true,
+          "description": "Database configuration"
+        }
+      }
+    },
+    {
+      "name": "create_compute_endpoint",
+      "description": "Create a compute endpoint",
+      "endpoint": "/projects/{project_id}/endpoints",
+      "method": "POST",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "endpoint": {
+          "type": "object",
+          "required": true,
+          "description": "Endpoint configuration"
+        }
+      }
+    }
+  ]
+}

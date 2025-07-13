@@ -1,0 +1,25 @@
+{
+  "name": "moz",
+  "displayName": "Moz",
+  "description": "moz integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/moz.svg",
+  "port": 49381 ,
+  "api": {
+    "baseURL": "https://api.moz.com",
+    "version": "v1",
+    "documentation": "https://docs.moz.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "moz API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,303 @@
+{
+  "name": "jobnimbus",
+  "displayName": "JobNimbus",
+  "description": "JobNimbus is a CRM and project management software designed for contractors, helping streamline scheduling, estimates, invoicing, and job tracking. A comprehensive business management platform for construction and service industries.",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/jobnimbus.svg",
+  "port": 49330  ,
+  "api": {
+    "baseURL": "https://app.jobnimbus.com",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/jobnimbus"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "JobNimbus API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "create_location",
+      "description": "Create a new location in JobNimbus",
+      "endpoint": "/api/1/locations",
+      "method": "POST",
+      "parameters": {
+        "display_name": {
+          "type": "string",
+          "required": true,
+          "description": "Location display name"
+        },
+        "address_line_1": {
+          "type": "string",
+          "required": false,
+          "description": "Address line 1"
+        },
+        "city": {
+          "type": "string",
+          "required": false,
+          "description": "City"
+        },
+        "state": {
+          "type": "string",
+          "required": false,
+          "description": "State"
+        },
+        "postal_code": {
+          "type": "string",
+          "required": false,
+          "description": "Postal code"
+        }
+      }
+    },
+    {
+      "name": "get_contacts",
+      "description": "Get contacts from JobNimbus",
+      "endpoint": "/api/1/contacts",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of contacts to return"
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Number of contacts to skip"
+        },
+        "search": {
+          "type": "string",
+          "required": false,
+          "description": "Search term for contacts"
+        }
+      }
+    },
+    {
+      "name": "list_contacts",
+      "description": "List all contacts in JobNimbus",
+      "endpoint": "/api/1/contacts",
+      "method": "GET",
+      "parameters": {
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number for pagination"
+        },
+        "per_page": {
+          "type": "number",
+          "required": false,
+          "description": "Number of contacts per page"
+        }
+      }
+    },
+    {
+      "name": "create_tasks",
+      "description": "Create tasks in JobNimbus",
+      "endpoint": "/api/1/tasks",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Task name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Task description"
+        },
+        "due_date": {
+          "type": "string",
+          "required": false,
+          "description": "Task due date (YYYY-MM-DD)"
+        },
+        "assigned_to": {
+          "type": "string",
+          "required": false,
+          "description": "User ID task is assigned to"
+        },
+        "priority": {
+          "type": "string",
+          "required": false,
+          "description": "Task priority (low, medium, high)"
+        }
+      }
+    },
+    {
+      "name": "list_work_orders",
+      "description": "List work orders in JobNimbus",
+      "endpoint": "/api/1/work_orders",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of work orders to return"
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Number of work orders to skip"
+        },
+        "status": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by work order status"
+        }
+      }
+    },
+    {
+      "name": "create_material_orders",
+      "description": "Create material orders in JobNimbus",
+      "endpoint": "/api/1/material_orders",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Material order name"
+        },
+        "contact_id": {
+          "type": "string",
+          "required": false,
+          "description": "Associated contact ID"
+        },
+        "job_id": {
+          "type": "string",
+          "required": false,
+          "description": "Associated job ID"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Order notes"
+        }
+      }
+    },
+    {
+      "name": "list_payments",
+      "description": "List payments in JobNimbus",
+      "endpoint": "/api/1/payments",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of payments to return"
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Number of payments to skip"
+        },
+        "contact_id": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by contact ID"
+        }
+      }
+    },
+    {
+      "name": "update_contact",
+      "description": "Update an existing contact in JobNimbus",
+      "endpoint": "/api/1/contacts/{contactId}",
+      "method": "PUT",
+      "parameters": {
+        "contactId": {
+          "type": "string",
+          "required": true,
+          "description": "Contact ID to update"
+        },
+        "display_name": {
+          "type": "string",
+          "required": false,
+          "description": "Updated contact display name"
+        },
+        "first_name": {
+          "type": "string",
+          "required": false,
+          "description": "Updated first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": false,
+          "description": "Updated last name"
+        },
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Updated email address"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Updated phone number"
+        }
+      }
+    },
+    {
+      "name": "get_account_settings",
+      "description": "Get account settings from JobNimbus",
+      "endpoint": "/api/1/account/settings",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "create_job",
+      "description": "Create a new job in JobNimbus",
+      "endpoint": "/api/1/jobs",
+      "method": "POST",
+      "parameters": {
+        "display_name": {
+          "type": "string",
+          "required": true,
+          "description": "Job display name"
+        },
+        "contact_id": {
+          "type": "string",
+          "required": false,
+          "description": "Associated contact ID"
+        },
+        "status_id": {
+          "type": "string",
+          "required": false,
+          "description": "Job status ID"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Job description"
+        }
+      }
+    },
+    {
+      "name": "list_jobs",
+      "description": "List jobs in JobNimbus",
+      "endpoint": "/api/1/jobs",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of jobs to return"
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Number of jobs to skip"
+        },
+        "status": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by job status"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "fomo",
+  "displayName": "Fomo",
+  "description": "fomo integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/fomo.svg",
+  "port": 49287  ,
+  "api": {
+    "baseURL": "https://api.fomo.com",
+    "version": "v1",
+    "documentation": "https://docs.fomo.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "fomo API Key"
+      }
+    ]
+  },
+  "tools": []
+}

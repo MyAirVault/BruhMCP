@@ -1,0 +1,25 @@
+{
+  "name": "terminus",
+  "displayName": "Terminus",
+  "description": "terminus integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/terminus.svg",
+  "port": 49482 ,
+  "api": {
+    "baseURL": "https://api.terminus.com",
+    "version": "v1",
+    "documentation": "https://docs.terminus.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "terminus API Key"
+      }
+    ]
+  },
+  "tools": []
+}

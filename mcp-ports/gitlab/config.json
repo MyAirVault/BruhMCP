@@ -1,0 +1,103 @@
+{
+  "name": "gitlab",
+  "displayName": "GitLab",
+  "description": "Git repository management with CI/CD pipelines, issue tracking, and project management",
+  "category": "developer",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/gitlab.svg",
+  "port": 49295  ,
+  "api": {
+    "baseURL": "https://gitlab.com/api/v4",
+    "version": "v4",
+    "documentation": "https://docs.gitlab.com/ee/api/"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "access_token",
+        "type": "password",
+        "required": true,
+        "description": "GitLab Personal Access Token"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "list_projects",
+      "description": "List user's projects",
+      "endpoint": "/projects",
+      "method": "GET",
+      "parameters": {
+        "owned": {
+          "type": "boolean",
+          "required": false,
+          "description": "Limit to owned projects"
+        },
+        "per_page": {
+          "type": "number",
+          "required": false,
+          "description": "Number of projects per page"
+        }
+      }
+    },
+    {
+      "name": "create_project",
+      "description": "Create a new project",
+      "endpoint": "/projects",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Project name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Project description"
+        },
+        "visibility": {
+          "type": "string",
+          "required": false,
+          "description": "Project visibility (private, internal, public)"
+        }
+      }
+    },
+    {
+      "name": "create_issue",
+      "description": "Create an issue in a project",
+      "endpoint": "/projects/{id}/issues",
+      "method": "POST",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Issue title"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Issue description"
+        }
+      }
+    },
+    {
+      "name": "list_pipelines",
+      "description": "List CI/CD pipelines for a project",
+      "endpoint": "/projects/{id}/pipelines",
+      "method": "GET",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "name": "acculynx",
+  "displayName": "AccuLynx",
+  "description": "Using the AccuLynx API, data can be seamlessly exchanged between AccuLynx and other applications for greater efficiency and productivity. AccuLynx is primarily focused on roofing and construction project management.",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/acculynx.svg",
+  "port": 49163    ,
+  "api": {
+    "baseURL": "https://api.acculynx.com",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/acculynx"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "AccuLynx API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "add_job_appointment",
+      "description": "Add a job appointment to AccuLynx",
+      "endpoint": "/appointments",
+      "method": "POST",
+      "parameters": {
+        "job_id": {
+          "type": "string",
+          "required": true,
+          "description": "Job ID for the appointment"
+        },
+        "appointment_date": {
+          "type": "string",
+          "required": true,
+          "description": "Appointment date and time"
+        },
+        "appointment_type": {
+          "type": "string",
+          "required": false,
+          "description": "Type of appointment"
+        }
+      }
+    },
+    {
+      "name": "create_contact",
+      "description": "Create a new contact in AccuLynx",
+      "endpoint": "/contacts",
+      "method": "POST",
+      "parameters": {
+        "first_name": {
+          "type": "string",
+          "required": true,
+          "description": "Contact first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": true,
+          "description": "Contact last name"
+        },
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Contact email address"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Contact phone number"
+        },
+        "address": {
+          "type": "string",
+          "required": false,
+          "description": "Contact address"
+        }
+      }
+    },
+    {
+      "name": "create_job",
+      "description": "Create a new job in AccuLynx",
+      "endpoint": "/jobs",
+      "method": "POST",
+      "parameters": {
+        "contact_id": {
+          "type": "string",
+          "required": true,
+          "description": "Associated contact ID"
+        },
+        "job_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the job"
+        },
+        "job_type": {
+          "type": "string",
+          "required": false,
+          "description": "Type of job"
+        },
+        "status": {
+          "type": "string",
+          "required": false,
+          "description": "Job status"
+        }
+      }
+    },
+    {
+      "name": "create_lead",
+      "description": "Create a new lead in AccuLynx",
+      "endpoint": "/leads",
+      "method": "POST",
+      "parameters": {
+        "first_name": {
+          "type": "string",
+          "required": true,
+          "description": "Lead first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": true,
+          "description": "Lead last name"
+        },
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Lead email address"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Lead phone number"
+        },
+        "source": {
+          "type": "string",
+          "required": false,
+          "description": "Lead source"
+        }
+      }
+    },
+    {
+      "name": "get_job_appointment_summary",
+      "description": "Get job appointment summary",
+      "endpoint": "/appointments/summary",
+      "method": "GET",
+      "parameters": {
+        "job_id": {
+          "type": "string",
+          "required": true,
+          "description": "Job ID to get appointment summary for"
+        }
+      }
+    },
+    {
+      "name": "list_calendars",
+      "description": "List of calendars for the location",
+      "endpoint": "/calendars",
+      "method": "GET",
+      "parameters": {
+        "location_id": {
+          "type": "string",
+          "required": false,
+          "description": "Location ID to filter calendars"
+        }
+      }
+    },
+    {
+      "name": "list_contact_types",
+      "description": "List of contact types related to the company",
+      "endpoint": "/contact-types",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "update_company_representative",
+      "description": "Update company representative information",
+      "endpoint": "/representatives/{id}",
+      "method": "PUT",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Representative ID to update"
+        },
+        "first_name": {
+          "type": "string",
+          "required": false,
+          "description": "Representative first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": false,
+          "description": "Representative last name"
+        },
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Representative email"
+        }
+      }
+    }
+  ]
+}

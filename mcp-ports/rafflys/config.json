@@ -1,0 +1,25 @@
+{
+  "name": "rafflys",
+  "displayName": "Rafflys",
+  "description": "rafflys integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/rafflys.svg",
+  "port": 49419 ,
+  "api": {
+    "baseURL": "https://api.rafflys.com",
+    "version": "v1",
+    "documentation": "https://docs.rafflys.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "rafflys API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "epicgames",
+  "displayName": "Epicgames",
+  "description": "epicgames integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/epicgames.svg",
+  "port": 49273 ,
+  "api": {
+    "baseURL": "https://api.epicgames.com",
+    "version": "v1",
+    "documentation": "https://docs.epicgames.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "epicgames API Key"
+      }
+    ]
+  },
+  "tools": []
+}

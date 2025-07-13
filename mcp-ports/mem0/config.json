@@ -1,0 +1,162 @@
+{
+  "name": "mem0",
+  "displayName": "Mem0",
+  "description": "Mem0 assists with AI-driven note-taking, knowledge recall, and productivity tools for memory management",
+  "category": "ai",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/memory.svg",
+  "port": 49361  ,
+  "api": {
+    "baseURL": "https://api.mem0.ai",
+    "version": "v1",
+    "documentation": "https://docs.mem0.ai"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Mem0 API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "add_memory",
+      "description": "Add new memory records to the system",
+      "endpoint": "/memories",
+      "method": "POST",
+      "parameters": {
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "Memory content"
+        },
+        "agent_id": {
+          "type": "string",
+          "required": false,
+          "description": "Agent ID for the memory"
+        },
+        "user_id": {
+          "type": "string",
+          "required": false,
+          "description": "User ID for the memory"
+        },
+        "project_id": {
+          "type": "string",
+          "required": false,
+          "description": "Project ID for the memory"
+        }
+      }
+    },
+    {
+      "name": "search_memories",
+      "description": "Perform semantic search on stored memories",
+      "endpoint": "/memories/search",
+      "method": "POST",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "user_id": {
+          "type": "string",
+          "required": false,
+          "description": "User ID to filter search"
+        },
+        "agent_id": {
+          "type": "string",
+          "required": false,
+          "description": "Agent ID to filter search"
+        },
+        "project_id": {
+          "type": "string",
+          "required": false,
+          "description": "Project ID to filter search"
+        }
+      }
+    },
+    {
+      "name": "create_organization",
+      "description": "Create a new organization",
+      "endpoint": "/organizations",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Organization name"
+        }
+      }
+    },
+    {
+      "name": "delete_organization",
+      "description": "Delete an organization",
+      "endpoint": "/organizations/{org_id}",
+      "method": "DELETE",
+      "parameters": {
+        "org_id": {
+          "type": "string",
+          "required": true,
+          "description": "Organization ID to delete"
+        }
+      }
+    },
+    {
+      "name": "create_project",
+      "description": "Create a new project",
+      "endpoint": "/projects",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Project name"
+        },
+        "organization_id": {
+          "type": "string",
+          "required": false,
+          "description": "Organization ID"
+        }
+      }
+    },
+    {
+      "name": "add_organization_member",
+      "description": "Add member to organization",
+      "endpoint": "/organizations/{org_id}/members",
+      "method": "POST",
+      "parameters": {
+        "org_id": {
+          "type": "string",
+          "required": true,
+          "description": "Organization ID"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID to add"
+        }
+      }
+    },
+    {
+      "name": "export_memories",
+      "description": "Export memory data",
+      "endpoint": "/memories/export",
+      "method": "GET",
+      "parameters": {
+        "user_id": {
+          "type": "string",
+          "required": false,
+          "description": "User ID to filter export"
+        },
+        "project_id": {
+          "type": "string",
+          "required": false,
+          "description": "Project ID to filter export"
+        }
+      }
+    }
+  ]
+}

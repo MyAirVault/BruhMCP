@@ -1,0 +1,25 @@
+{
+  "name": "rootly",
+  "displayName": "Rootly",
+  "description": "rootly integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/rootly.svg",
+  "port": 49436  ,
+  "api": {
+    "baseURL": "https://api.rootly.com",
+    "version": "v1",
+    "documentation": "https://docs.rootly.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "rootly API Key"
+      }
+    ]
+  },
+  "tools": []
+}

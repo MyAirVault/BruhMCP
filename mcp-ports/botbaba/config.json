@@ -1,0 +1,25 @@
+{
+  "name": "botbaba",
+  "displayName": "Botbaba",
+  "description": "botbaba integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/botbaba.svg",
+  "port": 49208  ,
+  "api": {
+    "baseURL": "https://api.botbaba.com",
+    "version": "v1",
+    "documentation": "https://docs.botbaba.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "botbaba API Key"
+      }
+    ]
+  },
+  "tools": []
+}

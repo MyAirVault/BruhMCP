@@ -1,0 +1,25 @@
+{
+  "name": "maintainx",
+  "displayName": "Maintainx",
+  "description": "maintainx integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/maintainx.svg",
+  "port": 49358  ,
+  "api": {
+    "baseURL": "https://api.maintainx.com",
+    "version": "v1",
+    "documentation": "https://docs.maintainx.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "maintainx API Key"
+      }
+    ]
+  },
+  "tools": []
+}

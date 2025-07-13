@@ -1,0 +1,25 @@
+{
+  "name": "flutterwave",
+  "displayName": "Flutterwave",
+  "description": "flutterwave integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/flutterwave.svg",
+  "port": 49286 ,
+  "api": {
+    "baseURL": "https://api.flutterwave.com",
+    "version": "v1",
+    "documentation": "https://docs.flutterwave.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "flutterwave API Key"
+      }
+    ]
+  },
+  "tools": []
+}

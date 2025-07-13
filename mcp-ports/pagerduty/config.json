@@ -1,0 +1,138 @@
+{
+  "name": "pagerduty",
+  "displayName": "PagerDuty",
+  "description": "Integrate PagerDuty to manage incidents, schedules, and alerts directly from your application",
+  "category": "developer",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/pagerduty.svg",
+  "port": 49400  ,
+  "api": {
+    "baseURL": "https://api.pagerduty.com",
+    "version": "v2",
+    "documentation": "https://developer.pagerduty.com/api-reference/"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "PagerDuty OAuth Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "PagerDuty OAuth Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["read", "write"],
+      "authorization_url": "https://app.pagerduty.com/oauth/authorize",
+      "token_url": "https://app.pagerduty.com/oauth/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "fetch_incident_list",
+      "description": "Fetch a list of incidents",
+      "endpoint": "/incidents",
+      "method": "GET",
+      "parameters": {
+        "since": {
+          "type": "string",
+          "required": false,
+          "description": "Start date for incident search"
+        },
+        "until": {
+          "type": "string",
+          "required": false,
+          "description": "End date for incident search"
+        },
+        "statuses": {
+          "type": "array",
+          "required": false,
+          "description": "Filter by incident statuses"
+        },
+        "incident_key": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by incident key"
+        }
+      }
+    },
+    {
+      "name": "retrieve_list_of_services",
+      "description": "Retrieve a list of services",
+      "endpoint": "/services",
+      "method": "GET",
+      "parameters": {
+        "team_ids": {
+          "type": "array",
+          "required": false,
+          "description": "Filter by team IDs"
+        },
+        "time_zone": {
+          "type": "string",
+          "required": false,
+          "description": "Time zone for results"
+        },
+        "sort_by": {
+          "type": "string",
+          "required": false,
+          "description": "Sort field"
+        }
+      }
+    },
+    {
+      "name": "create_new_webhook_subscription",
+      "description": "Create a new webhook subscription",
+      "endpoint": "/webhook_subscriptions",
+      "method": "POST",
+      "parameters": {
+        "webhook_subscription": {
+          "type": "object",
+          "required": true,
+          "description": "Webhook subscription configuration"
+        }
+      }
+    },
+    {
+      "name": "get_alerts_by_incident_id",
+      "description": "Get alerts for a specific incident",
+      "endpoint": "/incidents/{id}/alerts",
+      "method": "GET",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Incident ID"
+        },
+        "alert_key": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by alert key"
+        },
+        "statuses": {
+          "type": "array",
+          "required": false,
+          "description": "Filter by alert statuses"
+        }
+      }
+    },
+    {
+      "name": "create_incident",
+      "description": "Create a new incident",
+      "endpoint": "/incidents",
+      "method": "POST",
+      "parameters": {
+        "incident": {
+          "type": "object",
+          "required": true,
+          "description": "Incident data"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,272 @@
+{
+  "name": "gmail",
+  "displayName": "Gmail",
+  "description": "Google's email service, featuring spam protection, search functions, and seamless integration with other G Suite apps",
+  "category": "email",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/gmail.svg",
+  "port": 49296  ,
+  "api": {
+    "baseURL": "https://gmail.googleapis.com/gmail/v1",
+    "version": "v1",
+    "documentation": "https://developers.google.com/gmail/api"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Google OAuth Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Google OAuth Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email"
+      ],
+      "authorization_url": "https://accounts.google.com/o/oauth2/auth",
+      "token_url": "https://oauth2.googleapis.com/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "send_email",
+      "description": "Send an email",
+      "endpoint": "/users/me/messages/send",
+      "method": "POST",
+      "parameters": {
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient email address"
+        },
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Email subject"
+        },
+        "body": {
+          "type": "string",
+          "required": true,
+          "description": "Email body content"
+        },
+        "cc": {
+          "type": "string",
+          "required": false,
+          "description": "CC email addresses (comma separated)"
+        },
+        "bcc": {
+          "type": "string",
+          "required": false,
+          "description": "BCC email addresses (comma separated)"
+        }
+      }
+    },
+    {
+      "name": "fetch_emails",
+      "description": "Fetch emails from Gmail",
+      "endpoint": "/users/me/messages",
+      "method": "GET",
+      "parameters": {
+        "q": {
+          "type": "string",
+          "required": false,
+          "description": "Gmail search query"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of messages to return",
+          "default": 100
+        },
+        "labelIds": {
+          "type": "array",
+          "required": false,
+          "description": "Label IDs to filter by"
+        }
+      }
+    },
+    {
+      "name": "fetch_message_by_id",
+      "description": "Fetch a specific message by ID",
+      "endpoint": "/users/me/messages/{messageId}",
+      "method": "GET",
+      "parameters": {
+        "messageId": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID to fetch"
+        },
+        "format": {
+          "type": "string",
+          "required": false,
+          "description": "Message format (full, metadata, minimal, raw)",
+          "default": "full"
+        }
+      }
+    },
+    {
+      "name": "reply_to_email",
+      "description": "Reply to an email thread",
+      "endpoint": "/users/me/messages/send",
+      "method": "POST",
+      "parameters": {
+        "threadId": {
+          "type": "string",
+          "required": true,
+          "description": "Thread ID to reply to"
+        },
+        "body": {
+          "type": "string",
+          "required": true,
+          "description": "Reply message body"
+        },
+        "subject": {
+          "type": "string",
+          "required": false,
+          "description": "Reply subject (optional)"
+        }
+      }
+    },
+    {
+      "name": "create_draft",
+      "description": "Create an email draft",
+      "endpoint": "/users/me/drafts",
+      "method": "POST",
+      "parameters": {
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient email address"
+        },
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Email subject"
+        },
+        "body": {
+          "type": "string",
+          "required": true,
+          "description": "Email body content"
+        }
+      }
+    },
+    {
+      "name": "send_draft",
+      "description": "Send a draft email",
+      "endpoint": "/users/me/drafts/{draftId}/send",
+      "method": "POST",
+      "parameters": {
+        "draftId": {
+          "type": "string",
+          "required": true,
+          "description": "Draft ID to send"
+        }
+      }
+    },
+    {
+      "name": "list_drafts",
+      "description": "List email drafts",
+      "endpoint": "/users/me/drafts",
+      "method": "GET",
+      "parameters": {
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of drafts to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "delete_message",
+      "description": "Delete a message",
+      "endpoint": "/users/me/messages/{messageId}",
+      "method": "DELETE",
+      "parameters": {
+        "messageId": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID to delete"
+        }
+      }
+    },
+    {
+      "name": "move_to_trash",
+      "description": "Move message to trash",
+      "endpoint": "/users/me/messages/{messageId}/trash",
+      "method": "POST",
+      "parameters": {
+        "messageId": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID to trash"
+        }
+      }
+    },
+    {
+      "name": "list_labels",
+      "description": "List Gmail labels",
+      "endpoint": "/users/me/labels",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "create_label",
+      "description": "Create a new label",
+      "endpoint": "/users/me/labels",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Label name"
+        },
+        "messageListVisibility": {
+          "type": "string",
+          "required": false,
+          "description": "Message list visibility (show, hide)",
+          "default": "show"
+        },
+        "labelListVisibility": {
+          "type": "string",
+          "required": false,
+          "description": "Label list visibility (labelShow, labelHide)",
+          "default": "labelShow"
+        }
+      }
+    },
+    {
+      "name": "modify_labels",
+      "description": "Modify email labels",
+      "endpoint": "/users/me/messages/{messageId}/modify",
+      "method": "POST",
+      "parameters": {
+        "messageId": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID to modify"
+        },
+        "addLabelIds": {
+          "type": "array",
+          "required": false,
+          "description": "Label IDs to add"
+        },
+        "removeLabelIds": {
+          "type": "array",
+          "required": false,
+          "description": "Label IDs to remove"
+        }
+      }
+    }
+  ]
+}

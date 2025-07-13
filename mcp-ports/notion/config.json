@@ -1,0 +1,249 @@
+{
+  "name": "notion",
+  "displayName": "Notion",
+  "description": "Notion centralizes notes, docs, wikis, and tasks in a unified workspace, letting teams build custom workflows",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/notion.svg",
+  "port": 49391  ,
+  "api": {
+    "baseURL": "https://api.notion.com/v1",
+    "version": "v1",
+    "documentation": "https://developers.notion.com/reference"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Notion OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Notion OAuth App Client Secret"
+      },
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "Notion Internal Integration Token"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [],
+      "authorization_url": "https://api.notion.com/v1/oauth/authorize",
+      "token_url": "https://api.notion.com/v1/oauth/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_page",
+      "description": "Create a new Notion page",
+      "endpoint": "/pages",
+      "method": "POST",
+      "parameters": {
+        "parent": {
+          "type": "object",
+          "required": true,
+          "description": "Parent page or database ID"
+        },
+        "properties": {
+          "type": "object",
+          "required": true,
+          "description": "Page properties including title"
+        },
+        "children": {
+          "type": "array",
+          "required": false,
+          "description": "Array of block objects to add as content"
+        }
+      }
+    },
+    {
+      "name": "update_page",
+      "description": "Update a Notion page",
+      "endpoint": "/pages/{page_id}",
+      "method": "PATCH",
+      "parameters": {
+        "page_id": {
+          "type": "string",
+          "required": true,
+          "description": "Page ID to update"
+        },
+        "properties": {
+          "type": "object",
+          "required": true,
+          "description": "Updated page properties"
+        }
+      }
+    },
+    {
+      "name": "create_database",
+      "description": "Create a new Notion database",
+      "endpoint": "/databases",
+      "method": "POST",
+      "parameters": {
+        "parent": {
+          "type": "object",
+          "required": true,
+          "description": "Parent page ID"
+        },
+        "title": {
+          "type": "array",
+          "required": true,
+          "description": "Database title"
+        },
+        "properties": {
+          "type": "object",
+          "required": true,
+          "description": "Database schema properties"
+        }
+      }
+    },
+    {
+      "name": "query_database",
+      "description": "Query a Notion database",
+      "endpoint": "/databases/{database_id}/query",
+      "method": "POST",
+      "parameters": {
+        "database_id": {
+          "type": "string",
+          "required": true,
+          "description": "Database ID to query"
+        },
+        "filter": {
+          "type": "object",
+          "required": false,
+          "description": "Filter conditions"
+        },
+        "sorts": {
+          "type": "array",
+          "required": false,
+          "description": "Sort conditions"
+        },
+        "page_size": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "insert_row_to_database",
+      "description": "Insert a new row to database",
+      "endpoint": "/pages",
+      "method": "POST",
+      "parameters": {
+        "parent": {
+          "type": "object",
+          "required": true,
+          "description": "Database ID as parent"
+        },
+        "properties": {
+          "type": "object",
+          "required": true,
+          "description": "Row data properties"
+        }
+      }
+    },
+    {
+      "name": "update_database_row",
+      "description": "Update database row",
+      "endpoint": "/pages/{page_id}",
+      "method": "PATCH",
+      "parameters": {
+        "page_id": {
+          "type": "string",
+          "required": true,
+          "description": "Row (page) ID to update"
+        },
+        "properties": {
+          "type": "object",
+          "required": true,
+          "description": "Updated row properties"
+        }
+      }
+    },
+    {
+      "name": "fetch_database",
+      "description": "Fetch database information",
+      "endpoint": "/databases/{database_id}",
+      "method": "GET",
+      "parameters": {
+        "database_id": {
+          "type": "string",
+          "required": true,
+          "description": "Database ID to fetch"
+        }
+      }
+    },
+    {
+      "name": "fetch_page",
+      "description": "Fetch Notion page",
+      "endpoint": "/pages/{page_id}",
+      "method": "GET",
+      "parameters": {
+        "page_id": {
+          "type": "string",
+          "required": true,
+          "description": "Page ID to fetch"
+        }
+      }
+    },
+    {
+      "name": "add_page_content",
+      "description": "Add content blocks to a page",
+      "endpoint": "/blocks/{block_id}/children",
+      "method": "PATCH",
+      "parameters": {
+        "block_id": {
+          "type": "string",
+          "required": true,
+          "description": "Page ID to add content to"
+        },
+        "children": {
+          "type": "array",
+          "required": true,
+          "description": "Array of block objects to add"
+        }
+      }
+    },
+    {
+      "name": "create_comment",
+      "description": "Create a comment on a page",
+      "endpoint": "/comments",
+      "method": "POST",
+      "parameters": {
+        "parent": {
+          "type": "object",
+          "required": true,
+          "description": "Page ID to comment on"
+        },
+        "rich_text": {
+          "type": "array",
+          "required": true,
+          "description": "Comment text content"
+        }
+      }
+    },
+    {
+      "name": "list_users",
+      "description": "List workspace users",
+      "endpoint": "/users",
+      "method": "GET",
+      "parameters": {
+        "page_size": {
+          "type": "number",
+          "required": false,
+          "description": "Number of users to return",
+          "default": 100
+        }
+      }
+    }
+  ]
+}

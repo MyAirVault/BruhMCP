@@ -1,0 +1,25 @@
+{
+  "name": "lemlist",
+  "displayName": "Lemlist",
+  "description": "lemlist integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/lemlist.svg",
+  "port": 49344  ,
+  "api": {
+    "baseURL": "https://api.lemlist.com",
+    "version": "v1",
+    "documentation": "https://docs.lemlist.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "lemlist API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "alchemy",
+  "displayName": "Alchemy",
+  "description": "alchemy integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/alchemy.svg",
+  "port": 49172  ,
+  "api": {
+    "baseURL": "https://api.alchemy.com",
+    "version": "v1",
+    "documentation": "https://docs.alchemy.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "alchemy API Key"
+      }
+    ]
+  },
+  "tools": []
+}

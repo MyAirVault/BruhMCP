@@ -1,0 +1,25 @@
+{
+  "name": "spondyr",
+  "displayName": "Spondyr",
+  "description": "spondyr integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/spondyr.svg",
+  "port": 49466 ,
+  "api": {
+    "baseURL": "https://api.spondyr.com",
+    "version": "v1",
+    "documentation": "https://docs.spondyr.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "spondyr API Key"
+      }
+    ]
+  },
+  "tools": []
+}

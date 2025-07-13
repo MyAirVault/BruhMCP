@@ -1,0 +1,25 @@
+{
+  "name": "yousearch",
+  "displayName": "Yousearch",
+  "description": "yousearch integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/yousearch.svg",
+  "port": 49518 ,
+  "api": {
+    "baseURL": "https://api.yousearch.com",
+    "version": "v1",
+    "documentation": "https://docs.yousearch.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "yousearch API Key"
+      }
+    ]
+  },
+  "tools": []
+}

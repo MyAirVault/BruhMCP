@@ -1,0 +1,25 @@
+{
+  "name": "atlassian",
+  "displayName": "Atlassian",
+  "description": "atlassian integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/atlassian.svg",
+  "port": 49186  ,
+  "api": {
+    "baseURL": "https://api.atlassian.com",
+    "version": "v1",
+    "documentation": "https://docs.atlassian.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "atlassian API Key"
+      }
+    ]
+  },
+  "tools": []
+}

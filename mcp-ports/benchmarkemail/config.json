@@ -1,0 +1,26 @@
+{
+  "#coming_soon": "This service documentation is not yet available or coming soon",
+  "name": "benchmarkemail",
+  "displayName": "Benchmark Email",
+  "description": "Email marketing platform (documentation coming soon)",
+  "category": "email",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/email.svg",
+  "port": 49196   ,
+  "api": {
+    "baseURL": "https://api.benchmarkemail.com",
+    "version": "1.0",
+    "documentation": "https://v3.docs.composio.dev/tools/benchmarkemail"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Benchmark Email API Key"
+      }
+    ]
+  },
+  "tools": []
+}

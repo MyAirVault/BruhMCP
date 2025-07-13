@@ -1,0 +1,25 @@
+{
+  "name": "opensea",
+  "displayName": "Opensea",
+  "description": "opensea integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/opensea.svg",
+  "port": 49398  ,
+  "api": {
+    "baseURL": "https://api.opensea.com",
+    "version": "v1",
+    "documentation": "https://docs.opensea.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "opensea API Key"
+      }
+    ]
+  },
+  "tools": []
+}

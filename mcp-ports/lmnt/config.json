@@ -1,0 +1,135 @@
+{
+  "name": "lmnt",
+  "displayName": "LMNT",
+  "description": "LMNT focuses on voice and audio manipulation, leveraging AI to generate or transform sound and speech",
+  "category": "ai",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/audio.svg",
+  "port": 49354  ,
+  "api": {
+    "baseURL": "https://api.lmnt.com",
+    "version": "v1",
+    "documentation": "https://docs.lmnt.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "LMNT API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "create_voice",
+      "description": "Create a new voice with customizable parameters",
+      "endpoint": "/voices",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Voice name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Voice description"
+        },
+        "gender": {
+          "type": "string",
+          "required": false,
+          "description": "Voice gender"
+        },
+        "files": {
+          "type": "array",
+          "required": false,
+          "description": "Audio files for voice training"
+        }
+      }
+    },
+    {
+      "name": "delete_voice_info",
+      "description": "Delete voice information",
+      "endpoint": "/voices/{voice_id}",
+      "method": "DELETE",
+      "parameters": {
+        "voice_id": {
+          "type": "string",
+          "required": true,
+          "description": "Voice ID to delete"
+        }
+      }
+    },
+    {
+      "name": "get_account",
+      "description": "Get account information",
+      "endpoint": "/account",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "get_voices_list",
+      "description": "Get list of available voices",
+      "endpoint": "/voices",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "get_voice_info",
+      "description": "Get information about a specific voice",
+      "endpoint": "/voices/{voice_id}",
+      "method": "GET",
+      "parameters": {
+        "voice_id": {
+          "type": "string",
+          "required": true,
+          "description": "Voice ID"
+        }
+      }
+    },
+    {
+      "name": "synthesize_speech",
+      "description": "Synthesize speech from text using a specific voice",
+      "endpoint": "/speech",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to synthesize"
+        },
+        "voice": {
+          "type": "string",
+          "required": true,
+          "description": "Voice to use for synthesis"
+        }
+      }
+    },
+    {
+      "name": "update_voice_info",
+      "description": "Update voice information",
+      "endpoint": "/voices/{voice_id}",
+      "method": "PUT",
+      "parameters": {
+        "voice_id": {
+          "type": "string",
+          "required": true,
+          "description": "Voice ID to update"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Updated voice name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Updated voice description"
+        }
+      }
+    }
+  ]
+}

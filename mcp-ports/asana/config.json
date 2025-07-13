@@ -1,0 +1,157 @@
+{
+  "name": "asana",
+  "displayName": "Asana",
+  "description": "Asana is a tool to help teams organize, track, and manage their work and projects",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/asana.svg",
+  "port": 49184    ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/asana"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Asana OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Asana OAuth App Client Secret"
+      },
+      {
+        "name": "bearer_token",
+        "type": "password",
+        "required": false,
+        "description": "Asana Bearer Token (alternative to OAuth)"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["default"],
+      "authorization_url": "https://app.asana.com/-/oauth_authorize",
+      "token_url": "https://app.asana.com/-/oauth_token"
+    }
+  },
+  "tools": [
+    {
+      "name": "add_followers_to_task",
+      "description": "Add followers to a task",
+      "endpoint": "/tools/asana/add_followers_to_task",
+      "method": "POST",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to add followers to"
+        },
+        "followers": {
+          "type": "array",
+          "required": true,
+          "description": "Array of follower IDs"
+        }
+      }
+    },
+    {
+      "name": "create_task",
+      "description": "Create a new task",
+      "endpoint": "/tools/asana/create_task",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Task name"
+        },
+        "notes": {
+          "type": "string",
+          "required": false,
+          "description": "Task notes"
+        },
+        "project": {
+          "type": "string",
+          "required": false,
+          "description": "Project ID"
+        }
+      }
+    },
+    {
+      "name": "create_task_comment",
+      "description": "Create a task comment",
+      "endpoint": "/tools/asana/create_task_comment",
+      "method": "POST",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to comment on"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Comment text"
+        }
+      }
+    },
+    {
+      "name": "create_subtask",
+      "description": "Create a subtask",
+      "endpoint": "/tools/asana/create_subtask",
+      "method": "POST",
+      "parameters": {
+        "parent_task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Parent task ID"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Subtask name"
+        }
+      }
+    },
+    {
+      "name": "delete_task",
+      "description": "Delete a task",
+      "endpoint": "/tools/asana/delete_task",
+      "method": "DELETE",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to delete"
+        }
+      }
+    },
+    {
+      "name": "create_project_status_update",
+      "description": "Create a project status update",
+      "endpoint": "/tools/asana/create_project_status_update",
+      "method": "POST",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        },
+        "status_type": {
+          "type": "string",
+          "required": true,
+          "description": "Status type (on_track, at_risk, off_track)"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Status update text"
+        }
+      }
+    }
+  ]
+}

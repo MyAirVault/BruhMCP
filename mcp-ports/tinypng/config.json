@@ -1,0 +1,25 @@
+{
+  "name": "tinypng",
+  "displayName": "Tinypng",
+  "description": "tinypng integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tinypng.svg",
+  "port": 49488  ,
+  "api": {
+    "baseURL": "https://api.tinypng.com",
+    "version": "v1",
+    "documentation": "https://docs.tinypng.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "tinypng API Key"
+      }
+    ]
+  },
+  "tools": []
+}

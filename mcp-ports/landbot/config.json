@@ -1,0 +1,25 @@
+{
+  "name": "landbot",
+  "displayName": "Landbot",
+  "description": "landbot integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/landbot.svg",
+  "port": 49339  ,
+  "api": {
+    "baseURL": "https://api.landbot.com",
+    "version": "v1",
+    "documentation": "https://docs.landbot.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "landbot API Key"
+      }
+    ]
+  },
+  "tools": []
+}

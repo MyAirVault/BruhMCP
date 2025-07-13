@@ -1,0 +1,281 @@
+{
+  "name": "googlesheets",
+  "displayName": "Google Sheets",
+  "description": "Google Sheets is a cloud-based spreadsheet tool enabling real-time collaboration, data analysis, and integration with other Google Workspace apps",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googlesheets.svg",
+  "port": 49307  ,
+  "api": {
+    "baseURL": "https://sheets.googleapis.com/v4",
+    "version": "v4",
+    "documentation": "https://developers.google.com/sheets/api"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Google OAuth Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Google OAuth Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/userinfo.email"
+      ],
+      "authorization_url": "https://accounts.google.com/o/oauth2/auth",
+      "token_url": "https://oauth2.googleapis.com/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "get_spreadsheet_info",
+      "description": "Get information about a spreadsheet",
+      "endpoint": "/spreadsheets/{spreadsheetId}",
+      "method": "GET",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        }
+      }
+    },
+    {
+      "name": "append_values",
+      "description": "Append values to a spreadsheet",
+      "endpoint": "/spreadsheets/{spreadsheetId}/values/{range}:append",
+      "method": "POST",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "range": {
+          "type": "string",
+          "required": true,
+          "description": "The A1 notation range to append to"
+        },
+        "values": {
+          "type": "array",
+          "required": true,
+          "description": "2D array of values to append"
+        },
+        "valueInputOption": {
+          "type": "string",
+          "required": false,
+          "description": "How input data should be interpreted",
+          "default": "RAW"
+        }
+      }
+    },
+    {
+      "name": "batch_update_spreadsheet",
+      "description": "Batch update spreadsheet with multiple requests",
+      "endpoint": "/spreadsheets/{spreadsheetId}:batchUpdate",
+      "method": "POST",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "requests": {
+          "type": "array",
+          "required": true,
+          "description": "Array of requests to execute"
+        }
+      }
+    },
+    {
+      "name": "add_sheet",
+      "description": "Add a new sheet to the spreadsheet",
+      "endpoint": "/spreadsheets/{spreadsheetId}:batchUpdate",
+      "method": "POST",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Title of the new sheet"
+        },
+        "sheetType": {
+          "type": "string",
+          "required": false,
+          "description": "Type of sheet (GRID, OBJECT)",
+          "default": "GRID"
+        }
+      }
+    },
+    {
+      "name": "delete_sheet",
+      "description": "Delete a sheet from the spreadsheet",
+      "endpoint": "/spreadsheets/{spreadsheetId}:batchUpdate",
+      "method": "POST",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "sheetId": {
+          "type": "number",
+          "required": true,
+          "description": "ID of the sheet to delete"
+        }
+      }
+    },
+    {
+      "name": "get_values",
+      "description": "Get values from a range in the spreadsheet",
+      "endpoint": "/spreadsheets/{spreadsheetId}/values/{range}",
+      "method": "GET",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "range": {
+          "type": "string",
+          "required": true,
+          "description": "The A1 notation range to retrieve"
+        },
+        "valueRenderOption": {
+          "type": "string",
+          "required": false,
+          "description": "How values should be rendered",
+          "default": "FORMATTED_VALUE"
+        }
+      }
+    },
+    {
+      "name": "update_values",
+      "description": "Update values in a range",
+      "endpoint": "/spreadsheets/{spreadsheetId}/values/{range}",
+      "method": "PUT",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "range": {
+          "type": "string",
+          "required": true,
+          "description": "The A1 notation range to update"
+        },
+        "values": {
+          "type": "array",
+          "required": true,
+          "description": "2D array of values to update"
+        },
+        "valueInputOption": {
+          "type": "string",
+          "required": false,
+          "description": "How input data should be interpreted",
+          "default": "RAW"
+        }
+      }
+    },
+    {
+      "name": "clear_values",
+      "description": "Clear values in a range",
+      "endpoint": "/spreadsheets/{spreadsheetId}/values/{range}:clear",
+      "method": "POST",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "range": {
+          "type": "string",
+          "required": true,
+          "description": "The A1 notation range to clear"
+        }
+      }
+    },
+    {
+      "name": "insert_dimension",
+      "description": "Insert rows or columns",
+      "endpoint": "/spreadsheets/{spreadsheetId}:batchUpdate",
+      "method": "POST",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "sheetId": {
+          "type": "number",
+          "required": true,
+          "description": "ID of the sheet"
+        },
+        "dimension": {
+          "type": "string",
+          "required": true,
+          "description": "ROWS or COLUMNS"
+        },
+        "startIndex": {
+          "type": "number",
+          "required": true,
+          "description": "Start index for insertion"
+        },
+        "endIndex": {
+          "type": "number",
+          "required": true,
+          "description": "End index for insertion"
+        }
+      }
+    },
+    {
+      "name": "delete_dimension",
+      "description": "Delete rows or columns",
+      "endpoint": "/spreadsheets/{spreadsheetId}:batchUpdate",
+      "method": "POST",
+      "parameters": {
+        "spreadsheetId": {
+          "type": "string",
+          "required": true,
+          "description": "The ID of the spreadsheet"
+        },
+        "sheetId": {
+          "type": "number",
+          "required": true,
+          "description": "ID of the sheet"
+        },
+        "dimension": {
+          "type": "string",
+          "required": true,
+          "description": "ROWS or COLUMNS"
+        },
+        "startIndex": {
+          "type": "number",
+          "required": true,
+          "description": "Start index for deletion"
+        },
+        "endIndex": {
+          "type": "number",
+          "required": true,
+          "description": "End index for deletion"
+        }
+      }
+    }
+  ]
+}

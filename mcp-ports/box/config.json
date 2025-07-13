@@ -1,0 +1,25 @@
+{
+  "name": "box",
+  "displayName": "Box",
+  "description": "box integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/box.svg",
+  "port": 49209  ,
+  "api": {
+    "baseURL": "https://api.box.com",
+    "version": "v1",
+    "documentation": "https://docs.box.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "box API Key"
+      }
+    ]
+  },
+  "tools": []
+}

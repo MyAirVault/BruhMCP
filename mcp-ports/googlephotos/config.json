@@ -1,0 +1,154 @@
+{
+  "name": "googlephotos",
+  "displayName": "Google Photos",
+  "description": "Cloud-based photo storage and organization service offering automatic backups, AI-assisted search, and shared albums",
+  "category": "storage",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googlephotos.svg",
+  "port": 49306  ,
+  "api": {
+    "baseURL": "https://photoslibrary.googleapis.com",
+    "version": "v1",
+    "documentation": "https://developers.google.com/photos/library/reference/rest"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Google OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Google OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata"],
+      "authorization_url": "https://accounts.google.com/o/oauth2/auth",
+      "token_url": "https://oauth2.googleapis.com/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_album",
+      "description": "Create a new album in Google Photos",
+      "endpoint": "/v1/albums",
+      "method": "POST",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Title of the album"
+        }
+      }
+    },
+    {
+      "name": "list_albums",
+      "description": "List all albums in Google Photos",
+      "endpoint": "/v1/albums",
+      "method": "GET",
+      "parameters": {
+        "pageSize": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of albums to return"
+        },
+        "pageToken": {
+          "type": "string",
+          "required": false,
+          "description": "Token for pagination"
+        }
+      }
+    },
+    {
+      "name": "batch_create_media_items",
+      "description": "Create multiple media items from uploaded content",
+      "endpoint": "/v1/mediaItems:batchCreate",
+      "method": "POST",
+      "parameters": {
+        "albumId": {
+          "type": "string",
+          "required": false,
+          "description": "Album ID to add items to"
+        },
+        "newMediaItems": {
+          "type": "array",
+          "required": true,
+          "description": "Array of media items to create"
+        }
+      }
+    },
+    {
+      "name": "list_media_items",
+      "description": "List media items in the library",
+      "endpoint": "/v1/mediaItems",
+      "method": "GET",
+      "parameters": {
+        "pageSize": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of items to return"
+        },
+        "pageToken": {
+          "type": "string",
+          "required": false,
+          "description": "Token for pagination"
+        }
+      }
+    },
+    {
+      "name": "search_media_items",
+      "description": "Search for media items based on filters",
+      "endpoint": "/v1/mediaItems:search",
+      "method": "POST",
+      "parameters": {
+        "albumId": {
+          "type": "string",
+          "required": false,
+          "description": "Album ID to search within"
+        },
+        "filters": {
+          "type": "object",
+          "required": false,
+          "description": "Search filters (date, media type, etc.)"
+        }
+      }
+    },
+    {
+      "name": "upload_media",
+      "description": "Upload media content to Google Photos",
+      "endpoint": "/v1/uploads",
+      "method": "POST",
+      "parameters": {
+        "fileName": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the file to upload"
+        },
+        "mimeType": {
+          "type": "string",
+          "required": true,
+          "description": "MIME type of the media file"
+        }
+      }
+    },
+    {
+      "name": "get_media_item",
+      "description": "Get details of a specific media item",
+      "endpoint": "/v1/mediaItems/{mediaItemId}",
+      "method": "GET",
+      "parameters": {
+        "mediaItemId": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the media item"
+        }
+      }
+    }
+  ]
+}

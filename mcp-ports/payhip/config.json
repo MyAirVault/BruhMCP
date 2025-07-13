@@ -1,0 +1,25 @@
+{
+  "name": "payhip",
+  "displayName": "Payhip",
+  "description": "payhip integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/payhip.svg",
+  "port": 49403  ,
+  "api": {
+    "baseURL": "https://api.payhip.com",
+    "version": "v1",
+    "documentation": "https://docs.payhip.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "payhip API Key"
+      }
+    ]
+  },
+  "tools": []
+}

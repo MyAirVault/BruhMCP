@@ -1,0 +1,25 @@
+{
+  "name": "brilliantdirectories",
+  "displayName": "Brilliantdirectories",
+  "description": "brilliantdirectories integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/brilliantdirectories.svg",
+  "port": 49217  ,
+  "api": {
+    "baseURL": "https://api.brilliantdirectories.com",
+    "version": "v1",
+    "documentation": "https://docs.brilliantdirectories.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "brilliantdirectories API Key"
+      }
+    ]
+  },
+  "tools": []
+}

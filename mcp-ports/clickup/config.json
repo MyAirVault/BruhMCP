@@ -1,0 +1,206 @@
+{
+  "name": "clickup",
+  "displayName": "ClickUp",
+  "description": "ClickUp unifies tasks, docs, goals, and chat in a single platform, allowing teams to plan, organize, and collaborate across projects",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/clickup.svg",
+  "port": 49233  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/clickup"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "ClickUp OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "ClickUp OAuth App Client Secret"
+      },
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": false,
+        "description": "ClickUp API Key (alternative to OAuth)"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["default"],
+      "authorization_url": "https://app.clickup.com/api",
+      "token_url": "https://app.clickup.com/api/v2/oauth/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_folder",
+      "description": "Create a new folder in ClickUp",
+      "endpoint": "/tools/clickup/create_folder",
+      "method": "POST",
+      "parameters": {
+        "space_id": {
+          "type": "string",
+          "required": true,
+          "description": "Space ID where folder will be created"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Folder name"
+        }
+      }
+    },
+    {
+      "name": "create_list",
+      "description": "Create a new list in ClickUp",
+      "endpoint": "/tools/clickup/create_list",
+      "method": "POST",
+      "parameters": {
+        "folder_id": {
+          "type": "string",
+          "required": true,
+          "description": "Folder ID where list will be created"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "List name"
+        }
+      }
+    },
+    {
+      "name": "create_task",
+      "description": "Create a new task in ClickUp",
+      "endpoint": "/tools/clickup/create_task",
+      "method": "POST",
+      "parameters": {
+        "list_id": {
+          "type": "string",
+          "required": true,
+          "description": "List ID where task will be created"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Task name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Task description"
+        }
+      }
+    },
+    {
+      "name": "create_task_comment",
+      "description": "Create a comment on a task",
+      "endpoint": "/tools/clickup/create_task_comment",
+      "method": "POST",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to comment on"
+        },
+        "comment_text": {
+          "type": "string",
+          "required": true,
+          "description": "Comment text"
+        }
+      }
+    },
+    {
+      "name": "delete_task",
+      "description": "Delete a task",
+      "endpoint": "/tools/clickup/delete_task",
+      "method": "DELETE",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to delete"
+        }
+      }
+    },
+    {
+      "name": "get_task",
+      "description": "Get task details",
+      "endpoint": "/tools/clickup/get_task",
+      "method": "GET",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "update_task",
+      "description": "Update a task",
+      "endpoint": "/tools/clickup/update_task",
+      "method": "PUT",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to update"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "New task name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "New task description"
+        }
+      }
+    },
+    {
+      "name": "add_dependency",
+      "description": "Add dependency between tasks",
+      "endpoint": "/tools/clickup/add_dependency",
+      "method": "POST",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID"
+        },
+        "depends_on": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID this task depends on"
+        }
+      }
+    },
+    {
+      "name": "add_tags",
+      "description": "Add tags to a task",
+      "endpoint": "/tools/clickup/add_tags",
+      "method": "POST",
+      "parameters": {
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID to add tags to"
+        },
+        "tags": {
+          "type": "array",
+          "required": true,
+          "description": "Array of tag names"
+        }
+      }
+    }
+  ]
+}

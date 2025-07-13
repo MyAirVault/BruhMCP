@@ -1,0 +1,241 @@
+{
+  "name": "bitbucket",
+  "displayName": "Bitbucket",
+  "description": "Bitbucket is a Git-based code hosting and collaboration platform supporting private and public repositories",
+  "category": "development",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bitbucket.svg",
+  "port": 49201   ,
+  "api": {
+    "baseURL": "https://api.bitbucket.org/2.0",
+    "version": "2.0",
+    "documentation": "https://developer.atlassian.com/bitbucket/api/2/"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Bitbucket OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Bitbucket OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["webhook", "pullrequest:write", "projects:admin", "repositories:write", "issues:write"],
+      "authorization_url": "https://bitbucket.org/site/oauth2/authorize",
+      "token_url": "https://bitbucket.org/site/oauth2/access_token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_repository",
+      "description": "Create a new repository",
+      "endpoint": "/repositories/{workspace}/{repo_slug}",
+      "method": "POST",
+      "parameters": {
+        "workspace": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace slug"
+        },
+        "repo_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Repository slug"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Repository name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Repository description"
+        },
+        "is_private": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether repository is private"
+        },
+        "scm": {
+          "type": "string",
+          "required": false,
+          "description": "Source control management type (git, hg)"
+        }
+      }
+    },
+    {
+      "name": "delete_repository",
+      "description": "Delete a repository",
+      "endpoint": "/repositories/{workspace}/{repo_slug}",
+      "method": "DELETE",
+      "parameters": {
+        "workspace": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace slug"
+        },
+        "repo_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Repository slug"
+        }
+      }
+    },
+    {
+      "name": "list_repositories",
+      "description": "List repositories for a workspace",
+      "endpoint": "/repositories/{workspace}",
+      "method": "GET",
+      "parameters": {
+        "workspace": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace slug"
+        },
+        "role": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by role (admin, contributor, member)"
+        },
+        "q": {
+          "type": "string",
+          "required": false,
+          "description": "Search query"
+        }
+      }
+    },
+    {
+      "name": "create_branch",
+      "description": "Create a new branch",
+      "endpoint": "/repositories/{workspace}/{repo_slug}/refs/branches",
+      "method": "POST",
+      "parameters": {
+        "workspace": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace slug"
+        },
+        "repo_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Repository slug"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Branch name"
+        },
+        "target": {
+          "type": "object",
+          "required": true,
+          "description": "Target commit or branch to branch from"
+        }
+      }
+    },
+    {
+      "name": "create_issue",
+      "description": "Create a new issue",
+      "endpoint": "/repositories/{workspace}/{repo_slug}/issues",
+      "method": "POST",
+      "parameters": {
+        "workspace": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace slug"
+        },
+        "repo_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Repository slug"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Issue title"
+        },
+        "content": {
+          "type": "object",
+          "required": false,
+          "description": "Issue content with raw text and markup"
+        },
+        "priority": {
+          "type": "string",
+          "required": false,
+          "description": "Issue priority (trivial, minor, major, critical, blocker)"
+        },
+        "kind": {
+          "type": "string",
+          "required": false,
+          "description": "Issue kind (bug, enhancement, proposal, task)"
+        }
+      }
+    },
+    {
+      "name": "create_pull_request",
+      "description": "Create a new pull request",
+      "endpoint": "/repositories/{workspace}/{repo_slug}/pullrequests",
+      "method": "POST",
+      "parameters": {
+        "workspace": {
+          "type": "string",
+          "required": true,
+          "description": "Workspace slug"
+        },
+        "repo_slug": {
+          "type": "string",
+          "required": true,
+          "description": "Repository slug"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Pull request title"
+        },
+        "source": {
+          "type": "object",
+          "required": true,
+          "description": "Source branch information"
+        },
+        "destination": {
+          "type": "object",
+          "required": true,
+          "description": "Destination branch information"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Pull request description"
+        }
+      }
+    },
+    {
+      "name": "list_workspaces",
+      "description": "List available workspaces",
+      "endpoint": "/workspaces",
+      "method": "GET",
+      "parameters": {
+        "role": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by role (owner, collaborator, member)"
+        }
+      }
+    },
+    {
+      "name": "get_current_user",
+      "description": "Get current authenticated user details",
+      "endpoint": "/user",
+      "method": "GET",
+      "parameters": {}
+    }
+  ]
+}

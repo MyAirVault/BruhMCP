@@ -1,0 +1,74 @@
+{
+  "#coming_soon": "This service configuration requires WhatsApp Business API access which has specific requirements and approval processes.",
+  "name": "whatsapp",
+  "displayName": "WhatsApp Business",
+  "description": "Messaging platform for business communication via WhatsApp Business API",
+  "category": "communication",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/whatsapp.svg",
+  "port": 49511  ,
+  "api": {
+    "baseURL": "https://graph.facebook.com/v18.0",
+    "version": "v18.0",
+    "documentation": "https://developers.facebook.com/docs/whatsapp"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "access_token",
+        "type": "password",
+        "required": true,
+        "description": "WhatsApp Business API Access Token"
+      },
+      {
+        "name": "phone_number_id",
+        "type": "text",
+        "required": true,
+        "description": "WhatsApp Business Phone Number ID"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "send_message",
+      "description": "Send a text message",
+      "endpoint": "/{phone_number_id}/messages",
+      "method": "POST",
+      "parameters": {
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient phone number"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Message text"
+        }
+      }
+    },
+    {
+      "name": "send_template_message",
+      "description": "Send a template message",
+      "endpoint": "/{phone_number_id}/messages",
+      "method": "POST",
+      "parameters": {
+        "to": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient phone number"
+        },
+        "template_name": {
+          "type": "string",
+          "required": true,
+          "description": "Template name"
+        },
+        "language": {
+          "type": "string",
+          "required": true,
+          "description": "Template language code"
+        }
+      }
+    }
+  ]
+}

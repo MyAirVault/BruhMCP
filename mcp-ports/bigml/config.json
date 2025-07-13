@@ -1,0 +1,25 @@
+{
+  "name": "bigml",
+  "displayName": "Bigml",
+  "description": "bigml integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bigml.svg",
+  "port": 49199   ,
+  "api": {
+    "baseURL": "https://api.bigml.com",
+    "version": "v1",
+    "documentation": "https://docs.bigml.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "bigml API Key"
+      }
+    ]
+  },
+  "tools": []
+}

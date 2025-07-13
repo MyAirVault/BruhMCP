@@ -1,0 +1,268 @@
+{
+  "name": "kommo",
+  "displayName": "Kommo",
+  "description": "CRM (formerly amoCRM) integration tool for managing customer relationships, sales pipelines, and business processes",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/amocrm.svg",
+  "port": 49338  ,
+  "api": {
+    "baseURL": "https://api.kommo.com",
+    "version": "v4",
+    "documentation": "https://www.amocrm.com/developers/"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Kommo OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Kommo OAuth App Client Secret"
+      },
+      {
+        "name": "subdomain",
+        "type": "text",
+        "required": true,
+        "description": "Kommo account subdomain"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [],
+      "authorization_url": "https://{subdomain}.kommo.com/oauth2/authorize",
+      "token_url": "https://{subdomain}.kommo.com/oauth2/access_token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_company",
+      "description": "Create a new company",
+      "endpoint": "/api/v4/companies",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Company name"
+        },
+        "custom_fields_values": {
+          "type": "array",
+          "required": false,
+          "description": "Custom field values"
+        }
+      }
+    },
+    {
+      "name": "list_companies",
+      "description": "List all companies",
+      "endpoint": "/api/v4/companies",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page",
+          "default": 250
+        },
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number"
+        }
+      }
+    },
+    {
+      "name": "update_company",
+      "description": "Update company information",
+      "endpoint": "/api/v4/companies/{id}",
+      "method": "PATCH",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Company ID"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Company name"
+        }
+      }
+    },
+    {
+      "name": "create_contact",
+      "description": "Create a new contact",
+      "endpoint": "/api/v4/contacts",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Contact name"
+        },
+        "first_name": {
+          "type": "string",
+          "required": false,
+          "description": "Contact first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": false,
+          "description": "Contact last name"
+        }
+      }
+    },
+    {
+      "name": "list_contacts",
+      "description": "List all contacts",
+      "endpoint": "/api/v4/contacts",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page",
+          "default": 250
+        }
+      }
+    },
+    {
+      "name": "update_contact",
+      "description": "Update contact information",
+      "endpoint": "/api/v4/contacts/{id}",
+      "method": "PATCH",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Contact ID"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Contact name"
+        }
+      }
+    },
+    {
+      "name": "create_lead",
+      "description": "Create a new lead",
+      "endpoint": "/api/v4/leads",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Lead name"
+        },
+        "price": {
+          "type": "number",
+          "required": false,
+          "description": "Lead value"
+        }
+      }
+    },
+    {
+      "name": "list_leads",
+      "description": "List all leads",
+      "endpoint": "/api/v4/leads",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page",
+          "default": 250
+        }
+      }
+    },
+    {
+      "name": "update_lead",
+      "description": "Update lead information",
+      "endpoint": "/api/v4/leads/{id}",
+      "method": "PATCH",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Lead ID"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Lead name"
+        }
+      }
+    },
+    {
+      "name": "create_task",
+      "description": "Create a new task",
+      "endpoint": "/api/v4/tasks",
+      "method": "POST",
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Task description"
+        },
+        "complete_till": {
+          "type": "number",
+          "required": true,
+          "description": "Task completion timestamp"
+        }
+      }
+    },
+    {
+      "name": "list_tasks",
+      "description": "List all tasks",
+      "endpoint": "/api/v4/tasks",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page",
+          "default": 250
+        }
+      }
+    },
+    {
+      "name": "update_task",
+      "description": "Update task information",
+      "endpoint": "/api/v4/tasks/{id}",
+      "method": "PATCH",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Task ID"
+        },
+        "text": {
+          "type": "string",
+          "required": false,
+          "description": "Task description"
+        }
+      }
+    },
+    {
+      "name": "list_pipelines",
+      "description": "List lead pipelines",
+      "endpoint": "/api/v4/leads/pipelines",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "list_custom_fields",
+      "description": "List custom fields",
+      "endpoint": "/api/v4/leads/custom_fields",
+      "method": "GET",
+      "parameters": {}
+    }
+  ]
+}

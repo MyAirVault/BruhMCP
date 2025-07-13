@@ -1,0 +1,25 @@
+{
+  "name": "vercel",
+  "displayName": "Vercel",
+  "description": "vercel integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/vercel.svg",
+  "port": 49500  ,
+  "api": {
+    "baseURL": "https://api.vercel.com",
+    "version": "v1",
+    "documentation": "https://docs.vercel.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "vercel API Key"
+      }
+    ]
+  },
+  "tools": []
+}

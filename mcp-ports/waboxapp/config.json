@@ -1,0 +1,25 @@
+{
+  "name": "waboxapp",
+  "displayName": "Waboxapp",
+  "description": "waboxapp integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/waboxapp.svg",
+  "port": 49503 ,
+  "api": {
+    "baseURL": "https://api.waboxapp.com",
+    "version": "v1",
+    "documentation": "https://docs.waboxapp.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "waboxapp API Key"
+      }
+    ]
+  },
+  "tools": []
+}

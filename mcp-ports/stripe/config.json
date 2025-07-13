@@ -1,0 +1,119 @@
+{
+  "name": "stripe",
+  "displayName": "Stripe",
+  "description": "Stripe offers online payment infrastructure, fraud prevention, and APIs enabling businesses to accept and manage payments globally",
+  "category": "payments",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/stripe.svg",
+  "port": 49472  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/stripe"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Stripe API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "cancel_subscription",
+      "description": "Cancel a subscription",
+      "endpoint": "/tools/stripe/cancel_subscription",
+      "method": "POST",
+      "parameters": {
+        "subscription_id": {
+          "type": "string",
+          "required": true,
+          "description": "Subscription ID to cancel"
+        }
+      }
+    },
+    {
+      "name": "create_customer",
+      "description": "Create a new customer",
+      "endpoint": "/tools/stripe/create_customer",
+      "method": "POST",
+      "parameters": {
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "Customer email address"
+        },
+        "name": {
+          "type": "string",
+          "required": false,
+          "description": "Customer name"
+        }
+      }
+    },
+    {
+      "name": "create_payment_intent",
+      "description": "Create a payment intent",
+      "endpoint": "/tools/stripe/create_payment_intent",
+      "method": "POST",
+      "parameters": {
+        "amount": {
+          "type": "number",
+          "required": true,
+          "description": "Payment amount in cents"
+        },
+        "currency": {
+          "type": "string",
+          "required": true,
+          "description": "Payment currency (e.g., usd)"
+        }
+      }
+    },
+    {
+      "name": "create_product",
+      "description": "Create a new product",
+      "endpoint": "/tools/stripe/create_product",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Product name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Product description"
+        }
+      }
+    },
+    {
+      "name": "create_refund",
+      "description": "Create a refund",
+      "endpoint": "/tools/stripe/create_refund",
+      "method": "POST",
+      "parameters": {
+        "charge_id": {
+          "type": "string",
+          "required": true,
+          "description": "Charge ID to refund"
+        }
+      }
+    },
+    {
+      "name": "retrieve_charge",
+      "description": "Retrieve charge details",
+      "endpoint": "/tools/stripe/retrieve_charge",
+      "method": "GET",
+      "parameters": {
+        "charge_id": {
+          "type": "string",
+          "required": true,
+          "description": "Charge ID to retrieve"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "name": "googlebigquery",
+  "displayName": "Google BigQuery",
+  "description": "Fully managed data warehouse for large-scale data analytics, offering fast SQL queries and machine learning capabilities on massive datasets",
+  "category": "analytics",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googlebigquery.svg",
+  "port": 49300  ,
+  "api": {
+    "baseURL": "https://bigquery.googleapis.com/bigquery/v2",
+    "version": "v2",
+    "documentation": "https://v3.docs.composio.dev/tools/googlebigquery"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "credentials_json",
+        "type": "textarea",
+        "required": true,
+        "description": "Google Service Account JSON credentials"
+      }
+    ],
+    "oauth": {
+      "scopes": [
+        "https://www.googleapis.com/auth/bigquery",
+        "https://www.googleapis.com/auth/bigquery.readonly",
+        "https://www.googleapis.com/auth/cloud-platform"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "query",
+      "description": "Execute SQL queries in BigQuery",
+      "endpoint": "/projects/{projectId}/queries",
+      "method": "POST",
+      "parameters": {
+        "projectId": {
+          "type": "string",
+          "required": true,
+          "description": "Google Cloud Project ID"
+        },
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "SQL query to execute (single-line format)"
+        },
+        "useLegacySql": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether to use legacy SQL syntax",
+          "default": false
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Geographic location where the job should run"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of results to return"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "required": false,
+          "description": "Timeout in milliseconds"
+        }
+      }
+    },
+    {
+      "name": "list_datasets",
+      "description": "List all datasets in a project",
+      "endpoint": "/projects/{projectId}/datasets",
+      "method": "GET",
+      "parameters": {
+        "projectId": {
+          "type": "string",
+          "required": true,
+          "description": "Google Cloud Project ID"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of datasets to return"
+        }
+      }
+    },
+    {
+      "name": "get_dataset",
+      "description": "Get information about a specific dataset",
+      "endpoint": "/projects/{projectId}/datasets/{datasetId}",
+      "method": "GET",
+      "parameters": {
+        "projectId": {
+          "type": "string",
+          "required": true,
+          "description": "Google Cloud Project ID"
+        },
+        "datasetId": {
+          "type": "string",
+          "required": true,
+          "description": "Dataset ID"
+        }
+      }
+    },
+    {
+      "name": "list_tables",
+      "description": "List all tables in a dataset",
+      "endpoint": "/projects/{projectId}/datasets/{datasetId}/tables",
+      "method": "GET",
+      "parameters": {
+        "projectId": {
+          "type": "string",
+          "required": true,
+          "description": "Google Cloud Project ID"
+        },
+        "datasetId": {
+          "type": "string",
+          "required": true,
+          "description": "Dataset ID"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of tables to return"
+        }
+      }
+    },
+    {
+      "name": "get_table",
+      "description": "Get information about a specific table",
+      "endpoint": "/projects/{projectId}/datasets/{datasetId}/tables/{tableId}",
+      "method": "GET",
+      "parameters": {
+        "projectId": {
+          "type": "string",
+          "required": true,
+          "description": "Google Cloud Project ID"
+        },
+        "datasetId": {
+          "type": "string",
+          "required": true,
+          "description": "Dataset ID"
+        },
+        "tableId": {
+          "type": "string",
+          "required": true,
+          "description": "Table ID"
+        }
+      }
+    },
+    {
+      "name": "get_job",
+      "description": "Get information about a BigQuery job",
+      "endpoint": "/projects/{projectId}/jobs/{jobId}",
+      "method": "GET",
+      "parameters": {
+        "projectId": {
+          "type": "string",
+          "required": true,
+          "description": "Google Cloud Project ID"
+        },
+        "jobId": {
+          "type": "string",
+          "required": true,
+          "description": "Job ID"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Geographic location of the job"
+        }
+      }
+    }
+  ]
+}

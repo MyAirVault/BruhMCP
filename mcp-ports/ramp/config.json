@@ -1,0 +1,126 @@
+{
+  "name": "ramp",
+  "displayName": "Ramp",
+  "description": "Ramp is a platform that helps you manage your finances, track your income and expenses, and get insights into your business",
+  "category": "finance",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/ramp.svg",
+  "port": 49421  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/ramp"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "string",
+        "required": true,
+        "description": "Ramp OAuth2 Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Ramp OAuth2 Client Secret"
+      },
+      {
+        "name": "oauth_redirect_uri",
+        "type": "string",
+        "required": false,
+        "description": "OAuth2 Redirect URI",
+        "default": "https://backend.composio.dev/api/v1/auth-apps/add"
+      },
+      {
+        "name": "scopes",
+        "type": "string",
+        "required": false,
+        "description": "OAuth2 scopes",
+        "default": "transactions:read,accounting:write,accounting:read"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "accounting_sync",
+      "description": "Sync accounting data with Ramp",
+      "endpoint": "/tools/ramp/accounting_sync",
+      "method": "POST",
+      "parameters": {
+        "sync_type": {
+          "type": "string",
+          "required": true,
+          "description": "Type of sync to perform"
+        }
+      }
+    },
+    {
+      "name": "create_custom_accounting_field",
+      "description": "Create a new custom accounting field",
+      "endpoint": "/tools/ramp/create_custom_accounting_field",
+      "method": "POST",
+      "parameters": {
+        "field_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the custom field"
+        },
+        "field_type": {
+          "type": "string",
+          "required": true,
+          "description": "Type of the custom field"
+        }
+      }
+    },
+    {
+      "name": "delete_custom_accounting_field",
+      "description": "Delete a custom accounting field",
+      "endpoint": "/tools/ramp/delete_custom_accounting_field",
+      "method": "DELETE",
+      "parameters": {
+        "field_id": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the field to delete"
+        }
+      }
+    },
+    {
+      "name": "fetch_custom_accounting_field",
+      "description": "Fetch details of a custom accounting field",
+      "endpoint": "/tools/ramp/fetch_custom_accounting_field",
+      "method": "GET",
+      "parameters": {
+        "field_id": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the field to fetch"
+        }
+      }
+    },
+    {
+      "name": "update_accounting_field_option",
+      "description": "Update an option for a custom accounting field",
+      "endpoint": "/tools/ramp/update_accounting_field_option",
+      "method": "PUT",
+      "parameters": {
+        "field_id": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the field"
+        },
+        "option_id": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the option to update"
+        },
+        "option_value": {
+          "type": "string",
+          "required": true,
+          "description": "New value for the option"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "anthropicadministrator",
+  "displayName": "Anthropicadministrator",
+  "description": "anthropicadministrator integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/anthropicadministrator.svg",
+  "port": 49178  ,
+  "api": {
+    "baseURL": "https://api.anthropicadministrator.com",
+    "version": "v1",
+    "documentation": "https://docs.anthropicadministrator.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "anthropicadministrator API Key"
+      }
+    ]
+  },
+  "tools": []
+}

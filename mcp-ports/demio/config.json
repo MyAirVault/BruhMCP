@@ -1,0 +1,25 @@
+{
+  "name": "demio",
+  "displayName": "Demio",
+  "description": "demio integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/demio.svg",
+  "port": 49257 ,
+  "api": {
+    "baseURL": "https://api.demio.com",
+    "version": "v1",
+    "documentation": "https://docs.demio.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "demio API Key"
+      }
+    ]
+  },
+  "tools": []
+}

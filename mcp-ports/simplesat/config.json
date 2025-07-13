@@ -1,0 +1,156 @@
+{
+  "name": "simplesat",
+  "displayName": "Simplesat",
+  "description": "Captures customer feedback and CSAT scores through surveys, integrating directly with helpdesk systems for real-time performance insights",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/simplesat.svg",
+  "port": 49457  ,
+  "api": {
+    "baseURL": "https://api.simplesat.io",
+    "version": "v1",
+    "documentation": "https://docs.simplesat.io/"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Simplesat API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "create_or_update_customer",
+      "description": "Creates or updates a customer in Simplesat",
+      "endpoint": "/v1/customers",
+      "method": "POST",
+      "parameters": {
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "Customer email address"
+        },
+        "first_name": {
+          "type": "string",
+          "required": false,
+          "description": "Customer first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": false,
+          "description": "Customer last name"
+        },
+        "company": {
+          "type": "string",
+          "required": false,
+          "description": "Customer company name"
+        },
+        "custom_attributes": {
+          "type": "object",
+          "required": false,
+          "description": "Custom attributes for the customer"
+        }
+      }
+    },
+    {
+      "name": "create_or_update_team_member",
+      "description": "Creates or updates a team member in Simplesat",
+      "endpoint": "/v1/team_members",
+      "method": "POST",
+      "parameters": {
+        "email": {
+          "type": "string",
+          "required": true,
+          "description": "Team member email address"
+        },
+        "first_name": {
+          "type": "string",
+          "required": true,
+          "description": "Team member first name"
+        },
+        "last_name": {
+          "type": "string",
+          "required": true,
+          "description": "Team member last name"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "Team member job title"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Team member phone number"
+        }
+      }
+    },
+    {
+      "name": "list_surveys",
+      "description": "List all surveys",
+      "endpoint": "/v1/surveys",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page"
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to skip"
+        }
+      }
+    },
+    {
+      "name": "get_survey_responses",
+      "description": "Get responses for a specific survey",
+      "endpoint": "/v1/surveys/{survey_id}/responses",
+      "method": "GET",
+      "parameters": {
+        "survey_id": {
+          "type": "string",
+          "required": true,
+          "description": "Survey ID"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page"
+        }
+      }
+    },
+    {
+      "name": "create_survey_response",
+      "description": "Create a new survey response",
+      "endpoint": "/v1/survey_responses",
+      "method": "POST",
+      "parameters": {
+        "survey_id": {
+          "type": "string",
+          "required": true,
+          "description": "Survey ID"
+        },
+        "customer_email": {
+          "type": "string",
+          "required": true,
+          "description": "Customer email"
+        },
+        "rating": {
+          "type": "number",
+          "required": true,
+          "description": "Customer satisfaction rating"
+        },
+        "comment": {
+          "type": "string",
+          "required": false,
+          "description": "Customer feedback comment"
+        }
+      }
+    }
+  ]
+}

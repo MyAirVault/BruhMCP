@@ -1,0 +1,25 @@
+{
+  "name": "zohodesk",
+  "displayName": "Zohodesk",
+  "description": "zohodesk integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/zohodesk.svg",
+  "port": 49527  ,
+  "api": {
+    "baseURL": "https://api.zohodesk.com",
+    "version": "v1",
+    "documentation": "https://docs.zohodesk.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "zohodesk API Key"
+      }
+    ]
+  },
+  "tools": []
+}

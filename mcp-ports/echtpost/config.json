@@ -1,0 +1,128 @@
+{
+  "name": "echtpost",
+  "displayName": "EchtPost",
+  "description": "EchtPost facilitates secure digital communication, encryption, and data privacy, providing a reliable channel for sending confidential documents and messages",
+  "category": "collaboration",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/echtpost.svg",
+  "port": 49267  ,
+  "api": {
+    "baseURL": "https://api.echtpost.com/v1",
+    "version": "v1",
+    "documentation": "https://docs.echtpost.com/api"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "EchtPost API Key"
+      },
+      {
+        "name": "bearer_token",
+        "type": "password",
+        "required": true,
+        "description": "EchtPost Bearer Token"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "list_templates",
+      "description": "Retrieve all available templates in the EchtPost account",
+      "endpoint": "/templates",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of templates to return",
+          "default": 100
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Number of templates to skip",
+          "default": 0
+        }
+      }
+    },
+    {
+      "name": "get_template",
+      "description": "Get template details by ID",
+      "endpoint": "/templates/{template_id}",
+      "method": "GET",
+      "parameters": {
+        "template_id": {
+          "type": "string",
+          "required": true,
+          "description": "Template ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "send_secure_message",
+      "description": "Send secure encrypted message",
+      "endpoint": "/messages",
+      "method": "POST",
+      "parameters": {
+        "recipient": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient email address"
+        },
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Message subject"
+        },
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "Message content"
+        },
+        "template_id": {
+          "type": "string",
+          "required": false,
+          "description": "Template ID to use for message formatting"
+        },
+        "encryption_level": {
+          "type": "string",
+          "required": false,
+          "description": "Encryption level (standard, high, maximum)",
+          "default": "standard"
+        }
+      }
+    },
+    {
+      "name": "send_secure_document",
+      "description": "Send secure encrypted document",
+      "endpoint": "/documents",
+      "method": "POST",
+      "parameters": {
+        "recipient": {
+          "type": "string",
+          "required": true,
+          "description": "Recipient email address"
+        },
+        "document": {
+          "type": "file",
+          "required": true,
+          "description": "Document file to send securely"
+        },
+        "message": {
+          "type": "string",
+          "required": false,
+          "description": "Additional message to include with document"
+        },
+        "expiry_hours": {
+          "type": "number",
+          "required": false,
+          "description": "Hours until document access expires",
+          "default": 168
+        }
+      }
+    }
+  ]
+}

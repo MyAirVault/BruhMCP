@@ -1,0 +1,289 @@
+{
+  "name": "salesforce",
+  "displayName": "Salesforce",
+  "description": "Salesforce is a leading CRM platform integrating sales, service, marketing, and analytics to build customer relationships and drive business growth",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/salesforce.svg",
+  "port": 49439  ,
+  "api": {
+    "baseURL": "https://login.salesforce.com/services/data/v58.0",
+    "version": "v58.0",
+    "documentation": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Salesforce Connected App Consumer Key"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Salesforce Connected App Consumer Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["full", "refresh_token"],
+      "authorization_url": "https://login.salesforce.com/services/oauth2/authorize",
+      "token_url": "https://login.salesforce.com/services/oauth2/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_account",
+      "description": "Create a new Salesforce account",
+      "endpoint": "/sobjects/Account",
+      "method": "POST",
+      "parameters": {
+        "Name": {
+          "type": "string",
+          "required": true,
+          "description": "Account name"
+        },
+        "Type": {
+          "type": "string",
+          "required": false,
+          "description": "Account type (Customer, Partner, etc.)"
+        },
+        "Industry": {
+          "type": "string",
+          "required": false,
+          "description": "Industry classification"
+        },
+        "Phone": {
+          "type": "string",
+          "required": false,
+          "description": "Account phone number"
+        },
+        "Website": {
+          "type": "string",
+          "required": false,
+          "description": "Account website URL"
+        }
+      }
+    },
+    {
+      "name": "create_lead",
+      "description": "Create a new lead",
+      "endpoint": "/sobjects/Lead",
+      "method": "POST",
+      "parameters": {
+        "FirstName": {
+          "type": "string",
+          "required": false,
+          "description": "Lead first name"
+        },
+        "LastName": {
+          "type": "string",
+          "required": true,
+          "description": "Lead last name"
+        },
+        "Email": {
+          "type": "string",
+          "required": false,
+          "description": "Lead email address"
+        },
+        "Company": {
+          "type": "string",
+          "required": true,
+          "description": "Lead company name"
+        },
+        "Phone": {
+          "type": "string",
+          "required": false,
+          "description": "Lead phone number"
+        },
+        "Status": {
+          "type": "string",
+          "required": false,
+          "description": "Lead status"
+        }
+      }
+    },
+    {
+      "name": "create_contact",
+      "description": "Create a new contact",
+      "endpoint": "/sobjects/Contact",
+      "method": "POST",
+      "parameters": {
+        "FirstName": {
+          "type": "string",
+          "required": false,
+          "description": "Contact first name"
+        },
+        "LastName": {
+          "type": "string",
+          "required": true,
+          "description": "Contact last name"
+        },
+        "Email": {
+          "type": "string",
+          "required": false,
+          "description": "Contact email address"
+        },
+        "AccountId": {
+          "type": "string",
+          "required": false,
+          "description": "Associated account ID"
+        },
+        "Phone": {
+          "type": "string",
+          "required": false,
+          "description": "Contact phone number"
+        }
+      }
+    },
+    {
+      "name": "create_campaign",
+      "description": "Create a campaign record",
+      "endpoint": "/sobjects/Campaign",
+      "method": "POST",
+      "parameters": {
+        "Name": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign name"
+        },
+        "Type": {
+          "type": "string",
+          "required": false,
+          "description": "Campaign type"
+        },
+        "Status": {
+          "type": "string",
+          "required": false,
+          "description": "Campaign status"
+        },
+        "StartDate": {
+          "type": "string",
+          "required": false,
+          "description": "Campaign start date (YYYY-MM-DD)"
+        },
+        "EndDate": {
+          "type": "string",
+          "required": false,
+          "description": "Campaign end date (YYYY-MM-DD)"
+        }
+      }
+    },
+    {
+      "name": "execute_soql_query",
+      "description": "Execute SOQL query",
+      "endpoint": "/query",
+      "method": "GET",
+      "parameters": {
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "SOQL query string"
+        }
+      }
+    },
+    {
+      "name": "retrieve_account",
+      "description": "Retrieve account data",
+      "endpoint": "/sobjects/Account/{accountId}",
+      "method": "GET",
+      "parameters": {
+        "accountId": {
+          "type": "string",
+          "required": true,
+          "description": "Account ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "retrieve_lead",
+      "description": "Retrieve lead data",
+      "endpoint": "/sobjects/Lead/{leadId}",
+      "method": "GET",
+      "parameters": {
+        "leadId": {
+          "type": "string",
+          "required": true,
+          "description": "Lead ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "retrieve_contact",
+      "description": "Retrieve contact data",
+      "endpoint": "/sobjects/Contact/{contactId}",
+      "method": "GET",
+      "parameters": {
+        "contactId": {
+          "type": "string",
+          "required": true,
+          "description": "Contact ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "update_contact",
+      "description": "Update contact information",
+      "endpoint": "/sobjects/Contact/{contactId}",
+      "method": "PATCH",
+      "parameters": {
+        "contactId": {
+          "type": "string",
+          "required": true,
+          "description": "Contact ID to update"
+        },
+        "fields": {
+          "type": "object",
+          "required": true,
+          "description": "Fields to update"
+        }
+      }
+    },
+    {
+      "name": "delete_lead",
+      "description": "Delete a lead",
+      "endpoint": "/sobjects/Lead/{leadId}",
+      "method": "DELETE",
+      "parameters": {
+        "leadId": {
+          "type": "string",
+          "required": true,
+          "description": "Lead ID to delete"
+        }
+      }
+    },
+    {
+      "name": "remove_account",
+      "description": "Remove an account",
+      "endpoint": "/sobjects/Account/{accountId}",
+      "method": "DELETE",
+      "parameters": {
+        "accountId": {
+          "type": "string",
+          "required": true,
+          "description": "Account ID to remove"
+        }
+      }
+    },
+    {
+      "name": "query_contacts_by_name",
+      "description": "Query contacts by name",
+      "endpoint": "/query",
+      "method": "GET",
+      "parameters": {
+        "firstName": {
+          "type": "string",
+          "required": false,
+          "description": "First name to search for"
+        },
+        "lastName": {
+          "type": "string",
+          "required": false,
+          "description": "Last name to search for"
+        }
+      }
+    }
+  ]
+}

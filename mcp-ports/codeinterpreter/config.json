@@ -1,0 +1,25 @@
+{
+  "name": "codeinterpreter",
+  "displayName": "Codeinterpreter",
+  "description": "codeinterpreter integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/codeinterpreter.svg",
+  "port": 49240  ,
+  "api": {
+    "baseURL": "https://api.codeinterpreter.com",
+    "version": "v1",
+    "documentation": "https://docs.codeinterpreter.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "codeinterpreter API Key"
+      }
+    ]
+  },
+  "tools": []
+}

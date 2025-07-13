@@ -1,0 +1,25 @@
+{
+  "name": "smugmug",
+  "displayName": "Smugmug",
+  "description": "smugmug integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/smugmug.svg",
+  "port": 49461  ,
+  "api": {
+    "baseURL": "https://api.smugmug.com",
+    "version": "v1",
+    "documentation": "https://docs.smugmug.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "smugmug API Key"
+      }
+    ]
+  },
+  "tools": []
+}

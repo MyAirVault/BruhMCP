@@ -1,0 +1,25 @@
+{
+  "name": "servicem8",
+  "displayName": "Servicem8",
+  "description": "servicem8 integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/servicem8.svg",
+  "port": 49450  ,
+  "api": {
+    "baseURL": "https://api.servicem8.com",
+    "version": "v1",
+    "documentation": "https://docs.servicem8.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "servicem8 API Key"
+      }
+    ]
+  },
+  "tools": []
+}

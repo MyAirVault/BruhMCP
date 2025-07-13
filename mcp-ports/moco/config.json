@@ -1,0 +1,25 @@
+{
+  "name": "moco",
+  "displayName": "Moco",
+  "description": "moco integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/moco.svg",
+  "port": 49374  ,
+  "api": {
+    "baseURL": "https://api.moco.com",
+    "version": "v1",
+    "documentation": "https://docs.moco.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "moco API Key"
+      }
+    ]
+  },
+  "tools": []
+}

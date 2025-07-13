@@ -1,0 +1,370 @@
+{
+  "name": "webex",
+  "displayName": "Webex",
+  "description": "Cisco-powered video conferencing and collaboration platform offering online meetings, webinars, screen sharing, and team messaging",
+  "category": "collaboration",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/webex.svg",
+  "port": 49509  ,
+  "api": {
+    "baseURL": "https://webexapis.com",
+    "version": "v1",
+    "documentation": "https://developer.webex.com/docs/api/getting-started"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Webex App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Webex App Client Secret"
+      },
+      {
+        "name": "oauth_redirect_uri",
+        "type": "text",
+        "required": false,
+        "description": "OAuth redirect URI",
+        "default": "https://backend.composio.dev/api/v1/auth-apps/add"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["spark:all"],
+      "authorization_url": "https://webexapis.com/v1/authorize",
+      "token_url": "https://webexapis.com/v1/access_token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_room",
+      "description": "Create Room",
+      "endpoint": "/v1/rooms",
+      "method": "POST",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Room title"
+        },
+        "teamId": {
+          "type": "string",
+          "required": false,
+          "description": "Team ID to associate room with"
+        },
+        "type": {
+          "type": "string",
+          "required": false,
+          "description": "Room type (group or direct)",
+          "default": "group"
+        }
+      }
+    },
+    {
+      "name": "create_team",
+      "description": "Create Team",
+      "endpoint": "/v1/teams",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Team name"
+        }
+      }
+    },
+    {
+      "name": "get_team_details",
+      "description": "Get Team Details",
+      "endpoint": "/v1/teams/{teamId}",
+      "method": "GET",
+      "parameters": {
+        "teamId": {
+          "type": "string",
+          "required": true,
+          "description": "Team ID"
+        }
+      }
+    },
+    {
+      "name": "list_teams",
+      "description": "List Teams",
+      "endpoint": "/v1/teams",
+      "method": "GET",
+      "parameters": {
+        "max": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of teams to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "list_webhooks",
+      "description": "List Webhooks",
+      "endpoint": "/v1/webhooks",
+      "method": "GET",
+      "parameters": {
+        "max": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of webhooks to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "create_message",
+      "description": "Create Message",
+      "endpoint": "/v1/messages",
+      "method": "POST",
+      "parameters": {
+        "roomId": {
+          "type": "string",
+          "required": false,
+          "description": "Room ID to send message to"
+        },
+        "toPersonId": {
+          "type": "string",
+          "required": false,
+          "description": "Person ID to send direct message to"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Message text"
+        },
+        "markdown": {
+          "type": "string",
+          "required": false,
+          "description": "Message in markdown format"
+        }
+      }
+    },
+    {
+      "name": "create_team_membership",
+      "description": "Create Team Membership",
+      "endpoint": "/v1/team/memberships",
+      "method": "POST",
+      "parameters": {
+        "teamId": {
+          "type": "string",
+          "required": true,
+          "description": "Team ID"
+        },
+        "personId": {
+          "type": "string",
+          "required": false,
+          "description": "Person ID to add"
+        },
+        "personEmail": {
+          "type": "string",
+          "required": false,
+          "description": "Email of person to add"
+        },
+        "isModerator": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether person should be a moderator",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "delete_membership",
+      "description": "Delete Membership",
+      "endpoint": "/v1/memberships/{membershipId}",
+      "method": "DELETE",
+      "parameters": {
+        "membershipId": {
+          "type": "string",
+          "required": true,
+          "description": "Membership ID to delete"
+        }
+      }
+    },
+    {
+      "name": "delete_message",
+      "description": "Delete Message",
+      "endpoint": "/v1/messages/{messageId}",
+      "method": "DELETE",
+      "parameters": {
+        "messageId": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID to delete"
+        }
+      }
+    },
+    {
+      "name": "delete_room",
+      "description": "Delete Room",
+      "endpoint": "/v1/rooms/{roomId}",
+      "method": "DELETE",
+      "parameters": {
+        "roomId": {
+          "type": "string",
+          "required": true,
+          "description": "Room ID to delete"
+        }
+      }
+    },
+    {
+      "name": "get_membership_details",
+      "description": "Get Membership Details",
+      "endpoint": "/v1/memberships/{membershipId}",
+      "method": "GET",
+      "parameters": {
+        "membershipId": {
+          "type": "string",
+          "required": true,
+          "description": "Membership ID"
+        }
+      }
+    },
+    {
+      "name": "get_message_details",
+      "description": "Get Message Details",
+      "endpoint": "/v1/messages/{messageId}",
+      "method": "GET",
+      "parameters": {
+        "messageId": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID"
+        }
+      }
+    },
+    {
+      "name": "get_room_details",
+      "description": "Get Room Details",
+      "endpoint": "/v1/rooms/{roomId}",
+      "method": "GET",
+      "parameters": {
+        "roomId": {
+          "type": "string",
+          "required": true,
+          "description": "Room ID"
+        }
+      }
+    },
+    {
+      "name": "get_team_membership_details",
+      "description": "Get Team Membership Details",
+      "endpoint": "/v1/team/memberships/{membershipId}",
+      "method": "GET",
+      "parameters": {
+        "membershipId": {
+          "type": "string",
+          "required": true,
+          "description": "Team membership ID"
+        }
+      }
+    },
+    {
+      "name": "list_memberships",
+      "description": "List Memberships",
+      "endpoint": "/v1/memberships",
+      "method": "GET",
+      "parameters": {
+        "roomId": {
+          "type": "string",
+          "required": false,
+          "description": "Room ID to filter memberships"
+        },
+        "personId": {
+          "type": "string",
+          "required": false,
+          "description": "Person ID to filter memberships"
+        },
+        "max": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of memberships to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "list_messages",
+      "description": "List Messages",
+      "endpoint": "/v1/messages",
+      "method": "GET",
+      "parameters": {
+        "roomId": {
+          "type": "string",
+          "required": true,
+          "description": "Room ID to get messages from"
+        },
+        "max": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of messages to return",
+          "default": 50
+        }
+      }
+    },
+    {
+      "name": "list_rooms",
+      "description": "List Rooms",
+      "endpoint": "/v1/rooms",
+      "method": "GET",
+      "parameters": {
+        "teamId": {
+          "type": "string",
+          "required": false,
+          "description": "Team ID to filter rooms"
+        },
+        "type": {
+          "type": "string",
+          "required": false,
+          "description": "Room type to filter (direct or group)"
+        },
+        "max": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of rooms to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "list_team_memberships",
+      "description": "List Team Memberships",
+      "endpoint": "/v1/team/memberships",
+      "method": "GET",
+      "parameters": {
+        "teamId": {
+          "type": "string",
+          "required": true,
+          "description": "Team ID to get memberships for"
+        },
+        "max": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of memberships to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "get_person_details",
+      "description": "Get Person Details",
+      "endpoint": "/v1/people/{personId}",
+      "method": "GET",
+      "parameters": {
+        "personId": {
+          "type": "string",
+          "required": true,
+          "description": "Person ID"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "productboard",
+  "displayName": "Productboard",
+  "description": "productboard integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/productboard.svg",
+  "port": 49415 ,
+  "api": {
+    "baseURL": "https://api.productboard.com",
+    "version": "v1",
+    "documentation": "https://docs.productboard.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "productboard API Key"
+      }
+    ]
+  },
+  "tools": []
+}

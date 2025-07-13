@@ -1,0 +1,25 @@
+{
+  "name": "apaleo",
+  "displayName": "Apaleo",
+  "description": "apaleo integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/apaleo.svg",
+  "port": 49179  ,
+  "api": {
+    "baseURL": "https://api.apaleo.com",
+    "version": "v1",
+    "documentation": "https://docs.apaleo.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "apaleo API Key"
+      }
+    ]
+  },
+  "tools": []
+}

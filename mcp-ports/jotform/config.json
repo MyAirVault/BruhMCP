@@ -1,0 +1,25 @@
+{
+  "name": "jotform",
+  "displayName": "Jotform",
+  "description": "jotform integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/jotform.svg",
+  "port": 49331  ,
+  "api": {
+    "baseURL": "https://api.jotform.com",
+    "version": "v1",
+    "documentation": "https://docs.jotform.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "jotform API Key"
+      }
+    ]
+  },
+  "tools": []
+}

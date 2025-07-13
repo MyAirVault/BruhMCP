@@ -1,0 +1,157 @@
+{
+  "name": "placekey",
+  "displayName": "Placekey",
+  "description": "Standardize location data by assigning unique IDs to physical addresses, simplifying address matching and enabling data sharing across platforms",
+  "category": "analytics",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/mapbox.svg",
+  "port": 49410  ,
+  "api": {
+    "baseURL": "https://api.placekey.io",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/placekey"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "Placekey API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "get_geocode_from_address",
+      "description": "Retrieve latitude and longitude coordinates for a given address",
+      "endpoint": "/v1/placekey",
+      "method": "POST",
+      "parameters": {
+        "street_address": {
+          "type": "string",
+          "required": true,
+          "description": "Street address"
+        },
+        "city": {
+          "type": "string",
+          "required": true,
+          "description": "City name"
+        },
+        "region": {
+          "type": "string",
+          "required": true,
+          "description": "State or region"
+        },
+        "postal_code": {
+          "type": "string",
+          "required": true,
+          "description": "Postal/ZIP code"
+        },
+        "iso_country_code": {
+          "type": "string",
+          "required": true,
+          "description": "ISO country code (e.g., US, CA)"
+        },
+        "location_name": {
+          "type": "string",
+          "required": false,
+          "description": "Name of the location/business"
+        },
+        "include_geocoding": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether to include geocoding results",
+          "default": true
+        }
+      }
+    },
+    {
+      "name": "get_placekey_from_address",
+      "description": "Convert a physical address into a unique Placekey identifier",
+      "endpoint": "/v1/placekey",
+      "method": "POST",
+      "parameters": {
+        "street_address": {
+          "type": "string",
+          "required": true,
+          "description": "Street address"
+        },
+        "city": {
+          "type": "string",
+          "required": true,
+          "description": "City name"
+        },
+        "region": {
+          "type": "string",
+          "required": true,
+          "description": "State or region"
+        },
+        "postal_code": {
+          "type": "string",
+          "required": true,
+          "description": "Postal/ZIP code"
+        },
+        "iso_country_code": {
+          "type": "string",
+          "required": true,
+          "description": "ISO country code (e.g., US, CA)"
+        },
+        "location_name": {
+          "type": "string",
+          "required": false,
+          "description": "Name of the location/business"
+        }
+      }
+    },
+    {
+      "name": "get_placekey_from_coordinates",
+      "description": "Generate a Placekey for specific latitude and longitude coordinates",
+      "endpoint": "/v1/placekey",
+      "method": "POST",
+      "parameters": {
+        "latitude": {
+          "type": "number",
+          "required": true,
+          "description": "Latitude coordinate"
+        },
+        "longitude": {
+          "type": "number",
+          "required": true,
+          "description": "Longitude coordinate"
+        },
+        "location_name": {
+          "type": "string",
+          "required": false,
+          "description": "Name of the location/business"
+        }
+      }
+    },
+    {
+      "name": "bulk_placekey_lookup",
+      "description": "Process multiple addresses or coordinates in a single request",
+      "endpoint": "/v1/placekey",
+      "method": "POST",
+      "parameters": {
+        "queries": {
+          "type": "array",
+          "required": true,
+          "description": "Array of address or coordinate objects to process"
+        }
+      }
+    },
+    {
+      "name": "get_placekey_details",
+      "description": "Get detailed information about a Placekey",
+      "endpoint": "/v1/placekey/{placekey}",
+      "method": "GET",
+      "parameters": {
+        "placekey": {
+          "type": "string",
+          "required": true,
+          "description": "Placekey identifier to get details for"
+        }
+      }
+    }
+  ]
+}

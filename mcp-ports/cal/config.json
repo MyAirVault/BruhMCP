@@ -1,0 +1,25 @@
+{
+  "name": "cal",
+  "displayName": "Cal",
+  "description": "cal integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/cal.svg",
+  "port": 49226 ,
+  "api": {
+    "baseURL": "https://api.cal.com",
+    "version": "v1",
+    "documentation": "https://docs.cal.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "cal API Key"
+      }
+    ]
+  },
+  "tools": []
+}

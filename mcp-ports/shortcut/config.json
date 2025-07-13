@@ -1,0 +1,218 @@
+{
+  "name": "shortcut",
+  "displayName": "Shortcut",
+  "description": "Shortcut aligns product development work with company objectives so teams can execute with a shared purpose",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/shortcut.svg",
+  "port": 49454  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/shortcut"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "Shortcut API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "get_project_details",
+      "description": "Get project details",
+      "endpoint": "/tools/shortcut/get_project_details",
+      "method": "GET",
+      "parameters": {
+        "project_id": {
+          "type": "string",
+          "required": true,
+          "description": "Project ID"
+        }
+      }
+    },
+    {
+      "name": "list_categories",
+      "description": "List all categories",
+      "endpoint": "/tools/shortcut/list_categories",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "list_epics",
+      "description": "List all epics",
+      "endpoint": "/tools/shortcut/list_epics",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "list_milestones",
+      "description": "List all milestones",
+      "endpoint": "/tools/shortcut/list_milestones",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "list_objectives",
+      "description": "List all objectives",
+      "endpoint": "/tools/shortcut/list_objectives",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "search_objectives",
+      "description": "Search objectives",
+      "endpoint": "/tools/shortcut/search_objectives",
+      "method": "GET",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        }
+      }
+    },
+    {
+      "name": "create_category",
+      "description": "Create a new category",
+      "endpoint": "/tools/shortcut/create_category",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Category name"
+        },
+        "color": {
+          "type": "string",
+          "required": false,
+          "description": "Category color"
+        },
+        "type": {
+          "type": "string",
+          "required": false,
+          "description": "Category type"
+        }
+      }
+    },
+    {
+      "name": "create_epic",
+      "description": "Create a new epic",
+      "endpoint": "/tools/shortcut/create_epic",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Epic name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Epic description"
+        },
+        "state": {
+          "type": "string",
+          "required": false,
+          "description": "Epic state"
+        }
+      }
+    },
+    {
+      "name": "create_story",
+      "description": "Create a new story",
+      "endpoint": "/tools/shortcut/create_story",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Story name"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Story description"
+        },
+        "project_id": {
+          "type": "string",
+          "required": false,
+          "description": "Project ID"
+        },
+        "epic_id": {
+          "type": "string",
+          "required": false,
+          "description": "Epic ID"
+        }
+      }
+    },
+    {
+      "name": "create_comment",
+      "description": "Create a comment on a story",
+      "endpoint": "/tools/shortcut/create_comment",
+      "method": "POST",
+      "parameters": {
+        "story_id": {
+          "type": "string",
+          "required": true,
+          "description": "Story ID"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Comment text"
+        }
+      }
+    },
+    {
+      "name": "create_iteration",
+      "description": "Create a new iteration",
+      "endpoint": "/tools/shortcut/create_iteration",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Iteration name"
+        },
+        "start_date": {
+          "type": "string",
+          "required": false,
+          "description": "Start date (YYYY-MM-DD)"
+        },
+        "end_date": {
+          "type": "string",
+          "required": false,
+          "description": "End date (YYYY-MM-DD)"
+        }
+      }
+    },
+    {
+      "name": "create_label",
+      "description": "Create a new label",
+      "endpoint": "/tools/shortcut/create_label",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Label name"
+        },
+        "color": {
+          "type": "string",
+          "required": false,
+          "description": "Label color"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Label description"
+        }
+      }
+    }
+  ]
+}

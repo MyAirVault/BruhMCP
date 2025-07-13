@@ -1,0 +1,25 @@
+{
+  "name": "timecamp",
+  "displayName": "Timecamp",
+  "description": "timecamp integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/timecamp.svg",
+  "port": 49485  ,
+  "api": {
+    "baseURL": "https://api.timecamp.com",
+    "version": "v1",
+    "documentation": "https://docs.timecamp.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "timecamp API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,270 @@
+{
+  "name": "pipedrive",
+  "displayName": "Pipedrive",
+  "description": "Pipedrive is a sales management tool built around pipeline visualization, lead tracking, activity reminders, and automation",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/pipedrive.svg",
+  "port": 49409  ,
+  "api": {
+    "baseURL": "https://api.pipedrive.com/v1",
+    "version": "v1",
+    "documentation": "https://developers.pipedrive.com/docs/api/v1"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Pipedrive OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Pipedrive OAuth App Client Secret"
+      },
+      {
+        "name": "subdomain",
+        "type": "text",
+        "required": true,
+        "description": "Pipedrive account subdomain"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["contacts", "leads", "mail", "activities", "products", "projects"],
+      "authorization_url": "https://oauth.pipedrive.com/oauth/authorize",
+      "token_url": "https://oauth.pipedrive.com/oauth/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "add_activity",
+      "description": "Add a new activity",
+      "endpoint": "/activities",
+      "method": "POST",
+      "parameters": {
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Activity subject"
+        },
+        "type": {
+          "type": "string",
+          "required": true,
+          "description": "Activity type"
+        },
+        "due_date": {
+          "type": "string",
+          "required": false,
+          "description": "Due date (YYYY-MM-DD)"
+        },
+        "due_time": {
+          "type": "string",
+          "required": false,
+          "description": "Due time (HH:MM)"
+        },
+        "person_id": {
+          "type": "number",
+          "required": false,
+          "description": "Person ID"
+        },
+        "deal_id": {
+          "type": "number",
+          "required": false,
+          "description": "Deal ID"
+        },
+        "org_id": {
+          "type": "number",
+          "required": false,
+          "description": "Organization ID"
+        },
+        "note": {
+          "type": "string",
+          "required": false,
+          "description": "Activity note"
+        }
+      }
+    },
+    {
+      "name": "add_deal",
+      "description": "Add a new deal",
+      "endpoint": "/deals",
+      "method": "POST",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Deal title"
+        },
+        "value": {
+          "type": "number",
+          "required": false,
+          "description": "Deal value"
+        },
+        "currency": {
+          "type": "string",
+          "required": false,
+          "description": "Deal currency"
+        },
+        "user_id": {
+          "type": "number",
+          "required": false,
+          "description": "User ID"
+        },
+        "person_id": {
+          "type": "number",
+          "required": false,
+          "description": "Person ID"
+        },
+        "org_id": {
+          "type": "number",
+          "required": false,
+          "description": "Organization ID"
+        },
+        "stage_id": {
+          "type": "number",
+          "required": false,
+          "description": "Pipeline stage ID"
+        },
+        "status": {
+          "type": "string",
+          "required": false,
+          "description": "Deal status (open, won, lost, deleted)"
+        }
+      }
+    },
+    {
+      "name": "add_lead",
+      "description": "Add a new lead",
+      "endpoint": "/leads",
+      "method": "POST",
+      "parameters": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "description": "Lead title"
+        },
+        "owner_id": {
+          "type": "number",
+          "required": false,
+          "description": "Owner user ID"
+        },
+        "person_id": {
+          "type": "number",
+          "required": false,
+          "description": "Person ID"
+        },
+        "organization_id": {
+          "type": "number",
+          "required": false,
+          "description": "Organization ID"
+        },
+        "expected_close_date": {
+          "type": "string",
+          "required": false,
+          "description": "Expected close date (YYYY-MM-DD)"
+        },
+        "value": {
+          "type": "object",
+          "required": false,
+          "description": "Lead value with amount and currency"
+        }
+      }
+    },
+    {
+      "name": "add_person",
+      "description": "Add a new person",
+      "endpoint": "/persons",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Person name"
+        },
+        "owner_id": {
+          "type": "number",
+          "required": false,
+          "description": "Owner user ID"
+        },
+        "org_id": {
+          "type": "number",
+          "required": false,
+          "description": "Organization ID"
+        },
+        "email": {
+          "type": "array",
+          "required": false,
+          "description": "Array of email addresses"
+        },
+        "phone": {
+          "type": "array",
+          "required": false,
+          "description": "Array of phone numbers"
+        }
+      }
+    },
+    {
+      "name": "add_organization",
+      "description": "Add a new organization",
+      "endpoint": "/organizations",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Organization name"
+        },
+        "owner_id": {
+          "type": "number",
+          "required": false,
+          "description": "Owner user ID"
+        },
+        "address": {
+          "type": "string",
+          "required": false,
+          "description": "Organization address"
+        }
+      }
+    },
+    {
+      "name": "get_all_leads",
+      "description": "Get all leads",
+      "endpoint": "/leads",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of leads to return"
+        },
+        "start": {
+          "type": "number",
+          "required": false,
+          "description": "Pagination start"
+        }
+      }
+    },
+    {
+      "name": "get_all_products",
+      "description": "Get all products",
+      "endpoint": "/products",
+      "method": "GET",
+      "parameters": {
+        "user_id": {
+          "type": "number",
+          "required": false,
+          "description": "Filter by user ID"
+        },
+        "first_char": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by first character"
+        }
+      }
+    }
+  ]
+}

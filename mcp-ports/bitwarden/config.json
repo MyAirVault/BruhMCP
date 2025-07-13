@@ -1,0 +1,25 @@
+{
+  "name": "bitwarden",
+  "displayName": "Bitwarden",
+  "description": "bitwarden integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bitwarden.svg",
+  "port": 49202  ,
+  "api": {
+    "baseURL": "https://api.bitwarden.com",
+    "version": "v1",
+    "documentation": "https://docs.bitwarden.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "bitwarden API Key"
+      }
+    ]
+  },
+  "tools": []
+}

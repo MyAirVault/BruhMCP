@@ -1,0 +1,25 @@
+{
+  "name": "yandex",
+  "displayName": "Yandex",
+  "description": "yandex integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/yandex.svg",
+  "port": 49516 ,
+  "api": {
+    "baseURL": "https://api.yandex.com",
+    "version": "v1",
+    "documentation": "https://docs.yandex.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "yandex API Key"
+      }
+    ]
+  },
+  "tools": []
+}

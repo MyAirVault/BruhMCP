@@ -1,0 +1,25 @@
+{
+  "name": "rocketreach",
+  "displayName": "Rocketreach",
+  "description": "rocketreach integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/rocketreach.svg",
+  "port": 49435 ,
+  "api": {
+    "baseURL": "https://api.rocketreach.com",
+    "version": "v1",
+    "documentation": "https://docs.rocketreach.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "rocketreach API Key"
+      }
+    ]
+  },
+  "tools": []
+}

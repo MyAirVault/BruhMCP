@@ -1,0 +1,222 @@
+{
+  "name": "discordbot",
+  "displayName": "Discord Bot",
+  "description": "Discordbot refers to automated programs on Discord servers, performing tasks like moderation, music playback, and user engagement",
+  "category": "collaboration",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discord.svg",
+  "port": 49261  ,
+  "api": {
+    "baseURL": "https://discord.com/api",
+    "version": "v10",
+    "documentation": "https://discord.com/developers/docs"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Discord Bot Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Discord Bot Client Secret"
+      },
+      {
+        "name": "bearer_token",
+        "type": "password",
+        "required": true,
+        "description": "Discord Bot Token"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["identify", "email", "bot", "messages.read"],
+      "authorization_url": "https://discord.com/api/oauth2/authorize",
+      "token_url": "https://discord.com/api/oauth2/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "assign_role_to_member",
+      "description": "Assign role to guild member",
+      "endpoint": "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
+      "method": "PUT",
+      "parameters": {
+        "guild_id": {
+          "type": "string",
+          "required": true,
+          "description": "Guild ID"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID"
+        },
+        "role_id": {
+          "type": "string",
+          "required": true,
+          "description": "Role ID to assign"
+        }
+      }
+    },
+    {
+      "name": "create_dm_channel",
+      "description": "Create direct message channel",
+      "endpoint": "/users/@me/channels",
+      "method": "POST",
+      "parameters": {
+        "recipient_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID to create DM channel with"
+        }
+      }
+    },
+    {
+      "name": "create_guild",
+      "description": "Create new guild",
+      "endpoint": "/guilds",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Guild name"
+        },
+        "icon": {
+          "type": "string",
+          "required": false,
+          "description": "Guild icon as base64 encoded image"
+        }
+      }
+    },
+    {
+      "name": "remove_member_role",
+      "description": "Delete guild member role",
+      "endpoint": "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
+      "method": "DELETE",
+      "parameters": {
+        "guild_id": {
+          "type": "string",
+          "required": true,
+          "description": "Guild ID"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID"
+        },
+        "role_id": {
+          "type": "string",
+          "required": true,
+          "description": "Role ID to remove"
+        }
+      }
+    },
+    {
+      "name": "get_user_info",
+      "description": "Retrieve user information",
+      "endpoint": "/users/{user_id}",
+      "method": "GET",
+      "parameters": {
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID to retrieve info for"
+        }
+      }
+    },
+    {
+      "name": "list_guild_members",
+      "description": "List guild members",
+      "endpoint": "/guilds/{guild_id}/members",
+      "method": "GET",
+      "parameters": {
+        "guild_id": {
+          "type": "string",
+          "required": true,
+          "description": "Guild ID to list members from"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of members to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "ban_user",
+      "description": "Ban user from guild",
+      "endpoint": "/guilds/{guild_id}/bans/{user_id}",
+      "method": "PUT",
+      "parameters": {
+        "guild_id": {
+          "type": "string",
+          "required": true,
+          "description": "Guild ID"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "description": "User ID to ban"
+        },
+        "reason": {
+          "type": "string",
+          "required": false,
+          "description": "Reason for ban"
+        }
+      }
+    },
+    {
+      "name": "bulk_delete_messages",
+      "description": "Bulk delete messages",
+      "endpoint": "/channels/{channel_id}/messages/bulk-delete",
+      "method": "POST",
+      "parameters": {
+        "channel_id": {
+          "type": "string",
+          "required": true,
+          "description": "Channel ID to delete messages from"
+        },
+        "messages": {
+          "type": "array",
+          "required": true,
+          "description": "Array of message IDs to delete"
+        }
+      }
+    },
+    {
+      "name": "create_application_command",
+      "description": "Create application command",
+      "endpoint": "/applications/{application_id}/commands",
+      "method": "POST",
+      "parameters": {
+        "application_id": {
+          "type": "string",
+          "required": true,
+          "description": "Application ID"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Command name"
+        },
+        "description": {
+          "type": "string",
+          "required": true,
+          "description": "Command description"
+        },
+        "options": {
+          "type": "array",
+          "required": false,
+          "description": "Command options"
+        }
+      }
+    }
+  ]
+}

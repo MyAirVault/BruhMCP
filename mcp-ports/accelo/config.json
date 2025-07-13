@@ -1,0 +1,25 @@
+{
+  "name": "accelo",
+  "displayName": "Accelo",
+  "description": "accelo integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/accelo.svg",
+  "port": 49161  ,
+  "api": {
+    "baseURL": "https://api.accelo.com",
+    "version": "v1",
+    "documentation": "https://docs.accelo.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "accelo API Key"
+      }
+    ]
+  },
+  "tools": []
+}

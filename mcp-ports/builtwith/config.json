@@ -1,0 +1,25 @@
+{
+  "name": "builtwith",
+  "displayName": "Builtwith",
+  "description": "builtwith integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/builtwith.svg",
+  "port": 49225 ,
+  "api": {
+    "baseURL": "https://api.builtwith.com",
+    "version": "v1",
+    "documentation": "https://docs.builtwith.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "builtwith API Key"
+      }
+    ]
+  },
+  "tools": []
+}

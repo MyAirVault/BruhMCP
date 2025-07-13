@@ -1,0 +1,25 @@
+{
+  "name": "algolia",
+  "displayName": "Algolia",
+  "description": "algolia integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/algolia.svg",
+  "port": 49173    ,
+  "api": {
+    "baseURL": "https://api.algolia.com",
+    "version": "v1",
+    "documentation": "https://docs.algolia.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "algolia API Key"
+      }
+    ]
+  },
+  "tools": []
+}

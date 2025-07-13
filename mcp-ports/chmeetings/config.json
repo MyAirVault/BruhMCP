@@ -1,0 +1,25 @@
+{
+  "name": "chmeetings",
+  "displayName": "Chmeetings",
+  "description": "chmeetings integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/chmeetings.svg",
+  "port": 49232 ,
+  "api": {
+    "baseURL": "https://api.chmeetings.com",
+    "version": "v1",
+    "documentation": "https://docs.chmeetings.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "chmeetings API Key"
+      }
+    ]
+  },
+  "tools": []
+}

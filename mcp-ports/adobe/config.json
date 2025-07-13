@@ -1,0 +1,25 @@
+{
+  "name": "adobe",
+  "displayName": "Adobe",
+  "description": "adobe integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/adobe.svg",
+  "port": 49165  ,
+  "api": {
+    "baseURL": "https://api.adobe.com",
+    "version": "v1",
+    "documentation": "https://docs.adobe.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "adobe API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "retently",
+  "displayName": "Retently",
+  "description": "retently integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/retently.svg",
+  "port": 49431  ,
+  "api": {
+    "baseURL": "https://api.retently.com",
+    "version": "v1",
+    "documentation": "https://docs.retently.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "retently API Key"
+      }
+    ]
+  },
+  "tools": []
+}

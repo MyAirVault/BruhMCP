@@ -1,0 +1,25 @@
+{
+  "name": "brightpearl",
+  "displayName": "Brightpearl",
+  "description": "brightpearl integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/brightpearl.svg",
+  "port": 49216  ,
+  "api": {
+    "baseURL": "https://api.brightpearl.com",
+    "version": "v1",
+    "documentation": "https://docs.brightpearl.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "brightpearl API Key"
+      }
+    ]
+  },
+  "tools": []
+}

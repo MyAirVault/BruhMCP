@@ -1,0 +1,25 @@
+{
+  "name": "tapfiliate",
+  "displayName": "Tapfiliate",
+  "description": "tapfiliate integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tapfiliate.svg",
+  "port": 49478 ,
+  "api": {
+    "baseURL": "https://api.tapfiliate.com",
+    "version": "v1",
+    "documentation": "https://docs.tapfiliate.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "tapfiliate API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,180 @@
+{
+  "name": "fireflies",
+  "displayName": "Fireflies.ai",
+  "description": "Transcribe, summarize, search, and analyze voice conversations with AI-powered meeting intelligence",
+  "category": "analytics",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/fireflies.svg",
+  "port": 49284  ,
+  "api": {
+    "baseURL": "https://api.fireflies.ai/graphql",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/fireflies"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "Fireflies.ai API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "add_to_live_meeting",
+      "description": "Add Fireflies bot to a live meeting (requires paid plan)",
+      "endpoint": "/addToLiveMeeting",
+      "method": "POST",
+      "parameters": {
+        "meetingUrl": {
+          "type": "string",
+          "required": true,
+          "description": "Meeting URL to join"
+        },
+        "attendeeName": {
+          "type": "string",
+          "required": false,
+          "description": "Name for the bot attendee"
+        }
+      }
+    },
+    {
+      "name": "delete_transcript",
+      "description": "Delete a transcript by ID",
+      "endpoint": "/deleteTranscript",
+      "method": "DELETE",
+      "parameters": {
+        "transcriptId": {
+          "type": "string",
+          "required": true,
+          "description": "Transcript ID to delete"
+        }
+      }
+    },
+    {
+      "name": "fetch_ai_app_outputs",
+      "description": "Fetch AI application outputs for analysis",
+      "endpoint": "/fetchAIAppOutputs",
+      "method": "GET",
+      "parameters": {
+        "transcriptId": {
+          "type": "string",
+          "required": true,
+          "description": "Transcript ID to get AI outputs for"
+        },
+        "appName": {
+          "type": "string",
+          "required": false,
+          "description": "Specific AI app name to filter by"
+        }
+      }
+    },
+    {
+      "name": "get_transcripts",
+      "description": "Get list of transcripts with filtering options",
+      "endpoint": "/getTranscripts",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of transcripts to return",
+          "default": 10
+        },
+        "cursor": {
+          "type": "string",
+          "required": false,
+          "description": "Pagination cursor for next page"
+        },
+        "dateRangeStart": {
+          "type": "string",
+          "required": false,
+          "description": "Start date for filtering (ISO 8601)"
+        },
+        "dateRangeEnd": {
+          "type": "string",
+          "required": false,
+          "description": "End date for filtering (ISO 8601)"
+        }
+      }
+    },
+    {
+      "name": "get_bite_by_id",
+      "description": "Get a specific bite (highlight) by ID",
+      "endpoint": "/getBiteById",
+      "method": "GET",
+      "parameters": {
+        "biteId": {
+          "type": "string",
+          "required": true,
+          "description": "Bite ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "get_transcript_by_id",
+      "description": "Get detailed transcript information by ID",
+      "endpoint": "/getTranscriptById",
+      "method": "GET",
+      "parameters": {
+        "transcriptId": {
+          "type": "string",
+          "required": true,
+          "description": "Transcript ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "get_users",
+      "description": "Get list of users in the organization",
+      "endpoint": "/getUsers",
+      "method": "GET",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of users to return",
+          "default": 10
+        }
+      }
+    },
+    {
+      "name": "get_user_by_id",
+      "description": "Get specific user information by ID",
+      "endpoint": "/getUserById",
+      "method": "GET",
+      "parameters": {
+        "userId": {
+          "type": "string",
+          "required": true,
+          "description": "User ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "upload_audio",
+      "description": "Upload audio file for transcription and analysis",
+      "endpoint": "/uploadAudio",
+      "method": "POST",
+      "parameters": {
+        "audioFile": {
+          "type": "file",
+          "required": true,
+          "description": "Audio file to upload (supported formats: mp3, wav, m4a)"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "Title for the uploaded audio"
+        },
+        "attendees": {
+          "type": "array",
+          "required": false,
+          "description": "Array of attendee names/emails"
+        }
+      }
+    }
+  ]
+}

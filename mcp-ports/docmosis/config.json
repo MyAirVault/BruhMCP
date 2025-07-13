@@ -1,0 +1,25 @@
+{
+  "name": "docmosis",
+  "displayName": "Docmosis",
+  "description": "docmosis integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/docmosis.svg",
+  "port": 49262 ,
+  "api": {
+    "baseURL": "https://api.docmosis.com",
+    "version": "v1",
+    "documentation": "https://docs.docmosis.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "docmosis API Key"
+      }
+    ]
+  },
+  "tools": []
+}

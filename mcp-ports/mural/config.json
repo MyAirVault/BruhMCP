@@ -1,0 +1,25 @@
+{
+  "name": "mural",
+  "displayName": "Mural",
+  "description": "mural integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/mural.svg",
+  "port": 49382  ,
+  "api": {
+    "baseURL": "https://api.mural.com",
+    "version": "v1",
+    "documentation": "https://docs.mural.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "mural API Key"
+      }
+    ]
+  },
+  "tools": []
+}

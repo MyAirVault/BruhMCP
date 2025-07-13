@@ -1,0 +1,246 @@
+{
+  "name": "outlook",
+  "displayName": "Outlook",
+  "description": "Microsoft's email and calendaring platform integrating contacts, tasks, and scheduling",
+  "category": "collaboration",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/microsoftoutlook.svg",
+  "port": 49399  ,
+  "api": {
+    "baseURL": "https://graph.microsoft.com/v1.0",
+    "version": "v1.0",
+    "documentation": "https://docs.microsoft.com/en-us/graph/api/resources/mail-api-overview"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Microsoft Outlook App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Microsoft Outlook App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["Calendars.Read", "Calendars.ReadWrite", "Contacts.ReadWrite", "Mail.Read", "Mail.Send", "User.Read"],
+      "authorization_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "download_attachment",
+      "description": "Download Outlook attachment",
+      "endpoint": "/me/messages/{message_id}/attachments/{attachment_id}/$value",
+      "method": "GET",
+      "parameters": {
+        "message_id": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID containing the attachment"
+        },
+        "attachment_id": {
+          "type": "string",
+          "required": true,
+          "description": "Attachment ID to download"
+        }
+      }
+    },
+    {
+      "name": "create_calendar_event",
+      "description": "Create Calendar Event",
+      "endpoint": "/me/events",
+      "method": "POST",
+      "parameters": {
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Event subject"
+        },
+        "start": {
+          "type": "object",
+          "required": true,
+          "description": "Event start time"
+        },
+        "end": {
+          "type": "object",
+          "required": true,
+          "description": "Event end time"
+        },
+        "attendees": {
+          "type": "array",
+          "required": false,
+          "description": "Event attendees"
+        }
+      }
+    },
+    {
+      "name": "create_contact",
+      "description": "Create contact",
+      "endpoint": "/me/contacts",
+      "method": "POST",
+      "parameters": {
+        "displayName": {
+          "type": "string",
+          "required": true,
+          "description": "Contact display name"
+        },
+        "emailAddresses": {
+          "type": "array",
+          "required": false,
+          "description": "Contact email addresses"
+        },
+        "phoneNumbers": {
+          "type": "array",
+          "required": false,
+          "description": "Contact phone numbers"
+        }
+      }
+    },
+    {
+      "name": "create_email_draft",
+      "description": "Create email draft",
+      "endpoint": "/me/messages",
+      "method": "POST",
+      "parameters": {
+        "subject": {
+          "type": "string",
+          "required": true,
+          "description": "Email subject"
+        },
+        "body": {
+          "type": "object",
+          "required": true,
+          "description": "Email body content"
+        },
+        "toRecipients": {
+          "type": "array",
+          "required": true,
+          "description": "Email recipients"
+        }
+      }
+    },
+    {
+      "name": "get_contact",
+      "description": "Get contact",
+      "endpoint": "/me/contacts/{contact_id}",
+      "method": "GET",
+      "parameters": {
+        "contact_id": {
+          "type": "string",
+          "required": true,
+          "description": "Contact ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "get_calendar_event",
+      "description": "Get calendar event",
+      "endpoint": "/me/events/{event_id}",
+      "method": "GET",
+      "parameters": {
+        "event_id": {
+          "type": "string",
+          "required": true,
+          "description": "Event ID to retrieve"
+        }
+      }
+    },
+    {
+      "name": "get_profile",
+      "description": "Get Outlook profile",
+      "endpoint": "/me",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "list_events",
+      "description": "List events",
+      "endpoint": "/me/events",
+      "method": "GET",
+      "parameters": {
+        "$top": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of events to return",
+          "default": 100
+        }
+      }
+    },
+    {
+      "name": "list_messages",
+      "description": "List Messages",
+      "endpoint": "/me/messages",
+      "method": "GET",
+      "parameters": {
+        "$top": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of messages to return",
+          "default": 100
+        },
+        "$filter": {
+          "type": "string",
+          "required": false,
+          "description": "Filter expression for messages"
+        }
+      }
+    },
+    {
+      "name": "reply_to_email",
+      "description": "Reply to Email",
+      "endpoint": "/me/messages/{message_id}/reply",
+      "method": "POST",
+      "parameters": {
+        "message_id": {
+          "type": "string",
+          "required": true,
+          "description": "Message ID to reply to"
+        },
+        "comment": {
+          "type": "string",
+          "required": true,
+          "description": "Reply message content"
+        }
+      }
+    },
+    {
+      "name": "send_email",
+      "description": "Send email",
+      "endpoint": "/me/sendMail",
+      "method": "POST",
+      "parameters": {
+        "message": {
+          "type": "object",
+          "required": true,
+          "description": "Email message object with subject, body, and recipients"
+        }
+      }
+    },
+    {
+      "name": "search_messages",
+      "description": "Search Outlook messages",
+      "endpoint": "/me/messages",
+      "method": "GET",
+      "parameters": {
+        "$search": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "$top": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of results to return",
+          "default": 100
+        }
+      }
+    }
+  ]
+}

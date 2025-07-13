@@ -1,0 +1,25 @@
+{
+  "name": "bannerbear",
+  "displayName": "Bannerbear",
+  "description": "bannerbear integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bannerbear.svg",
+  "port": 49191    ,
+  "api": {
+    "baseURL": "https://api.bannerbear.com",
+    "version": "v1",
+    "documentation": "https://docs.bannerbear.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "bannerbear API Key"
+      }
+    ]
+  },
+  "tools": []
+}

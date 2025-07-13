@@ -1,0 +1,25 @@
+{
+  "name": "altoviz",
+  "displayName": "Altoviz",
+  "description": "altoviz integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/altoviz.svg",
+  "port": 49174    ,
+  "api": {
+    "baseURL": "https://api.altoviz.com",
+    "version": "v1",
+    "documentation": "https://docs.altoviz.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "altoviz API Key"
+      }
+    ]
+  },
+  "tools": []
+}

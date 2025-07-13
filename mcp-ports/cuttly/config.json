@@ -1,0 +1,25 @@
+{
+  "name": "cuttly",
+  "displayName": "Cuttly",
+  "description": "cuttly integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/cuttly.svg",
+  "port": 49250  ,
+  "api": {
+    "baseURL": "https://api.cuttly.com",
+    "version": "v1",
+    "documentation": "https://docs.cuttly.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "cuttly API Key"
+      }
+    ]
+  },
+  "tools": []
+}

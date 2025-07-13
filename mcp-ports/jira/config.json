@@ -1,0 +1,104 @@
+{
+  "name": "jira",
+  "displayName": "Jira",
+  "description": "Project management and issue tracking software for agile development teams",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/jira.svg",
+  "port": 49329  ,
+  "api": {
+    "baseURL": "https://{instance}.atlassian.net/rest/api/3",
+    "version": "3",
+    "documentation": "https://developer.atlassian.com/cloud/jira/platform/rest/v3/"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "instance",
+        "type": "text",
+        "required": true,
+        "description": "Your Jira instance name (e.g., 'yourcompany' for yourcompany.atlassian.net)"
+      },
+      {
+        "name": "email",
+        "type": "email",
+        "required": true,
+        "description": "Your Atlassian account email"
+      },
+      {
+        "name": "api_token",
+        "type": "password",
+        "required": true,
+        "description": "API token from Atlassian account settings"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "create_issue",
+      "description": "Create a new issue",
+      "endpoint": "/issue",
+      "method": "POST",
+      "parameters": {
+        "project": {
+          "type": "string",
+          "required": true,
+          "description": "Project key"
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "description": "Issue summary"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Issue description"
+        },
+        "issuetype": {
+          "type": "string",
+          "required": true,
+          "description": "Issue type (e.g., 'Task', 'Bug', 'Story')"
+        }
+      }
+    },
+    {
+      "name": "get_issue",
+      "description": "Get issue details",
+      "endpoint": "/issue/{issueKey}",
+      "method": "GET",
+      "parameters": {
+        "issueKey": {
+          "type": "string",
+          "required": true,
+          "description": "Issue key (e.g., 'PROJ-123')"
+        }
+      }
+    },
+    {
+      "name": "search_issues",
+      "description": "Search for issues using JQL",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "jql": {
+          "type": "string",
+          "required": true,
+          "description": "JQL query string"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of results"
+        }
+      }
+    },
+    {
+      "name": "list_projects",
+      "description": "Get list of projects",
+      "endpoint": "/project",
+      "method": "GET",
+      "parameters": {}
+    }
+  ]
+}

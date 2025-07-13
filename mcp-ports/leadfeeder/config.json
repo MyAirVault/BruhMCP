@@ -1,0 +1,25 @@
+{
+  "name": "leadfeeder",
+  "displayName": "Leadfeeder",
+  "description": "leadfeeder integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/leadfeeder.svg",
+  "port": 49342 ,
+  "api": {
+    "baseURL": "https://api.leadfeeder.com",
+    "version": "v1",
+    "documentation": "https://docs.leadfeeder.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "leadfeeder API Key"
+      }
+    ]
+  },
+  "tools": []
+}

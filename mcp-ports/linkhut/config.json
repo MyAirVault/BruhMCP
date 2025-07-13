@@ -1,0 +1,158 @@
+{
+  "name": "linkhut",
+  "displayName": "LinkHut",
+  "description": "LinkHut manages bookmarked links in a minimalistic, shareable interface, helping teams organize URLs and track references",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkhut.svg",
+  "port": 49351  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/linkhut"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "LinkHut OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "LinkHut OAuth App Client Secret"
+      },
+      {
+        "name": "bearer_token",
+        "type": "password",
+        "required": false,
+        "description": "LinkHut Bearer Token (alternative to OAuth)"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["posts:read", "posts:write", "tags:read", "tags:write"],
+      "authorization_url": "https://api.ln.ht/oauth/authorize",
+      "token_url": "https://api.ln.ht/oauth/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "add_bookmark",
+      "description": "Add a new bookmark",
+      "endpoint": "/tools/linkhut/add_bookmark",
+      "method": "POST",
+      "parameters": {
+        "url": {
+          "type": "string",
+          "required": true,
+          "description": "URL to bookmark"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "Bookmark title"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Bookmark description"
+        },
+        "tags": {
+          "type": "array",
+          "required": false,
+          "description": "Array of tags"
+        },
+        "public": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether bookmark is public"
+        }
+      }
+    },
+    {
+      "name": "delete_bookmark",
+      "description": "Delete a bookmark",
+      "endpoint": "/tools/linkhut/delete_bookmark",
+      "method": "DELETE",
+      "parameters": {
+        "bookmark_id": {
+          "type": "string",
+          "required": true,
+          "description": "Bookmark ID to delete"
+        }
+      }
+    },
+    {
+      "name": "get_all_tags",
+      "description": "Get all tags",
+      "endpoint": "/tools/linkhut/get_all_tags",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "get_bookmarks",
+      "description": "Get bookmarks",
+      "endpoint": "/tools/linkhut/get_bookmarks",
+      "method": "GET",
+      "parameters": {
+        "tag": {
+          "type": "string",
+          "required": false,
+          "description": "Filter by tag"
+        },
+        "count": {
+          "type": "number",
+          "required": false,
+          "description": "Number of bookmarks to return"
+        },
+        "offset": {
+          "type": "number",
+          "required": false,
+          "description": "Offset for pagination"
+        }
+      }
+    },
+    {
+      "name": "update_bookmark",
+      "description": "Update a bookmark",
+      "endpoint": "/tools/linkhut/update_bookmark",
+      "method": "PUT",
+      "parameters": {
+        "bookmark_id": {
+          "type": "string",
+          "required": true,
+          "description": "Bookmark ID to update"
+        },
+        "url": {
+          "type": "string",
+          "required": false,
+          "description": "New URL"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "New title"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "New description"
+        },
+        "tags": {
+          "type": "array",
+          "required": false,
+          "description": "New array of tags"
+        },
+        "public": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether bookmark is public"
+        }
+      }
+    }
+  ]
+}

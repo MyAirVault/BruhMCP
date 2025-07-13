@@ -1,0 +1,185 @@
+{
+  "name": "serpapi",
+  "displayName": "SerpAPI",
+  "description": "Real-time API for structured search engine results, allowing developers to scrape, parse, and analyze SERP data for SEO and research",
+  "category": "analytics",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/google.svg",
+  "port": 49449  ,
+  "api": {
+    "baseURL": "https://serpapi.com",
+    "version": "v1",
+    "documentation": "https://serpapi.com/search-api"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "SerpAPI API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "google_search",
+      "description": "Perform Google search with structured results",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Location for the search"
+        },
+        "hl": {
+          "type": "string",
+          "required": false,
+          "description": "Language code (e.g., 'en' for English)"
+        },
+        "gl": {
+          "type": "string",
+          "required": false,
+          "description": "Country code (e.g., 'us' for United States)"
+        },
+        "num": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to return",
+          "default": 10
+        }
+      }
+    },
+    {
+      "name": "google_jobs_search",
+      "description": "Search for jobs on Google Jobs",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "engine": {
+          "type": "string",
+          "required": true,
+          "description": "Search engine",
+          "default": "google_jobs"
+        },
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "Job search query"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Location for job search"
+        }
+      }
+    },
+    {
+      "name": "google_maps_search",
+      "description": "Search Google Maps for businesses and locations",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "engine": {
+          "type": "string",
+          "required": true,
+          "description": "Search engine",
+          "default": "google_maps"
+        },
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "Maps search query"
+        },
+        "ll": {
+          "type": "string",
+          "required": false,
+          "description": "Latitude,longitude coordinates"
+        }
+      }
+    },
+    {
+      "name": "bing_search",
+      "description": "Perform Bing search with structured results",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "engine": {
+          "type": "string",
+          "required": true,
+          "description": "Search engine",
+          "default": "bing"
+        },
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "cc": {
+          "type": "string",
+          "required": false,
+          "description": "Country code"
+        }
+      }
+    },
+    {
+      "name": "youtube_search",
+      "description": "Search YouTube videos",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "engine": {
+          "type": "string",
+          "required": true,
+          "description": "Search engine",
+          "default": "youtube"
+        },
+        "search_query": {
+          "type": "string",
+          "required": true,
+          "description": "YouTube search query"
+        },
+        "sp": {
+          "type": "string",
+          "required": false,
+          "description": "Search parameters for filtering"
+        }
+      }
+    },
+    {
+      "name": "scholar_search",
+      "description": "Search Google Scholar for academic papers",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "engine": {
+          "type": "string",
+          "required": true,
+          "description": "Search engine",
+          "default": "google_scholar"
+        },
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "Scholar search query"
+        },
+        "as_ylo": {
+          "type": "string",
+          "required": false,
+          "description": "Starting year for publication date"
+        },
+        "as_yhi": {
+          "type": "string",
+          "required": false,
+          "description": "Ending year for publication date"
+        }
+      }
+    }
+  ]
+}

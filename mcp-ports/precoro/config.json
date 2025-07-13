@@ -1,0 +1,25 @@
+{
+  "name": "precoro",
+  "displayName": "Precoro",
+  "description": "precoro integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/precoro.svg",
+  "port": 49412 ,
+  "api": {
+    "baseURL": "https://api.precoro.com",
+    "version": "v1",
+    "documentation": "https://docs.precoro.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "precoro API Key"
+      }
+    ]
+  },
+  "tools": []
+}

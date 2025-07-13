@@ -1,0 +1,25 @@
+{
+  "name": "enigma",
+  "displayName": "Enigma",
+  "description": "enigma integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/enigma.svg",
+  "port": 49271  ,
+  "api": {
+    "baseURL": "https://api.enigma.com",
+    "version": "v1",
+    "documentation": "https://docs.enigma.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "enigma API Key"
+      }
+    ]
+  },
+  "tools": []
+}

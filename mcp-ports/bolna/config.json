@@ -1,0 +1,25 @@
+{
+  "name": "bolna",
+  "displayName": "Bolna",
+  "description": "bolna integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bolna.svg",
+  "port": 49206  ,
+  "api": {
+    "baseURL": "https://api.bolna.com",
+    "version": "v1",
+    "documentation": "https://docs.bolna.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "bolna API Key"
+      }
+    ]
+  },
+  "tools": []
+}

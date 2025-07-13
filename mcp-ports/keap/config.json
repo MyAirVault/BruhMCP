@@ -1,0 +1,25 @@
+{
+  "name": "keap",
+  "displayName": "Keap",
+  "description": "keap integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/keap.svg",
+  "port": 49333 ,
+  "api": {
+    "baseURL": "https://api.keap.com",
+    "version": "v1",
+    "documentation": "https://docs.keap.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "keap API Key"
+      }
+    ]
+  },
+  "tools": []
+}

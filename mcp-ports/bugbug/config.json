@@ -1,0 +1,25 @@
+{
+  "name": "bugbug",
+  "displayName": "Bugbug",
+  "description": "bugbug integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bugbug.svg",
+  "port": 49224  ,
+  "api": {
+    "baseURL": "https://api.bugbug.com",
+    "version": "v1",
+    "documentation": "https://docs.bugbug.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "bugbug API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,238 @@
+{
+  "name": "googledocs",
+  "displayName": "Google Docs",
+  "description": "Google Docs is a cloud-based word processor with real-time collaboration, version history, and integration with other Google Workspace apps",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googledocs.svg",
+  "port": 49302  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/googledocs"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Google OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Google OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["https://www.googleapis.com/auth/documents", "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/userinfo.email"],
+      "authorization_url": "https://accounts.google.com/o/oauth2/auth",
+      "token_url": "https://oauth2.googleapis.com/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "copy_document",
+      "description": "Copy a Google Document",
+      "endpoint": "/tools/googledocs/copy_document",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID to copy"
+        },
+        "title": {
+          "type": "string",
+          "required": false,
+          "description": "Title for the copied document"
+        }
+      }
+    },
+    {
+      "name": "create_footer",
+      "description": "Create a footer in the document",
+      "endpoint": "/tools/googledocs/create_footer",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Footer text"
+        }
+      }
+    },
+    {
+      "name": "delete_footer",
+      "description": "Delete footer from the document",
+      "endpoint": "/tools/googledocs/delete_footer",
+      "method": "DELETE",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        }
+      }
+    },
+    {
+      "name": "create_header",
+      "description": "Create a header in the document",
+      "endpoint": "/tools/googledocs/create_header",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Header text"
+        }
+      }
+    },
+    {
+      "name": "delete_header",
+      "description": "Delete header from the document",
+      "endpoint": "/tools/googledocs/delete_header",
+      "method": "DELETE",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        }
+      }
+    },
+    {
+      "name": "insert_inline_image",
+      "description": "Insert an inline image into the document",
+      "endpoint": "/tools/googledocs/insert_inline_image",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        },
+        "image_url": {
+          "type": "string",
+          "required": true,
+          "description": "URL of the image to insert"
+        },
+        "index": {
+          "type": "number",
+          "required": false,
+          "description": "Position to insert the image"
+        }
+      }
+    },
+    {
+      "name": "insert_text",
+      "description": "Insert text into the document",
+      "endpoint": "/tools/googledocs/insert_text",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to insert"
+        },
+        "index": {
+          "type": "number",
+          "required": false,
+          "description": "Position to insert the text"
+        }
+      }
+    },
+    {
+      "name": "insert_table",
+      "description": "Insert a table into the document",
+      "endpoint": "/tools/googledocs/insert_table",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        },
+        "rows": {
+          "type": "number",
+          "required": true,
+          "description": "Number of table rows"
+        },
+        "columns": {
+          "type": "number",
+          "required": true,
+          "description": "Number of table columns"
+        },
+        "index": {
+          "type": "number",
+          "required": false,
+          "description": "Position to insert the table"
+        }
+      }
+    },
+    {
+      "name": "create_footnote",
+      "description": "Create a footnote in the document",
+      "endpoint": "/tools/googledocs/create_footnote",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        },
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Footnote text"
+        },
+        "index": {
+          "type": "number",
+          "required": false,
+          "description": "Position to insert the footnote"
+        }
+      }
+    },
+    {
+      "name": "create_paragraph_bullets",
+      "description": "Create paragraph bullets in the document",
+      "endpoint": "/tools/googledocs/create_paragraph_bullets",
+      "method": "POST",
+      "parameters": {
+        "document_id": {
+          "type": "string",
+          "required": true,
+          "description": "Document ID"
+        },
+        "start_index": {
+          "type": "number",
+          "required": true,
+          "description": "Start position for bullets"
+        },
+        "end_index": {
+          "type": "number",
+          "required": true,
+          "description": "End position for bullets"
+        }
+      }
+    }
+  ]
+}

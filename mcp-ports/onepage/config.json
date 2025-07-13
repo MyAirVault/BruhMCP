@@ -1,0 +1,62 @@
+{
+  "name": "onepage",
+  "displayName": "Onepage",
+  "description": "API for enriching user and company data, providing endpoints for token validation and generic search",
+  "category": "productivity",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/onepage.svg",
+  "port": 49395  ,
+  "api": {
+    "baseURL": "https://api.composio.dev",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/onepage"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "auth_token",
+        "type": "password",
+        "required": true,
+        "description": "Onepage Authentication Token"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "search_input_post_request",
+      "description": "Search within the Onepage platform",
+      "endpoint": "/tools/onepage/search_input_post_request",
+      "method": "POST",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "language": {
+          "type": "string",
+          "required": false,
+          "description": "Language for search results"
+        },
+        "output_format": {
+          "type": "string",
+          "required": false,
+          "description": "Format for output results"
+        }
+      }
+    },
+    {
+      "name": "token_details_request",
+      "description": "Retrieve comprehensive information about a specific token",
+      "endpoint": "/tools/onepage/token_details_request",
+      "method": "GET",
+      "parameters": {
+        "token": {
+          "type": "string",
+          "required": true,
+          "description": "Token to retrieve details for"
+        }
+      }
+    }
+  ]
+}

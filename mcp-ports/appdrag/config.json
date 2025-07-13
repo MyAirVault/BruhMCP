@@ -1,0 +1,25 @@
+{
+  "name": "appdrag",
+  "displayName": "Appdrag",
+  "description": "appdrag integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/appdrag.svg",
+  "port": 49182  ,
+  "api": {
+    "baseURL": "https://api.appdrag.com",
+    "version": "v1",
+    "documentation": "https://docs.appdrag.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "appdrag API Key"
+      }
+    ]
+  },
+  "tools": []
+}

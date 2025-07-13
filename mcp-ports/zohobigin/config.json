@@ -1,0 +1,132 @@
+{
+  "#coming_soon": "Documentation not available - created placeholder configuration",
+  "name": "zohobigin",
+  "displayName": "Zoho Bigin",
+  "description": "Simplified CRM solution from Zoho tailored for small businesses, focusing on pipeline tracking and relationship management",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/zoho.svg",
+  "port": 49525  ,
+  "api": {
+    "baseURL": "https://www.zohoapis.com/bigin",
+    "version": "v1",
+    "documentation": "https://www.zoho.com/bigin/developer/api-documentation/"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Zoho Bigin OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Zoho Bigin OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [
+        "ZohoBigin.modules.ALL",
+        "ZohoBigin.users.ALL"
+      ],
+      "authorization_url": "https://accounts.zoho.com/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.com/oauth/v2/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_contact",
+      "description": "Create a new contact",
+      "endpoint": "/v1/Contacts",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "array",
+          "required": true,
+          "description": "Array of contact objects to create"
+        }
+      }
+    },
+    {
+      "name": "get_contacts",
+      "description": "Retrieve contacts",
+      "endpoint": "/v1/Contacts",
+      "method": "GET",
+      "parameters": {
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number"
+        },
+        "per_page": {
+          "type": "number",
+          "required": false,
+          "description": "Records per page"
+        }
+      }
+    },
+    {
+      "name": "create_company",
+      "description": "Create a new company",
+      "endpoint": "/v1/Companies",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "array",
+          "required": true,
+          "description": "Array of company objects to create"
+        }
+      }
+    },
+    {
+      "name": "get_companies",
+      "description": "Retrieve companies",
+      "endpoint": "/v1/Companies",
+      "method": "GET",
+      "parameters": {
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number"
+        }
+      }
+    },
+    {
+      "name": "create_deal",
+      "description": "Create a new deal",
+      "endpoint": "/v1/Deals",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "array",
+          "required": true,
+          "description": "Array of deal objects to create"
+        }
+      }
+    },
+    {
+      "name": "get_deals",
+      "description": "Retrieve deals",
+      "endpoint": "/v1/Deals",
+      "method": "GET",
+      "parameters": {
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number"
+        }
+      }
+    },
+    {
+      "name": "get_pipelines",
+      "description": "Get pipeline information",
+      "endpoint": "/v1/settings/pipelines",
+      "method": "GET",
+      "parameters": {}
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "ashby",
+  "displayName": "Ashby",
+  "description": "ashby integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/ashby.svg",
+  "port": 49185  ,
+  "api": {
+    "baseURL": "https://api.ashby.com",
+    "version": "v1",
+    "documentation": "https://docs.ashby.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "ashby API Key"
+      }
+    ]
+  },
+  "tools": []
+}

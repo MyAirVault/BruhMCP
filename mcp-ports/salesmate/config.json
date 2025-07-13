@@ -1,0 +1,216 @@
+{
+  "name": "salesmate",
+  "displayName": "Salesmate",
+  "description": "AI-powered CRM platform designed to help businesses engage leads, close deals faster, nurture relationships, and provide seamless support through a unified, intuitive interface",
+  "category": "crm",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/salesmate.svg",
+  "port": 49440  ,
+  "api": {
+    "baseURL": "https://{subdomain}.salesmate.io/apis",
+    "version": "v1",
+    "documentation": "https://apidocs.salesmate.io/"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "subdomain",
+        "type": "text",
+        "required": true,
+        "description": "Salesmate account subdomain"
+      },
+      {
+        "name": "bearer_token",
+        "type": "password",
+        "required": true,
+        "description": "Salesmate Bearer Token"
+      },
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "Salesmate API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "add_product",
+      "description": "Create a new product in Salesmate",
+      "endpoint": "/v1/products",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Product name"
+        },
+        "unitPrice": {
+          "type": "number",
+          "required": true,
+          "description": "Product unit price"
+        },
+        "currency": {
+          "type": "string",
+          "required": false,
+          "description": "Product currency"
+        },
+        "description": {
+          "type": "string",
+          "required": false,
+          "description": "Product description"
+        }
+      }
+    },
+    {
+      "name": "create_company",
+      "description": "Register a new organization in the CRM",
+      "endpoint": "/v1/companies",
+      "method": "POST",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Company name"
+        },
+        "owner": {
+          "type": "string",
+          "required": false,
+          "description": "Company owner ID"
+        },
+        "website": {
+          "type": "string",
+          "required": false,
+          "description": "Company website"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Company phone number"
+        }
+      }
+    },
+    {
+      "name": "delete_product",
+      "description": "Remove a product from the catalog",
+      "endpoint": "/v1/products/{product_id}",
+      "method": "DELETE",
+      "parameters": {
+        "product_id": {
+          "type": "string",
+          "required": true,
+          "description": "Product ID to delete"
+        }
+      }
+    },
+    {
+      "name": "get_active_users",
+      "description": "Retrieve currently active users",
+      "endpoint": "/v1/users/active",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "get_company",
+      "description": "Fetch details of a specific company",
+      "endpoint": "/v1/companies/{company_id}",
+      "method": "GET",
+      "parameters": {
+        "company_id": {
+          "type": "string",
+          "required": true,
+          "description": "Company ID"
+        }
+      }
+    },
+    {
+      "name": "list_modules",
+      "description": "Retrieve available module IDs and names",
+      "endpoint": "/v1/modules",
+      "method": "GET",
+      "parameters": {}
+    },
+    {
+      "name": "list_products",
+      "description": "List all products",
+      "endpoint": "/v1/products",
+      "method": "GET",
+      "parameters": {
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page"
+        }
+      }
+    },
+    {
+      "name": "list_companies",
+      "description": "List all companies",
+      "endpoint": "/v1/companies",
+      "method": "GET",
+      "parameters": {
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page"
+        }
+      }
+    },
+    {
+      "name": "create_contact",
+      "description": "Create a new contact",
+      "endpoint": "/v1/contacts",
+      "method": "POST",
+      "parameters": {
+        "firstName": {
+          "type": "string",
+          "required": true,
+          "description": "Contact first name"
+        },
+        "lastName": {
+          "type": "string",
+          "required": false,
+          "description": "Contact last name"
+        },
+        "email": {
+          "type": "string",
+          "required": false,
+          "description": "Contact email address"
+        },
+        "phone": {
+          "type": "string",
+          "required": false,
+          "description": "Contact phone number"
+        }
+      }
+    },
+    {
+      "name": "list_contacts",
+      "description": "List all contacts",
+      "endpoint": "/v1/contacts",
+      "method": "GET",
+      "parameters": {
+        "page": {
+          "type": "number",
+          "required": false,
+          "description": "Page number"
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page"
+        }
+      }
+    }
+  ]
+}

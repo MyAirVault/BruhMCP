@@ -1,0 +1,25 @@
+{
+  "name": "omnisend",
+  "displayName": "Omnisend",
+  "description": "omnisend integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/omnisend.svg",
+  "port": 49392  ,
+  "api": {
+    "baseURL": "https://api.omnisend.com",
+    "version": "v1",
+    "documentation": "https://docs.omnisend.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "omnisend API Key"
+      }
+    ]
+  },
+  "tools": []
+}

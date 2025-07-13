@@ -1,0 +1,120 @@
+{
+  "name": "youtube",
+  "displayName": "YouTube",
+  "description": "Video sharing platform for uploading, managing, and analyzing YouTube content",
+  "category": "social",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtube.svg",
+  "port": 49519  ,
+  "api": {
+    "baseURL": "https://www.googleapis.com/youtube/v3",
+    "version": "v3",
+    "documentation": "https://developers.google.com/youtube/v3"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Google OAuth Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Google OAuth Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": ["https://www.googleapis.com/auth/youtube.readonly", "https://www.googleapis.com/auth/youtube.upload"],
+      "authorization_url": "https://accounts.google.com/o/oauth2/auth",
+      "token_url": "https://oauth2.googleapis.com/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "list_channels",
+      "description": "List channels owned by the authenticated user",
+      "endpoint": "/channels",
+      "method": "GET",
+      "parameters": {
+        "part": {
+          "type": "string",
+          "required": true,
+          "description": "Comma-separated list of properties to include"
+        },
+        "mine": {
+          "type": "boolean",
+          "required": true,
+          "description": "Set to true to retrieve user's channels"
+        }
+      }
+    },
+    {
+      "name": "list_videos",
+      "description": "List videos from a channel",
+      "endpoint": "/search",
+      "method": "GET",
+      "parameters": {
+        "part": {
+          "type": "string",
+          "required": true,
+          "description": "Comma-separated list of properties to include"
+        },
+        "channelId": {
+          "type": "string",
+          "required": true,
+          "description": "Channel ID to search videos from"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of results to return"
+        }
+      }
+    },
+    {
+      "name": "get_video_details",
+      "description": "Get details of a specific video",
+      "endpoint": "/videos",
+      "method": "GET",
+      "parameters": {
+        "part": {
+          "type": "string",
+          "required": true,
+          "description": "Comma-separated list of properties to include"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Video ID"
+        }
+      }
+    },
+    {
+      "name": "get_video_analytics",
+      "description": "Get analytics data for videos",
+      "endpoint": "/reports",
+      "method": "GET",
+      "parameters": {
+        "ids": {
+          "type": "string",
+          "required": true,
+          "description": "Channel ID"
+        },
+        "metrics": {
+          "type": "string",
+          "required": true,
+          "description": "Comma-separated list of metrics"
+        },
+        "dimensions": {
+          "type": "string",
+          "required": false,
+          "description": "Comma-separated list of dimensions"
+        }
+      }
+    }
+  ]
+}

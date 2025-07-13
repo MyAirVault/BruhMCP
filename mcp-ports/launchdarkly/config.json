@@ -1,0 +1,25 @@
+{
+  "name": "launchdarkly",
+  "displayName": "Launchdarkly",
+  "description": "launchdarkly integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/launchdarkly.svg",
+  "port": 49341 ,
+  "api": {
+    "baseURL": "https://api.launchdarkly.com",
+    "version": "v1",
+    "documentation": "https://docs.launchdarkly.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "launchdarkly API Key"
+      }
+    ]
+  },
+  "tools": []
+}

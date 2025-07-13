@@ -1,0 +1,25 @@
+{
+  "name": "gotowebinar",
+  "displayName": "Gotowebinar",
+  "description": "gotowebinar integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/gotowebinar.svg",
+  "port": 49312 ,
+  "api": {
+    "baseURL": "https://api.gotowebinar.com",
+    "version": "v1",
+    "documentation": "https://docs.gotowebinar.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "gotowebinar API Key"
+      }
+    ]
+  },
+  "tools": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "bart",
+  "displayName": "Bart",
+  "description": "bart integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/bart.svg",
+  "port": 49192    ,
+  "api": {
+    "baseURL": "https://api.bart.com",
+    "version": "v1",
+    "documentation": "https://docs.bart.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "bart API Key"
+      }
+    ]
+  },
+  "tools": []
+}

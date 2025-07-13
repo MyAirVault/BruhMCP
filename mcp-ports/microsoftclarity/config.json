@@ -1,0 +1,34 @@
+{
+  "#coming_soon": "Documentation for Microsoft Clarity is not yet available in Composio v3 docs",
+  "name": "microsoftclarity",
+  "displayName": "Microsoft Clarity",
+  "description": "Free user behavior analytics tool that provides heatmaps, session recordings, and insights into user interactions",
+  "category": "analytics",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/microsoft.svg",
+  "port": 49367  ,
+  "api": {
+    "baseURL": "https://api.clarity.microsoft.com",
+    "version": "v1",
+    "documentation": "https://v3.docs.composio.dev/tools/microsoftclarity"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "generic_api_key",
+        "type": "password",
+        "required": true,
+        "description": "Microsoft Clarity API Key"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "placeholder_tool",
+      "description": "Placeholder tool - documentation coming soon",
+      "endpoint": "/placeholder",
+      "method": "GET",
+      "parameters": {}
+    }
+  ]
+}

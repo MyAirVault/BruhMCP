@@ -1,0 +1,220 @@
+{
+  "name": "klaviyo",
+  "displayName": "Klaviyo",
+  "description": "Data-driven email and SMS marketing platform for e-commerce brands to deliver targeted messages",
+  "category": "marketing",
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/klaviyo.svg",
+  "port": 49336  ,
+  "api": {
+    "baseURL": "https://a.klaviyo.com/api",
+    "version": "2023-07-15",
+    "documentation": "https://developers.klaviyo.com/en/reference/api-overview"
+  },
+  "auth": {
+    "type": "oauth2",
+    "fields": [
+      {
+        "name": "client_id",
+        "type": "text",
+        "required": true,
+        "description": "Klaviyo OAuth App Client ID"
+      },
+      {
+        "name": "client_secret",
+        "type": "password",
+        "required": true,
+        "description": "Klaviyo OAuth App Client Secret"
+      }
+    ],
+    "oauth": {
+      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
+      "scopes": [
+        "accounts:read",
+        "campaigns:read",
+        "campaigns:write",
+        "profiles:read",
+        "profiles:write",
+        "lists:read",
+        "lists:write",
+        "flows:read",
+        "flows:write",
+        "metrics:read",
+        "templates:read",
+        "templates:write"
+      ],
+      "authorization_url": "https://www.klaviyo.com/oauth/authorize",
+      "token_url": "https://a.klaviyo.com/oauth/token"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_profile",
+      "description": "Create a new profile in Klaviyo",
+      "endpoint": "/profiles",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "object",
+          "required": true,
+          "description": "Profile data including email, first_name, last_name, etc."
+        }
+      }
+    },
+    {
+      "name": "get_profile",
+      "description": "Get profile by ID",
+      "endpoint": "/profiles/{profile_id}",
+      "method": "GET",
+      "parameters": {
+        "profile_id": {
+          "type": "string",
+          "required": true,
+          "description": "Profile ID"
+        }
+      }
+    },
+    {
+      "name": "update_profile",
+      "description": "Update an existing profile",
+      "endpoint": "/profiles/{profile_id}",
+      "method": "PATCH",
+      "parameters": {
+        "profile_id": {
+          "type": "string",
+          "required": true,
+          "description": "Profile ID"
+        },
+        "data": {
+          "type": "object",
+          "required": true,
+          "description": "Updated profile data"
+        }
+      }
+    },
+    {
+      "name": "create_list",
+      "description": "Create a new list",
+      "endpoint": "/lists",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "object",
+          "required": true,
+          "description": "List data including name"
+        }
+      }
+    },
+    {
+      "name": "get_lists",
+      "description": "Get all lists",
+      "endpoint": "/lists",
+      "method": "GET",
+      "parameters": {
+        "page[size]": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page",
+          "default": 20
+        }
+      }
+    },
+    {
+      "name": "add_profile_to_list",
+      "description": "Add profiles to a Klaviyo marketing list",
+      "endpoint": "/lists/{list_id}/relationships/profiles",
+      "method": "POST",
+      "parameters": {
+        "list_id": {
+          "type": "string",
+          "required": true,
+          "description": "List ID"
+        },
+        "data": {
+          "type": "array",
+          "required": true,
+          "description": "Array of profile IDs to add to the list"
+        }
+      }
+    },
+    {
+      "name": "create_campaign",
+      "description": "Create a new marketing campaign",
+      "endpoint": "/campaigns",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "object",
+          "required": true,
+          "description": "Campaign data including name, subject, content, and audiences"
+        }
+      }
+    },
+    {
+      "name": "get_campaigns",
+      "description": "Get all campaigns",
+      "endpoint": "/campaigns",
+      "method": "GET",
+      "parameters": {
+        "page[size]": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page",
+          "default": 20
+        }
+      }
+    },
+    {
+      "name": "send_campaign",
+      "description": "Send a campaign",
+      "endpoint": "/campaigns/{campaign_id}/send",
+      "method": "POST",
+      "parameters": {
+        "campaign_id": {
+          "type": "string",
+          "required": true,
+          "description": "Campaign ID"
+        }
+      }
+    },
+    {
+      "name": "create_template",
+      "description": "Create an email template",
+      "endpoint": "/templates",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "object",
+          "required": true,
+          "description": "Template data including name, html content, and text content"
+        }
+      }
+    },
+    {
+      "name": "get_metrics",
+      "description": "Get metrics for tracking events",
+      "endpoint": "/metrics",
+      "method": "GET",
+      "parameters": {
+        "page[size]": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results per page",
+          "default": 20
+        }
+      }
+    },
+    {
+      "name": "track_event",
+      "description": "Track custom event for a profile",
+      "endpoint": "/events",
+      "method": "POST",
+      "parameters": {
+        "data": {
+          "type": "object",
+          "required": true,
+          "description": "Event data including metric name, profile, and properties"
+        }
+      }
+    }
+  ]
+}

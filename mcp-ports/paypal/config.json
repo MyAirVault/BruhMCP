@@ -1,0 +1,25 @@
+{
+  "name": "paypal",
+  "displayName": "Paypal",
+  "description": "paypal integration - configuration pending",
+  "category": "general", 
+  "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/paypal.svg",
+  "port": 49404  ,
+  "api": {
+    "baseURL": "https://api.paypal.com",
+    "version": "v1",
+    "documentation": "https://docs.paypal.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "name": "api_key",
+        "type": "password",
+        "required": true,
+        "description": "paypal API Key"
+      }
+    ]
+  },
+  "tools": []
+}
