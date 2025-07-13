@@ -16,8 +16,7 @@ import { apiRateLimiter } from './utils/rateLimiter.js';
 // Import database
 import { initializeDatabase } from './db/config.js';
 
-// Import port validation for startup checks
-import { validatePortRange } from './utils/portValidation.js';
+// Port validation removed - no longer using dynamic port allocation
 
 // Import expiration monitor
 import expirationMonitor from './services/expiration-monitor.js';
@@ -146,16 +145,7 @@ const server = app.listen(port, async () => {
 	// Startup validation checks
 	console.log('🔍 Running startup validation checks...');
 
-	// Validate port range configuration
-	try {
-		const envStart = parseInt(process.env.PORT_RANGE_START || '49160');
-		const envEnd = parseInt(process.env.PORT_RANGE_END || '49999');
-		validatePortRange(envStart, envEnd);
-		console.log(`✅ Port range validation passed: ${envStart}-${envEnd}`);
-	} catch (error) {
-		console.warn('⚠️ Port range validation warning:', error.message);
-		console.log('🔧 Using database-enforced range (49160-49999)');
-	}
+	// Port range validation removed - no longer using dynamic port allocation
 
 	// Initialize database and verify tables
 	try {

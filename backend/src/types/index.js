@@ -34,7 +34,6 @@
  * @property {number} instance_number
  * @property {number} [process_id]
  * @property {string} access_token
- * @property {number} [assigned_port]
  * @property {('active'|'inactive'|'expired')} status
  * @property {boolean} is_active
  * @property {('never'|'1h'|'6h'|'1day'|'30days')} expiration_option

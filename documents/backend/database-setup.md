@@ -65,7 +65,7 @@ The system includes the following migration files in `/backend/src/db/migrations
 2. **002_create_mcp_types_table.sql** - Creates MCP service types table
 3. **003_create_api_keys_table.sql** - Creates API keys storage table
 4. **004_create_mcp_instances_table.sql** - Creates MCP instances table
-5. **006_update_port_range.sql** - Updates port range configuration
+5. **006_remove_unused_fields.sql** - Removes unused database fields
 
 ### Running Migrations
 
@@ -93,7 +93,7 @@ psql -h localhost -U your_db_user -d mcp_manager -f src/db/migrations/001_create
 psql -h localhost -U your_db_user -d mcp_manager -f src/db/migrations/002_create_mcp_types_table.sql
 psql -h localhost -U your_db_user -d mcp_manager -f src/db/migrations/003_create_api_keys_table.sql
 psql -h localhost -U your_db_user -d mcp_manager -f src/db/migrations/004_create_mcp_instances_table.sql
-psql -h localhost -U your_db_user -d mcp_manager -f src/db/migrations/006_update_port_range.sql
+psql -h localhost -U your_db_user -d mcp_manager -f src/db/migrations/006_remove_unused_fields.sql
 ```
 
 ## Database Schema

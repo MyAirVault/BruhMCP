@@ -129,11 +129,10 @@ Last updated: 2025-07-10
 
 ### Major Infrastructure Fixes & Improvements
 
-- **Port Management & Cleanup Fixes** - **COMPLETED 2025-07-10**
-  - Fixed port manager to sync with database on initialization
-  - Enhanced process cleanup to ensure proper port release
-  - **UPDATED**: Changed port range to 49160-49999 (dynamic port range)
-  - Implemented port conflict prevention and resource leak detection
+- **Architecture Simplification** - **COMPLETED 2025-07-10**
+  - Simplified MCP instance management with route-based access
+  - Enhanced process cleanup and resource management
+  - Streamlined instance creation and access patterns
   - Added comprehensive verification testing with 15 test scenarios
   - Created automated verification agent for continuous testing
 
@@ -193,9 +192,9 @@ The MiniMCP system currently implements:
 - Real credential validation against service APIs (Figma, GitHub, Gmail)
 - Isolated Node.js process creation per MCP server
 - Direct URL access to user's data (`http://localhost:PORT`)
-- **NEW**: Enhanced port management with database synchronization
+- **NEW**: Enhanced instance management with simplified architecture
 - **NEW**: Multiple instances of same MCP type support (e.g., 2 Figma MCPs)
-- **NEW**: Proper process cleanup and port release
+- **NEW**: Proper process cleanup and resource management
 - **NEW**: Comprehensive verification testing suite
 
 🚧 **Limitations:**

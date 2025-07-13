@@ -150,7 +150,6 @@ CREATE TABLE mcp_instances (
     instance_number INTEGER NOT NULL DEFAULT 1, -- Instance number for this user/type combination
     process_id INTEGER, -- Node.js process ID
     access_token VARCHAR(255) UNIQUE NOT NULL, -- Unique token for accessing this MCP
-    assigned_port INTEGER UNIQUE, -- Port assigned to this MCP process
     status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, inactive, expired
     is_active BOOLEAN DEFAULT true, -- User can toggle active/inactive
     expiration_option VARCHAR(10) NOT NULL DEFAULT '1day', -- never, 1h, 6h, 1day, 30days
@@ -161,7 +160,6 @@ CREATE TABLE mcp_instances (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT check_status CHECK (status IN ('active', 'inactive', 'expired')),
     CONSTRAINT check_expiration_option CHECK (expiration_option IN ('never', '1h', '6h', '1day', '30days')),
-    CONSTRAINT check_port_range CHECK (assigned_port BETWEEN 49160 AND 49999), -- Dynamic port range for MCP servers
     CONSTRAINT unique_user_mcp_instance UNIQUE (user_id, mcp_type_id, instance_number),
     CONSTRAINT check_max_instances_per_user CHECK (instance_number <= 10)
 );
@@ -170,7 +168,6 @@ CREATE TABLE mcp_instances (
 CREATE INDEX idx_mcp_instances_user_active ON mcp_instances(user_id, is_active);
 CREATE INDEX idx_mcp_instances_status ON mcp_instances(status) WHERE is_active = true;
 CREATE INDEX idx_mcp_instances_expires_at ON mcp_instances(expires_at) WHERE expires_at IS NOT NULL;
-CREATE INDEX idx_mcp_instances_process_id ON mcp_instances(process_id) WHERE process_id IS NOT NULL;
 CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_option);
 ```
 
@@ -202,31 +199,26 @@ CREATE INDEX idx_mcp_instances_expiration_option ON mcp_instances(expiration_opt
 # - Direct file access for debugging
 ```
 
-### 7. Simple Port Management (In-Memory)
+### 7. Simple Route Management (In-Memory)
 ```javascript
-// Port management in application memory - no database table needed
-class SimplePortManager {
+// Route management in application memory - no database table needed
+class SimpleRouteManager {
   constructor() {
-    this.usedPorts = new Set();
-    this.portRange = { start: 49160, end: 49999 };
+    this.registeredRoutes = new Map();
   }
   
-  getAvailablePort() {
-    for (let port = this.portRange.start; port <= this.portRange.end; port++) {
-      if (!this.usedPorts.has(port)) {
-        this.usedPorts.add(port);
-        return port;
-      }
-    }
-    throw new Error('No available ports');
+  registerRoute(instanceId, handler) {
+    const route = `/mcp/${instanceId}`;
+    this.registeredRoutes.set(instanceId, { route, handler });
+    return route;
   }
   
-  releasePort(port) {
-    this.usedPorts.delete(port);
+  unregisterRoute(instanceId) {
+    this.registeredRoutes.delete(instanceId);
   }
 }
 
-// No port_allocations table needed - simpler in-memory management
+// No route_allocations table needed - simpler in-memory management
 ```
 
 ### 8. Environment-Based Configuration (No Database Table)
@@ -244,9 +236,8 @@ const config = {
   cleanup: {
     retentionDays: parseInt(process.env.LOG_RETENTION_DAYS) || 30
   },
-  ports: {
-    rangeStart: parseInt(process.env.PORT_RANGE_START) || 49160,
-    rangeEnd: parseInt(process.env.PORT_RANGE_END) || 49999
+  routes: {
+    basePath: process.env.MCP_BASE_PATH || '/mcp'
   },
   process: {
     maxMemoryMB: parseInt(process.env.PROCESS_MAX_MEMORY) || 512,
@@ -270,7 +261,6 @@ CREATE INDEX idx_users_email ON users(email);
 
 -- MCP instance queries
 CREATE INDEX idx_mcp_instances_user_status ON mcp_instances(user_id, status);
-CREATE INDEX idx_mcp_instances_process_id ON mcp_instances(process_id);
 CREATE INDEX idx_mcp_instances_expires_at ON mcp_instances(expires_at);
 
 -- Credentials lookups
@@ -327,8 +317,7 @@ Each migration should include:
 SELECT 
     mi.id,
     mi.access_token,
-    CONCAT('http://localhost:', mi.assigned_port) as access_url,
-    mi.assigned_port,
+    CONCAT('http://localhost:3000/mcp/', mi.id) as access_url,
     mi.process_id,
     mi.status,
     mi.expires_at,
@@ -363,28 +352,18 @@ WHERE expires_at < CURRENT_TIMESTAMP
 RETURNING id, process_id, assigned_port;
 ```
 
-### Port Allocation Queries
+### Route Management Queries
 ```sql
--- Get next available port
-SELECT port 
-FROM port_allocations 
-WHERE is_available = true 
-ORDER BY port 
-LIMIT 1;
+-- Get MCP instance route information
+SELECT 
+    mi.id,
+    CONCAT('http://localhost:3000/mcp/', mi.id) as access_url,
+    mi.status
+FROM mcp_instances mi
+WHERE mi.user_id = $1
+    AND mi.status = 'active';
 
--- Allocate port to MCP instance
-UPDATE port_allocations 
-SET is_available = false, 
-    mcp_instance_id = $1, 
-    allocated_at = CURRENT_TIMESTAMP
-WHERE port = $2;
-
--- Release port when MCP terminates
-UPDATE port_allocations 
-SET is_available = true, 
-    mcp_instance_id = NULL, 
-    released_at = CURRENT_TIMESTAMP
-WHERE port = $1;
+-- No route allocation tables needed - routes are based on instance IDs
 ```
 
 ### Process Health Check
@@ -393,7 +372,6 @@ WHERE port = $1;
 SELECT 
     mi.id,
     mi.process_id,
-    mi.assigned_port,
     mi.status,
     mi.created_at
 FROM mcp_instances mi

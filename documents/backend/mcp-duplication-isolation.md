@@ -21,20 +21,20 @@ Users can create multiple instances of the same MCP type (e.g., 2 Gmail MCPs) th
 
 ## Process Isolation
 
-### UUID-Based Process Management
-- Each instance runs in its own Node.js process
-- Use existing `child_process.spawn()` approach
-- Process identification: Uses instance UUID for all operations
-- Process environment: `MCP_ID={instanceUUID}`, `USER_ID={userId}`, `MCP_TYPE={mcpType}`
-- Process monitoring with UUID-based health checks
+### UUID-Based Handler Management
+- Each instance runs as its own Express router handler
+- Use Express routing and middleware approach
+- Handler identification: Uses instance UUID for all operations
+- Handler context: `MCP_ID={instanceUUID}`, `USER_ID={userId}`, `MCP_TYPE={mcpType}`
+- Handler monitoring with UUID-based health checks
 
 ### Instance-Based Routing
-- **New Architecture**: `localhost:3000/{instanceUUID}/mcp/{mcpType}`
+- **New Architecture**: `localhost:3000/mcp/{instanceUUID}`
 - **Example URLs**:
-  - `localhost:3000/550e8400-e29b-41d4-a716-446655440000/mcp/figma`
-  - `localhost:3000/6ba7b810-9dad-11d1-80b4-00c04fd430c8/mcp/gmail`
+  - `localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000`
+  - `localhost:3000/mcp/6ba7b810-9dad-11d1-80b4-00c04fd430c8`
 - Each instance is completely isolated from others
-- Port allocation: Uses dynamic port range 49160-49999 for individual MCP servers
+- Route allocation: Uses instance UUID for unique routing within main Express server
 
 ## File System Isolation
 
@@ -102,12 +102,12 @@ CREATE TABLE mcp_instances (
 - `PUT /api/v1/mcps/:uuid/renew` - Renew instance by UUID
 
 ### Instance Access URLs
-- **Main Pattern**: `localhost:3000/{instanceUUID}/mcp/{mcpType}`
+- **Main Pattern**: `localhost:3000/mcp/{instanceUUID}`
 - **MCP Protocol Endpoints**:
-  - `/{instanceUUID}/mcp/{mcpType}/info` - Server information
-  - `/{instanceUUID}/mcp/{mcpType}/tools` - Available tools
-  - `/{instanceUUID}/mcp/{mcpType}/resources` - Available resources
-  - `/{instanceUUID}/mcp/{mcpType}/tools/{toolName}` - Execute tool
+  - `/mcp/{instanceUUID}/info` - Server information
+  - `/mcp/{instanceUUID}/tools` - Available tools
+  - `/mcp/{instanceUUID}/resources` - Available resources
+  - `/mcp/{instanceUUID}/tools/{toolName}` - Execute tool
 
 ## Implementation
 
@@ -126,8 +126,8 @@ const instanceUUID = await createMCPInstance({
   config
 });
 
-// Process creation with UUID isolation
-const processInfo = await processManager.createProcess({
+// Handler creation with UUID isolation
+const handlerInfo = await handlerManager.createHandler({
   mcpType,
   instanceId: instanceUUID.id,  // UUID used for all operations
   userId,
@@ -135,77 +135,76 @@ const processInfo = await processManager.createProcess({
   config
 });
 
-// Environment variables
-const env = {
-  PORT: assignedPort,
+// Handler context
+const context = {
   MCP_ID: instanceUUID.id,      // Instance UUID
   USER_ID: userId,
   MCP_TYPE: mcpType,
-  CREDENTIALS: JSON.stringify(credentials)
+  CREDENTIALS: credentials
 };
 ```
 
 ### Instance Tracking
 ```javascript
 // UUID-based in-memory tracking
-const activeProcesses = new Map();
-// Format: instanceUUID -> {processId, assignedPort, accessUrl, mcpType, userId, process, startTime}
+const activeHandlers = new Map();
+// Format: instanceUUID -> {handlerId, accessUrl, mcpType, userId, handler, startTime}
 ```
 
 ## Security
 
 ### UUID-Based Isolation
-- **Process-level isolation**: Each instance runs in separate Node.js process
+- **Handler-level isolation**: Each instance runs as separate Express handler
 - **URL isolation**: Each instance has unique UUID-based route
 - **File system isolation**: UUID-based log directories  
-- **Port isolation**: Unique ports per instance
+- **Route isolation**: Unique routes per instance
 - **Database isolation**: All queries use instance UUID
 
 ### Access Control
 - **Instance access**: Only users can access their own instances
 - **UUID-based auth**: All operations require instance UUID verification
-- **Route isolation**: `/{instanceUUID}/mcp/{mcpType}` prevents cross-instance access
+- **Route isolation**: `/mcp/{instanceUUID}` prevents cross-instance access
 - **Authentication**: All instance operations require user authentication
 - **Rate limiting**: Basic rate limiting per user and per instance
 
 ## Monitoring
 
 ### UUID-Based Health Checks
-- **Process monitoring**: UUID-based process status tracking
+- **Handler monitoring**: UUID-based handler status tracking
 - **Resource tracking**: Per-instance resource usage monitoring
 - **Log monitoring**: UUID-based log file tracking and rotation
-- **Port monitoring**: Dedicated port availability per instance
+- **Route monitoring**: Dedicated route availability per instance
 
 ### Error Handling & Logging
-- **Process restart**: UUID-based process restart on failure
+- **Handler restart**: UUID-based handler restart on failure
 - **Consistent logging**: All logs include instance UUID for traceability
 - **Error isolation**: Failures in one instance don't affect others
-- **Port management**: Automatic port cleanup and reassignment
+- **Route management**: Automatic route cleanup and reassignment
 - **Cleanup procedures**: UUID-based cleanup on errors
 
 ## Cleanup
 
 ### Instance Deletion
-1. **Process termination**: Stop process using instance UUID
+1. **Handler termination**: Stop handler using instance UUID
 2. **Memory cleanup**: Remove from active instances map (by UUID)
 3. **File cleanup**: Delete UUID-based log directory
 4. **Database cleanup**: Remove database entry by UUID
-5. **Port release**: Release assigned port
+5. **Route release**: Release assigned route
 6. **Logging**: Log all cleanup operations with instance UUID
 
 ### User Deletion
 1. **Instance enumeration**: Find all instances by user ID
-2. **Bulk termination**: Stop all user's processes (by UUID)
+2. **Bulk termination**: Stop all user's handlers (by UUID)
 3. **Directory cleanup**: Delete user's entire log directory tree
 4. **Database cleanup**: Remove all user's database entries (CASCADE)
-5. **Port cleanup**: Release all assigned ports
+5. **Route cleanup**: Release all assigned routes
 6. **Audit logging**: Log user deletion with all affected instance UUIDs
 
 ## Summary
 
 This UUID-based instance isolation architecture provides:
 - **Complete isolation** between MCP instances
-- **Unique routing** per instance (`/{instanceUUID}/mcp/{mcpType}`)
+- **Unique routing** per instance (`/mcp/{instanceUUID}`)
 - **Consistent identification** using UUIDs throughout the system
 - **Scalable architecture** supporting multiple instances per user
 - **Comprehensive logging** with instance UUID traceability

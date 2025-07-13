@@ -40,7 +40,7 @@ POST /api/v1/mcps
 
 ```json
 {
-	"access_url": "http://localhost:49162",
+	"access_url": "http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000",
 	"access_token": "mcp_acc_b4303f9309804e85874a044548d56391",
 	"status": "active"
 }
@@ -48,11 +48,11 @@ POST /api/v1/mcps
 
 **User can now access:**
 
--   `http://localhost:49162/health` - Server health (REST)
--   `http://localhost:49162/me` - User info from Figma (REST)
--   `http://localhost:49162/files` - User's Figma files (REST)
--   `POST http://localhost:49162/` - JSON-RPC protocol messages
--   `POST http://localhost:49162/message` - Alternative JSON-RPC endpoint
+-   `http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/health` - Server health (REST)
+-   `http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/me` - User info from Figma (REST)
+-   `http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/files` - User's Figma files (REST)
+-   `POST http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/` - JSON-RPC protocol messages
+-   `POST http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/message` - Alternative JSON-RPC endpoint
 
 ## Credential Management
 
@@ -74,22 +74,24 @@ POST /api/v1/mcps
 ### Process Creation
 
 ```javascript
-// Backend creates isolated Node.js process
-const mcpProcess = spawn('node', [`${mcpType}-mcp-server.js`], {
-	env: {
-		PORT: assignedPort,
-		MCP_ID: instanceId,
-		USER_ID: userId,
-		CREDENTIALS: JSON.stringify(credentials),
-	},
+// Backend creates isolated MCP handler
+const mcpHandler = new MCPHandler({
+	mcpType: mcpType,
+	instanceId: instanceId,
+	userId: userId,
+	credentials: credentials,
+	route: `/mcp/${instanceId}`
 });
+
+// Register handler with Express app
+app.use(`/mcp/${instanceId}`, mcpHandler.router);
 ```
 
-### Process Properties
+### Handler Properties
 
--   **Unique Port**: Each MCP gets its own port from range 49160-49999
--   **Isolation**: Separate Node.js process per MCP
--   **Environment**: Credentials passed via environment variables
+-   **Unique Routes**: Each MCP gets its own route `/mcp/{instanceId}`
+-   **Isolation**: Separate handler instance per MCP
+-   **Environment**: Credentials passed to handler constructor
 -   **Monitoring**: Basic health checks via `/health` endpoint
 
 ## MCP Server Structure
@@ -236,9 +238,9 @@ The new service will automatically appear in the frontend dropdown and work with
 
 ### Common Issues
 
-**MCP Server Won't Start:**
+**MCP Handler Won't Start:**
 
--   Check if port is available: `netstat -tlnp | grep :49162` (replace with actual assigned port)
+-   Check if route is registered: Review Express app routes
 -   Verify credentials are valid
 -   Check server logs in console
 
@@ -248,23 +250,23 @@ The new service will automatically appear in the frontend dropdown and work with
 -   Test token manually with service API
 -   Check token permissions/scopes
 
-**Process Dies:**
+**Handler Fails:**
 
--   Check for memory leaks
+-   Check for memory leaks in handler
 -   Verify all required dependencies are installed
 -   Review error logs
 
 ### Debug Commands
 
 ```bash
-# Check running MCP processes
-ps aux | grep mcp-server
+# Check running MCP handlers
+curl http://localhost:3000/api/v1/mcps
 
-# Test MCP server health (REST) - replace 49162 with your actual assigned port
-curl http://localhost:49162/health
+# Test MCP handler health (REST) - replace instanceId with actual instance ID
+curl http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/health
 
 # Test JSON-RPC initialize
-curl -X POST http://localhost:49162/ \
+curl -X POST http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/ \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -278,7 +280,7 @@ curl -X POST http://localhost:49162/ \
   }'
 
 # Test JSON-RPC tools list
-curl -X POST http://localhost:49162/ \
+curl -X POST http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/ \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -287,7 +289,7 @@ curl -X POST http://localhost:49162/ \
   }'
 
 # Test JSON-RPC tool call
-curl -X POST http://localhost:49162/ \
+curl -X POST http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440000/ \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -299,23 +301,23 @@ curl -X POST http://localhost:49162/ \
     }
   }'
 
-# Check port usage in the MCP range
-netstat -tlnp | grep :491
+# Check registered routes
+curl http://localhost:3000/api/v1/mcps | jq '.data[].access_url'
 ```
 
 ## Current Limitations
 
-1. **No automatic process recovery** - If process dies, user must recreate
+1. **No automatic handler recovery** - If handler fails, user must recreate
 2. **Basic credential storage** - Simple encryption, no rotation
 3. **Limited monitoring** - Basic health checks only
-4. **Manual MCP server creation** - Each service requires manual implementation
+4. **Manual MCP handler creation** - Each service requires manual implementation
 
 ## Next Steps
 
-1. **Process Recovery**: Implement automatic restart of failed processes
+1. **Handler Recovery**: Implement automatic restart of failed handlers
 2. **Enhanced Monitoring**: Add detailed metrics and alerting
 3. **Credential Management**: Add token rotation and better security
-4. **Auto-generation**: Build system to create MCP servers from API documentation automatically
+4. **Auto-generation**: Build system to create MCP handlers from API documentation automatically
 
 ---
 

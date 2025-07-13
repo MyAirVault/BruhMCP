@@ -1,4 +1,3 @@
-import portManager from '../portManager.js';
 import { setTimeout } from 'node:timers';
 import { processHealthMonitor } from './process-health-monitor.js';
 import logFileManager from './log-file-manager.js';
@@ -73,8 +72,7 @@ export function handleProcessExit(instanceId, code, activeProcesses) {
 		// Stop health monitoring
 		processHealthMonitor.stopMonitoring(instanceId);
 
-		// Release port
-		portManager.releasePort(processInfo.assignedPort);
+		// Port management removed - no longer tracking assigned ports
 
 		// Close log streams
 		logFileManager.closeLogStreams(instanceId);
@@ -86,14 +84,13 @@ export function handleProcessExit(instanceId, code, activeProcesses) {
 		const logLevel = code === 0 ? 'info' : 'error';
 		const icon = code === 0 ? '✅' : '💥';
 		console.log(
-			`${icon} Instance ${instanceId} process exited with code ${code}, port ${processInfo.assignedPort} released`
+			`${icon} Instance ${instanceId} process exited with code ${code}`
 		);
 
 		// Emit event for external handling (database cleanup, etc.)
 		processHealthMonitor.emit('process-exit', {
 			instanceId,
 			code,
-			port: processInfo.assignedPort,
 			cleanExit: code === 0,
 		});
 	}

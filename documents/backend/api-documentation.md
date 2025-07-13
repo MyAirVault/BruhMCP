@@ -197,8 +197,7 @@ X-RateLimit-Reset: 1640995200
 | `CONFLICT`               | 409         | Resource already exists                                           |
 | `RATE_LIMIT_EXCEEDED`    | 429         | Too many requests                                                 |
 | `INTERNAL_ERROR`         | 500         | Server error                                                      |
-| `PORT_ALLOCATION_FAILED` | 500         | Port allocation failure - redirect to dashboard with error        |
-| `PROCESS_CRASH`          | 500         | Process crash during API calls - redirect to dashboard with error |
+| `HANDLER_FAILURE`        | 500         | Handler failure during API calls - redirect to dashboard with error |
 | `SERVICE_UNAVAILABLE`    | 503         | Service temporarily unavailable                                   |
 
 ## Rate Limiting
@@ -349,8 +348,7 @@ Create a new MCP instance.
 		"custom_name": "My Work Gmail",
 		"instance_number": 1,
 		"access_token": "mcp_acc_1234567890abcdef",
-		"access_url": "http://localhost:3001", // Constructed from assigned_port
-		"assigned_port": 3001,
+		"access_url": "http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440002",
 		"status": "active",
 		"is_active": true,
 		"expiration_option": "1day",
@@ -389,8 +387,7 @@ List user's MCP instances.
 			"custom_name": "My Work Gmail",
 			"instance_number": 1,
 			"access_token": "mcp_acc_1234567890abcdef",
-			"access_url": "http://localhost:3001",
-			"assigned_port": 3001,
+			"access_url": "http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440002",
 			"process_id": 12345,
 			"status": "active",
 			"is_active": true,
@@ -414,8 +411,7 @@ List user's MCP instances.
 			"custom_name": "Personal Gmail",
 			"instance_number": 2,
 			"access_token": "mcp_acc_0987654321fedcba",
-			"access_url": "http://localhost:3002", // Constructed from assigned_port
-			"assigned_port": 3002,
+			"access_url": "http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440003",
 			"process_id": 12346,
 			"status": "active",
 			"is_active": true,
@@ -461,8 +457,7 @@ Get details of a specific MCP instance.
 		"id": "550e8400-e29b-41d4-a716-446655440002",
 		"instance_number": 1,
 		"access_token": "mcp_acc_1234567890abcdef",
-		"access_url": "http://localhost:3001", // Constructed from assigned_port
-		"assigned_port": 3001,
+		"access_url": "http://localhost:3000/mcp/550e8400-e29b-41d4-a716-446655440002",
 		"process_id": 12345,
 		"status": "active",
 		"expires_at": "2024-01-07T16:00:00Z",

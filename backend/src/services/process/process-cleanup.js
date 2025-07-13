@@ -152,12 +152,7 @@ export class ProcessCleanupService {
 				updated_at: new Date(),
 			});
 
-			// Release the port if it was assigned
-			if (instance.assigned_port) {
-				// Import port manager and release the port
-				const portManager = (await import('../portManager.js')).default;
-				portManager.releasePort(instance.assigned_port);
-			}
+			// Port management removed - no longer tracking assigned ports
 		} catch (error) {
 			console.error(`❌ Failed to cleanup orphaned instance ${instance.id}:`, error);
 			throw error;

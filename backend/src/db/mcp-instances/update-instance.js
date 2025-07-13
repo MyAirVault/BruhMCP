@@ -1,5 +1,4 @@
 import { pool } from '../config.js';
-import { validatePortAssignment } from '../../utils/portValidation.js';
 
 /**
  * Update MCP instance
@@ -8,10 +7,6 @@ import { validatePortAssignment } from '../../utils/portValidation.js';
  * @returns {Promise<Object>} Updated instance
  */
 export async function updateMCPInstance(instanceId, updateData) {
-	// Validate port assignment if being updated
-	if (updateData.assigned_port !== undefined) {
-		validatePortAssignment(updateData.assigned_port);
-	}
 
 	const fields = [];
 	const values = [];
