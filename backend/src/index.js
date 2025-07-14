@@ -74,13 +74,6 @@ app.get('/health', (_req, res) => {
 	});
 });
 
-// Redirect verify requests to frontend dev server
-app.get('/verify', (req, res) => {
-	const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-	const token = req.query.token;
-	res.redirect(`${frontendUrl}/verify${token ? '?token=' + token : ''}`);
-});
-
 // API routes
 app.use('/auth', authRoutes);
 
