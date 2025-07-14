@@ -6,10 +6,9 @@
 export function calculateExpirationDate(option: string): Date | null;
 /**
  * Generate consistent access URL for MCP instances
- * @param {number|null} assignedPort - The port number assigned to the instance
  * @param {string} instanceId - The instance UUID
  * @param {string} mcpTypeName - The MCP type name
- * @returns {string|null} The formatted access URL or null if no port assigned
+ * @returns {string} The formatted access URL in format <domain>/<mcp>/uuid
  */
-export function generateAccessUrl(assignedPort: number | null, instanceId: string, mcpTypeName: string): string | null;
+export function generateAccessUrl(instanceId: string, mcpTypeName: string): string;
 //# sourceMappingURL=utils.d.ts.map

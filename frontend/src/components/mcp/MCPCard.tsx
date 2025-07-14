@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { type MCPItem, type DropdownItem } from '../../types';
 import StatusBadge from '../ui/StatusBadge';
 import Dropdown from '../ui/Dropdown';
@@ -14,8 +14,8 @@ interface MCPCardProps {
   isLastItemInExpired?: boolean;
 }
 
-// Helper function to get MCP type icon
-const getMCPIcon = (mcpType: string) => {
+// Helper function to get fallback MCP type icon
+const getFallbackMCPIcon = (mcpType: string) => {
   switch (mcpType.toLowerCase()) {
     case 'gmail':
       return Mail;
@@ -49,7 +49,9 @@ const MCPCard: React.FC<MCPCardProps> = ({
   dropdownItems,
   isLastItemInExpired = false
 }) => {
-  const IconComponent = getMCPIcon(mcp.mcpType || 'default');
+  const [iconError, setIconError] = useState(false);
+  const FallbackIconComponent = getFallbackMCPIcon(mcp.mcpType || 'default');
+  
   return (
     <div className="bg-white border-t border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-center justify-between">
@@ -59,7 +61,16 @@ const MCPCard: React.FC<MCPCardProps> = ({
               <h3 className="text-base font-medium text-gray-900 truncate max-w-[200px]">{mcp.name}</h3>
             </Tooltip>
             <div className="flex items-center gap-2 mt-1">
-              <IconComponent className="w-4 h-4 text-gray-400" />
+              {mcp.icon_url && !iconError ? (
+                <img 
+                  src={mcp.icon_url} 
+                  alt={mcp.mcpType || 'MCP'} 
+                  className="w-4 h-4 text-gray-400" 
+                  onError={() => setIconError(true)}
+                />
+              ) : (
+                <FallbackIconComponent className="w-4 h-4 text-gray-400" />
+              )}
               <p className="text-sm text-gray-500">{mcp.mcpType || 'Unknown Type'}</p>
             </div>
           </div>

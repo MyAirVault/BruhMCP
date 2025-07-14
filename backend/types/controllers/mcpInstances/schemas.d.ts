@@ -23,12 +23,12 @@ export const updateMCPSchema: z.ZodObject<{
     config: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
 }, "strip", z.ZodTypeAny, {
     credentials?: Record<string, string> | undefined;
-    config?: Record<string, any> | undefined;
     custom_name?: string | undefined;
+    config?: Record<string, any> | undefined;
 }, {
     credentials?: Record<string, string> | undefined;
-    config?: Record<string, any> | undefined;
     custom_name?: string | undefined;
+    config?: Record<string, any> | undefined;
 }>;
 export const toggleMCPSchema: z.ZodObject<{
     is_active: z.ZodBoolean;

@@ -1,1 +1,1 @@
-{"version":3,"file":"mcpAccessControl.d.ts","sourceRoot":"","sources":["../../src/middleware/mcpAccessControl.js"],"names":[],"mappings":"AAEA;;;;;GAKG;AACH,oCAJW,OAAO,OACP,QAAQ,gCAqDlB;AAED;;;;;GAKG;AACH,2CAJW,OAAO,OACP,QAAQ,wBAOlB"}
+{"version":3,"file":"mcpAccessControl.d.ts","sourceRoot":"","sources":["../../src/middleware/mcpAccessControl.js"],"names":[],"mappings":"AAGA;;;;;GAKG;AACH,oCAJW,OAAO,OACP,QAAQ,iCA6ClB;AAED;;;;;GAKG;AACH,2CAJW,OAAO,OACP,QAAQ,wBAOlB"}

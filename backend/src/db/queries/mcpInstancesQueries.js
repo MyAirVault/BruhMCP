@@ -27,35 +27,36 @@ export async function getAllMCPInstances(userId, filters = {}) {
 			m.mcp_service_name,
 			m.display_name,
 			m.type,
-			m.port
+			m.port,
+			m.icon_url_path
 		FROM mcp_service_table ms
 		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
 		WHERE ms.user_id = $1
 	`;
-	
+
 	const params = [userId];
 	let paramIndex = 2;
-	
+
 	if (filters.status) {
 		query += ` AND ms.status = $${paramIndex}`;
 		params.push(filters.status);
 		paramIndex++;
 	}
-	
+
 	if (filters.mcp_type) {
 		query += ` AND m.mcp_service_name = $${paramIndex}`;
 		params.push(filters.mcp_type);
 		paramIndex++;
 	}
-	
+
 	query += ` ORDER BY ms.created_at DESC`;
-	
+
 	if (filters.limit) {
 		query += ` LIMIT $${paramIndex}`;
 		params.push(filters.limit);
 		paramIndex++;
 	}
-	
+
 	const result = await pool.query(query, params);
 	return result.rows;
 }
@@ -82,12 +83,13 @@ export async function getMCPInstanceById(instanceId, userId) {
 			m.mcp_service_name,
 			m.display_name,
 			m.type,
-			m.port
+			m.port,
+			m.icon_url_path
 		FROM mcp_service_table ms
 		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
 		WHERE ms.instance_id = $1 AND ms.user_id = $2
 	`;
-	
+
 	const result = await pool.query(query, [instanceId, userId]);
 	return result.rows[0] || null;
 }
@@ -103,57 +105,57 @@ export async function updateMCPInstance(instanceId, userId, updateData) {
 	const setClauses = [];
 	const params = [];
 	let paramIndex = 1;
-	
+
 	if (updateData.custom_name !== undefined) {
 		setClauses.push(`custom_name = $${paramIndex}`);
 		params.push(updateData.custom_name);
 		paramIndex++;
 	}
-	
+
 	if (updateData.status !== undefined) {
 		setClauses.push(`status = $${paramIndex}`);
 		params.push(updateData.status);
 		paramIndex++;
 	}
-	
+
 	if (updateData.expires_at !== undefined) {
 		setClauses.push(`expires_at = $${paramIndex}`);
 		params.push(updateData.expires_at);
 		paramIndex++;
 	}
-	
+
 	if (updateData.api_key !== undefined) {
 		setClauses.push(`api_key = $${paramIndex}`);
 		params.push(updateData.api_key);
 		paramIndex++;
 	}
-	
+
 	if (updateData.client_id !== undefined) {
 		setClauses.push(`client_id = $${paramIndex}`);
 		params.push(updateData.client_id);
 		paramIndex++;
 	}
-	
+
 	if (updateData.client_secret !== undefined) {
 		setClauses.push(`client_secret = $${paramIndex}`);
 		params.push(updateData.client_secret);
 		paramIndex++;
 	}
-	
+
 	if (setClauses.length === 0) {
 		throw new Error('No update data provided');
 	}
-	
+
 	setClauses.push(`updated_at = NOW()`);
 	params.push(instanceId, userId);
-	
+
 	const query = `
 		UPDATE mcp_service_table 
 		SET ${setClauses.join(', ')}
 		WHERE instance_id = $${paramIndex} AND user_id = $${paramIndex + 1}
 		RETURNING *
 	`;
-	
+
 	const result = await pool.query(query, params);
 	return result.rows[0] || null;
 }
@@ -169,7 +171,7 @@ export async function deleteMCPInstance(instanceId, userId) {
 		DELETE FROM mcp_service_table 
 		WHERE instance_id = $1 AND user_id = $2
 	`;
-	
+
 	const result = await pool.query(query, [instanceId, userId]);
 	return result.rowCount > 0;
 }
@@ -205,7 +207,7 @@ export async function renewMCPInstance(instanceId, userId, newExpirationDate) {
 		WHERE instance_id = $2 AND user_id = $3
 		RETURNING *
 	`;
-	
+
 	const result = await pool.query(query, [newExpirationDate, instanceId, userId]);
 	return result.rows[0] || null;
 }
@@ -224,7 +226,7 @@ export async function updateInstanceStatus(instanceId, userId, status) {
 		WHERE instance_id = $2 AND user_id = $3 
 		RETURNING instance_id, status, updated_at
 	`;
-	
+
 	const result = await pool.query(query, [status, instanceId, userId]);
 	return result.rows[0] || null;
 }
@@ -243,7 +245,7 @@ export async function renewInstanceExpiration(instanceId, userId, newExpirationD
 		WHERE instance_id = $2 AND user_id = $3 
 		RETURNING instance_id, status, expires_at, updated_at
 	`;
-	
+
 	const result = await pool.query(query, [newExpirationDate, instanceId, userId]);
 	return result.rows[0] || null;
 }
@@ -267,7 +269,7 @@ export async function getInstancesByStatus(status) {
 		WHERE ms.status = $1
 		ORDER BY ms.updated_at DESC
 	`;
-	
+
 	const result = await pool.query(query, [status]);
 	return result.rows;
 }
@@ -290,7 +292,7 @@ export async function getExpiredInstances() {
 		WHERE ms.expires_at < NOW() AND ms.status != 'expired'
 		ORDER BY ms.expires_at ASC
 	`;
-	
+
 	const result = await pool.query(query);
 	return result.rows;
 }
@@ -302,14 +304,14 @@ export async function getExpiredInstances() {
  */
 export async function bulkMarkInstancesExpired(instanceIds) {
 	if (instanceIds.length === 0) return 0;
-	
+
 	const placeholders = instanceIds.map((_, index) => `$${index + 1}`).join(',');
 	const query = `
 		UPDATE mcp_service_table 
 		SET status = 'expired', updated_at = NOW() 
 		WHERE instance_id IN (${placeholders})
 	`;
-	
+
 	const result = await pool.query(query, instanceIds);
 	return result.rowCount;
 }
@@ -328,7 +330,7 @@ export async function getUserInstanceCount(userId, status = null) {
 		WHERE ms.user_id = $1
 	`;
 	const params = [userId];
-	
+
 	if (status) {
 		query += ' AND ms.status = $2';
 		params.push(status);
@@ -336,7 +338,7 @@ export async function getUserInstanceCount(userId, status = null) {
 		query += ' AND ms.status != $2';
 		params.push('deleted');
 	}
-	
+
 	const result = await pool.query(query, params);
 	return parseInt(result.rows[0].count);
 }
@@ -355,7 +357,7 @@ export async function getUserInstanceCount(userId, status = null) {
  */
 export async function createMCPInstance(instanceData) {
 	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt } = instanceData;
-	
+
 	const query = `
 		INSERT INTO mcp_service_table (
 			user_id,
@@ -370,7 +372,7 @@ export async function createMCPInstance(instanceData) {
 		) VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, NOW())
 		RETURNING *
 	`;
-	
+
 	const params = [userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt];
 	const result = await pool.query(query, params);
 	return result.rows[0];
@@ -388,33 +390,33 @@ export async function updateMCPServiceStats(serviceId, updates) {
 	const setClauses = [];
 	const params = [];
 	let paramIndex = 1;
-	
+
 	if (updates.totalInstancesIncrement !== undefined) {
 		setClauses.push(`total_instances_created = total_instances_created + $${paramIndex}`);
 		params.push(updates.totalInstancesIncrement);
 		paramIndex++;
 	}
-	
+
 	if (updates.activeInstancesIncrement !== undefined) {
 		setClauses.push(`active_instances_count = active_instances_count + $${paramIndex}`);
 		params.push(updates.activeInstancesIncrement);
 		paramIndex++;
 	}
-	
+
 	if (setClauses.length === 0) {
 		throw new Error('No statistics updates provided');
 	}
-	
+
 	setClauses.push(`updated_at = NOW()`);
 	params.push(serviceId);
-	
+
 	const query = `
 		UPDATE mcp_table 
 		SET ${setClauses.join(', ')}
 		WHERE mcp_service_id = $${paramIndex}
 		RETURNING *
 	`;
-	
+
 	const result = await pool.query(query, params);
 	return result.rows[0] || null;
 }

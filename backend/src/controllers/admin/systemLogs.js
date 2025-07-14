@@ -457,7 +457,7 @@ async function getLogSummary(category) {
 async function getLogDiskUsage() {
 	try {
 		const systemStats = await getDirectorySize(SYSTEM_LOGS_DIR);
-		const userStats = await getDirectorySize(path.resolve('./logs/users'));
+		const userStats = await getDirectorySize(path.resolve('../logs/users'));
 
 		return {
 			total_size_mb: Math.round((systemStats.size + userStats.size) / 1024 / 1024 * 100) / 100,

@@ -60,16 +60,17 @@ export const useDashboardState = () => {
     status: instance.status === 'active' ? 'active' :
       instance.status === 'expired' ? 'expired' : 'inactive',
     mcpType: instance.mcp_type.name, // Add MCP type for proper display
-    access_url: instance.access_url // Add direct access to URL
+    access_url: instance.access_url, // Add direct access to URL
+    icon_url: instance.mcp_type.icon_url // Add icon URL from backend
   });
 
   // Filter MCPs by status (priority: expired > inactive > active)
   const activeMCPs = mcpInstances
-    .filter(instance => instance.status === 'active' && instance.is_active)
+    .filter(instance => instance.status === 'active')
     .map(convertToMCPItem);
 
   const inactiveMCPs = mcpInstances
-    .filter(instance => instance.status === 'inactive' || (!instance.is_active && instance.status !== 'expired'))
+    .filter(instance => instance.status === 'inactive')
     .map(convertToMCPItem);
 
   const expiredMCPs = mcpInstances

@@ -25,9 +25,7 @@ export type MCPInstance = {
     api_key_id?: string | undefined;
     custom_name?: string | undefined;
     instance_number: number;
-    process_id?: number | undefined;
     access_token: string;
-    assigned_port?: number | undefined;
     status: ("active" | "inactive" | "expired");
     is_active: boolean;
     expiration_option: ("never" | "1h" | "6h" | "1day" | "30days");
@@ -80,12 +78,5 @@ export type AuthResponse = {
     sessionToken?: string | undefined;
     message?: string | undefined;
     error?: string | undefined;
-};
-export type ProcessInfo = {
-    pid: number;
-    mcpId: string;
-    mcpType: string;
-    port: number;
-    status: ("starting" | "running" | "stopping" | "stopped" | "crashed");
 };
 //# sourceMappingURL=index.d.ts.map

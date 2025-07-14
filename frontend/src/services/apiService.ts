@@ -50,7 +50,7 @@ const makeRequest = async <T>(
 export const apiService = {
   // MCP Types
   getMCPTypes: async (): Promise<MCPType[]> => {
-    return makeRequest<MCPType[]>('/mcp-types');
+    return makeRequest<MCPType[]>('/mcp-types?active=true');
   },
 
   getMCPTypeByName: async (name: string): Promise<MCPType> => {

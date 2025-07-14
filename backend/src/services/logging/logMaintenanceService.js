@@ -14,7 +14,7 @@ const execAsync = promisify(exec);
 class LogMaintenanceService {
 	constructor() {
 		this.systemLogsDir = path.resolve('./logs/system');
-		this.userLogsDir = path.resolve('./logs/users');
+		this.userLogsDir = path.resolve('../logs/users');
 		this.maintenanceInterval = null;
 		this.cleanupStats = {
 			lastRun: null,

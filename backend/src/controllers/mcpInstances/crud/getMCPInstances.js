@@ -30,13 +30,13 @@ export async function getMCPInstances(req, res) {
 			access_token: instance.access_token,
 			access_url: generateAccessUrl(instance.instance_id, instance.mcp_service_name),
 			status: instance.status,
-			is_active: instance.is_active,
 			expiration_option: instance.expiration_option,
 			expires_at: instance.expires_at,
 			mcp_type: {
 				name: instance.mcp_service_name,
 				display_name: instance.display_name,
 				type: instance.type,
+				icon_url: instance.icon_url_path,
 			},
 			created_at: instance.created_at,
 		}));

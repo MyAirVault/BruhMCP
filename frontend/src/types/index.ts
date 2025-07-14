@@ -5,6 +5,7 @@ export interface MCPItem {
   status: 'active' | 'inactive' | 'expired';
   mcpType?: string; // Added to display MCP type properly
   access_url?: string; // Added to store URL directly
+  icon_url?: string; // Added to store icon URL from backend
 }
 
 export interface DropdownItem {
@@ -43,7 +44,6 @@ export interface MCPInstance {
   access_url: string;
   process_id?: number;
   status: 'active' | 'inactive' | 'expired';
-  is_active: boolean;
   expiration_option: string;
   expires_at: string;
   last_accessed?: string;

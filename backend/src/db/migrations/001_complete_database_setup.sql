@@ -119,7 +119,7 @@ INSERT INTO mcp_table (
     'figma',
     'Figma',
     'Design collaboration platform for creating and sharing designs',
-    '/icons/figma.svg',
+    '/mcp-logos/figma.svg',
     49160,
     'api_key'
 );

@@ -26,7 +26,7 @@ declare class AuthService {
     } | {
         success: boolean;
         jwtToken: string;
-        user: any;
+        user: Object;
         error?: undefined;
     }>;
     /**

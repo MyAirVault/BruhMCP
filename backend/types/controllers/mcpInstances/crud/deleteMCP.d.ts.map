@@ -1,1 +1,1 @@
-{"version":3,"file":"deleteMCP.d.ts","sourceRoot":"","sources":["../../../../src/controllers/mcpInstances/crud/deleteMCP.js"],"names":[],"mappings":"AAGA;;;;GAIG;AACH,+BAHW,OAAO,OACP,QAAQ,gBA4ClB"}
+{"version":3,"file":"deleteMCP.d.ts","sourceRoot":"","sources":["../../../../src/controllers/mcpInstances/crud/deleteMCP.js"],"names":[],"mappings":"AAOA,mDAAmD;AACnD,qDAAqD;AAErD;;;;GAIG;AACH,+BAHW,OAAO,OACP,QAAQ,6EA0HlB;sBAhIa,OAAO,SAAS,EAAE,OAAO;uBACzB,OAAO,SAAS,EAAE,QAAQ"}

@@ -1,5 +1,5 @@
 /**
- * Get all MCP types
+ * Get all MCP services (updated for multi-tenant architecture)
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  */
