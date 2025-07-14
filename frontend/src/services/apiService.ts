@@ -299,7 +299,7 @@ export const apiService = {
     start_time?: string;
     end_time?: string;
     level?: 'debug' | 'info' | 'warn' | 'error';
-  }): Promise<void> => {
+  }) => {
     const response = await fetch(`${API_BASE_URL}/mcps/${mcpId}/logs/export`, {
       method: 'POST',
       credentials: 'include',
@@ -314,6 +314,10 @@ export const apiService = {
       throw new Error(`${errorData.error.code}: ${errorData.error.message}`);
     }
 
+    // Get the blob and create object URL
+    const blob = await response.blob();
+    const download_url = window.URL.createObjectURL(blob);
+    
     // Get filename from Content-Disposition header or generate one
     const contentDisposition = response.headers.get('Content-Disposition');
     let filename = `logs_${mcpId}_${new Date().toISOString().split('T')[0]}.${data.format}`;
@@ -325,16 +329,15 @@ export const apiService = {
       }
     }
 
-    // Create blob and download
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    // Return export response metadata
+    return {
+      download_url,
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
+      size_bytes: blob.size,
+      format: data.format,
+      total_logs: 0, // This would need to be provided by the backend
+      filename
+    };
   },
 
   getAllMCPLogs: async (params?: {

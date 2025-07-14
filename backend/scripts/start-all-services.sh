@@ -78,7 +78,7 @@ check_service_health() {
     local service_name=$1
     local port=$2
     
-    local pm2_status=$(pm2 jlist | jq -r ".[] | select(.name==\"mcp-$service_name\") | .pm2_env.status" 2>/dev/null)
+    local pm2_status=$(pm2 describe "mcp-$service_name" 2>/dev/null | grep "status" | awk '{print $4}' | tr -d '│')
     
     if [ "$pm2_status" = "online" ]; then
         echo "✅ $service_name service is running (PM2 status: online)"

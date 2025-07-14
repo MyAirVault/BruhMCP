@@ -408,8 +408,12 @@ class SystemLogger {
 	rotateAllLogs() {
 		Object.values(loggers).forEach(logger => {
 			logger.transports.forEach(transport => {
-				if (transport instanceof DailyRotateFile) {
-					transport.rotate();
+				if (transport instanceof DailyRotateFile && typeof transport.rotate === 'function') {
+					try {
+						transport.rotate();
+					} catch (error) {
+						console.error('Error rotating log transport:', error.message);
+					}
 				}
 			});
 		});

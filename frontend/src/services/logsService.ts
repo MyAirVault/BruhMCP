@@ -13,7 +13,7 @@ interface ExportLogsData {
   format: 'json' | 'csv' | 'txt';
   start_time?: string;
   end_time?: string;
-  level?: string;
+  level?: 'debug' | 'info' | 'warn' | 'error';
 }
 
 interface ExportLogsResponse {
@@ -22,6 +22,7 @@ interface ExportLogsResponse {
   size_bytes: number;
   format: string;
   total_logs: number;
+  filename: string;
 }
 
 /**
