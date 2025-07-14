@@ -149,12 +149,17 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     try {
       // Use the same validation endpoint as create modal for consistency
       // First get the MCP type by name to get the ID
-      const serviceTypeName = mcp.mcpType || mcpType.toLowerCase();
+      // Prioritize the actual mcpType from the MCP item (from database)
+      const serviceTypeName = mcp.mcpType;
+      
+      if (!serviceTypeName) {
+        throw new Error('MCP type information is missing. Cannot validate credentials.');
+      }
       
       let mcpTypeData;
       try {
         mcpTypeData = await apiService.getMCPTypeByName(serviceTypeName);
-      } catch (mcpTypeError) {
+      } catch {
         throw new Error(`Failed to find MCP type '${serviceTypeName}'. Please check the service type.`);
       }
       
