@@ -17,6 +17,8 @@ export interface EditMCPFormData {
   apiKey: string;
   clientId: string;
   clientSecret: string;
+  credentials: Record<string, string>;
+  expiration: string;
 }
 
 export interface ConfirmationModalState {

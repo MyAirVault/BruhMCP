@@ -59,19 +59,40 @@ export const useDashboardActions = ({
     if (!editModalData.mcp) return;
 
     try {
+      // Build credentials object from both new credentials format and legacy fields
+      const credentials: Record<string, string> = { ...data.credentials };
+      
+      // Add legacy field mapping for backward compatibility
+      if (data.apiKey?.trim()) {
+        credentials.api_key = data.apiKey.trim();
+      }
+      if (data.clientId?.trim()) {
+        credentials.client_id = data.clientId.trim();
+      }
+      if (data.clientSecret?.trim()) {
+        credentials.client_secret = data.clientSecret.trim();
+      }
+
+      // Update MCP name and credentials
       await apiService.editMCP(editModalData.mcp.id, {
         custom_name: data.name,
-        credentials: {
-          api_key: data.apiKey,
-          client_id: data.clientId,
-          client_secret: data.clientSecret
-        }
+        credentials: credentials
       });
+
+      // If expiration is provided, also renew the MCP instance
+      if (data.expiration?.trim()) {
+        const newExpiresAt = convertExpirationToISODate(data.expiration);
+        
+        await apiService.renewMCP(editModalData.mcp.id, {
+          expires_at: newExpiresAt
+        });
+      }
 
       await refreshMCPList();
       setEditModalData({ isOpen: false, mcp: null });
     } catch (error) {
       console.error('Failed to edit MCP:', error);
+      throw error; // Re-throw so the modal can handle the error
     }
   };
 

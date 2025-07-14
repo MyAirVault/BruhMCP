@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { type MCPItem } from '../../types';
 import { useEditMCPForm } from '../../hooks/useEditMCPForm';
 import ValidationFeedback from '../ui/form/ValidationFeedback';
+import { EXPIRATION_OPTIONS } from '../../constants/expirationOptions';
 
 interface EditMCPModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ interface EditMCPFormData {
   apiKey: string;
   clientId: string;
   clientSecret: string;
+  credentials: Record<string, string>;
+  expiration: string;
 }
 
 const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, mcp }) => {
@@ -23,6 +26,7 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
     formData,
     validationState,
     handleInputChange,
+    handleCredentialChange,
     isFormValid,
     getMCPType,
     getRequiredFields,
@@ -152,56 +156,73 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
                     </p>
                   </div>
 
-                  {requiredFields.includes('clientId') && (
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Client ID
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.clientId}
-                        onChange={(e) => handleInputChange('clientId', e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Enter your Client ID"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                        required
-                      />
-                    </div>
-                  )}
-                  
-                  {requiredFields.includes('clientSecret') && (
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Client Secret
-                      </label>
-                      <input
-                        type="password"
-                        value={formData.clientSecret}
-                        onChange={(e) => handleInputChange('clientSecret', e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Enter your Client Secret"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                        required
-                      />
-                    </div>
-                  )}
-                  
-                  {requiredFields.includes('apiKey') && (
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        API Key
-                      </label>
-                      <input
-                        type="password"
-                        value={formData.apiKey}
-                        onChange={(e) => handleInputChange('apiKey', e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Enter your API key"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                        required
-                      />
-                    </div>
-                  )}
+                  {/* Dynamic credential fields based on MCP type */}
+                  {requiredFields.map((field) => {
+                    // Convert field name to readable label
+                    const getFieldLabel = (name: string) => {
+                      switch (name) {
+                        case 'api_key': return 'API Key';
+                        case 'client_id': return 'Client ID';
+                        case 'client_secret': return 'Client Secret';
+                        case 'personal_access_token': return 'Personal Access Token';
+                        case 'bot_token': return 'Bot Token';
+                        case 'refresh_token': return 'Refresh Token';
+                        default: return name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                      }
+                    };
+
+                    // Get current value - check both new credentials object and legacy fields
+                    const getCurrentValue = (fieldName: string) => {
+                      if (formData.credentials[fieldName]) {
+                        return formData.credentials[fieldName];
+                      }
+                      
+                      // Fallback to legacy field mapping
+                      switch (fieldName) {
+                        case 'api_key': return formData.apiKey;
+                        case 'client_id': return formData.clientId;
+                        case 'client_secret': return formData.clientSecret;
+                        default: return '';
+                      }
+                    };
+
+                    // Determine if field should be password type
+                    const isPasswordField = (name: string) => {
+                      const passwordFields = ['api_key', 'client_secret', 'personal_access_token', 'bot_token', 'refresh_token'];
+                      return passwordFields.includes(name);
+                    };
+
+                    const currentValue = getCurrentValue(field);
+
+                    return (
+                      <div key={field} className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {getFieldLabel(field)}
+                        </label>
+                        <input
+                          type={isPasswordField(field) ? 'password' : 'text'}
+                          value={currentValue}
+                          onChange={(e) => {
+                            // Update both the new credentials object and legacy fields for backward compatibility
+                            handleCredentialChange(field, e.target.value);
+                            
+                            // Also update legacy fields
+                            if (field === 'api_key') {
+                              handleInputChange('apiKey', e.target.value);
+                            } else if (field === 'client_id') {
+                              handleInputChange('clientId', e.target.value);
+                            } else if (field === 'client_secret') {
+                              handleInputChange('clientSecret', e.target.value);
+                            }
+                          }}
+                          onKeyDown={handleKeyDown}
+                          placeholder={`Enter your ${getFieldLabel(field)}`}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                          required
+                        />
+                      </div>
+                    );
+                  })}
 
                   {/* Validation Feedback */}
                   {requiresCredentials() && (
@@ -218,6 +239,30 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
                   </p>
                 </div>
               )}
+
+              {/* Expiration Extension */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Extend Expiration By
+                </label>
+                <select
+                  value={formData.expiration}
+                  onChange={(e) => handleInputChange('expiration', e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  required
+                >
+                  <option value="">Select extension period</option>
+                  {EXPIRATION_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  The MCP instance expiration will be extended by the selected amount
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">

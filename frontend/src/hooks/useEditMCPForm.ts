@@ -9,6 +9,8 @@ interface EditMCPFormData {
   apiKey: string;
   clientId: string;
   clientSecret: string;
+  credentials: Record<string, string>;
+  expiration: string;
 }
 
 interface UseEditMCPFormProps {
@@ -25,7 +27,9 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     name: '',
     apiKey: '',
     clientId: '',
-    clientSecret: ''
+    clientSecret: '',
+    credentials: {},
+    expiration: ''
   });
 
   const [mcpType, setMcpType] = useState<MCPType | null>(null);
@@ -78,7 +82,9 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         name: mcp.name,
         apiKey: '',
         clientId: '',
-        clientSecret: ''
+        clientSecret: '',
+        credentials: {},
+        expiration: ''
       });
       setValidationState({
         isValidating: false,
@@ -96,6 +102,16 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
+  const handleCredentialChange = useCallback((credentialName: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      credentials: {
+        ...prev.credentials,
+        [credentialName]: value
+      }
+    }));
+  }, []);
+
   // Credential validation function using shared utility (same as create modal)
   const validateCredentials = useCallback(async () => {
     if (!mcpType) return;
@@ -106,7 +122,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         apiKey: formData.apiKey,
         clientId: formData.clientId,
         clientSecret: formData.clientSecret,
-        credentials: {} // Edit modal doesn't use the new credentials format yet
+        credentials: formData.credentials
       },
       validationState,
       setValidationState
@@ -123,7 +139,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         apiKey: formData.apiKey,
         clientId: formData.clientId,
         clientSecret: formData.clientSecret,
-        credentials: {}
+        credentials: formData.credentials
       };
       const credentials = buildCredentialsObject(mcpType, credentialData);
       const credentialsHash = getCredentialsHash(credentials);
@@ -142,7 +158,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         lastValidatedCredentialsRef.current = null;
       }
     }
-  }, [mcpType, formData.apiKey, formData.clientId, formData.clientSecret, requiresCredentials, getCredentialsHash, buildCredentialsObject]);
+  }, [mcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, getCredentialsHash, buildCredentialsObject]);
 
   // Trigger validation when credentials change (with debouncing - same as create modal)
   useEffect(() => {
@@ -151,7 +167,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         apiKey: formData.apiKey,
         clientId: formData.clientId,
         clientSecret: formData.clientSecret,
-        credentials: {}
+        credentials: formData.credentials
       };
 
       const hasAllFields = hasAllRequiredFields(mcpType, credentialData);
@@ -172,11 +188,11 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [mcpType, formData.apiKey, formData.clientId, formData.clientSecret, requiresCredentials, hasAllRequiredFields, buildCredentialsObject, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
+  }, [mcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, hasAllRequiredFields, buildCredentialsObject, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
 
   // Check if form is valid for submission (same logic as create modal)
   const isFormValid = useCallback(() => {
-    if (!mcp || !formData.name || !mcpType) return false;
+    if (!mcp || !formData.name || !mcpType || !formData.expiration) return false;
     
     // Check if credentials are required and valid
     if (requiresCredentials(mcpType)) {
@@ -184,7 +200,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         apiKey: formData.apiKey,
         clientId: formData.clientId,
         clientSecret: formData.clientSecret,
-        credentials: {}
+        credentials: formData.credentials
       };
       
       const hasAllFields = hasAllRequiredFields(mcpType, credentialData);
@@ -215,6 +231,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     formData,
     validationState,
     handleInputChange,
+    handleCredentialChange,
     isFormValid,
     getMCPType: getMCPTypeDisplayName, // For backward compatibility
     getRequiredFields: () => getRequiredFields(mcpType),
