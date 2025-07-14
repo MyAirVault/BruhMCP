@@ -111,62 +111,42 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
 
           <form onSubmit={handleSubmit} className="px-6 py-4">
             <div className="space-y-4">
-              {/* MCP Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  MCP Name
-                </label>
-                <input
-                  ref={firstInputRef}
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Enter MCP name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                  required
-                />
-              </div>
+            <FormField label="MCP Name" required>
+              <input
+                ref={firstInputRef}
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Enter MCP name"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                required
+              />
+            </FormField>
 
-              {/* MCP Type Display */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  MCP Type
-                </label>
-                <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600">
-                  {mcpType?.display_name || mcpType?.name || 'Unknown'}
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Type cannot be changed after creation
-                </p>
+            <FormField label="MCP Type">
+              <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600">
+                {mcpType?.display_name || mcpType?.name || 'Unknown'}
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Type cannot be changed after creation
+              </p>
+            </FormField>
 
-              {/* Credentials Section */}
-              <div>
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Update Credentials
-                  </h4>
-                  <p className="text-xs text-gray-500 mb-4">
-                    Enter new credentials to update the existing ones
-                  </p>
-                </div>
-
-                <CredentialFields
-                  selectedMcpType={mcpType}
-                  formData={formData}
-                  validationState={validationState}
-                  onCredentialChange={handleCredentialChange}
-                  onInputChange={(field: string, value: string) => {
-                    // Type-safe wrapper for handleInputChange
-                    if (field === 'apiKey' || field === 'clientId' || field === 'clientSecret' || field === 'name' || field === 'expiration') {
-                      handleInputChange(field as keyof EditMCPFormData, value);
-                    }
-                  }}
-                  onKeyDown={handleKeyDown}
-                  onRetryValidation={retryValidation}
-                />
-              </div>
+              <CredentialFields
+                selectedMcpType={mcpType}
+                formData={formData}
+                validationState={validationState}
+                onCredentialChange={handleCredentialChange}
+                onInputChange={(field: string, value: string) => {
+                  // Type-safe wrapper for handleInputChange
+                  if (field === 'apiKey' || field === 'clientId' || field === 'clientSecret' || field === 'name' || field === 'expiration') {
+                    handleInputChange(field as keyof EditMCPFormData, value);
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                onRetryValidation={retryValidation}
+              />
 
               {/* Expiration Extension */}
               <FormField label="Extend Expiration By" required>
