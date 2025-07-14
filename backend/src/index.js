@@ -62,6 +62,15 @@ app.use((req, res, next) => {
 	next();
 });
 
+// OAuth well-known endpoint handler for MCP services (before static files)
+app.get('/.well-known/oauth-authorization-server/*', (req, res) => {
+	// MCP services using API keys should return 404 for OAuth endpoints
+	res.status(404).json({
+		error: 'Not Found',
+		message: 'This endpoint is not available for API key based MCP services'
+	});
+});
+
 // Static files
 app.use(express.static('public'));
 

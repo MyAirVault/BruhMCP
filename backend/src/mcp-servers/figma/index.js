@@ -18,10 +18,10 @@ dotenv.config({ path: join(backendRoot, '.env') });
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
-import { FigmaMCPJsonRpcHandler } from './endpoints/jsonrpc-handler.js';
 import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
 import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
 import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
+import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 
 // Service configuration (from database)
@@ -72,6 +72,14 @@ app.get('/health', (_, res) => {
 
 // Instance-based endpoints with multi-tenant routing
 
+// OAuth well-known endpoint (return 404 as Figma uses API keys, not OAuth)
+app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: 'This MCP server uses API key authentication, not OAuth'
+  });
+});
+
 // Instance health endpoint (using lightweight auth - no credential caching needed)
 app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
   try {
@@ -90,13 +98,54 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
   }
 });
 
-// MCP JSON-RPC endpoint (requires full credential authentication with caching)
+// MCP JSON-RPC endpoint at base instance URL for Claude Code compatibility
+app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
+  try {
+    // Get or create persistent handler for this instance
+    const jsonRpcHandler = getOrCreateHandler(
+      req.instanceId,
+      SERVICE_CONFIG,
+      req.figmaApiKey || ''
+    );
+    
+    // Process the JSON-RPC message with persistent handler
+    const response = await jsonRpcHandler.processMessage(req.body);
+    
+    if (response) {
+      res.json(response);
+    } else {
+      // No response for notifications
+      res.status(204).send();
+    }
+    
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('JSON-RPC processing error:', errorMessage);
+    
+    // Return proper JSON-RPC error response
+    res.json({
+      jsonrpc: '2.0',
+      id: req.body?.id || null,
+      error: {
+        code: -32603,
+        message: 'Internal error',
+        data: { details: errorMessage }
+      }
+    });
+  }
+});
+
+// MCP JSON-RPC endpoint at /mcp path (requires full credential authentication with caching)
 app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   try {
-    // Create JSON-RPC handler for this instance
-    const jsonRpcHandler = new FigmaMCPJsonRpcHandler(SERVICE_CONFIG, req.figmaApiKey || '');
+    // Get or create persistent handler for this instance
+    const jsonRpcHandler = getOrCreateHandler(
+      req.instanceId,
+      SERVICE_CONFIG,
+      req.figmaApiKey || ''
+    );
     
-    // Process the JSON-RPC message
+    // Process the JSON-RPC message with persistent handler
     const response = await jsonRpcHandler.processMessage(req.body);
     
     if (response) {
@@ -130,11 +179,13 @@ if (process.env.NODE_ENV === 'development') {
     try {
       const cacheStats = getCacheStatistics();
       const watcherStatus = getWatcherStatus();
+      const sessionStats = getSessionStatistics();
       
       res.json({
         service: SERVICE_CONFIG.name,
         cache_statistics: cacheStats,
         watcher_status: watcherStatus,
+        session_statistics: sessionStats,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
@@ -171,6 +222,7 @@ app.use('*', (req, res) => {
       availableEndpoints: [
         'GET /health (global)',
         'GET /:instanceId/health',
+        'POST /:instanceId (JSON-RPC 2.0)',
         'POST /:instanceId/mcp (JSON-RPC 2.0)'
       ]
     }
@@ -189,12 +241,16 @@ const server = app.listen(SERVICE_CONFIG.port, () => {
   
   // Start Phase 2 credential watcher for background maintenance
   startCredentialWatcher();
+  
+  // Start handler session cleanup service
+  startSessionCleanup();
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
   stopCredentialWatcher();
+  stopSessionCleanup();
   server.close(() => {
     console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
     process.exit(0);
@@ -204,6 +260,7 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
   stopCredentialWatcher();
+  stopSessionCleanup();
   server.close(() => {
     console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
     process.exit(0);

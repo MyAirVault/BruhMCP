@@ -57,6 +57,15 @@ This folder contains comprehensive documentation for the multi-tenant MCP servic
 - Protocol compliance validation
 - Monitoring and logging best practices
 
+### [mcp-handler-sessions.md](./mcp-handler-sessions.md)
+**MCP Handler Session Management**
+- Persistent handler instances for stateful MCP sessions
+- Solves "Server not initialized" errors with Claude Code
+- Session lifecycle and automatic cleanup
+- Integration with credential caching
+- Monitoring and troubleshooting sessions
+- Implementation guide for all MCP services
+
 ## Implementation Status
 
 ### ✅ Completed
@@ -66,6 +75,8 @@ This folder contains comprehensive documentation for the multi-tenant MCP servic
 - **Multi-User Support**: Complete isolation between users of the same service
 - **MCP Protocol Implementation**: Specification-compliant JSON-RPC 2.0 server with proper error handling
 - **Development Documentation**: Complete guides for implementing new MCP servers
+- **Handler Session Management**: Persistent handler instances for proper MCP stateful sessions
+- **Claude Code Compatibility**: Full support for Claude Code and other MCP clients
 
 ### 🔄 In Progress
 - Database schema deployment
