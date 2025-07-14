@@ -18,8 +18,7 @@ dotenv.config({ path: join(backendRoot, '.env') });
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
-import { getTools } from './endpoints/tools.js';
-import { executeToolCall } from './endpoints/call.js';
+import { FigmaMCPJsonRpcHandler } from './endpoints/jsonrpc-handler.js';
 import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
 import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
 import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
@@ -91,97 +90,39 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
   }
 });
 
-// Get available tools (using lightweight auth - basic validation only)
-app.get('/:instanceId/mcp/tools', lightweightAuthMiddleware, (req, res) => {
+// MCP JSON-RPC endpoint (requires full credential authentication with caching)
+app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   try {
-    const tools = {
-      ...getTools(),
-      instanceId: req.instanceId,
-      message: 'Instance-specific tools'
-    };
-    res.json(tools);
+    // Create JSON-RPC handler for this instance
+    const jsonRpcHandler = new FigmaMCPJsonRpcHandler(SERVICE_CONFIG, req.figmaApiKey || '');
+    
+    // Process the JSON-RPC message
+    const response = await jsonRpcHandler.processMessage(req.body);
+    
+    if (response) {
+      res.json(response);
+    } else {
+      // No response for notifications
+      res.status(204).send();
+    }
+    
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    ErrorResponses.internal(res, 'Failed to retrieve tools', {
-      instanceId: req.instanceId,
-      metadata: { errorMessage }
-    });
-  }
-});
-
-// Execute tool calls (requires full credential authentication with caching)
-app.post('/:instanceId/mcp/call', credentialAuthMiddleware, async (req, res) => {
-  try {
-    const { name, arguments: args } = req.body;
+    console.error('JSON-RPC processing error:', errorMessage);
     
-    if (!name) {
-      return ErrorResponses.missingField(res, 'name', { instanceId: req.instanceId });
-    }
-    
-    if (!args) {
-      return ErrorResponses.missingField(res, 'arguments', { instanceId: req.instanceId });
-    }
-    
-    // Execute the tool call with the instance's API key
-    const result = await executeToolCall(name, args, req.figmaApiKey || '');
+    // Return proper JSON-RPC error response
     res.json({
-      ...result,
-      instanceId: req.instanceId,
-      userId: req.userId,
-      cache_hit: req.cacheHit
-    });
-    
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    ErrorResponses.internal(res, 'Tool execution failed', {
-      instanceId: req.instanceId,
-      metadata: { 
-        errorMessage,
-        content: [{ type: 'text', text: `Error: ${errorMessage}` }]
+      jsonrpc: '2.0',
+      id: req.body?.id || null,
+      error: {
+        code: -32603,
+        message: 'Internal error',
+        data: { details: errorMessage }
       }
     });
   }
 });
 
-// Additional endpoints for direct API access (authenticated)
-
-// Get file info directly (requires full credential authentication with caching)
-app.get('/:instanceId/api/files/:fileKey', credentialAuthMiddleware, async (req, res) => {
-  try {
-    const { fileKey } = req.params;
-    const result = await executeToolCall('get_figma_file', { fileKey }, req.figmaApiKey || '');
-    res.json({
-      ...result,
-      instanceId: req.instanceId
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({
-      error: 'Failed to get file info',
-      message: errorMessage,
-      instanceId: req.instanceId
-    });
-  }
-});
-
-// Get components directly (requires full credential authentication with caching)
-app.get('/:instanceId/api/files/:fileKey/components', credentialAuthMiddleware, async (req, res) => {
-  try {
-    const { fileKey } = req.params;
-    const result = await executeToolCall('get_figma_components', { fileKey }, req.figmaApiKey || '');
-    res.json({
-      ...result,
-      instanceId: req.instanceId
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({
-      error: 'Failed to get components',
-      message: errorMessage,
-      instanceId: req.instanceId
-    });
-  }
-});
 
 // Debug endpoint for cache monitoring (development only)
 if (process.env.NODE_ENV === 'development') {
@@ -230,10 +171,7 @@ app.use('*', (req, res) => {
       availableEndpoints: [
         'GET /health (global)',
         'GET /:instanceId/health',
-        'GET /:instanceId/mcp/tools',
-        'POST /:instanceId/mcp/call',
-        'GET /:instanceId/api/files/:fileKey',
-        'GET /:instanceId/api/files/:fileKey/components'
+        'POST /:instanceId/mcp (JSON-RPC 2.0)'
       ]
     }
   });
@@ -244,11 +182,10 @@ const server = app.listen(SERVICE_CONFIG.port, () => {
   console.log(`✅ ${SERVICE_CONFIG.displayName} service running on port ${SERVICE_CONFIG.port}`);
   console.log(`🔗 Global Health: http://localhost:${SERVICE_CONFIG.port}/health`);
   console.log(`🏠 Instance Health: http://localhost:${SERVICE_CONFIG.port}/:instanceId/health`);
-  console.log(`🛠️  MCP Tools: http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp/tools`);
-  console.log(`📞 MCP Call: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp/call`);
-  console.log(`📁 File API: GET http://localhost:${SERVICE_CONFIG.port}/:instanceId/api/files/:fileKey`);
+  console.log(`🔧 MCP JSON-RPC: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp`);
   console.log(`🌐 Multi-tenant architecture enabled with instance-based routing`);
   console.log(`🚀 Phase 2: Credential caching system enabled`);
+  console.log(`📋 MCP Protocol: JSON-RPC 2.0 exclusively`);
   
   // Start Phase 2 credential watcher for background maintenance
   startCredentialWatcher();
