@@ -148,8 +148,10 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
 
     try {
       // Use the service type from the MCP item to validate credentials
+      // Fall back to detected mcpType if mcp.mcpType is not available
+      const serviceType = mcp.mcpType || mcpType.toLowerCase();
       const result = await apiService.validateMCPCredentials({
-        mcp_type: mcp.service_type || mcpType.toLowerCase(),
+        mcp_type: serviceType,
         credentials
       });
 
@@ -157,7 +159,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         isValidating: false,
         isValid: result.valid,
         error: null,
-        apiInfo: result.api_info || null,
+        apiInfo: result.service ? { service: result.service.name } : null,
         failureCount: 0, // Reset failure count on success
         lastFailedCredentials: null
       });
