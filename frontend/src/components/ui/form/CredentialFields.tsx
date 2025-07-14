@@ -1,16 +1,23 @@
 import React from 'react';
 import { type MCPType } from '../../../types';
-import { type CreateMCPFormData } from '../../dashboard/types';
 import { type ValidationState } from '../../../types/createMCPModal';
 import FormField from './FormField';
 import ValidationFeedback from './ValidationFeedback';
 
+// Generic form data type that includes the common fields between CreateMCPFormData and EditMCPFormData
+type CredentialFormData = {
+  apiKey: string;
+  clientId: string;
+  clientSecret: string;
+  credentials: Record<string, string>;
+};
+
 interface CredentialFieldsProps {
   selectedMcpType: MCPType | null;
-  formData: CreateMCPFormData;
+  formData: CredentialFormData;
   validationState: ValidationState;
   onCredentialChange: (credentialName: string, value: string) => void;
-  onInputChange: (field: keyof CreateMCPFormData, value: string) => void;
+  onInputChange: (field: string, value: string) => void;
   onKeyDown?: (e: React.KeyboardEvent) => void;
   onRetryValidation?: () => void;
 }
@@ -53,9 +60,9 @@ const CredentialFields: React.FC<CredentialFieldsProps> = ({
     onCredentialChange(fieldName, value);
     
     // Also update legacy fields for backward compatibility
-    if (fieldName === 'api_key') onInputChange('apiKey' as keyof CreateMCPFormData, value);
-    else if (fieldName === 'client_id') onInputChange('clientId' as keyof CreateMCPFormData, value);
-    else if (fieldName === 'client_secret') onInputChange('clientSecret' as keyof CreateMCPFormData, value);
+    if (fieldName === 'api_key') onInputChange('apiKey', value);
+    else if (fieldName === 'client_id') onInputChange('clientId', value);
+    else if (fieldName === 'client_secret') onInputChange('clientSecret', value);
   };
 
   const getFieldValue = (fieldName: string) => {

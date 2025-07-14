@@ -1,9 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { type MCPItem } from '../../types';
+import { type EditMCPFormData } from '../dashboard/types';
+import { type ExpirationOption } from '../../types/createMCPModal';
 import { useEditMCPForm } from '../../hooks/useEditMCPForm';
-import ValidationFeedback from '../ui/form/ValidationFeedback';
-import { EXPIRATION_OPTIONS } from '../../constants/expirationOptions';
+import CredentialFields from '../ui/form/CredentialFields';
+import FormField from '../ui/form/FormField';
+import ExpirationDropdown from '../ui/form/ExpirationDropdown';
 
 interface EditMCPModalProps {
   isOpen: boolean;
@@ -12,14 +15,6 @@ interface EditMCPModalProps {
   mcp: MCPItem | null;
 }
 
-interface EditMCPFormData {
-  name: string;
-  apiKey: string;
-  clientId: string;
-  clientSecret: string;
-  credentials: Record<string, string>;
-  expiration: string;
-}
 
 const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, mcp }) => {
   const {
@@ -28,17 +23,17 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
     handleInputChange,
     handleCredentialChange,
     isFormValid,
-    getMCPType,
-    getRequiredFields,
-    requiresCredentials,
-    retryValidation
+    retryValidation,
+    mcpType
   } = useEditMCPForm({ isOpen, mcp });
 
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const [expirationDropdownOpen, setExpirationDropdownOpen] = useState(false);
 
-  // Focus first field when modal opens
+  // Reset dropdown states and focus first field when modal opens
   useEffect(() => {
     if (isOpen) {
+      setExpirationDropdownOpen(false);
       // Focus first field after modal animation
       setTimeout(() => {
         firstInputRef.current?.focus();
@@ -69,6 +64,11 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
     onClose();
   };
 
+  const handleExpirationSelect = (option: ExpirationOption) => {
+    handleInputChange('expiration', option.value);
+    setExpirationDropdownOpen(false);
+  };
+
   const handleCancel = () => {
     onClose();
   };
@@ -85,9 +85,6 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
   };
 
   if (!isOpen || !mcp) return null;
-
-  const mcpType = getMCPType();
-  const requiredFields = getRequiredFields();
 
   return (
     <>
@@ -137,7 +134,7 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
                   MCP Type
                 </label>
                 <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600">
-                  {mcpType}
+                  {mcpType?.display_name || mcpType?.name || 'Unknown'}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
                   Type cannot be changed after creation
@@ -145,124 +142,45 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
               </div>
 
               {/* Credentials Section */}
-              {requiresCredentials() && (
-                <div>
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">
-                      Update Credentials
-                    </h4>
-                    <p className="text-xs text-gray-500 mb-4">
-                      Enter new credentials to update the existing ones
-                    </p>
-                  </div>
-
-                  {/* Dynamic credential fields based on MCP type */}
-                  {requiredFields.map((field) => {
-                    // Convert field name to readable label
-                    const getFieldLabel = (name: string) => {
-                      switch (name) {
-                        case 'api_key': return 'API Key';
-                        case 'client_id': return 'Client ID';
-                        case 'client_secret': return 'Client Secret';
-                        case 'personal_access_token': return 'Personal Access Token';
-                        case 'bot_token': return 'Bot Token';
-                        case 'refresh_token': return 'Refresh Token';
-                        default: return name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-                      }
-                    };
-
-                    // Get current value - check both new credentials object and legacy fields
-                    const getCurrentValue = (fieldName: string) => {
-                      if (formData.credentials[fieldName]) {
-                        return formData.credentials[fieldName];
-                      }
-                      
-                      // Fallback to legacy field mapping
-                      switch (fieldName) {
-                        case 'api_key': return formData.apiKey;
-                        case 'client_id': return formData.clientId;
-                        case 'client_secret': return formData.clientSecret;
-                        default: return '';
-                      }
-                    };
-
-                    // Determine if field should be password type
-                    const isPasswordField = (name: string) => {
-                      const passwordFields = ['api_key', 'client_secret', 'personal_access_token', 'bot_token', 'refresh_token'];
-                      return passwordFields.includes(name);
-                    };
-
-                    const currentValue = getCurrentValue(field);
-
-                    return (
-                      <div key={field} className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {getFieldLabel(field)}
-                        </label>
-                        <input
-                          type={isPasswordField(field) ? 'password' : 'text'}
-                          value={currentValue}
-                          onChange={(e) => {
-                            // Update both the new credentials object and legacy fields for backward compatibility
-                            handleCredentialChange(field, e.target.value);
-                            
-                            // Also update legacy fields
-                            if (field === 'api_key') {
-                              handleInputChange('apiKey', e.target.value);
-                            } else if (field === 'client_id') {
-                              handleInputChange('clientId', e.target.value);
-                            } else if (field === 'client_secret') {
-                              handleInputChange('clientSecret', e.target.value);
-                            }
-                          }}
-                          onKeyDown={handleKeyDown}
-                          placeholder={`Enter your ${getFieldLabel(field)}`}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                          required
-                        />
-                      </div>
-                    );
-                  })}
-
-                  {/* Validation Feedback */}
-                  {requiresCredentials() && (
-                    <div className="mb-4">
-                      <ValidationFeedback
-                        validationState={validationState}
-                        onRetryValidation={retryValidation}
-                      />
-                    </div>
-                  )}
-                  
-                  <p className="text-xs text-gray-500">
-                    These credentials will be stored securely and replace the existing ones
+              <div>
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    Update Credentials
+                  </h4>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Enter new credentials to update the existing ones
                   </p>
                 </div>
-              )}
+
+                <CredentialFields
+                  selectedMcpType={mcpType}
+                  formData={formData}
+                  validationState={validationState}
+                  onCredentialChange={handleCredentialChange}
+                  onInputChange={(field: string, value: string) => {
+                    // Type-safe wrapper for handleInputChange
+                    if (field === 'apiKey' || field === 'clientId' || field === 'clientSecret' || field === 'name' || field === 'expiration') {
+                      handleInputChange(field as keyof EditMCPFormData, value);
+                    }
+                  }}
+                  onKeyDown={handleKeyDown}
+                  onRetryValidation={retryValidation}
+                />
+              </div>
 
               {/* Expiration Extension */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Extend Expiration By
-                </label>
-                <select
+              <FormField label="Extend Expiration By" required>
+                <ExpirationDropdown
                   value={formData.expiration}
-                  onChange={(e) => handleInputChange('expiration', e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                  required
-                >
-                  <option value="">Select extension period</option>
-                  {EXPIRATION_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  isOpen={expirationDropdownOpen}
+                  onToggle={() => setExpirationDropdownOpen(!expirationDropdownOpen)}
+                  onSelect={handleExpirationSelect}
+                  onClose={() => setExpirationDropdownOpen(false)}
+                />
                 <p className="text-xs text-gray-500 mt-1">
                   The MCP instance expiration will be extended by the selected amount
                 </p>
-              </div>
+              </FormField>
             </div>
 
             <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">

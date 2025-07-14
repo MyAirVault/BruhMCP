@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { type MCPType } from '../../types';
 import { type CreateMCPModalProps, type ExpirationOption } from '../../types/createMCPModal';
+import { type CreateMCPFormData } from '../dashboard/types';
 import { useCreateMCPForm } from '../../hooks/useCreateMCPForm';
 import FormField from '../ui/form/FormField';
 import TypeDropdown from '../ui/form/TypeDropdown';
@@ -147,7 +148,12 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               formData={formData}
               validationState={validationState}
               onCredentialChange={handleCredentialChange}
-              onInputChange={handleInputChange}
+              onInputChange={(field: string, value: string) => {
+                // Type-safe wrapper for handleInputChange
+                if (field === 'apiKey' || field === 'clientId' || field === 'clientSecret' || field === 'name' || field === 'type' || field === 'expiration') {
+                  handleInputChange(field as keyof CreateMCPFormData, value);
+                }
+              }}
               onKeyDown={handleKeyDown}
               onRetryValidation={retryValidation}
             />
