@@ -74,15 +74,18 @@ export async function createUser(userData) {
  * @returns {Promise<Object>} User record (existing or newly created)
  */
 export async function findOrCreateUser(email, name = null) {
-	// First try to find existing user
-	let user = await findUserByEmail(email);
+	const query = `
+		INSERT INTO users (email, name)
+		VALUES ($1, $2)
+		ON CONFLICT (email) 
+		DO UPDATE SET 
+			name = COALESCE(EXCLUDED.name, users.name),
+			updated_at = NOW()
+		RETURNING id, email, name, created_at, updated_at
+	`;
 	
-	if (user) {
-		return user;
-	}
-	
-	// Create new user if not found
-	return await createUser({ email, name });
+	const result = await pool.query(query, [email, name]);
+	return result.rows[0];
 }
 
 /**

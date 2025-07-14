@@ -422,6 +422,30 @@ class LoggingService {
 	}
 
 	/**
+	 * Generic info logging method
+	 * @param {string} message - Log message
+	 * @param {Object} context - Additional context data
+	 */
+	info(message, context = {}) {
+		this.systemLogger.info(message, {
+			...context,
+			timestamp: new Date().toISOString()
+		});
+	}
+
+	/**
+	 * Generic warn logging method
+	 * @param {string} message - Log message
+	 * @param {Object} context - Additional context data
+	 */
+	warn(message, context = {}) {
+		this.systemLogger.warn(message, {
+			...context,
+			timestamp: new Date().toISOString()
+		});
+	}
+
+	/**
 	 * Get logging system health
 	 */
 	getLoggingHealth() {

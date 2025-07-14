@@ -24,8 +24,7 @@ module.exports = {
       log_file: './logs/mcp-figma.log',
       time: true,
       merge_logs: true,
-      max_restarts: 10,
-      min_uptime: '10s'
+      max_restarts: 10
     },
     {
       name: 'mcp-github',
@@ -51,8 +50,7 @@ module.exports = {
       log_file: './logs/mcp-github.log',
       time: true,
       merge_logs: true,
-      max_restarts: 10,
-      min_uptime: '10s'
+      max_restarts: 10
     },
     {
       name: 'mcp-slack',
@@ -78,8 +76,7 @@ module.exports = {
       log_file: './logs/mcp-slack.log',
       time: true,
       merge_logs: true,
-      max_restarts: 10,
-      min_uptime: '10s'
+      max_restarts: 10
     },
     {
       name: 'mcp-notion',
@@ -105,8 +102,7 @@ module.exports = {
       log_file: './logs/mcp-notion.log',
       time: true,
       merge_logs: true,
-      max_restarts: 10,
-      min_uptime: '10s'
+      max_restarts: 10
     },
     {
       name: 'mcp-discord',
@@ -132,8 +128,7 @@ module.exports = {
       log_file: './logs/mcp-discord.log',
       time: true,
       merge_logs: true,
-      max_restarts: 10,
-      min_uptime: '10s'
+      max_restarts: 10
     }
   ]
 };

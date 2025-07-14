@@ -1,5 +1,5 @@
 import { testAPICredentials } from './credentialValidationService.js';
-import { getMCPTypeByServiceName } from '../db/queries/mcpTypesQueries.js';
+import { getMCPTypeByName } from '../db/queries/mcpTypesQueries.js';
 
 /**
  * Enhanced credential validation service for instance updates
@@ -15,7 +15,7 @@ import { getMCPTypeByServiceName } from '../db/queries/mcpTypesQueries.js';
 export async function validateCredentialsForService(serviceName, credentials) {
 	try {
 		// Get MCP type ID for the service
-		const mcpType = await getMCPTypeByServiceName(serviceName);
+		const mcpType = await getMCPTypeByName(serviceName);
 		if (!mcpType) {
 			return {
 				isValid: false,

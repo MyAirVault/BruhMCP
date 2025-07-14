@@ -46,7 +46,6 @@ start_service() {
         --log-type json \
         --merge-logs \
         --max-restarts 10 \
-        --min-uptime "10s" \
         --watch "$service_path" \
         --ignore-watch "node_modules logs *.log" \
         --env NODE_ENV=production \
@@ -60,20 +59,12 @@ start_service() {
 echo ""
 echo "🛑 Stopping existing MCP services..."
 pm2 delete mcp-figma 2>/dev/null || true
-pm2 delete mcp-github 2>/dev/null || true
-pm2 delete mcp-slack 2>/dev/null || true
-pm2 delete mcp-notion 2>/dev/null || true
-pm2 delete mcp-discord 2>/dev/null || true
 
 echo ""
 echo "🏁 Starting MCP services..."
 
 # Start individual services with PM2
 start_service "figma" "$MCP_SERVERS_ROOT/figma" "49280"
-start_service "github" "$MCP_SERVERS_ROOT/github" "49294"
-start_service "slack" "$MCP_SERVERS_ROOT/slack" "49295"
-start_service "notion" "$MCP_SERVERS_ROOT/notion" "49296"
-start_service "discord" "$MCP_SERVERS_ROOT/discord" "49297"
 
 echo ""
 echo "⏳ Waiting for services to initialize..."
@@ -113,10 +104,6 @@ check_service_health() {
 
 # Check each service
 check_service_health "figma" "49280"
-check_service_health "github" "49294"
-check_service_health "slack" "49295"
-check_service_health "notion" "49296"
-check_service_health "discord" "49297"
 
 echo ""
 echo "🎉 MCP Services startup complete!"
@@ -124,10 +111,6 @@ echo ""
 echo "📊 Service Status:"
 echo "Available services:"
 echo "  📐 Figma: http://localhost:49280/health"
-echo "  🐙 GitHub: http://localhost:49294/health"
-echo "  💬 Slack: http://localhost:49295/health"
-echo "  📝 Notion: http://localhost:49296/health"
-echo "  🎮 Discord: http://localhost:49297/health"
 
 echo ""
 echo "📊 PM2 Status:"

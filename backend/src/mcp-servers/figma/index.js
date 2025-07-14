@@ -5,6 +5,16 @@
 
 /// <reference path="../../types/figma.d.ts" />
 
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Load .env from backend root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const backendRoot = join(__dirname, '../../..');
+dotenv.config({ path: join(backendRoot, '.env') });
+
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';

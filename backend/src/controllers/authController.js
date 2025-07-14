@@ -3,6 +3,11 @@ import { z } from 'zod';
 import { authService } from '../services/authService.js';
 import { ErrorResponses, formatZodErrors } from '../utils/errorResponse.js';
 
+/**
+ * @typedef {import('../types/auth.d.ts').AuthRequestTokenResult} AuthRequestTokenResult
+ * @typedef {import('../types/auth.d.ts').AuthVerifyTokenResult} AuthVerifyTokenResult
+ */
+
 // Zod validation schemas
 const authRequestSchema = z.object({
 	email: z.string().email('Invalid email format').min(1, 'Email is required'),
@@ -23,7 +28,11 @@ export async function requestToken(req, res) {
 		const validationResult = authRequestSchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			return ErrorResponses.validation(res, 'Invalid request parameters', formatZodErrors(validationResult.error));
+			return ErrorResponses.validation(
+				res,
+				'Invalid request parameters',
+				formatZodErrors(validationResult.error)
+			);
 		}
 
 		const { email } = validationResult.data;
@@ -35,6 +44,7 @@ export async function requestToken(req, res) {
 		}
 
 		// Request token from auth service
+		/** @type {AuthRequestTokenResult} */
 		const result = await authService.requestToken(email);
 
 		if (!result.success) {
@@ -42,10 +52,12 @@ export async function requestToken(req, res) {
 		}
 
 		// Log magic link to console
-		const magicLink = `${process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`}/verify?token=${result.token}`;
+		const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+		const magicLink = `${frontendUrl}/verify?token=${result.token}`;
 		console.log(`\n🔗 Magic link for ${email}: ${magicLink}\n`);
 
 		// Return success response
+		/** @type {any} */
 		const response = {
 			success: true,
 			message: 'Magic link generated. Check console for link.',
@@ -54,7 +66,6 @@ export async function requestToken(req, res) {
 
 		// In development mode, also include the token for testing
 		if (process.env.NODE_ENV !== 'production') {
-			// @ts-ignore - Adding token for development
 			response.token = result.token;
 		}
 
@@ -76,12 +87,17 @@ export async function verifyToken(req, res) {
 		const validationResult = authVerifySchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			return ErrorResponses.validation(res, 'Invalid request parameters', formatZodErrors(validationResult.error));
+			return ErrorResponses.validation(
+				res,
+				'Invalid request parameters',
+				formatZodErrors(validationResult.error)
+			);
 		}
 
 		const { token } = validationResult.data;
 
 		// Verify token with auth service
+		/** @type {AuthVerifyTokenResult} */
 		const result = await authService.verifyToken(token);
 
 		if (!result.success) {
@@ -106,10 +122,7 @@ export async function verifyToken(req, res) {
 		return res.status(200).json({
 			success: true,
 			message: 'Authentication successful',
-			user: {
-				id: result.user.id,
-				email: result.user.email,
-			},
+			user: result.user,
 		});
 	} catch (error) {
 		console.error('Error in verifyToken:', error);

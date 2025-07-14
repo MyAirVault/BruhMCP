@@ -5,8 +5,8 @@
  * Tests running MCP servers for proper protocol implementation
  */
 
-import { verifyMCPCompliance } from './src/utils/mcp-protocol-verifier.js';
-import { pool } from './src/db/config.js';
+import { verifyMCPCompliance } from '../src/utils/mcp-protocol-verifier.js';
+import { pool } from '../src/db/config.js';
 
 async function main() {
 	console.log('🚀 Starting MCP Protocol Compliance Testing\n');
