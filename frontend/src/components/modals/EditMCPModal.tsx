@@ -29,6 +29,7 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
 
   const firstInputRef = useRef<HTMLInputElement>(null);
   const [expirationDropdownOpen, setExpirationDropdownOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset dropdown states and focus first field when modal opens
   useEffect(() => {
@@ -56,12 +57,20 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
   }, [isOpen, onClose]);
 
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mcp) return;
+    if (!mcp || !isFormValid() || isSubmitting) return;
     
-    onSubmit(formData);
-    onClose();
+    setIsSubmitting(true);
+    
+    try {
+      onSubmit(formData);
+      onClose();
+    } catch (error) {
+      console.error('Failed to update MCP:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleExpirationSelect = (option: ExpirationOption) => {
@@ -173,10 +182,17 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
               </button>
               <button
                 type="submit"
-                disabled={!isFormValid()}
+                disabled={!isFormValid() || isSubmitting}
                 className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                Save Changes
+                {isSubmitting ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </div>
+                ) : (
+                  'Done'
+                )}
               </button>
             </div>
           </form>
