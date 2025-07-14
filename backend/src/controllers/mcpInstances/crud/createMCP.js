@@ -10,6 +10,7 @@ import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js
 import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats } from '../../../db/queries/mcpInstancesQueries.js';
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
+import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -120,6 +121,13 @@ export async function createMCP(req, res) {
 			clientSecret,
 			expiresAt
 		});
+
+		// Create log directory structure for the new instance
+		const logDirResult = await createMCPLogDirectory(userId, createdInstance.instance_id);
+		if (!logDirResult.success) {
+			console.warn(`⚠️ Log directory creation failed for instance ${createdInstance.instance_id}: ${logDirResult.error}`);
+			// Don't fail the instance creation if log directory creation fails
+		}
 
 		// Update service statistics
 		await updateMCPServiceStats(mcpService.mcp_service_id, {

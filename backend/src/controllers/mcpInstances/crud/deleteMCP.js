@@ -4,6 +4,7 @@ import { invalidateInstanceCache } from '../../../services/cacheInvalidationServ
 import { pool } from '../../../db/config.js';
 import { logDeletionEvent, trackDeletionMetrics } from '../../../utils/deletionAudit.js';
 import loggingService from '../../../services/logging/loggingService.js';
+import { removeMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -102,7 +103,13 @@ export async function deleteMCP(req, res) {
 			// Don't fail the deletion - background watcher will clean up cache
 		});
 
-		// Step 4: Process cleanup no longer needed with new architecture
+		// Step 4: Log directory cleanup (async, non-blocking)
+		removeMCPLogDirectory(userId, id).catch(logError => {
+			console.error(`⚠️ Log directory cleanup failed for instance ${id}:`, logError);
+			// Don't fail the deletion - log directories can be cleaned up manually if needed
+		});
+
+		// Step 5: Process cleanup no longer needed with new architecture
 
 		console.log(`✅ MCP instance ${id} deleted successfully`);
 
