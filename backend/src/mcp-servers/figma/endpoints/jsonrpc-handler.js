@@ -70,20 +70,23 @@ export class FigmaMCPJsonRpcHandler {
 	 */
 	async handleInitialize(params, id) {
 		console.log(`🚀 Initialize request for ${this.serviceConfig.name} MCP Server`);
+		console.log('Initialize params:', JSON.stringify(params));
 
 		if (!params || !params.protocolVersion) {
 			return this.createErrorResponse(id, -32602, 'Invalid params: missing protocolVersion');
 		}
 
-		// Validate protocol version
-		if (params.protocolVersion !== '2024-11-05') {
-			return this.createErrorResponse(id, -32602, 'Unsupported protocol version');
+		// Validate protocol version - accept common versions
+		const supportedVersions = ['2024-11-05', '2025-06-18', '1.0', '0.1.0'];
+		if (!supportedVersions.includes(params.protocolVersion)) {
+			console.log(`Unsupported protocol version: ${params.protocolVersion}`);
+			return this.createErrorResponse(id, -32602, `Unsupported protocol version: ${params.protocolVersion}. Supported: ${supportedVersions.join(', ')}`);
 		}
 
 		this.initialized = true;
 
 		return this.createSuccessResponse(id, {
-			protocolVersion: '2024-11-05',
+			protocolVersion: params.protocolVersion, // Echo back the requested version
 			capabilities: {
 				tools: {},
 			},
