@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { type ExpirationOption, type DropdownPosition } from '../../../types/createMCPModal';
 import { calculateDropdownPosition } from '../../../utils/dropdownUtils';
+import { EXPIRATION_OPTIONS } from '../../../constants/expirationOptions';
 
 interface ExpirationDropdownProps {
   value: string;
@@ -31,14 +32,8 @@ const ExpirationDropdown: React.FC<ExpirationDropdownProps> = ({
     flipUp: false
   });
 
-  // Expiration options mapping to backend format
-  const expirationOptions: ExpirationOption[] = [
-    { label: '1 Hour', value: '1h' },
-    { label: '6 Hours', value: '6h' },
-    { label: '1 Day', value: '1day' },
-    { label: '30 Days', value: '30days' },
-    { label: 'Never', value: 'never' }
-  ];
+  // Use shared expiration options
+  const expirationOptions = EXPIRATION_OPTIONS;
 
   // Calculate dropdown position when opening
   useEffect(() => {

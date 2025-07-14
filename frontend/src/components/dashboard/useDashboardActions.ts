@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { type MCPItem } from '../../types';
 import { type CreateMCPFormData, type EditMCPFormData, type ConfirmationModalState, type ModalState, type DashboardCallbacks } from './types';
 import { apiService } from '../../services/apiService';
+import { convertExpirationToISODate } from '../../utils/dateHelpers';
 
 interface DashboardActionsProps {
   setEditModalData: (data: ModalState) => void;
@@ -147,11 +148,35 @@ export const useDashboardActions = ({
       openConfirmationModal('renew', mcp, async (data) => {
         try {
           if (data?.expiration) {
-            await apiService.renewMCP(mcp.id, { expiration_option: data.expiration });
+            // Convert expiration option to ISO date string
+            const expiresAt = convertExpirationToISODate(data.expiration);
+            
+            console.log(`🔄 Renewing MCP ${mcp.id} with expiration: ${data.expiration} -> ${expiresAt}`);
+            
+            await apiService.renewMCP(mcp.id, { expires_at: expiresAt });
             await refreshMCPList();
+            
+            console.log(`✅ Successfully renewed MCP ${mcp.id}`);
           }
         } catch (error) {
           console.error('Failed to renew MCP:', error);
+          
+          // Extract meaningful error message for user display
+          let errorMessage = 'Failed to renew MCP. Please try again.';
+          if (error instanceof Error) {
+            // Check if it's an API error with a specific message
+            if (error.message.includes('INSTANCE_NOT_EXPIRED')) {
+              errorMessage = 'This MCP instance is not expired and cannot be renewed.';
+            } else if (error.message.includes('INVALID_DATE')) {
+              errorMessage = 'Invalid expiration date selected. Please try again.';
+            } else if (error.message.includes('NOT_FOUND')) {
+              errorMessage = 'MCP instance not found. It may have been deleted.';
+            }
+          }
+          
+          // TODO: Show error message to user via toast or modal
+          // For now, we'll log it and the console error above will help debug
+          console.error('User-friendly error:', errorMessage);
         }
       });
     },

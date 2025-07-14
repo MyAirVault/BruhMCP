@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { AlertTriangle, RotateCcw, Play, Pause, Trash2, X, ChevronDown } from 'lucide-react';
+import { EXPIRATION_LABELS, DEFAULT_EXPIRATION } from '../../constants/expirationOptions';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   type,
   mcpName
 }) => {
-  const [selectedExpiration, setSelectedExpiration] = useState('30 Days');
+  const [selectedExpiration, setSelectedExpiration] = useState(DEFAULT_EXPIRATION);
   const [expirationDropdownOpen, setExpirationDropdownOpen] = useState(false);
   const [expirationDropdownPosition, setExpirationDropdownPosition] = useState({ 
     top: 0, left: 0, width: 0, maxHeight: 200, flipUp: false 
@@ -32,12 +33,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const expirationButtonRef = useRef<HTMLButtonElement>(null);
   const expirationDropdownRef = useRef<HTMLDivElement>(null);
 
-  const expirationOptions = ['24 Hours', '7 Days', '30 Days', '90 Days', 'Never'];
+  const expirationOptions = EXPIRATION_LABELS;
 
   // Reset expiration selection when modal opens
   useEffect(() => {
     if (isOpen && type === 'renew') {
-      setSelectedExpiration('30 Days');
+      setSelectedExpiration(DEFAULT_EXPIRATION);
       setExpirationDropdownOpen(false);
     }
   }, [isOpen, type]);

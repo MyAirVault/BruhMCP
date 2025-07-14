@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { type MCPItem } from '../../types';
+import { useEditMCPForm } from '../../hooks/useEditMCPForm';
+import ValidationFeedback from '../ui/form/ValidationFeedback';
 
 interface EditMCPModalProps {
   isOpen: boolean;
@@ -17,30 +19,28 @@ interface EditMCPFormData {
 }
 
 const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, mcp }) => {
-  const [formData, setFormData] = useState<EditMCPFormData>({
-    name: '',
-    apiKey: '',
-    clientId: '',
-    clientSecret: ''
-  });
+  const {
+    formData,
+    validationState,
+    handleInputChange,
+    isFormValid,
+    getMCPType,
+    getRequiredFields,
+    requiresCredentials,
+    retryValidation
+  } = useEditMCPForm({ isOpen, mcp });
 
   const firstInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize form with MCP data when modal opens
+  // Focus first field when modal opens
   useEffect(() => {
-    if (isOpen && mcp) {
-      setFormData({
-        name: mcp.name,
-        apiKey: '',
-        clientId: '',
-        clientSecret: ''
-      });
+    if (isOpen) {
       // Focus first field after modal animation
       setTimeout(() => {
         firstInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, mcp]);
+  }, [isOpen]);
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -56,31 +56,6 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
     }
   }, [isOpen, onClose]);
 
-  // Get MCP type from email field (using same logic as create modal)
-  const getMCPType = (email: string): string => {
-    if (email.toLowerCase().includes('gmail')) return 'Gmail';
-    if (email.toLowerCase().includes('figma')) return 'Figma';
-    return 'API Gateway'; // Default fallback
-  };
-
-  const getRequiredFields = (type: string) => {
-    switch (type) {
-      case 'Gmail':
-        return ['clientId', 'clientSecret'];
-      case 'Figma':
-        return ['apiKey'];
-      default:
-        return ['apiKey'];
-    }
-  };
-
-  const requiresCredentials = (type: string) => {
-    return type && type !== '';
-  };
-
-  const handleInputChange = (field: keyof EditMCPFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,17 +69,6 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
     onClose();
   };
 
-  // Check if form is valid for submission
-  const isFormValid = () => {
-    if (!mcp) return false;
-    
-    const mcpType = getMCPType(mcp.email);
-    const requiredFields = getRequiredFields(mcpType);
-    
-    return formData.name && 
-           ((requiredFields.includes('clientId') && formData.clientId && formData.clientSecret) ||
-            (requiredFields.includes('apiKey') && formData.apiKey));
-  };
 
   // Handle Enter key for form submission
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -235,6 +199,16 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
                         placeholder="Enter your API key"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                         required
+                      />
+                    </div>
+                  )}
+
+                  {/* Validation Feedback */}
+                  {requiresCredentials(mcpType) && (
+                    <div className="mb-4">
+                      <ValidationFeedback
+                        validationState={validationState}
+                        onRetryValidation={retryValidation}
                       />
                     </div>
                   )}

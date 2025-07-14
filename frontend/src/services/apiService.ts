@@ -125,7 +125,7 @@ export const apiService = {
   },
 
   renewMCP: async (id: string, data: {
-    expiration_option: string;
+    expires_at: string;
   }): Promise<{ id: string; status: string; expires_at: string; message: string }> => {
     return makeRequest<{ id: string; status: string; expires_at: string; message: string }>(`/mcps/${id}/renew`, {
       method: 'PATCH',
