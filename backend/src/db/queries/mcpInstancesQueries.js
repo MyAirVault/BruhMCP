@@ -147,12 +147,19 @@ export async function updateMCPInstance(instanceId, userId, updateData) {
 	}
 
 	setClauses.push(`updated_at = NOW()`);
-	params.push(instanceId, userId);
+	
+	// Add WHERE clause parameters
+	params.push(instanceId);
+	const instanceIdParam = paramIndex;
+	paramIndex++;
+	
+	params.push(userId);
+	const userIdParam = paramIndex;
 
 	const query = `
 		UPDATE mcp_service_table 
 		SET ${setClauses.join(', ')}
-		WHERE instance_id = $${paramIndex} AND user_id = $${paramIndex + 1}
+		WHERE instance_id = $${instanceIdParam} AND user_id = $${userIdParam}
 		RETURNING *
 	`;
 

@@ -9,6 +9,7 @@ import { calculateExpirationDate } from '../utils.js';
 import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
 import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats } from '../../../db/queries/mcpInstancesQueries.js';
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
+import { pool } from '../../../db/config.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */

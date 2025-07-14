@@ -33,7 +33,7 @@ export interface MCPType {
     memory: string;
   };
   max_duration_minutes?: number;
-  is_active: boolean;
+  status: 'active' | 'inactive' | 'expired';
 }
 
 export interface MCPInstance {
@@ -75,7 +75,7 @@ export interface APIKey {
     name: string;
     display_name: string;
   };
-  is_active: boolean;
+  status: 'active' | 'inactive' | 'expired';
   created_at: string;
   updated_at: string;
   expires_at?: string;

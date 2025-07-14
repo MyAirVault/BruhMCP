@@ -1,4 +1,4 @@
-import { getAllMCPInstances, updateMCPInstance, getMCPInstanceById } from '../db/queries/mcpInstancesQueries.js';
+import { getExpiredInstances, updateMCPInstance, getMCPInstanceById, bulkMarkInstancesExpired } from '../db/queries/mcpInstancesQueries.js';
 import { invalidateInstanceCache } from './cacheInvalidationService.js';
 
 /**
@@ -47,21 +47,19 @@ class ExpirationMonitor {
 		try {
 			console.log('📅 Checking for expired MCP instances...');
 
-			// Get all active MCP instances
-			const instances = await getAllMCPInstances();
-			const now = new Date();
+			// Get all expired instances that haven't been marked as expired yet
+			const expiredInstances = await getExpiredInstances();
 
-			for (const instance of instances) {
-				// Skip if no expiration date or already expired
-				if (!instance.expires_at || instance.status === 'expired') {
-					continue;
-				}
+			if (expiredInstances.length === 0) {
+				console.log('✅ No expired MCP instances found');
+				return;
+			}
 
-				// Check if expired
-				if (now > new Date(instance.expires_at)) {
-					console.log(`⏰ MCP instance ${instance.id} has expired`);
-					await this.handleExpiredMCP(instance);
-				}
+			console.log(`⏰ Found ${expiredInstances.length} expired MCP instances`);
+
+			for (const instance of expiredInstances) {
+				console.log(`⏰ MCP instance ${instance.instance_id} has expired`);
+				await this.handleExpiredMCP(instance);
 			}
 		} catch (error) {
 			console.error('❌ Error checking expired MCPs:', error);
@@ -74,38 +72,38 @@ class ExpirationMonitor {
 	 */
 	async handleExpiredMCP(instance) {
 		try {
-			console.log(`🛑 Handling expired MCP instance ${instance.id}`);
+			console.log(`🛑 Handling expired MCP instance ${instance.instance_id}`);
 
 			// Invalidate cache for expired instance
 			if (instance.mcp_service_name) {
 				try {
-					await invalidateInstanceCache(instance.mcp_service_name, instance.id);
-					console.log(`✅ Cache invalidated for expired MCP ${instance.id}`);
+					await invalidateInstanceCache(instance.mcp_service_name, instance.instance_id);
+					console.log(`✅ Cache invalidated for expired MCP ${instance.instance_id}`);
 				} catch (cacheError) {
-					console.log(`⚠️  Cache invalidation failed for expired MCP ${instance.id}:`, cacheError.message);
+					console.log(`⚠️  Cache invalidation failed for expired MCP ${instance.instance_id}:`, cacheError.message);
 				}
 			}
 
 			// Update instance status to expired
-			await updateMCPInstance(instance.id, {
-				status: 'expired',
-				is_active: false
+			await updateMCPInstance(instance.instance_id, instance.user_id, {
+				status: 'expired'
 			});
 
-			console.log(`📋 MCP instance ${instance.id} marked as expired`);
+			console.log(`📋 MCP instance ${instance.instance_id} marked as expired`);
 		} catch (error) {
-			console.error(`❌ Error handling expired MCP ${instance.id}:`, error);
+			console.error(`❌ Error handling expired MCP ${instance.instance_id}:`, error);
 		}
 	}
 
 	/**
 	 * Manually check a specific MCP instance for expiration
 	 * @param {string} instanceId - MCP instance ID
+	 * @param {string} userId - User ID (for authorization)
 	 * @returns {Promise<boolean>} True if instance was expired
 	 */
-	async checkSingleMCP(instanceId) {
+	async checkSingleMCP(instanceId, userId) {
 		try {
-			const instance = await getMCPInstanceById(instanceId);
+			const instance = await getMCPInstanceById(instanceId, userId);
 			if (!instance) {
 				return false;
 			}
