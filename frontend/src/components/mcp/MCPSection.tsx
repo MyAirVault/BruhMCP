@@ -84,7 +84,7 @@ const MCPSection = forwardRef<MCPSectionRef, MCPSectionProps>((
         <Tooltip content="Use Ctrl+↑/↓ (Cmd+↑/↓ on Mac) to navigate sections" position="top">
           <div className="flex items-center gap-3 cursor-pointer hover:text-gray-700 transition-colors">
             <IconComponent className={`w-6 h-6 ${iconColorClass}`} />
-            <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
+            <h2 className="text-2xl font-semibold text-gray-600">{title}</h2>
           </div>
         </Tooltip>
         <span className="text-sm text-gray-500">{count} MCPs</span>

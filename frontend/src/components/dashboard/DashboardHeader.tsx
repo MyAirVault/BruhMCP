@@ -13,7 +13,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onCreateMCP }) => {
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
       <div>
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-600 mb-2">Dashboard</h1>
         <p className="text-base lg:text-lg text-gray-600 mb-3">Manage your MCPs</p>
         <button
           onClick={() => navigate('/logs')}

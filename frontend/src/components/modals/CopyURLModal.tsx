@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Copy, Check, Settings } from 'lucide-react';
+import { X, Copy, Check } from 'lucide-react';
 import { type MCPItem } from '../../types';
 
 interface CopyURLModalProps {
@@ -8,9 +8,12 @@ interface CopyURLModalProps {
   mcp: MCPItem | null;
 }
 
+type LLMOption = 'vscode' | 'cursor' | 'windsurf' | 'claude';
+
 const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => {
   const [copiedUrl, setCopiedUrl] = useState(false);
-  const [copiedCursor, setCopiedCursor] = useState(false);
+  const [copiedConfig, setCopiedConfig] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<LLMOption>('vscode');
 
   // Generate URL based on MCP - use the actual access_url from backend
   const generateMCPUrl = (mcp: MCPItem): string => {
@@ -18,23 +21,21 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
     return mcp.access_url || mcp.email;
   };
 
-  // Generate Cursor/LLM MCP configuration string
-  const generateCursorConfig = (mcp: MCPItem): string => {
+  // Generate configuration based on selected option
+  const generateConfig = (mcp: MCPItem, option: LLMOption): string => {
     const url = generateMCPUrl(mcp);
-    const mcpName = mcp.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const serviceName = mcp.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
+    if (option === 'claude') {
+      return `claude mcp add --transport http ${serviceName} ${url}`;
+    }
+
+    // For VS Code, Cursor, and Windsurf
     return `{
   "mcpServers": {
-    "${mcpName}": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-fetch",
-        "${url}"
-      ],
-      "env": {
-        "MCP_SERVER_URL": "${url}"
-      }
+    "${serviceName}": {
+      "type": "http",
+      "url": "${url}"
     }
   }
 }`;
@@ -44,7 +45,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
   useEffect(() => {
     if (isOpen) {
       setCopiedUrl(false);
-      setCopiedCursor(false);
+      setCopiedConfig(false);
     }
   }, [isOpen]);
 
@@ -93,22 +94,22 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
     }
   };
 
-  // Copy Cursor configuration to clipboard
-  const handleCopyCursorConfig = async () => {
+  // Copy configuration to clipboard
+  const handleCopyConfig = async () => {
     if (!mcp) return;
 
-    const config = generateCursorConfig(mcp);
+    const config = generateConfig(mcp, selectedOption);
 
     try {
       await navigator.clipboard.writeText(config);
-      setCopiedCursor(true);
+      setCopiedConfig(true);
 
       // Reset copied state after 2 seconds
       setTimeout(() => {
-        setCopiedCursor(false);
+        setCopiedConfig(false);
       }, 2000);
     } catch (err) {
-      console.error('Failed to copy Cursor config:', err);
+      console.error('Failed to copy config:', err);
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = config;
@@ -116,10 +117,10 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      setCopiedCursor(true);
+      setCopiedConfig(true);
 
       setTimeout(() => {
-        setCopiedCursor(false);
+        setCopiedConfig(false);
       }, 2000);
     }
   };
@@ -127,7 +128,14 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
   if (!isOpen || !mcp) return null;
 
   const mcpUrl = generateMCPUrl(mcp);
-  const cursorConfig = generateCursorConfig(mcp);
+  const config = generateConfig(mcp, selectedOption);
+
+  const llmOptions = [
+    { id: 'vscode' as LLMOption, name: 'VS Code', icon: '/icons/vscode.svg' },
+    { id: 'cursor' as LLMOption, name: 'Cursor', icon: '/icons/cursor.svg' },
+    { id: 'windsurf' as LLMOption, name: 'Windsurf', icon: '/icons/Windsurf-black-symbol.svg' },
+    { id: 'claude' as LLMOption, name: 'Claude', icon: '/icons/claude.svg' },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -142,12 +150,28 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
           <h3 className="text-lg font-semibold text-gray-900">
             MCP Access & Integration
           </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4 text-gray-600" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopyConfig}
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${copiedConfig
+                ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              title={copiedConfig ? 'Copied!' : 'Copy to clipboard'}
+            >
+              {copiedConfig ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -196,45 +220,44 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
             )}
           </div>
 
-          {/* Cursor/LLM Integration Section */}
+          {/* LLM Options Section */}
           <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Cursor/LLM Configuration
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Select LLM Tool
             </label>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {llmOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setSelectedOption(option.id)}
+                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    selectedOption === option.id
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <img 
+                    src={option.icon} 
+                    alt={option.name}
+                    className="w-6 h-6"
+                  />
+                  <span className="text-sm font-medium text-gray-900">
+                    {option.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Configuration Display */}
             <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-2">
               <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all font-mono max-h-32 overflow-y-auto scrollbar-hide">
-                {cursorConfig}
+                {config}
               </pre>
             </div>
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-500">
-                Copy this configuration to use in Cursor or other LLM tools
-              </p>
-              <button
-                onClick={handleCopyCursorConfig}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm ${copiedCursor
-                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                  : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
-                  }`}
-                title={copiedCursor ? 'Copied!' : 'Copy Cursor Config'}
-              >
-                {copiedCursor ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    Copy Config
-                  </>
-                )}
-              </button>
-            </div>
-            {copiedCursor && (
+            
+            {copiedConfig && (
               <p className="text-sm text-green-600 mt-2">
-                Cursor configuration copied to clipboard!
+                Configuration copied to clipboard!
               </p>
             )}
           </div>
@@ -243,7 +266,7 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
             <p className="font-medium mb-1">How to use:</p>
             <ul className="list-disc list-inside space-y-1">
               <li><strong>Direct URL:</strong> Use for HTTP requests or API testing</li>
-              <li><strong>Cursor Config:</strong> Add to your Cursor settings.json for MCP integration</li>
+              <li><strong>Configuration:</strong> Add to your tool's settings for MCP integration</li>
             </ul>
           </div>
         </div>
