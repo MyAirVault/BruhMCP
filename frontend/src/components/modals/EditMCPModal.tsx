@@ -82,8 +82,8 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
 
   if (!isOpen || !mcp) return null;
 
-  const mcpType = getMCPType(mcp.email);
-  const requiredFields = getRequiredFields(mcpType);
+  const mcpType = getMCPType();
+  const requiredFields = getRequiredFields();
 
   return (
     <>
@@ -141,7 +141,7 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
               </div>
 
               {/* Credentials Section */}
-              {requiresCredentials(mcpType) && (
+              {requiresCredentials() && (
                 <div>
                   <div className="mb-4">
                     <h4 className="text-sm font-medium text-gray-700 mb-3">
@@ -204,7 +204,7 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
                   )}
 
                   {/* Validation Feedback */}
-                  {requiresCredentials(mcpType) && (
+                  {requiresCredentials() && (
                     <div className="mb-4">
                       <ValidationFeedback
                         validationState={validationState}

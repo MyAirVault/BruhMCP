@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { type MCPItem } from '../types';
+import { type MCPItem, type MCPType } from '../types';
 import { type ValidationState } from '../types/createMCPModal';
 import { apiService } from '../services/apiService';
+import { useMCPValidation } from '../utils/mcpValidation';
 
 interface EditMCPFormData {
   name: string;
@@ -10,7 +11,6 @@ interface EditMCPFormData {
   clientSecret: string;
 }
 
-
 interface UseEditMCPFormProps {
   isOpen: boolean;
   mcp: MCPItem | null;
@@ -18,7 +18,7 @@ interface UseEditMCPFormProps {
 
 /**
  * Custom hook to manage EditMCP form state and validation
- * Similar to useCreateMCPForm but adapted for editing existing MCPs
+ * Now uses the same shared validation logic as CreateMCP for consistency
  */
 export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
   const [formData, setFormData] = useState<EditMCPFormData>({
@@ -28,6 +28,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     clientSecret: ''
   });
 
+  const [mcpType, setMcpType] = useState<MCPType | null>(null);
   const [validationState, setValidationState] = useState<ValidationState>({
     isValidating: false,
     isValid: null,
@@ -37,11 +38,38 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     lastFailedCredentials: null
   });
 
-  // Track last validated credentials to prevent unnecessary re-validation
-  const lastValidatedCredentialsRef = useRef<string | null>(null);
+  // Use shared validation utility (same as create modal)
+  const {
+    getRequiredFields,
+    requiresCredentials,
+    getCredentialsHash,
+    buildCredentialsObject,
+    hasAllRequiredFields,
+    validateCredentials: sharedValidateCredentials,
+    lastValidatedCredentialsRef
+  } = useMCPValidation();
   
   // Stable ref to validateCredentials to avoid circular dependencies
   const validateCredentialsRef = useRef<(() => Promise<void>) | null>(null);
+
+  // Load MCP type when modal opens or MCP changes
+  useEffect(() => {
+    const loadMcpType = async () => {
+      if (isOpen && mcp && mcp.mcpType) {
+        try {
+          const mcpTypeData = await apiService.getMCPTypeByName(mcp.mcpType);
+          setMcpType(mcpTypeData);
+        } catch (error) {
+          console.error('Failed to load MCP type:', error);
+          setMcpType(null);
+        }
+      } else {
+        setMcpType(null);
+      }
+    };
+
+    loadMcpType();
+  }, [isOpen, mcp]);
 
   // Initialize form with MCP data when modal opens
   useEffect(() => {
@@ -64,238 +92,107 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     }
   }, [isOpen, mcp]);
 
-  // Get MCP type from email field (using same logic as edit modal)
-  const getMCPType = useCallback((email: string): string => {
-    if (email.toLowerCase().includes('gmail')) return 'Gmail';
-    if (email.toLowerCase().includes('figma')) return 'Figma';
-    return 'API Gateway'; // Default fallback
-  }, []);
-
-  const getRequiredFields = useCallback((type: string) => {
-    switch (type) {
-      case 'Gmail':
-        return ['clientId', 'clientSecret'];
-      case 'Figma':
-        return ['apiKey'];
-      default:
-        return ['apiKey'];
-    }
-  }, []);
-
-  const requiresCredentials = useCallback((type: string) => {
-    return type && type !== '';
-  }, []);
-
   const handleInputChange = useCallback((field: keyof EditMCPFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  // Create a simple hash of credentials for tracking failures
-  const getCredentialsHash = useCallback((credentials: Record<string, string>) => {
-    return JSON.stringify(credentials);
-  }, []);
-
-  // Credential validation function
+  // Credential validation function using shared utility (same as create modal)
   const validateCredentials = useCallback(async () => {
-    if (!mcp) return;
+    if (!mcpType) return;
 
-    const mcpType = getMCPType(mcp.email);
-    if (!requiresCredentials(mcpType)) return;
-
-    const requiredFields = getRequiredFields(mcpType);
-    const credentials: Record<string, string> = {};
-
-    // Build credentials object based on required fields
-    for (const field of requiredFields) {
-      if (field === 'apiKey' && formData.apiKey) {
-        credentials.api_key = formData.apiKey;
-      } else if (field === 'clientId' && formData.clientId) {
-        credentials.client_id = formData.clientId;
-      } else if (field === 'clientSecret' && formData.clientSecret) {
-        credentials.client_secret = formData.clientSecret;
-      }
-    }
-
-    // Check if all required fields are filled
-    const hasAllFields = requiredFields.every(field => {
-      if (field === 'apiKey') return formData.apiKey.trim() !== '';
-      if (field === 'clientId') return formData.clientId.trim() !== '';
-      if (field === 'clientSecret') return formData.clientSecret.trim() !== '';
-      return false;
-    });
-
-    if (!hasAllFields) {
-      setValidationState({
-        isValidating: false,
-        isValid: null,
-        error: null,
-        apiInfo: null,
-        failureCount: 0,
-        lastFailedCredentials: null
-      });
-      return;
-    }
-
-    const credentialsHash = getCredentialsHash(credentials);
-    
-    // Check if we've already failed validation 2 times for these exact credentials
-    if (validationState.failureCount >= 2 && validationState.lastFailedCredentials === credentialsHash) {
-      // Don't auto-retry, user must manually retry
-      return;
-    }
-
-    setValidationState(prev => ({ ...prev, isValidating: true, error: null }));
-
-    try {
-      // Use the same validation endpoint as create modal for consistency
-      // First get the MCP type by name to get the ID
-      // Prioritize the actual mcpType from the MCP item (from database)
-      const serviceTypeName = mcp.mcpType;
-      
-      if (!serviceTypeName) {
-        throw new Error('MCP type information is missing. Cannot validate credentials.');
-      }
-      
-      let mcpTypeData;
-      try {
-        mcpTypeData = await apiService.getMCPTypeByName(serviceTypeName);
-      } catch {
-        throw new Error(`Failed to find MCP type '${serviceTypeName}'. Please check the service type.`);
-      }
-      
-      // Use the same validation as create modal with mcp_type_id
-      const result = await apiService.validateCredentials({
-        mcp_type_id: mcpTypeData.id,
-        credentials
-      });
-
-      setValidationState({
-        isValidating: false,
-        isValid: result.valid,
-        error: null,
-        apiInfo: result.api_info || null,
-        failureCount: 0, // Reset failure count on success
-        lastFailedCredentials: null
-      });
-      
-      // Update last validated credentials
-      lastValidatedCredentialsRef.current = credentialsHash;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Validation failed';
-      setValidationState(prev => ({
-        isValidating: false,
-        isValid: false,
-        error: errorMessage,
-        apiInfo: null,
-        failureCount: prev.lastFailedCredentials === credentialsHash ? prev.failureCount + 1 : 1,
-        lastFailedCredentials: credentialsHash
-      }));
-    }
-  }, [mcp, formData, getMCPType, requiresCredentials, getRequiredFields, getCredentialsHash, validationState.failureCount, validationState.lastFailedCredentials]);
+    await sharedValidateCredentials(
+      mcpType,
+      {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: {} // Edit modal doesn't use the new credentials format yet
+      },
+      validationState,
+      setValidationState
+    );
+  }, [mcpType, formData, validationState, sharedValidateCredentials]);
   
   // Update the ref whenever validateCredentials changes
   validateCredentialsRef.current = validateCredentials;
 
-  // Reset validation state when credentials change
+  // Reset validation state when credentials change (same logic as create modal)
   useEffect(() => {
-    if (mcp) {
-      const mcpType = getMCPType(mcp.email);
-      if (requiresCredentials(mcpType)) {
-        const requiredFields = getRequiredFields(mcpType);
-        const credentials: Record<string, string> = {};
-        
-        // Build credentials for hash comparison
-        for (const field of requiredFields) {
-          if (field === 'apiKey' && formData.apiKey) {
-            credentials.api_key = formData.apiKey;
-          } else if (field === 'clientId' && formData.clientId) {
-            credentials.client_id = formData.clientId;
-          } else if (field === 'clientSecret' && formData.clientSecret) {
-            credentials.client_secret = formData.clientSecret;
-          }
-        }
-
-        const credentialsHash = getCredentialsHash(credentials);
-        
-        setValidationState(prev => ({
-          ...prev,
-          isValid: null,
-          error: null,
-          // Only reset failure count if credentials actually changed
-          failureCount: prev.lastFailedCredentials === credentialsHash ? prev.failureCount : 0,
-          lastFailedCredentials: prev.lastFailedCredentials === credentialsHash ? prev.lastFailedCredentials : null
-        }));
-        
-        // Reset validated credentials ref if credentials changed
-        if (lastValidatedCredentialsRef.current !== credentialsHash) {
-          lastValidatedCredentialsRef.current = null;
-        }
+    if (mcpType && requiresCredentials(mcpType)) {
+      const credentialData = {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: {}
+      };
+      const credentials = buildCredentialsObject(mcpType, credentialData);
+      const credentialsHash = getCredentialsHash(credentials);
+      
+      setValidationState(prev => ({
+        ...prev,
+        isValid: null,
+        error: null,
+        // Only reset failure count if credentials actually changed
+        failureCount: prev.lastFailedCredentials === credentialsHash ? prev.failureCount : 0,
+        lastFailedCredentials: prev.lastFailedCredentials === credentialsHash ? prev.lastFailedCredentials : null
+      }));
+      
+      // Reset validated credentials ref if credentials changed
+      if (lastValidatedCredentialsRef.current !== credentialsHash) {
+        lastValidatedCredentialsRef.current = null;
       }
     }
-  }, [mcp, formData.apiKey, formData.clientId, formData.clientSecret, getMCPType, requiresCredentials, getRequiredFields, getCredentialsHash]);
+  }, [mcpType, formData.apiKey, formData.clientId, formData.clientSecret, requiresCredentials, getCredentialsHash, buildCredentialsObject]);
 
-  // Trigger validation when credentials change (with debouncing)
+  // Trigger validation when credentials change (with debouncing - same as create modal)
   useEffect(() => {
-    if (mcp) {
-      const mcpType = getMCPType(mcp.email);
-      if (requiresCredentials(mcpType)) {
-        const requiredFields = getRequiredFields(mcpType);
+    if (mcpType && requiresCredentials(mcpType)) {
+      const credentialData = {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: {}
+      };
 
-        const hasAllFields = requiredFields.every(field => {
-          if (field === 'apiKey') return formData.apiKey.trim() !== '';
-          if (field === 'clientId') return formData.clientId.trim() !== '';
-          if (field === 'clientSecret') return formData.clientSecret.trim() !== '';
-          return false;
-        });
+      const hasAllFields = hasAllRequiredFields(mcpType, credentialData);
+      const credentials = buildCredentialsObject(mcpType, credentialData);
+      const credentialsHash = getCredentialsHash(credentials);
+      
+      // Check if we've already failed validation 2 times for these exact credentials
+      const shouldSkipValidation = validationState.failureCount >= 2 && validationState.lastFailedCredentials === credentialsHash;
+      
+      // Check if we've already validated these exact credentials successfully
+      const alreadyValidated = lastValidatedCredentialsRef.current === credentialsHash && validationState.isValid === true;
 
-        const credentials: Record<string, string> = {};
-        for (const field of requiredFields) {
-          if (field === 'apiKey' && formData.apiKey) {
-            credentials.api_key = formData.apiKey;
-          } else if (field === 'clientId' && formData.clientId) {
-            credentials.client_id = formData.clientId;
-          } else if (field === 'clientSecret' && formData.clientSecret) {
-            credentials.client_secret = formData.clientSecret;
-          }
-        }
+      if (hasAllFields && !validationState.isValidating && !shouldSkipValidation && !alreadyValidated) {
+        const timeoutId = setTimeout(() => {
+          validateCredentialsRef.current?.();
+        }, 800); // Debounce validation (same as create modal)
 
-        const credentialsHash = getCredentialsHash(credentials);
-        
-        // Check if we've already failed validation 2 times for these exact credentials
-        const shouldSkipValidation = validationState.failureCount >= 2 && validationState.lastFailedCredentials === credentialsHash;
-        
-        // Check if we've already validated these exact credentials successfully
-        const alreadyValidated = lastValidatedCredentialsRef.current === credentialsHash && validationState.isValid === true;
-
-        if (hasAllFields && !validationState.isValidating && !shouldSkipValidation && !alreadyValidated) {
-          const timeoutId = setTimeout(() => {
-            validateCredentialsRef.current?.();
-          }, 800); // Debounce validation
-
-          return () => clearTimeout(timeoutId);
-        }
+        return () => clearTimeout(timeoutId);
       }
     }
-  }, [mcp, formData.apiKey, formData.clientId, formData.clientSecret, getMCPType, requiresCredentials, getRequiredFields, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
+  }, [mcpType, formData.apiKey, formData.clientId, formData.clientSecret, requiresCredentials, hasAllRequiredFields, buildCredentialsObject, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
 
-  // Check if form is valid for submission
+  // Check if form is valid for submission (same logic as create modal)
   const isFormValid = useCallback(() => {
-    if (!mcp || !formData.name) return false;
+    if (!mcp || !formData.name || !mcpType) return false;
     
-    const mcpType = getMCPType(mcp.email);
-    const requiredFields = getRequiredFields(mcpType);
-    
-    // Check if credentials are required and filled
-    const hasCredentials = ((requiredFields.includes('clientId') && formData.clientId && formData.clientSecret) ||
-                           (requiredFields.includes('apiKey') && formData.apiKey));
-    
-    // If credentials are required, they must be valid
+    // Check if credentials are required and valid
     if (requiresCredentials(mcpType)) {
-      return hasCredentials && validationState.isValid === true;
+      const credentialData = {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: {}
+      };
+      
+      const hasAllFields = hasAllRequiredFields(mcpType, credentialData);
+      return hasAllFields && validationState.isValid === true;
     }
     
     return true;
-  }, [mcp, formData, getMCPType, getRequiredFields, requiresCredentials, validationState.isValid]);
+  }, [mcp, formData, mcpType, requiresCredentials, hasAllRequiredFields, validationState]);
 
   const retryValidation = useCallback(() => {
     setValidationState(prev => ({ 
@@ -309,14 +206,20 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     validateCredentials();
   }, [validateCredentials]);
 
+  // Helper function to get display type name (for backward compatibility with modal)
+  const getMCPTypeDisplayName = useCallback(() => {
+    return mcpType?.display_name || mcpType?.name || 'Unknown';
+  }, [mcpType]);
+
   return {
     formData,
     validationState,
     handleInputChange,
     isFormValid,
-    getMCPType,
-    getRequiredFields,
-    requiresCredentials,
-    retryValidation
+    getMCPType: getMCPTypeDisplayName, // For backward compatibility
+    getRequiredFields: () => getRequiredFields(mcpType),
+    requiresCredentials: () => requiresCredentials(mcpType),
+    retryValidation,
+    mcpType // Expose the actual MCP type for advanced usage
   };
 };

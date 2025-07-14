@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { type MCPType } from '../types';
 import { type CreateMCPFormData, type ValidationState } from '../types/createMCPModal';
 import { apiService } from '../services/apiService';
+import { useMCPValidation } from '../utils/mcpValidation';
 
 interface UseCreateMCPFormProps {
   isOpen: boolean;
@@ -36,8 +37,15 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Track last validated credentials to prevent unnecessary re-validation
-  const lastValidatedCredentialsRef = useRef<string | null>(null);
+  // Use shared validation utility
+  const {
+    requiresCredentials,
+    getCredentialsHash,
+    buildCredentialsObject,
+    hasAllRequiredFields,
+    validateCredentials: sharedValidateCredentials,
+    lastValidatedCredentialsRef
+  } = useMCPValidation();
   
   // Stable ref to validateCredentials to avoid circular dependencies
   const validateCredentialsRef = useRef<(() => Promise<void>) | null>(null);
@@ -111,97 +119,22 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     lastValidatedCredentialsRef.current = null;
   }, [handleInputChange]);
 
-  const getRequiredFields = useCallback((mcpType: MCPType | null) => {
-    if (!mcpType || !mcpType.required_fields) return [];
-    return mcpType.required_fields.map(field => field.name);
-  }, []);
+  // Validation functions are now provided by useMCPValidation hook
 
-  const requiresCredentials = useCallback((mcpType: MCPType | null) => {
-    return mcpType && mcpType.required_fields && mcpType.required_fields.length > 0;
-  }, []);
-
-  // Create a simple hash of credentials for tracking failures
-  const getCredentialsHash = useCallback((credentials: Record<string, string>) => {
-    return JSON.stringify(credentials);
-  }, []);
-
-  // Credential validation function
+  // Credential validation function using shared utility
   const validateCredentials = useCallback(async () => {
-    if (!selectedMcpType || !requiresCredentials(selectedMcpType)) return;
-
-    const credentials: Record<string, string> = { ...formData.credentials };
-    
-    // Build credentials object based on required fields
-    const requiredFields = getRequiredFields(selectedMcpType);
-    
-    // Map legacy form fields to new credentials format
-    for (const field of requiredFields) {
-      if (field === 'api_key' && formData.apiKey) {
-        credentials.api_key = formData.apiKey;
-      } else if (field === 'client_id' && formData.clientId) {
-        credentials.client_id = formData.clientId;
-      } else if (field === 'client_secret' && formData.clientSecret) {
-        credentials.client_secret = formData.clientSecret;
-      }
-    }
-
-    // Check if all required fields are filled
-    const hasAllFields = requiredFields.every(field => {
-      const value = credentials[field];
-      return value && value.trim() !== '';
-    });
-
-    if (!hasAllFields) {
-      setValidationState({
-        isValidating: false,
-        isValid: null,
-        error: null,
-        apiInfo: null,
-        failureCount: 0,
-        lastFailedCredentials: null
-      });
-      return;
-    }
-
-    const credentialsHash = getCredentialsHash(credentials);
-    
-    // Check if we've already failed validation 2 times for these exact credentials
-    if (validationState.failureCount >= 2 && validationState.lastFailedCredentials === credentialsHash) {
-      // Don't auto-retry, user must manually retry
-      return;
-    }
-
-    setValidationState(prev => ({ ...prev, isValidating: true, error: null }));
-
-    try {
-      const result = await apiService.validateCredentials({
-        mcp_type_id: selectedMcpType.id,
-        credentials
-      });
-
-      setValidationState({
-        isValidating: false,
-        isValid: result.valid,
-        error: null,
-        apiInfo: result.api_info || null,
-        failureCount: 0, // Reset failure count on success
-        lastFailedCredentials: null
-      });
-      
-      // Update last validated credentials
-      lastValidatedCredentialsRef.current = credentialsHash;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Validation failed';
-      setValidationState(prev => ({
-        isValidating: false,
-        isValid: false,
-        error: errorMessage,
-        apiInfo: null,
-        failureCount: prev.lastFailedCredentials === credentialsHash ? prev.failureCount + 1 : 1,
-        lastFailedCredentials: credentialsHash
-      }));
-    }
-  }, [selectedMcpType, formData, requiresCredentials, getRequiredFields, getCredentialsHash, validationState.failureCount, validationState.lastFailedCredentials]);
+    await sharedValidateCredentials(
+      selectedMcpType,
+      {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: formData.credentials
+      },
+      validationState,
+      setValidationState
+    );
+  }, [selectedMcpType, formData, validationState, sharedValidateCredentials]);
   
   // Update the ref whenever validateCredentials changes
   validateCredentialsRef.current = validateCredentials;
@@ -209,20 +142,13 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
   // Reset validation state when credentials change
   useEffect(() => {
     if (selectedMcpType && requiresCredentials(selectedMcpType)) {
-      const requiredFields = getRequiredFields(selectedMcpType);
-      const credentials: Record<string, string> = { ...formData.credentials };
-      
-      // Map legacy form fields to new credentials format
-      for (const field of requiredFields) {
-        if (field === 'api_key' && formData.apiKey) {
-          credentials.api_key = formData.apiKey;
-        } else if (field === 'client_id' && formData.clientId) {
-          credentials.client_id = formData.clientId;
-        } else if (field === 'client_secret' && formData.clientSecret) {
-          credentials.client_secret = formData.clientSecret;
-        }
-      }
-
+      const credentialData = {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: formData.credentials
+      };
+      const credentials = buildCredentialsObject(selectedMcpType, credentialData);
       const credentialsHash = getCredentialsHash(credentials);
       
       setValidationState(prev => ({
@@ -239,30 +165,20 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         lastValidatedCredentialsRef.current = null;
       }
     }
-  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, getRequiredFields, getCredentialsHash]);
+  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, getCredentialsHash, buildCredentialsObject]);
 
   // Trigger validation when credentials change (with debouncing)
   useEffect(() => {
     if (selectedMcpType && requiresCredentials(selectedMcpType)) {
-      const requiredFields = getRequiredFields(selectedMcpType);
-      const credentials: Record<string, string> = { ...formData.credentials };
-      
-      // Map legacy form fields to new credentials format
-      for (const field of requiredFields) {
-        if (field === 'api_key' && formData.apiKey) {
-          credentials.api_key = formData.apiKey;
-        } else if (field === 'client_id' && formData.clientId) {
-          credentials.client_id = formData.clientId;
-        } else if (field === 'client_secret' && formData.clientSecret) {
-          credentials.client_secret = formData.clientSecret;
-        }
-      }
+      const credentialData = {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: formData.credentials
+      };
 
-      const hasAllFields = requiredFields.every(field => {
-        const value = credentials[field];
-        return value && value.trim() !== '';
-      });
-
+      const hasAllFields = hasAllRequiredFields(selectedMcpType, credentialData);
+      const credentials = buildCredentialsObject(selectedMcpType, credentialData);
       const credentialsHash = getCredentialsHash(credentials);
       
       // Check if we've already failed validation 2 times for these exact credentials
@@ -279,7 +195,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, getRequiredFields, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
+  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, hasAllRequiredFields, buildCredentialsObject, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
 
   // Check if form is valid for submission
   const isFormValid = useCallback(() => {
@@ -287,24 +203,19 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     
     // Check if credentials are required and valid
     if (requiresCredentials(selectedMcpType)) {
-      const requiredFields = getRequiredFields(selectedMcpType);
-      const hasAllFields = requiredFields.every(field => {
-        // Check in new credentials object first, then fall back to legacy fields
-        const credentialValue = formData.credentials[field];
-        if (credentialValue && credentialValue.trim() !== '') return true;
-        
-        // Legacy field mapping
-        if (field === 'api_key') return formData.apiKey.trim() !== '';
-        if (field === 'client_id') return formData.clientId.trim() !== '';
-        if (field === 'client_secret') return formData.clientSecret.trim() !== '';
-        return false;
-      });
+      const credentialData = {
+        apiKey: formData.apiKey,
+        clientId: formData.clientId,
+        clientSecret: formData.clientSecret,
+        credentials: formData.credentials
+      };
       
+      const hasAllFields = hasAllRequiredFields(selectedMcpType, credentialData);
       return hasAllFields && validationState.isValid === true;
     }
     
     return true;
-  }, [formData, selectedMcpType, requiresCredentials, getRequiredFields, validationState]);
+  }, [formData, selectedMcpType, requiresCredentials, hasAllRequiredFields, validationState]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
