@@ -1,8 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 import loggingService from '../../services/logging/loggingService.js';
 import logMaintenanceService from '../../services/logging/logMaintenanceService.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const readFile = promisify(fs.readFile);
 
@@ -457,7 +460,9 @@ async function getLogSummary(category) {
 async function getLogDiskUsage() {
 	try {
 		const systemStats = await getDirectorySize(SYSTEM_LOGS_DIR);
-		const userStats = await getDirectorySize(path.resolve('../logs/users'));
+		// Calculate project root path from the controller location (backend/src/controllers/admin -> project root)
+		const projectRoot = path.resolve(__dirname, '../../../../');
+		const userStats = await getDirectorySize(path.join(projectRoot, 'logs', 'users'));
 
 		return {
 			total_size_mb: Math.round((systemStats.size + userStats.size) / 1024 / 1024 * 100) / 100,

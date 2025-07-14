@@ -52,8 +52,9 @@ export async function getMCPLogs(req, res) {
 
 		const { start_time, end_time, level, limit, offset } = validationResult.data;
 
-		// Build log file path: ../logs/users/user_{userId}/mcp_{id}/ (from backend to project root)
-		const logBasePath = path.resolve('../logs/users', `user_${userId}`, `mcp_${id}`);
+		// Build log file path: {projectRoot}/logs/users/user_{userId}/mcp_{id}/
+		const projectRoot = path.resolve(__dirname, '../../../../../');
+		const logBasePath = path.join(projectRoot, 'logs', 'users', `user_${userId}`, `mcp_${id}`);
 
 		try {
 			// Check if log directory exists

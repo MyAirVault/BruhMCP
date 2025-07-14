@@ -2,9 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
 import loggingService from './loggingService.js';
 
 const execAsync = promisify(exec);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Log maintenance service for cleanup, rotation, and monitoring
@@ -13,8 +15,10 @@ const execAsync = promisify(exec);
 
 class LogMaintenanceService {
 	constructor() {
-		this.systemLogsDir = path.resolve('./logs/system');
-		this.userLogsDir = path.resolve('../logs/users');
+		// Calculate project root path from the service location (backend/src/services/logging -> project root)
+		const projectRoot = path.resolve(__dirname, '../../../../');
+		this.systemLogsDir = path.join(projectRoot, 'logs', 'system');
+		this.userLogsDir = path.join(projectRoot, 'logs', 'users');
 		this.maintenanceInterval = null;
 		this.cleanupStats = {
 			lastRun: null,
