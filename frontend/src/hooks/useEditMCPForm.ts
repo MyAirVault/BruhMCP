@@ -147,11 +147,20 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     setValidationState(prev => ({ ...prev, isValidating: true, error: null }));
 
     try {
-      // Use the service type from the MCP item to validate credentials
-      // Fall back to detected mcpType if mcp.mcpType is not available
-      const serviceType = mcp.mcpType || mcpType.toLowerCase();
-      const result = await apiService.validateMCPCredentials({
-        mcp_type: serviceType,
+      // Use the same validation endpoint as create modal for consistency
+      // First get the MCP type by name to get the ID
+      const serviceTypeName = mcp.mcpType || mcpType.toLowerCase();
+      
+      let mcpTypeData;
+      try {
+        mcpTypeData = await apiService.getMCPTypeByName(serviceTypeName);
+      } catch (mcpTypeError) {
+        throw new Error(`Failed to find MCP type '${serviceTypeName}'. Please check the service type.`);
+      }
+      
+      // Use the same validation as create modal with mcp_type_id
+      const result = await apiService.validateCredentials({
+        mcp_type_id: mcpTypeData.id,
         credentials
       });
 
@@ -159,7 +168,7 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         isValidating: false,
         isValid: result.valid,
         error: null,
-        apiInfo: result.service ? { service: result.service.name } : null,
+        apiInfo: result.api_info || null,
         failureCount: 0, // Reset failure count on success
         lastFailedCredentials: null
       });
