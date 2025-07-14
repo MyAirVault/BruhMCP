@@ -23,6 +23,7 @@ import { initializeCredentialCache, getCacheStatistics } from './services/creden
 import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
 import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
+import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
 // Service configuration (from database)
 const SERVICE_CONFIG = {
@@ -39,6 +40,9 @@ console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVI
 // Initialize Phase 2 credential caching system
 initializeCredentialCache();
 
+// Initialize logging system
+const serviceLogger = createMCPServiceLogger(SERVICE_CONFIG.name, SERVICE_CONFIG);
+
 // Initialize Express app
 const app = express();
 
@@ -46,6 +50,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Add MCP logging middleware for all instance-based routes
+app.use('/:instanceId/*', createMCPLoggingMiddleware(SERVICE_CONFIG.name));
+app.use('/:instanceId/*', createMCPOperationMiddleware(SERVICE_CONFIG.name));
 
 // Add cache performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
@@ -198,14 +206,16 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Error handling middleware
+// Error handling middleware with logging
+app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
+
 /**
  * @param {any} err
- * @param {any} _
+ * @param {any} req
  * @param {any} res
- * @param {any} __
+ * @param {any} next
  */
-app.use((err, _, res, __) => {
+app.use((err, req, res, next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);
   ErrorResponses.internal(res, 'Internal server error', {
@@ -238,6 +248,10 @@ const server = app.listen(SERVICE_CONFIG.port, () => {
   console.log(`🌐 Multi-tenant architecture enabled with instance-based routing`);
   console.log(`🚀 Phase 2: Credential caching system enabled`);
   console.log(`📋 MCP Protocol: JSON-RPC 2.0 exclusively`);
+  console.log(`📝 Instance logging system enabled`);
+  
+  // Initialize logging for service
+  serviceLogger.logServiceStartup();
   
   // Start Phase 2 credential watcher for background maintenance
   startCredentialWatcher();

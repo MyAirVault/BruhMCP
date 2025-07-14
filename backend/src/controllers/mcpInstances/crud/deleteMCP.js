@@ -5,6 +5,7 @@ import { pool } from '../../../db/config.js';
 import { logDeletionEvent, trackDeletionMetrics } from '../../../utils/deletionAudit.js';
 import loggingService from '../../../services/logging/loggingService.js';
 import { removeMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
+import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -103,13 +104,27 @@ export async function deleteMCP(req, res) {
 			// Don't fail the deletion - background watcher will clean up cache
 		});
 
-		// Step 4: Log directory cleanup (async, non-blocking)
+		// Step 4: Log instance deletion and cleanup logger
+		const logger = mcpInstanceLogger.getLogger(id);
+		if (logger) {
+			logger.app('info', 'MCP instance deleted', {
+				instanceId: id,
+				serviceName: serviceName,
+				deletedAt: new Date().toISOString(),
+				userId: userId
+			});
+		}
+		
+		// Remove logger from memory
+		mcpInstanceLogger.removeLogger(id);
+
+		// Step 5: Log directory cleanup (async, non-blocking)
 		removeMCPLogDirectory(userId, id).catch(logError => {
 			console.error(`⚠️ Log directory cleanup failed for instance ${id}:`, logError);
 			// Don't fail the deletion - log directories can be cleaned up manually if needed
 		});
 
-		// Step 5: Process cleanup no longer needed with new architecture
+		// Step 6: Process cleanup no longer needed with new architecture
 
 		console.log(`✅ MCP instance ${id} deleted successfully`);
 
@@ -119,7 +134,7 @@ export async function deleteMCP(req, res) {
 			cacheInvalidated: true
 		});
 
-		// Step 5: Success response
+		// Step 7: Success response
 		res.status(200).json({
 			data: {
 				message: 'MCP instance deleted successfully',

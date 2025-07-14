@@ -150,28 +150,12 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
           <h3 className="text-lg font-semibold text-gray-900">
             MCP Access & Integration
           </h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopyConfig}
-              className={`p-2 rounded-lg transition-colors cursor-pointer ${copiedConfig
-                ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              title={copiedConfig ? 'Copied!' : 'Copy to clipboard'}
-            >
-              {copiedConfig ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4 text-gray-600" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4 text-gray-600" />
+          </button>
         </div>
 
         {/* Content */}
@@ -222,35 +206,44 @@ const CopyURLModal: React.FC<CopyURLModalProps> = ({ isOpen, onClose, mcp }) => 
 
           {/* LLM Options Section */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Select LLM Tool
-            </label>
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="flex items-center gap-2 mb-4">
               {llmOptions.map((option) => (
                 <button
                   key={option.id}
                   onClick={() => setSelectedOption(option.id)}
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                  className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
                     selectedOption === option.id
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
+                  title={option.name}
                 >
                   <img 
                     src={option.icon} 
                     alt={option.name}
                     className="w-6 h-6"
                   />
-                  <span className="text-sm font-medium text-gray-900">
-                    {option.name}
-                  </span>
                 </button>
               ))}
             </div>
 
             {/* Configuration Display */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-2">
-              <pre className="text-xs text-gray-700 whitespace-pre-wrap break-all font-mono max-h-32 overflow-y-auto scrollbar-hide">
+            <div className="relative bg-gray-50 rounded-lg border border-gray-200 mb-2">
+              <button
+                onClick={handleCopyConfig}
+                className={`absolute top-2 right-2 p-1.5 rounded transition-colors cursor-pointer z-10 ${copiedConfig
+                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                  : 'bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200'
+                  }`}
+                title={copiedConfig ? 'Copied!' : 'Copy to clipboard'}
+              >
+                {copiedConfig ? (
+                  <Check className="w-3 h-3" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </button>
+              <pre className="text-xs text-gray-900 whitespace-pre-wrap break-all font-mono max-h-32 overflow-y-auto scrollbar-hide p-3 pr-10">
                 {config}
               </pre>
             </div>

@@ -11,6 +11,7 @@ import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats } from '
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
+import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -127,6 +128,16 @@ export async function createMCP(req, res) {
 		if (!logDirResult.success) {
 			console.warn(`⚠️ Log directory creation failed for instance ${createdInstance.instance_id}: ${logDirResult.error}`);
 			// Don't fail the instance creation if log directory creation fails
+		} else {
+			// Initialize logger for the new instance
+			const logger = mcpInstanceLogger.initializeLogger(createdInstance.instance_id, userId);
+			logger.app('info', 'MCP instance created', {
+				instanceId: createdInstance.instance_id,
+				serviceName: mcpService.mcp_service_name,
+				serviceType: mcpService.type,
+				customName: createdInstance.custom_name,
+				expiresAt: createdInstance.expires_at
+			});
 		}
 
 		// Update service statistics
