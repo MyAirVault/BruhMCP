@@ -12,13 +12,21 @@ export function getTools() {
 		tools: [
 			{
 				name: 'get_figma_file',
-				description: 'Retrieve the full document tree of a Figma file.',
+				description: 'Retrieve the full document tree of a Figma file with optimized response format.',
 				inputSchema: {
 					type: 'object',
 					properties: {
 						file_key: {
 							type: 'string',
 							description: 'The key of the Figma file to retrieve.'
+						},
+						depth: {
+							type: 'number',
+							description: 'Maximum depth to traverse the node tree (default: 10).'
+						},
+						max_nodes: {
+							type: 'number',
+							description: 'Maximum number of nodes to process (default: 1000).'
 						}
 					},
 					required: ['file_key']
@@ -68,7 +76,7 @@ export function getTools() {
 			},
 			{
 				name: 'get_file_nodes',
-				description: 'Retrieve specific nodes from a Figma file.',
+				description: 'Retrieve specific nodes from a Figma file with optimized response format.',
 				inputSchema: {
 					type: 'object',
 					properties: {
@@ -79,6 +87,14 @@ export function getTools() {
 						node_id: {
 							type: 'string',
 							description: 'The ID of the node to retrieve.'
+						},
+						depth: {
+							type: 'number',
+							description: 'Maximum depth to traverse the node tree (default: 5 for nodes, 10 for full file).'
+						},
+						max_nodes: {
+							type: 'number',
+							description: 'Maximum number of nodes to process (default: 500 for nodes, 1000 for full file).'
 						}
 					},
 					required: ['file_key']

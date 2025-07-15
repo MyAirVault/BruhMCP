@@ -2,21 +2,50 @@
  * MCP Response Formatter
  * Ensures all responses follow the MCP protocol specification
  * Handles content formatting, error responses, and resource URIs
+ * Now supports YAML formatting and global variable deduplication
  */
+
+import yaml from 'js-yaml';
+import { parseSimplifiedResponse } from '../services/simplified-node-parser.js';
 
 /**
  * Creates a successful MCP response with content
  * @param {any} data - Response data
- * @param {object} options - Response options (unused, kept for compatibility)
+ * @param {object} options - Response options
  * @returns {object} MCP-compliant response
  */
 function createSuccessResponse(data, options = {}) {
-    // Simple format like figma-mcp-server
+    const outputFormat = options.outputFormat || 'json';
+    const useSimplifiedParser = options.useSimplifiedParser || false;
+    
+    let processedData = data;
+    
+    // Use simplified parser if enabled
+    if (useSimplifiedParser && data && (data.document || data.components)) {
+        processedData = parseSimplifiedResponse(data, {
+            depth: options.depth,
+            maxNodes: options.maxNodes
+        });
+    }
+    
+    // Format output
+    let formattedText;
+    if (outputFormat === 'yaml') {
+        formattedText = yaml.dump(processedData, {
+            indent: 2,
+            lineWidth: 120,
+            noRefs: true,
+            sortKeys: false
+        });
+    } else {
+        formattedText = JSON.stringify(processedData, null, 2);
+    }
+    
     return {
         content: [
             {
                 type: "text",
-                text: JSON.stringify(data, null, 2)
+                text: formattedText
             }
         ]
     };
@@ -51,41 +80,6 @@ function createErrorResponse(message, code = 'UNKNOWN_ERROR', data = null) {
     return response;
 }
 
-/**
- * Creates a response for oversized content with suggestions
- * @param {number} estimatedTokens - Estimated token count
- * @param {number} maxTokens - Maximum allowed tokens
- * @param {array} suggestedTools - Alternative tools to use
- * @returns {object} MCP-compliant error response
- */
-function createOversizedResponse(estimatedTokens, maxTokens, suggestedTools = []) {
-    const message = `Response too large (${estimatedTokens.toLocaleString()} tokens) exceeds limit (${maxTokens.toLocaleString()} tokens).`;
-    
-    let suggestions = '\n\nSuggested alternatives:';
-    if (suggestedTools.length > 0) {
-        suggestedTools.forEach(tool => {
-            suggestions += `\n- Use '${tool.name}' ${tool.description ? '- ' + tool.description : ''}`;
-        });
-    } else {
-        suggestions += '\n- Use get_figma_file for file data';
-        suggestions += '\n- Use list_components for component data only';
-        suggestions += '\n- Use get_file_nodes with specific node IDs';
-    }
-    
-    return createErrorResponse(
-        message + suggestions,
-        'RESPONSE_TOO_LARGE',
-        {
-            estimatedTokens,
-            maxTokens,
-            suggestedTools: suggestedTools.length > 0 ? suggestedTools : [
-                { name: 'get_figma_file', params: { file_key: 'file-key' } },
-                { name: 'list_components' },
-                { name: 'get_file_nodes', params: { node_id: 'specific-node-id' } }
-            ]
-        }
-    );
-}
 
 /**
  * Creates a chunked response with continuation information
@@ -296,13 +290,75 @@ function formatArrayData(data) {
     return formatted;
 }
 
+/**
+ * Creates a Figma-optimized response using simplified parser
+ * @param {object} figmaData - Raw Figma API response
+ * @param {object} options - Response options
+ * @returns {object} MCP-compliant response
+ */
+function createFigmaOptimizedResponse(figmaData, options = {}) {
+    const {
+        outputFormat = 'yaml',
+        depth = 10,
+        maxNodes = 1000,
+        fileKey = null,
+        nodeId = null
+    } = options;
+    
+    try {
+        // Use simplified parser for better deduplication
+        const simplifiedData = parseSimplifiedResponse(figmaData, {
+            depth,
+            maxNodes
+        });
+        
+        // Add metadata about optimization
+        const metadata = {
+            fileKey,
+            nodeId,
+            optimization: {
+                originalSize: JSON.stringify(figmaData).length,
+                optimizedSize: JSON.stringify(simplifiedData).length,
+                compressionRatio: Math.round((1 - JSON.stringify(simplifiedData).length / JSON.stringify(figmaData).length) * 100),
+                variableCount: simplifiedData._meta?.totalVariables || 0
+            }
+        };
+        
+        const result = {
+            ...metadata,
+            ...simplifiedData
+        };
+        
+        // Format output
+        let formattedText;
+        if (outputFormat === 'yaml') {
+            formattedText = yaml.dump(result, {
+                indent: 2,
+                lineWidth: 120,
+                noRefs: true,
+                sortKeys: false
+            });
+        } else {
+            formattedText = JSON.stringify(result, null, 2);
+        }
+        
+        return {
+            content: [
+                {
+                    type: "text",
+                    text: formattedText
+                }
+            ]
+        };
+        
+    } catch (error) {
+        console.error('Error in createFigmaOptimizedResponse:', error);
+        return createErrorResponse(`Failed to optimize Figma response: ${error.message}`);
+    }
+}
+
 export {
     createSuccessResponse,
     createErrorResponse,
-    createOversizedResponse,
-    createChunkedResponse,
-    createOverviewResponse,
-    createFigmaResourceUri,
-    parseFigmaResourceUri,
-    formatDataForDisplay
+    createFigmaOptimizedResponse
 };

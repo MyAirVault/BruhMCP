@@ -19,7 +19,8 @@ import {
 
 import { 
 	createSuccessResponse, 
-	createErrorResponse
+	createErrorResponse,
+	createFigmaOptimizedResponse
 } from '../utils/mcp-responses.js';
 
 
@@ -34,7 +35,12 @@ export async function executeToolCall(toolName, args, apiKey) {
 		switch (toolName) {
 			case 'get_figma_file':
 				const fileData = await getFigmaFile(args.file_key, apiKey);
-				return createSuccessResponse(fileData);
+				return createFigmaOptimizedResponse(fileData, {
+					outputFormat: 'yaml',
+					depth: args.depth || 10,
+					maxNodes: args.max_nodes || 1000,
+					fileKey: args.file_key
+				});
 
 			case 'list_components':
 				const components = await getFigmaComponents(args.file_key, apiKey);
@@ -51,10 +57,21 @@ export async function executeToolCall(toolName, args, apiKey) {
 			case 'get_file_nodes':
 				if (args.node_id) {
 					const nodeData = await getFigmaNodes(args.file_key, apiKey, [args.node_id]);
-					return createSuccessResponse(nodeData);
+					return createFigmaOptimizedResponse(nodeData, {
+						outputFormat: 'yaml',
+						depth: args.depth || 5,
+						maxNodes: args.max_nodes || 500,
+						fileKey: args.file_key,
+						nodeId: args.node_id
+					});
 				} else {
 					const allNodes = await getFigmaFile(args.file_key, apiKey);
-					return createSuccessResponse(allNodes);
+					return createFigmaOptimizedResponse(allNodes, {
+						outputFormat: 'yaml',
+						depth: args.depth || 10,
+						maxNodes: args.max_nodes || 1000,
+						fileKey: args.file_key
+					});
 				}
 
 			case 'get_image_fills':
