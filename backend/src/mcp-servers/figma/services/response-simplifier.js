@@ -93,7 +93,7 @@ function findOrCreateVar(globalVars, value, prefix) {
 		([_, existingValue]) => JSON.stringify(existingValue) === JSON.stringify(value)
 	);
 
-	if (existingEntry) {
+	if (existingEntry && existingEntry.length > 0) {
 		return existingEntry[0];
 	}
 
@@ -193,7 +193,7 @@ function parseNode(globalVars, n, parent) {
 	if (hasValue("cornerRadius", n) && typeof n.cornerRadius === "number") {
 		simplified.borderRadius = `${n.cornerRadius}px`;
 	}
-	if (hasValue("rectangleCornerRadii", n, isRectangleCornerRadii)) {
+	if (hasValue("rectangleCornerRadii", n, isRectangleCornerRadii) && n.rectangleCornerRadii && n.rectangleCornerRadii.length >= 4) {
 		simplified.borderRadius = `${n.rectangleCornerRadii[0]}px ${n.rectangleCornerRadii[1]}px ${n.rectangleCornerRadii[2]}px ${n.rectangleCornerRadii[3]}px`;
 	}
 

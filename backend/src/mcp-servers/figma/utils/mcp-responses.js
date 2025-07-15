@@ -93,7 +93,7 @@ function findOrCreateVar(globalVars, value, prefix) {
         ([_, existingValue]) => JSON.stringify(existingValue) === JSON.stringify(value)
     );
     
-    if (existingEntry) {
+    if (existingEntry && existingEntry.length > 0) {
         return existingEntry[0];
     }
     
