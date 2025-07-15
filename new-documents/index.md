@@ -75,6 +75,15 @@ This folder contains comprehensive documentation for the multi-tenant MCP servic
 - Detailed implementation guide and integration instructions
 - Complete flow from credential entry to API authentication
 
+### [oauth-api-service-integration-guide.md](./oauth-api-service-integration-guide.md)
+**OAuth and API Key Service Integration Guide**
+- Comprehensive analysis of current OAuth and API key authentication architecture
+- Detailed implementation requirements for Google Drive (OAuth) and Splitwise (API key)
+- Step-by-step integration process for both authentication types
+- Security considerations and best practices
+- Complete code examples and configuration templates
+- Frontend and backend implementation patterns
+
 ## Implementation Status
 
 ### ✅ Completed
