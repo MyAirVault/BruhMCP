@@ -22,15 +22,15 @@ import { hasValue, isStrokeWeights } from '../utils/identity.js';
 export function buildSimplifiedStrokes(n) {
 	let strokes = { colors: [] };
 	
-	if (hasValue("strokes", n) && Array.isArray(n.strokes) && n.strokes.length) {
-		strokes.colors = n.strokes.filter(isVisible).map(parsePaint);
+	if (hasValue("strokes", n) && Array.isArray(n.strokes) && n.strokes && n.strokes.length) {
+		strokes.colors = n.strokes.filter(stroke => stroke && isVisible(stroke)).map(parsePaint);
 	}
 
 	if (hasValue("strokeWeight", n) && typeof n.strokeWeight === "number" && n.strokeWeight > 0) {
 		strokes.strokeWeight = `${n.strokeWeight}px`;
 	}
 
-	if (hasValue("strokeDashes", n) && Array.isArray(n.strokeDashes) && n.strokeDashes.length) {
+	if (hasValue("strokeDashes", n) && Array.isArray(n.strokeDashes) && n.strokeDashes && n.strokeDashes.length) {
 		strokes.strokeDashes = n.strokeDashes;
 	}
 

@@ -38,6 +38,7 @@ export function parseFigmaResponse(data) {
 		// GetFileNodesResponse
 		const nodeResponses = Object.values(data.nodes);
 		nodeResponses.forEach((nodeResponse) => {
+		if (!nodeResponse) return;
 			if (nodeResponse.components) {
 				Object.assign(aggregatedComponents, nodeResponse.components);
 			}
@@ -45,7 +46,7 @@ export function parseFigmaResponse(data) {
 				Object.assign(aggregatedComponentSets, nodeResponse.componentSets);
 			}
 		});
-		nodesToParse = nodeResponses.map((n) => n.document);
+		nodesToParse = nodeResponses.map((n) => n && n.document).filter(Boolean);
 	} else {
 		// GetFileResponse
 		Object.assign(aggregatedComponents, data.components);
@@ -62,8 +63,8 @@ export function parseFigmaResponse(data) {
 		styles: {},
 	};
 
-	const simplifiedNodes = nodesToParse
-		.filter(isVisible)
+	const simplifiedNodes = (nodesToParse || [])
+		.filter(node => node && isVisible(node))
 		.map((n) => parseNode(globalVars, n))
 		.filter((child) => child !== null && child !== undefined);
 
@@ -159,13 +160,13 @@ function parseNode(globalVars, n, parent) {
 	}
 
 	// fills & strokes
-	if (hasValue("fills", n) && Array.isArray(n.fills) && n.fills.length) {
-		const fills = n.fills.map(parsePaint);
+	if (hasValue("fills", n) && Array.isArray(n.fills) && n.fills && n.fills.length) {
+		const fills = n.fills.filter(Boolean).map(parsePaint);
 		simplified.fills = findOrCreateVar(globalVars, fills, "fill");
 	}
 
 	const strokes = buildSimplifiedStrokes(n);
-	if (strokes.colors.length) {
+	if (strokes && strokes.colors && strokes.colors.length) {
 		simplified.strokes = findOrCreateVar(globalVars, strokes, "stroke");
 	}
 
@@ -199,12 +200,12 @@ function parseNode(globalVars, n, parent) {
 
 	// Recursively process child nodes.
 	// Include children at the very end so all relevant configuration data for the element is output first and kept together for the AI.
-	if (hasValue("children", n) && n.children.length > 0) {
-		const children = n.children
-			.filter(isVisible)
+	if (hasValue("children", n) && Array.isArray(n.children) && n.children.length > 0) {
+		const children = (n.children || [])
+			.filter(child => child && isVisible(child))
 			.map((child) => parseNode(globalVars, child, n))
 			.filter((child) => child !== null && child !== undefined);
-		if (children.length) {
+		if (children && children.length) {
 			simplified.children = children;
 		}
 	}

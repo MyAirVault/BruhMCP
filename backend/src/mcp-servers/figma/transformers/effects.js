@@ -20,8 +20,8 @@ import { hasValue } from '../utils/identity.js';
  * @returns {SimplifiedEffects}
  */
 export function buildSimplifiedEffects(n) {
-	if (!hasValue("effects", n)) return {};
-	const effects = n.effects.filter((e) => e.visible);
+	if (!hasValue("effects", n) || !Array.isArray(n.effects)) return {};
+	const effects = n.effects.filter((e) => e && e.visible);
 
 	// Handle drop and inner shadows (both go into CSS box-shadow)
 	const dropShadows = effects

@@ -48,7 +48,7 @@ function convertAlign(axisAlign, stretch) {
 		// Compute whether to check horizontally or vertically based on axis and direction
 		const direction = getDirection(axis, mode);
 
-		const shouldStretch = children.length > 0 && children.reduce((shouldStretch, c) => {
+		const shouldStretch = children && children.length > 0 && children.reduce((shouldStretch, c) => {
 			if (!shouldStretch) return false;
 			if (c.layoutPositioning && c.layoutPositioning === "ABSOLUTE") return true;
 			if (direction === "horizontal") {
@@ -258,7 +258,7 @@ function buildSimplifiedLayoutValues(n, parent, mode) {
 			}
 		}
 
-		if (Object.keys(dimensions).length > 0) {
+		if (dimensions && Object.keys(dimensions).length > 0) {
 			if (dimensions.width) {
 				dimensions.width = pixelRound(dimensions.width);
 			}
