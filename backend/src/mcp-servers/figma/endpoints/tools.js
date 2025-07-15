@@ -11,14 +11,130 @@ export function getTools() {
 	return {
 		tools: [
 			{
-				name: 'get_figma_file',
-				description: 'Get details about a Figma file including document structure and metadata',
+				name: 'get_figma_file_optimized',
+				description: 'Get Figma file with LLM-optimized response size and content. Automatically manages token limits and provides structured data perfect for code generation and analysis.',
+				inputSchema: {
+					type: 'object',
+					properties: {
+						fileKey: {
+							type: 'string',
+							description: 'The Figma file key (found in Figma URL) or full Figma URL',
+						},
+						optimization: {
+							type: 'string',
+							enum: ['overview', 'components', 'styles', 'layout', 'full'],
+							default: 'overview',
+							description: 'Optimization level: overview (file structure), components (component details), styles (design tokens), layout (positioning), full (complete data)',
+						},
+						maxTokens: {
+							type: 'number',
+							default: 20000,
+							description: 'Maximum token limit for response (default: 20,000)',
+						},
+						includeFields: {
+							type: 'array',
+							items: { type: 'string' },
+							description: 'Specific fields to include (id, name, type, properties, children, styles)',
+						},
+						excludeFields: {
+							type: 'array',
+							items: { type: 'string' },
+							description: 'Specific fields to exclude (geometry, effects, fills, transforms)',
+						},
+					},
+					required: ['fileKey'],
+				},
+			},
+			{
+				name: 'get_figma_design_summary',
+				description: 'Get a high-level summary of a Figma design system or file, perfect for understanding the overall structure and components before diving into details.',
+				inputSchema: {
+					type: 'object',
+					properties: {
+						fileKey: {
+							type: 'string',
+							description: 'The Figma file key (found in Figma URL) or full Figma URL',
+						},
+						focus: {
+							type: 'string',
+							enum: ['components', 'design_tokens', 'layout_patterns', 'content_audit'],
+							description: 'Focus area for the summary analysis',
+						},
+					},
+					required: ['fileKey'],
+				},
+			},
+			{
+				name: 'get_figma_components_optimized',
+				description: 'Get component data optimized for LLM analysis and code generation. Includes structured component specifications, variants, and properties in a token-efficient format.',
+				inputSchema: {
+					type: 'object',
+					properties: {
+						fileKey: {
+							type: 'string',
+							description: 'The Figma file key (found in Figma URL) or full Figma URL',
+						},
+						componentNames: {
+							type: 'array',
+							items: { type: 'string' },
+							description: 'Specific component names to retrieve (if empty, gets all components)',
+						},
+						includeVariants: {
+							type: 'boolean',
+							default: true,
+							description: 'Include component variants and properties',
+						},
+						includeUsage: {
+							type: 'boolean',
+							default: false,
+							description: 'Include component usage examples and instances',
+						},
+						maxTokens: {
+							type: 'number',
+							default: 15000,
+							description: 'Maximum token limit for response',
+						},
+					},
+					required: ['fileKey'],
+				},
+			},
+			{
+				name: 'get_figma_file_chunk',
+				description: 'Get a specific chunk of a large Figma file using a continuation token or resource URI. Used for accessing large files in manageable pieces.',
 				inputSchema: {
 					type: 'object',
 					properties: {
 						fileKey: {
 							type: 'string',
 							description: 'The Figma file key (found in Figma URL)',
+						},
+						chunkType: {
+							type: 'string',
+							enum: ['pages', 'components', 'styles', 'nodes'],
+							description: 'Type of chunk to retrieve',
+						},
+						chunkId: {
+							type: 'string',
+							description: 'Specific chunk ID or continuation token',
+						},
+						resourceUri: {
+							type: 'string',
+							pattern: '^figma://file/[^/]+/(overview|components|styles|nodes)/.*',
+							description: 'MCP resource URI for specific file chunk',
+						},
+					},
+					required: ['fileKey'],
+				},
+			},
+			{
+				name: 'get_figma_file',
+				description: 'Get details about a Figma file including document structure and metadata. Supports full Figma URLs and will automatically handle large files by falling back to metadata and components. If URL contains node-id parameter, will fetch that specific node instead.',
+				inputSchema: {
+					type: 'object',
+					properties: {
+						fileKey: {
+							type: 'string',
+							description: 'The Figma file key (found in Figma URL) or full Figma URL. If URL contains node-id parameter, will fetch that specific node.',
 						},
 					},
 					required: ['fileKey'],
@@ -68,7 +184,7 @@ export function getTools() {
 			},
 			{
 				name: 'get_figma_nodes',
-				description: 'Get specific nodes from a Figma file by their IDs',
+				description: 'Get specific nodes from a Figma file by their IDs. Automatically chunks large requests to avoid API limits.',
 				inputSchema: {
 					type: 'object',
 					properties: {
