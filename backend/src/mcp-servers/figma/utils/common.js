@@ -16,13 +16,24 @@ import fetch from 'node-fetch';
  */
 export async function downloadFigmaImage(fileName, localPath, imageUrl) {
 	try {
-		// Ensure local path exists
-		if (!fs.existsSync(localPath)) {
-			fs.mkdirSync(localPath, { recursive: true });
+		// Ensure local path exists with proper error handling
+		try {
+			if (!fs.existsSync(localPath)) {
+				await fs.promises.mkdir(localPath, { recursive: true });
+			}
+		} catch (dirError) {
+			throw new Error(`Failed to create directory ${localPath}: ${dirError.message}`);
 		}
 
 		// Build the complete file path
 		const fullPath = path.join(localPath, fileName);
+		
+		// Check if we can write to the directory
+		try {
+			await fs.promises.access(localPath, fs.constants.W_OK);
+		} catch (accessError) {
+			throw new Error(`No write permission for directory ${localPath}: ${accessError.message}`);
+		}
 
 		// Use fetch to download the image
 		const response = await fetch(imageUrl, { method: "GET" });
@@ -31,47 +42,13 @@ export async function downloadFigmaImage(fileName, localPath, imageUrl) {
 			throw new Error(`Failed to download image: ${response.statusText}`);
 		}
 
-		// Create write stream
-		const writer = fs.createWriteStream(fullPath);
-
-		// Get the response as a readable stream and pipe it to the file
-		const reader = response.body?.getReader();
-		if (!reader) {
-			throw new Error("Failed to get response body");
-		}
-
-		return new Promise((resolve, reject) => {
-			// Process stream
-			const processStream = async () => {
-				try {
-					while (true) {
-						const { done, value } = await reader.read();
-						if (done) {
-							writer.end();
-							break;
-						}
-						writer.write(value);
-					}
-				} catch (err) {
-					writer.end();
-					fs.unlink(fullPath, () => {});
-					reject(err);
-				}
-			};
-
-			// Resolve only when the stream is fully written
-			writer.on('finish', () => {
-				resolve(fullPath);
-			});
-
-			writer.on("error", (err) => {
-				reader.cancel();
-				fs.unlink(fullPath, () => {});
-				reject(new Error(`Failed to write image: ${err.message}`));
-			});
-
-			processStream();
-		});
+		// Use buffer approach for compatibility with older node-fetch
+		const buffer = await response.buffer();
+		
+		// Write the buffer to file
+		await fs.promises.writeFile(fullPath, buffer);
+		
+		return fullPath;
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		throw new Error(`Error downloading image: ${errorMessage}`);
