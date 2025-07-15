@@ -7,68 +7,19 @@
 /**
  * Creates a successful MCP response with content
  * @param {any} data - Response data
- * @param {object} options - Response options
+ * @param {object} options - Response options (unused, kept for compatibility)
  * @returns {object} MCP-compliant response
  */
 function createSuccessResponse(data, options = {}) {
-    const {
-        includeRawData = false,
-        resourceUri = null,
-        summary = null,
-        tokenCount = null,
-        hasMore = false,
-        continuation = null
-    } = options;
-    
-    const content = [];
-    
-    // Add summary text if provided
-    if (summary) {
-        content.push({
-            type: 'text',
-            text: summary
-        });
-    }
-    
-    // Add main data as resource or text
-    if (resourceUri) {
-        content.push({
-            type: 'resource',
-            resource: {
-                uri: resourceUri,
-                mimeType: 'application/json',
+    // Simple format like figma-mcp-server
+    return {
+        content: [
+            {
+                type: "text",
                 text: JSON.stringify(data, null, 2)
             }
-        });
-    } else {
-        content.push({
-            type: 'text',
-            text: formatDataForDisplay(data)
-        });
-    }
-    
-    // Add raw data if requested
-    if (includeRawData && !resourceUri) {
-        content.push({
-            type: 'text',
-            text: `\nRaw Data:\n${JSON.stringify(data, null, 2)}`
-        });
-    }
-    
-    const response = {
-        content,
-        isError: false
+        ]
     };
-    
-    // Add metadata if provided
-    if (tokenCount || hasMore || continuation) {
-        response._meta = {};
-        if (tokenCount) response._meta.tokenCount = tokenCount;
-        if (hasMore) response._meta.hasMore = hasMore;
-        if (continuation) response._meta.continuation = continuation;
-    }
-    
-    return response;
 }
 
 /**
@@ -116,9 +67,9 @@ function createOversizedResponse(estimatedTokens, maxTokens, suggestedTools = []
             suggestions += `\n- Use '${tool.name}' ${tool.description ? '- ' + tool.description : ''}`;
         });
     } else {
-        suggestions += '\n- Use get_figma_file_optimized with "overview" mode';
-        suggestions += '\n- Use get_figma_components for component data only';
-        suggestions += '\n- Use get_figma_nodes with specific node IDs';
+        suggestions += '\n- Use get_figma_file for file data';
+        suggestions += '\n- Use list_components for component data only';
+        suggestions += '\n- Use get_file_nodes with specific node IDs';
     }
     
     return createErrorResponse(
@@ -128,9 +79,9 @@ function createOversizedResponse(estimatedTokens, maxTokens, suggestedTools = []
             estimatedTokens,
             maxTokens,
             suggestedTools: suggestedTools.length > 0 ? suggestedTools : [
-                { name: 'get_figma_file_optimized', params: { optimization: 'overview' } },
-                { name: 'get_figma_components' },
-                { name: 'get_figma_nodes', params: { nodeIds: ['specific-node-id'] } }
+                { name: 'get_figma_file', params: { file_key: 'file-key' } },
+                { name: 'list_components' },
+                { name: 'get_file_nodes', params: { node_id: 'specific-node-id' } }
             ]
         }
     );
@@ -345,7 +296,7 @@ function formatArrayData(data) {
     return formatted;
 }
 
-module.exports = {
+export {
     createSuccessResponse,
     createErrorResponse,
     createOversizedResponse,

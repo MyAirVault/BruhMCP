@@ -3,7 +3,7 @@
  * Transforms raw Figma API responses into structured, semantic data optimized for LLM consumption
  */
 
-const { estimateTokenCount, truncateToTokenLimit } = require('./token-manager');
+import { estimateTokenCount, truncateToTokenLimit } from './token-manager.js';
 
 /**
  * Optimization levels for different use cases
@@ -430,7 +430,7 @@ function hasMoreContent(figmaData, optimization) {
     return false;
 }
 
-module.exports = {
+export {
     optimizeFigmaFile,
     OPTIMIZATION_LEVELS
 };

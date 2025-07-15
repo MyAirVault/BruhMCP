@@ -275,7 +275,7 @@ function calculateChunkingStrategy(totalTokens, maxTokensPerChunk = 20000) {
     };
 }
 
-module.exports = {
+export {
     estimateTokenCount,
     exceedsTokenLimit,
     truncateToTokenLimit,

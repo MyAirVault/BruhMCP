@@ -1,5 +1,6 @@
 # === Node modules ===
 node_modules/
+figma-mcp-server/
 
 # === Logs ===
 npm-debug.log*
