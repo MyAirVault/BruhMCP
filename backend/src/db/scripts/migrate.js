@@ -1,5 +1,5 @@
 import { pool } from '../config.js';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -10,10 +10,41 @@ const migrations = [
 	'001_complete_database_setup.sql',
 ];
 
+async function loadMCPServiceRegistrations() {
+	const mcpServicesPath = join(__dirname, '..', '..', 'mcp-servers');
+	const services = [];
+	
+	try {
+		const serviceDirectories = readdirSync(mcpServicesPath);
+		
+		for (const serviceDir of serviceDirectories) {
+			const servicePath = join(mcpServicesPath, serviceDir);
+			const dbPath = join(servicePath, 'db', 'service.sql');
+			
+			try {
+				const sql = readFileSync(dbPath, 'utf8');
+				services.push({
+					name: serviceDir,
+					sql: sql
+				});
+			} catch (error) {
+				// Skip if service.sql doesn't exist
+				console.log(`⚠️ No service.sql found for ${serviceDir}`);
+			}
+		}
+	} catch (error) {
+		console.error('❌ Error loading MCP services:', error);
+		throw error;
+	}
+	
+	return services;
+}
+
 async function runMigrations() {
 	try {
 		console.log('🔄 Running database migrations...');
 
+		// Run core migrations first
 		for (const migration of migrations) {
 			const migrationPath = join(__dirname, '..', 'migrations', migration);
 			const sql = readFileSync(migrationPath, 'utf8');
@@ -21,6 +52,16 @@ async function runMigrations() {
 			console.log(`📄 Running migration: ${migration}`);
 			await pool.query(sql);
 			console.log(`✅ Migration completed: ${migration}`);
+		}
+
+		// Load and run MCP service registrations
+		console.log('🔄 Loading MCP service registrations...');
+		const services = await loadMCPServiceRegistrations();
+		
+		for (const service of services) {
+			console.log(`📄 Registering MCP service: ${service.name}`);
+			await pool.query(service.sql);
+			console.log(`✅ Service registered: ${service.name}`);
 		}
 
 		console.log('🎉 All migrations completed successfully!');

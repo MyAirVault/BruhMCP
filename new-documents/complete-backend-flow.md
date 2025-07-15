@@ -6,6 +6,26 @@ This document describes the complete end-to-end flow of the MCP (Model Control P
 
 ## Flow Phases
 
+### **0. Database Migration and Service Registration Flow**
+
+**Migration Execution**:
+- **Command**: `npm run db:migrate`
+- **Script**: `backend/src/db/scripts/migrate.js`
+- **Core Schema**: Executes `001_complete_database_setup.sql` for tables, indexes, triggers
+- **Service Discovery**: Automatically scans `backend/src/mcp-servers/*/db/` for service.sql files
+
+**Service Registration Process**:
+- **Auto-Discovery**: Migration script finds all service directories in `backend/src/mcp-servers/`
+- **File Loading**: Loads `service.sql` from each service's `db/` folder
+- **Port Validation**: Validates port consistency with `mcp-ports/*/config.json`
+- **Database Registration**: Executes SQL to register service in `mcp_table`
+- **Logging**: Registration events logged with success/failure status
+
+**Post-Migration State**:
+- **Service Catalog**: All services available in `mcp_table` with correct metadata
+- **Port Consistency**: All ports validated against configuration files
+- **Ready for Use**: Services registered and ready for instance creation
+
 ### **1. User Authentication Flow**
 
 **Initial Authentication Request**:
@@ -38,6 +58,7 @@ This document describes the complete end-to-end flow of the MCP (Model Control P
 **Service Discovery**:
 - **Function**: `getMCPTypes()` in `mcpTypesController.js`
 - **Database Query**: `getAllMCPTypes()` retrieves available services
+- **Service Registration**: Services automatically registered from `backend/src/mcp-servers/*/db/service.sql`
 - **Response**: Available services (Figma, GitHub, etc.) returned to frontend
 
 **Credential Validation**:

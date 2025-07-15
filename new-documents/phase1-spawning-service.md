@@ -23,6 +23,8 @@ All services are implemented in `backend/src/mcp-servers/` with this multi-tenan
 backend/src/mcp-servers/
 ├── figma/
 │   ├── index.js               # Entry point - multi-tenant routing
+│   ├── db/
+│   │   └── service.sql        # Database service registration
 │   ├── endpoints/             # MCP protocol endpoints
 │   ├── api/                   # Service-specific API logic
 │   ├── utils/                 # Helper functions
@@ -32,6 +34,8 @@ backend/src/mcp-servers/
 │       └── instance-auth.js   # Instance authentication
 ├── github/
 │   ├── index.js               # Entry point - multi-tenant routing
+│   ├── db/
+│   │   └── service.sql        # Database service registration
 │   ├── endpoints/             # MCP protocol endpoints
 │   ├── api/                   # Service-specific API logic
 │   ├── utils/                 # Helper functions
@@ -41,6 +45,8 @@ backend/src/mcp-servers/
 │       └── instance-auth.js   # Instance authentication
 └── slack/
     ├── index.js               # Entry point - multi-tenant routing
+    ├── db/
+    │   └── service.sql        # Database service registration
     ├── endpoints/             # MCP protocol endpoints
     ├── api/                   # Service-specific API logic
     ├── utils/                 # Helper functions
@@ -52,7 +58,14 @@ backend/src/mcp-servers/
 
 ### How Each Multi-Tenant Service Works
 
-1. **index.js**: Main entry point that:
+1. **db/service.sql**: Database registration file that:
+
+    - Defines service metadata (name, display name, description, icon)
+    - Specifies port number (must match mcp-ports configuration)
+    - Sets authentication type (api_key or oauth)
+    - Automatically discovered and registered during `npm run db:migrate`
+
+2. **index.js**: Main entry point that:
 
     - Contains service configuration (port, name, auth type) directly in the file
     - Sets up Express server with multi-tenant routing (`:instanceId` parameters)
@@ -60,32 +73,32 @@ backend/src/mcp-servers/
     - Uses instance authentication middleware for protected endpoints
     - Starts listening for requests without database dependencies
 
-2. **endpoints/** folder: Contains MCP protocol endpoints:
+3. **endpoints/** folder: Contains MCP protocol endpoints:
 
     - `health.js` - Health check handlers (global and instance-specific)
     - `tools.js` - Available tools endpoint with MCP compliance
     - `call.js` - Tool execution endpoint with user credential integration
     - Service-specific endpoint files
 
-3. **api/** folder: Service-specific API logic:
+4. **api/** folder: Service-specific API logic:
 
     - External API integration code using user credentials
     - Data transformation functions
     - Service-specific business logic with user context
 
-4. **services/** folder: Multi-tenant service layer:
+5. **services/** folder: Multi-tenant service layer:
 
     - `database.js` - Instance credential lookup and validation
     - Usage tracking and analytics per instance
     - Instance status management (active/inactive/expired)
 
-5. **middleware/** folder: Authentication and routing:
+6. **middleware/** folder: Authentication and routing:
 
     - `instance-auth.js` - Instance-based authentication middleware
     - UUID validation and database credential lookup
     - User isolation and request context management
 
-6. **utils/** folder: Helper functions and utilities:
+7. **utils/** folder: Helper functions and utilities:
     - Common utility functions
     - Input validation and sanitization
     - Shared service utilities
@@ -125,7 +138,14 @@ https://domain.com/slack/a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d/mcp/call
 
 1. **Create service folder** in `backend/src/mcp-servers/servicename/`
 
-2. **Implement index.js** entry point with multi-tenant routing:
+2. **Create database registration** in `db/service.sql`:
+
+    - Define service metadata (name, display name, description, icon)
+    - Specify port number (must match mcp-ports configuration)
+    - Set authentication type (api_key or oauth)
+    - Ensure port consistency across all configuration files
+
+3. **Implement index.js** entry point with multi-tenant routing:
 
     - Define service configuration directly in file (name, port, auth type)
     - Set up Express server with instance-based routing (`/:instanceId/*`)
@@ -133,37 +153,56 @@ https://domain.com/slack/a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d/mcp/call
     - Load instance authentication middleware
     - Start listening for requests without database dependencies
 
-3. **Create endpoints/** folder with MCP handlers:
+4. **Create endpoints/** folder with MCP handlers:
 
     - `health.js` - Health check handlers (global and instance-specific)
     - `tools.js` - List available tools with MCP compliance
     - `call.js` - Execute tool calls with user credential integration
     - Service-specific endpoints as needed
 
-4. **Build api/** folder with service logic:
+5. **Build api/** folder with service logic:
 
     - External API integration using user-specific credentials
     - Data processing and transformation with user context
     - Business logic specific to the service with isolation
 
-5. **Create services/** folder for multi-tenant logic:
+6. **Create services/** folder for multi-tenant logic:
 
     - `database.js` - Instance credential lookup and validation
     - Usage tracking and analytics per instance
     - Instance status management (active/inactive/expired)
 
-6. **Add middleware/** folder for authentication:
+7. **Add middleware/** folder for authentication:
 
     - `instance-auth.js` - Instance-based authentication middleware
     - UUID validation and database credential lookup
     - User isolation and request context management
 
-7. **Add utils/** folder for helpers:
+8. **Add utils/** folder for helpers:
     - Common utility functions
     - Input validation and sanitization
     - Shared service utilities
 
-### Step 2: Update Startup Script
+### Step 2: Register Service in Database
+
+1. **Run database migration** to register the service:
+
+    ```bash
+    npm run db:migrate
+    ```
+
+    This will:
+    - Execute core database schema migration
+    - Automatically discover your service's `db/service.sql` file
+    - Register your service in the `mcp_table` with correct metadata
+    - Validate port consistency with mcp-ports configuration
+
+2. **Verify service registration**:
+    - Check that service appears in the frontend service catalog
+    - Verify port number matches configuration files
+    - Ensure service metadata is correct
+
+### Step 3: Update Startup Script
 
 1. **Edit bash startup script** (`scripts/start-all-services.sh`):
 
@@ -176,7 +215,7 @@ https://domain.com/slack/a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d/mcp/call
     - Verify port is in valid range (49160-49999)
     - Update documentation with port assignments
 
-### Step 3: Test Service Startup
+### Step 4: Test Service Startup
 
 1. **Start individual service** for testing:
 
@@ -198,10 +237,12 @@ https://domain.com/slack/a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d/mcp/call
 To add a new service to the system:
 
 1. **Build service implementation** in `backend/src/mcp-servers/servicename/`
-2. **Define configuration** directly in the service's index.js file
-3. **Update startup script** to include the new service
-4. **Test service** individually before adding to production
-5. **Deploy via startup script** when ready
+2. **Create database registration** in `db/service.sql` with service metadata
+3. **Define configuration** directly in the service's index.js file
+4. **Run database migration** to register the service (`npm run db:migrate`)
+5. **Update startup script** to include the new service
+6. **Test service** individually before adding to production
+7. **Deploy via startup script** when ready
 
 ### Batch Service Startup
 
@@ -438,6 +479,8 @@ project-root/
 │   │   ├── mcp-servers/          # Service implementations
 │   │   │   ├── figma/
 │   │   │   │   ├── index.js      # Figma service entry point (includes config)
+│   │   │   │   ├── db/
+│   │   │   │   │   └── service.sql  # Database service registration
 │   │   │   │   ├── endpoints/    # MCP protocol endpoints
 │   │   │   │   │   ├── health.js
 │   │   │   │   │   ├── tools.js
@@ -446,11 +489,15 @@ project-root/
 │   │   │   │   └── utils/        # Helper functions
 │   │   │   ├── github/
 │   │   │   │   ├── index.js      # GitHub service entry point (includes config)
+│   │   │   │   ├── db/
+│   │   │   │   │   └── service.sql  # Database service registration
 │   │   │   │   ├── endpoints/    # MCP protocol endpoints
 │   │   │   │   ├── api/          # GitHub-specific API logic
 │   │   │   │   └── utils/        # Helper functions
 │   │   │   └── slack/
 │   │   │       ├── index.js      # Slack service entry point (includes config)
+│   │   │       ├── db/
+│   │   │       │   └── service.sql  # Database service registration
 │   │   │       ├── endpoints/    # MCP protocol endpoints
 │   │   │       ├── api/          # Slack-specific API logic
 │   │   │       └── utils/        # Helper functions

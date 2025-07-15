@@ -107,21 +107,4 @@ COMMENT ON COLUMN mcp_service_table.renewed_count IS 'Number of times this insta
 COMMENT ON COLUMN mcp_service_table.last_renewed_at IS 'Last time this instance was renewed from expired status';
 COMMENT ON COLUMN mcp_service_table.credentials_updated_at IS 'Last time credentials were updated (edit functionality)';
 
--- Insert Figma service into registry
-INSERT INTO mcp_table (
-    mcp_service_name,
-    display_name,
-    description,
-    icon_url_path,
-    port,
-    type
-) VALUES (
-    'figma',
-    'Figma',
-    'Design collaboration platform for creating and sharing designs',
-    '/mcp-logos/figma.svg',
-    49160,
-    'api_key'
-);
-
 COMMIT;

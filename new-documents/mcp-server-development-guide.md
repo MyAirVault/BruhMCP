@@ -200,6 +200,8 @@ The Model Context Protocol (MCP) is an open standard for connecting AI assistant
 ```
 src/mcp-servers/[service-name]/
 ├── index.js                    # Main server entry point
+├── db/
+│   └── service.sql             # Database service registration
 ├── endpoints/
 │   ├── jsonrpc-handler.js      # JSON-RPC protocol handler
 │   ├── tools.js                # Tool definitions
@@ -219,21 +221,50 @@ src/mcp-servers/[service-name]/
 
 ## Implementation Guide
 
-### Step 1: Create Service Configuration
+### Step 1: Create Database Service Registration
+
+Create the database registration file that will be automatically discovered during migration:
+
+```sql
+-- src/mcp-servers/[service-name]/db/service.sql
+-- [Service Name] service registration
+INSERT INTO mcp_table (
+    mcp_service_name,
+    display_name,
+    description,
+    icon_url_path,
+    port,
+    type
+) VALUES (
+    'service-name',
+    'Service Name',
+    'Service description for users',
+    '/mcp-logos/service-name.svg',
+    49XXX,  -- Must match port in mcp-ports/service-name/config.json
+    'api_key'  -- or 'oauth'
+);
+```
+
+**Important**: 
+- Port number must match the port in `mcp-ports/service-name/config.json`
+- Service name must be unique across all services
+- Icon path should point to existing SVG file in `public/mcp-logos/`
+
+### Step 2: Create Service Configuration
 
 ```javascript
 // src/mcp-servers/[service-name]/index.js
 const SERVICE_CONFIG = {
   name: 'service-name',
   displayName: 'Service Name',
-  port: 49XXX,  // Unique port for service
+  port: 49XXX,  // Must match port in service.sql and mcp-ports config
   authType: 'api_key',
   description: 'Service description',
   version: '1.0.0'
 };
 ```
 
-### Step 2: Define Tools
+### Step 3: Define Tools
 
 ```javascript
 // src/mcp-servers/[service-name]/endpoints/tools.js
@@ -259,7 +290,7 @@ export function getTools() {
 }
 ```
 
-### Step 3: Implement Tool Execution
+### Step 4: Implement Tool Execution
 
 ```javascript
 // src/mcp-servers/[service-name]/endpoints/call.js
@@ -288,7 +319,7 @@ export async function executeToolCall(toolName, args, apiKey) {
 }
 ```
 
-### Step 4: Create JSON-RPC Handler
+### Step 5: Create JSON-RPC Handler
 
 ```javascript
 // src/mcp-servers/[service-name]/endpoints/jsonrpc-handler.js
@@ -462,7 +493,7 @@ export class ServiceMCPJsonRpcHandler {
 }
 ```
 
-### Step 5: Create Main Server
+### Step 6: Create Main Server
 
 ```javascript
 // src/mcp-servers/[service-name]/index.js
@@ -694,6 +725,15 @@ testMCPCompliance().catch(console.error);
 - [ ] Graceful shutdown implemented
 
 ## Deployment
+
+### Database Registration
+
+After creating your service, the database registration happens automatically:
+
+1. **Service Discovery**: The migration script automatically discovers your `service.sql` file
+2. **Database Registration**: Run `npm run db:migrate` to register your service
+3. **Port Validation**: The system validates port consistency with `mcp-ports/` configuration
+4. **Service Availability**: Your service becomes available in the frontend service catalog
 
 ### Environment Variables
 

@@ -33,6 +33,21 @@ backend/src/oauth-service/
     └── validation.js         # Credential and token validation
 ```
 
+### OAuth Service Manager
+
+```
+backend/src/services/
+└── oauth-service-manager.js    # Manages OAuth service lifecycle (start/stop)
+```
+
+### MCP Instance Creation
+
+```
+backend/src/controllers/mcpInstances/crud/
+├── createMCP.js               # Main MCP creation logic
+└── oauth-helpers.js           # OAuth flow integration helpers
+```
+
 ### Service-Specific Components (per MCP service)
 
 ```
@@ -45,11 +60,25 @@ backend/src/mcp-servers/{service}/
     └── oauth-integration.js   # Integration with OAuth service
 ```
 
+### Frontend Components
+
+```
+frontend/src/components/
+├── modals/
+│   └── CreateMCPModal.tsx     # Main instance creation modal
+├── ui/form/
+│   ├── CredentialFields.tsx   # Dynamic credential input fields
+│   └── ValidationFeedback.tsx # Credential validation feedback
+└── hooks/
+    └── useCreateMCPForm.ts    # Form state and OAuth flow management
+```
+
 ### Integration Points
 
 - **Frontend Modal**: Instance creation with OAuth consent
-- **OAuth Service**: Stateless OAuth flow handling (no token storage)
-- **MCP Services**: Each service manages its own tokens and cache
+- **OAuth Service**: Stateless OAuth flow handling (no token storage) on port 3001
+- **Main Backend**: Instance creation and management on port 5000
+- **MCP Services**: Each service manages its own tokens and cache on dedicated ports
 - **Database**: Credential storage managed by individual services
 
 ## Authentication Flow Comparison
@@ -59,10 +88,20 @@ backend/src/mcp-servers/{service}/
 
 **Flow**: Format validation → Instance creation → OAuth consent → Token caching → Success/Failure handling
 
+**Port Architecture**: 
+- Main backend (port 5000) handles instance creation
+- OAuth service (port 3001) handles OAuth flows
+- Individual MCP services (port 49xxx) handle token caching
+
 ### API Key Services (API Key Authentication)
 **Examples**: Figma, Linear, Notion (with API keys)
 
 **Flow**: Format validation → Instance creation → Direct API validation → Success (no OAuth needed)
+
+**Port Architecture**:
+- Main backend (port 5000) handles instance creation
+- Individual MCP services (port 49xxx) handle direct API validation
+- No OAuth service involvement
 
 ## OAuth Flow Summary (For Client ID + Client Secret Services Only)
 
@@ -81,6 +120,8 @@ backend/src/mcp-servers/{service}/
 - **Proper Instance ID**: OAuth flow has actual instance_id from database
 - **Retry Capability**: Failed OAuth allows user to retry without losing progress
 - **Clean Error Handling**: Failed OAuth automatically cleans up incomplete instance
+- **Service Independence**: OAuth service runs on port 3001, main backend on port 5000
+- **Dynamic Service Management**: OAuth service starts automatically when needed
 
 ## Detailed Flow
 
@@ -88,7 +129,7 @@ backend/src/mcp-servers/{service}/
 
 #### 1.1 User Credential Entry and Format Validation
 
-**File**: `frontend/src/components/modals/CreateInstanceModal.jsx`
+**File**: `frontend/src/components/modals/CreateMCPModal.tsx`
 
 - **Function**: `handleCredentialChange()`
   - Captures Client ID and Client Secret input
@@ -102,29 +143,29 @@ backend/src/mcp-servers/{service}/
 
 #### 1.2 Instance Creation Initiation
 
-**File**: `frontend/src/components/modals/CreateInstanceModal.jsx`
+**File**: `frontend/src/components/modals/CreateMCPModal.tsx`
 
-- **Function**: `handleCreateInstance()`
+- **Function**: `handleSubmit()`
   - Triggered when user clicks "Create" button
   - Shows spinner on button and prevents modal closure
   - Sends instance creation request to backend
 
-- **Function**: `showCreationSpinner()`
+- **Function**: `isSubmitting` state
   - Displays loading spinner on "Create" button
   - Prevents modal from closing during process
   - Shows "Creating instance..." status
 
 #### 1.3 Backend Instance Creation
 
-**File**: `backend/src/routes/instances.js`
+**File**: `backend/src/routes/mcpInstancesRoutes.js`
 
-- **Endpoint**: `POST /instances`
+- **Endpoint**: `POST /api/v1/mcps`
   - Creates new MCP service instance in database
   - Generates unique instance_id
   - Stores Client ID and Client Secret temporarily
   - Initiates OAuth flow with instance_id
 
-- **Function**: `createInstanceWithOAuth()`
+- **Function**: `handleOAuthFlow()` (in oauth-helpers.js)
   - Creates instance record in database
   - Generates instance_id for OAuth flow
   - Calls OAuth service with instance_id and credentials
@@ -138,7 +179,7 @@ backend/src/mcp-servers/{service}/
   - Validates credential format
   - Generates OAuth authorization URL with instance_id in state
 
-- **Function**: `startOAuthFlow()`
+- **Function**: `generateAuthorizationUrl()`
   - Validates provider credentials format
   - Generates authorization URL with instance_id
   - Returns authorization URL to frontend
@@ -160,17 +201,17 @@ backend/src/mcp-servers/{service}/
 
 #### 1.6 User OAuth Consent
 
-**File**: `frontend/src/components/modals/CreateInstanceModal.jsx`
+**File**: `frontend/src/components/modals/CreateMCPModal.tsx`
 
-- **Function**: `openOAuthPopup()`
-  - Opens OAuth consent screen in popup/new tab
-  - Handles popup blocking scenarios
-  - Monitors popup for completion
+- **Function**: OAuth handled by redirecting to authorization URL
+  - Redirects user to OAuth provider consent screen
+  - Handles OAuth callback processing
+  - Monitors OAuth completion status
 
-- **Function**: `handleOAuthMessage()`
-  - Listens for OAuth completion messages
-  - Processes success/failure responses
+- **Function**: OAuth callback handling
+  - Processes OAuth callback responses
   - Updates UI based on OAuth result
+  - Handles success/failure states
 
 #### 1.7 OAuth Callback Processing
 
@@ -216,9 +257,9 @@ backend/src/mcp-servers/{service}/
 
 #### 1.10 Success/Failure Handling
 
-**File**: `backend/src/routes/instances.js`
+**File**: `backend/src/controllers/mcpInstances/crud/createMCP.js`
 
-- **Function**: `handleOAuthSuccess()`
+- **Function**: OAuth success handled in callback processing
   - Confirms OAuth success and token caching
   - Finalizes instance creation in database
   - Returns success response to frontend
@@ -230,22 +271,22 @@ backend/src/mcp-servers/{service}/
 
 #### 1.11 Frontend Response Handling
 
-**File**: `frontend/src/components/modals/CreateInstanceModal.jsx`
+**File**: `frontend/src/components/modals/CreateMCPModal.tsx`
 
-- **Function**: `onInstanceCreateSuccess()`
+- **Function**: `onSubmit()` callback handles success
   - Handles successful instance creation
   - Closes modal and updates instance list
   - Shows success notification
 
-- **Function**: `onInstanceCreateFailure()`
+- **Function**: Error handling in form submission
   - Handles OAuth or instance creation failure
   - Shows error message in modal
   - Keeps modal open for retry
   - Re-enables "Create" button for retry attempt
 
-- **Function**: `handleRetry()`
-  - Allows user to retry instance creation
-  - Resets UI state and error messages
+- **Function**: `retryValidation()`
+  - Allows user to retry credential validation
+  - Resets validation state and error messages
   - Enables retry with same or updated credentials
 
 ### Phase 2: API Request Authentication
@@ -624,6 +665,8 @@ Create service configuration in `mcp-ports/{service}/config.json`:
 - **Cache Cleanup**: Regular cleanup of expired tokens (service-specific)
 - **Memory Usage**: Monitor cache memory usage and limits (per service)
 - **Cache Isolation**: Each service maintains independent cache performance
+- **Service Lifecycle**: OAuth service on port 3001 starts/stops on demand
+- **Port Distribution**: Services distributed across different ports for scalability
 
 ### Database Query Optimization
 
@@ -662,7 +705,12 @@ This centralized OAuth system provides a robust, scalable foundation for OAuth a
 - **Atomic Operations**: Clean success/failure handling with instance cleanup
 
 ### Service Type Distinction:
-- **OAuth Services** (Gmail, Google Drive, Slack): Use this centralized OAuth flow
-- **API Key Services** (Figma, Linear, Notion): Continue using existing simpler flow
+- **OAuth Services** (Gmail, Google Drive, Slack): Use this centralized OAuth flow with OAuth service on port 3001
+- **API Key Services** (Figma, Linear, Notion): Continue using existing simpler flow without OAuth service
 
-This architecture maintains the established pattern where each MCP service is independent and manages its own resources while sharing common OAuth flow logic through the centralized OAuth service for services that require OAuth 2.0 authentication.
+### Port Architecture Summary:
+- **Main Backend (port 5000)**: Instance creation, API management, general business logic
+- **OAuth Service (port 3001)**: OAuth flows, token exchange, provider integrations
+- **MCP Services (port 49xxx)**: Service-specific logic, token caching, API execution
+
+This architecture maintains the established pattern where each MCP service is independent and manages its own resources while sharing common OAuth flow logic through the centralized OAuth service for services that require OAuth 2.0 authentication. The OAuth service on port 3001 is necessary for proper separation of concerns and maintains the stateless design principle.

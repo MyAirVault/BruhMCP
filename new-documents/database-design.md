@@ -279,19 +279,44 @@ Complete request isolation and proper response handling
 
 ## Service Registry Population
 
-### Current Implementation
+### Current Implementation (Automatic)
 
--   **Manual service registration** during development
--   **Static service definitions** in database
--   **Service metadata** populated by developers
+-   **Individual service files** in `backend/src/mcp-servers/*/db/service.sql`
+-   **Automatic service discovery** during database migration
+-   **Service metadata** defined in each service's SQL file
+-   **Port consistency** validated against mcp-ports configuration
 
-### Future Automation (Planned)
+### Migration System Integration
 
--   **Scan mcp-ports directory** for service configurations
--   **Auto-populate MCP Table** from folder structure
--   **Extract service metadata** from config.json files
--   **Detect authentication requirements** from service configs
--   **Maintain service registry** automatically
+1. **Migration Script Enhancement**
+   - Updated `backend/src/db/scripts/migrate.js` to scan MCP service directories
+   - Automatically loads all `service.sql` files from `backend/src/mcp-servers/*/db/`
+   - Executes service registrations after core schema migration
+
+2. **Service Registration Structure**
+   ```
+   backend/src/mcp-servers/
+   ├── figma/db/service.sql         # Figma service registration
+   ├── gmail/db/service.sql         # Gmail service registration  
+   ├── github/db/service.sql        # GitHub service registration
+   ├── discord/db/service.sql       # Discord service registration
+   ├── notion/db/service.sql        # Notion service registration
+   └── slack/db/service.sql         # Slack service registration
+   ```
+
+3. **Service Registration Process**
+   - Each service maintains its own database registration
+   - Port numbers automatically synced with `mcp-ports/*/config.json`
+   - Service metadata defined per service (display name, description, auth type)
+   - Migration system discovers and registers all services automatically
+
+### Benefits of New Structure
+
+-   **Decentralized Management**: Each service manages its own database registration
+-   **Automatic Discovery**: No manual service list maintenance required
+-   **Consistency Enforcement**: Port numbers validated against configuration files
+-   **Scalable Architecture**: Easy to add new services without modifying core migration
+-   **Developer Experience**: Service teams can manage their own registration data
 
 ## Data Validation and Integrity
 
@@ -374,12 +399,13 @@ Complete request isolation and proper response handling
 5. **Create indexes** for performance on status, expiration, and usage fields
 6. **Add timestamp triggers** for automatic updated_at handling
 
-### Phase 2: Service Registration
+### Phase 2: Automatic Service Registration
 
-1. **Manually populate MCP Table** with core services
-2. **Define authentication requirements** for each service
-3. **Set up service metadata** (names, descriptions, icons)
-4. **Validate service registry** completeness
+1. **Enhanced Migration Script** automatically discovers and registers all services
+2. **Service Discovery** from `backend/src/mcp-servers/*/db/service.sql` files
+3. **Port Validation** against `mcp-ports/*/config.json` configurations
+4. **Service Metadata Loading** from individual service registration files
+5. **Automatic Registry Population** during `npm run db:migrate`
 
 ### Phase 3: Application Integration
 
@@ -396,6 +422,19 @@ Complete request isolation and proper response handling
 2. **Generate Service IDs** for existing instances
 3. **Update user URLs** to new format
 4. **Validate data migration** completeness
+
+### Migration Execution
+
+Run the complete migration with:
+```bash
+npm run db:migrate
+```
+
+This will:
+1. Execute core database schema migration (`001_complete_database_setup.sql`)
+2. Automatically discover all MCP services in `backend/src/mcp-servers/*/db/`
+3. Register each service with correct port numbers and metadata
+4. Validate service registration completeness
 
 ## Benefits of New Architecture
 
@@ -428,13 +467,16 @@ Complete request isolation and proper response handling
 
 ## Implementation Priorities
 
-### Immediate (Phase 1)
+### ✅ Completed (Phase 1-2)
 
-1. Create database schema with new tables
-2. Establish relationships and constraints
-3. Populate initial service registry
+1. ✅ Database schema created with new tables
+2. ✅ Relationships and constraints established
+3. ✅ Automatic service registry system implemented
+4. ✅ Service registration from individual files
+5. ✅ Port validation against mcp-ports configuration
+6. ✅ Migration script enhanced for automatic discovery
 
-### Short Term (Phase 2-3)
+### Short Term (Phase 3)
 
 1. Update application to use new database structure
 2. Implement dynamic credential forms
@@ -442,7 +484,7 @@ Complete request isolation and proper response handling
 
 ### Long Term (Phase 4+)
 
-1. Automate service registry from mcp-ports
-2. Add credential encryption
-3. Implement advanced security features
-4. Add service monitoring and analytics
+1. Add credential encryption
+2. Implement advanced security features
+3. Add service monitoring and analytics
+4. Enhance service registry with metadata from mcp-ports
