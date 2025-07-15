@@ -299,48 +299,35 @@ function formatArrayData(data) {
 function createFigmaOptimizedResponse(figmaData, options = {}) {
     const {
         outputFormat = 'yaml',
-        depth = 10,
+        depth = null,
         maxNodes = 1000,
         fileKey = null,
         nodeId = null
     } = options;
     
     try {
-        // Use simplified parser for better deduplication
-        const simplifiedData = parseSimplifiedResponse(figmaData, {
-            depth,
-            maxNodes
-        });
+        // Create simplified response like Figma-Context-MCP does
+        const simplifiedData = parseSimplifiedFigmaResponse(figmaData, nodeId);
         
-        // Add metadata about optimization
+        // Add metadata
         const metadata = {
             fileKey,
-            nodeId,
-            optimization: {
-                originalSize: JSON.stringify(figmaData).length,
-                optimizedSize: JSON.stringify(simplifiedData).length,
-                compressionRatio: Math.round((1 - JSON.stringify(simplifiedData).length / JSON.stringify(figmaData).length) * 100),
-                variableCount: simplifiedData._meta?.totalVariables || 0
-            }
+            nodeId
         };
         
         const result = {
-            ...metadata,
-            ...simplifiedData
+            metadata,
+            nodes: simplifiedData.nodes,
+            globalVars: simplifiedData.globalVars
         };
         
-        // Format output
-        let formattedText;
-        if (outputFormat === 'yaml') {
-            formattedText = yaml.dump(result, {
-                indent: 2,
-                lineWidth: 120,
-                noRefs: true,
-                sortKeys: false
-            });
-        } else {
-            formattedText = JSON.stringify(result, null, 2);
-        }
+        // Format output as YAML like Figma-Context-MCP
+        const formattedText = yaml.dump(result, {
+            indent: 2,
+            lineWidth: 120,
+            noRefs: true,
+            sortKeys: false
+        });
         
         return {
             content: [
@@ -355,6 +342,76 @@ function createFigmaOptimizedResponse(figmaData, options = {}) {
         console.error('Error in createFigmaOptimizedResponse:', error);
         return createErrorResponse(`Failed to optimize Figma response: ${error.message}`);
     }
+}
+
+/**
+ * Parse Figma response to simplified format (copying Figma-Context-MCP approach)
+ * @param {any} data - Raw Figma API response
+ * @param {string} nodeId - Optional node ID for node responses
+ * @returns {Object} Simplified design object
+ */
+function parseSimplifiedFigmaResponse(data, nodeId = null) {
+    let nodesToParse = [];
+    
+    if (data.nodes && nodeId) {
+        // GetFileNodesResponse - extract the specific node
+        const nodeResponse = data.nodes[nodeId];
+        if (nodeResponse && nodeResponse.document) {
+            nodesToParse = [nodeResponse.document];
+        }
+    } else if (data.document) {
+        // GetFileResponse - get all children
+        nodesToParse = data.document.children || [];
+    }
+    
+    // Create simplified nodes (basic version - key fields only)
+    const simplifiedNodes = nodesToParse.map(node => parseSimplifiedNode(node)).filter(Boolean);
+    
+    return {
+        name: data.name || 'Figma Design',
+        lastModified: data.lastModified || new Date().toISOString(),
+        nodes: simplifiedNodes,
+        components: {}, // Simplified - not including full component data
+        componentSets: {},
+        globalVars: {
+            styles: {}
+        }
+    };
+}
+
+/**
+ * Parse a single Figma node to simplified format
+ * @param {any} node - Figma node object
+ * @returns {Object} Simplified node
+ */
+function parseSimplifiedNode(node) {
+    if (!node || !node.visible) return null;
+    
+    const simplified = {
+        id: node.id,
+        name: node.name,
+        type: node.type
+    };
+    
+    // Add basic layout info
+    if (node.absoluteBoundingBox) {
+        simplified.layout = {
+            x: node.absoluteBoundingBox.x,
+            y: node.absoluteBoundingBox.y,
+            width: node.absoluteBoundingBox.width,
+            height: node.absoluteBoundingBox.height
+        };
+    }
+    
+    // Add children if they exist (recursively, but limited depth)
+    if (node.children && node.children.length > 0) {
+        simplified.children = node.children
+            .map(child => parseSimplifiedNode(child))
+            .filter(Boolean)
+            .slice(0, 50); // Limit children to prevent huge responses
+    }
+    
+    return simplified;
 }
 
 export {
