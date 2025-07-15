@@ -1,0 +1,274 @@
+/**
+ * Gmail Label Operations
+ * Handle Gmail label management via API
+ */
+
+const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
+
+/**
+ * Make authenticated request to Gmail API
+ * @param {string} endpoint - API endpoint
+ * @param {string} bearerToken - OAuth Bearer token
+ * @param {Object} options - Request options
+ * @returns {Object} API response
+ */
+async function makeGmailRequest(endpoint, bearerToken, options = {}) {
+  const url = `${GMAIL_API_BASE}${endpoint}`;
+  
+  const requestOptions = {
+    method: options.method || 'GET',
+    headers: {
+      'Authorization': `Bearer ${bearerToken}`,
+      'Content-Type': 'application/json',
+      ...options.headers
+    },
+    ...options
+  };
+
+  if (options.body && typeof options.body === 'object') {
+    requestOptions.body = JSON.stringify(options.body);
+  }
+
+  console.log(`📡 Gmail Labels API Request: ${requestOptions.method} ${url}`);
+
+  const response = await fetch(url, requestOptions);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorMessage = `Gmail Labels API error: ${response.status} ${response.statusText}`;
+    
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error && errorData.error.message) {
+        errorMessage = `Gmail Labels API error: ${errorData.error.message}`;
+      }
+    } catch (parseError) {
+      // Use the default error message if JSON parsing fails
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  console.log(`✅ Gmail Labels API Response: ${response.status}`);
+  
+  return data;
+}
+
+/**
+ * List all Gmail labels
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Labels list
+ */
+export async function listLabels(bearerToken) {
+  const result = await makeGmailRequest('/users/me/labels', bearerToken);
+
+  const labels = result.labels.map(label => ({
+    id: label.id,
+    name: label.name,
+    type: label.type,
+    messagesTotal: label.messagesTotal || 0,
+    messagesUnread: label.messagesUnread || 0,
+    threadsTotal: label.threadsTotal || 0,
+    threadsUnread: label.threadsUnread || 0,
+    messageListVisibility: label.messageListVisibility || 'show',
+    labelListVisibility: label.labelListVisibility || 'labelShow'
+  }));
+
+  // Separate system and user labels
+  const systemLabels = labels.filter(label => label.type === 'system');
+  const userLabels = labels.filter(label => label.type === 'user');
+
+  return {
+    action: 'list_labels',
+    totalCount: labels.length,
+    systemLabels: {
+      count: systemLabels.length,
+      labels: systemLabels
+    },
+    userLabels: {
+      count: userLabels.length,
+      labels: userLabels
+    },
+    allLabels: labels,
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Create a new Gmail label
+ * @param {Object} args - Label creation arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Label creation result
+ */
+export async function createLabel(args, bearerToken) {
+  const {
+    name,
+    messageListVisibility = 'show',
+    labelListVisibility = 'labelShow'
+  } = args;
+
+  const labelData = {
+    name,
+    messageListVisibility,
+    labelListVisibility
+  };
+
+  const result = await makeGmailRequest('/users/me/labels', bearerToken, {
+    method: 'POST',
+    body: labelData
+  });
+
+  return {
+    action: 'create_label',
+    label: {
+      id: result.id,
+      name: result.name,
+      type: result.type,
+      messageListVisibility: result.messageListVisibility,
+      labelListVisibility: result.labelListVisibility
+    },
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Modify labels on a message
+ * @param {Object} args - Label modification arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Label modification result
+ */
+export async function modifyLabels(args, bearerToken) {
+  const {
+    messageId,
+    addLabelIds = [],
+    removeLabelIds = []
+  } = args;
+
+  if (addLabelIds.length === 0 && removeLabelIds.length === 0) {
+    throw new Error('At least one of addLabelIds or removeLabelIds must be provided');
+  }
+
+  const modifyData = {};
+  
+  if (addLabelIds.length > 0) {
+    modifyData.addLabelIds = addLabelIds;
+  }
+  
+  if (removeLabelIds.length > 0) {
+    modifyData.removeLabelIds = removeLabelIds;
+  }
+
+  const result = await makeGmailRequest(`/users/me/messages/${messageId}/modify`, bearerToken, {
+    method: 'POST',
+    body: modifyData
+  });
+
+  return {
+    action: 'modify_labels',
+    messageId: result.id,
+    threadId: result.threadId,
+    labelIds: result.labelIds,
+    addedLabels: addLabelIds,
+    removedLabels: removeLabelIds,
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Delete a Gmail label
+ * @param {Object} args - Label deletion arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Label deletion result
+ */
+export async function deleteLabel(args, bearerToken) {
+  const { labelId } = args;
+
+  await makeGmailRequest(`/users/me/labels/${labelId}`, bearerToken, {
+    method: 'DELETE'
+  });
+
+  return {
+    action: 'delete_label',
+    labelId,
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Update a Gmail label
+ * @param {Object} args - Label update arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Label update result
+ */
+export async function updateLabel(args, bearerToken) {
+  const {
+    labelId,
+    name,
+    messageListVisibility,
+    labelListVisibility
+  } = args;
+
+  const updateData = {};
+  
+  if (name !== undefined) {
+    updateData.name = name;
+  }
+  
+  if (messageListVisibility !== undefined) {
+    updateData.messageListVisibility = messageListVisibility;
+  }
+  
+  if (labelListVisibility !== undefined) {
+    updateData.labelListVisibility = labelListVisibility;
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    throw new Error('At least one field (name, messageListVisibility, labelListVisibility) must be provided');
+  }
+
+  const result = await makeGmailRequest(`/users/me/labels/${labelId}`, bearerToken, {
+    method: 'PATCH',
+    body: updateData
+  });
+
+  return {
+    action: 'update_label',
+    label: {
+      id: result.id,
+      name: result.name,
+      type: result.type,
+      messageListVisibility: result.messageListVisibility,
+      labelListVisibility: result.labelListVisibility
+    },
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Get label details by ID
+ * @param {Object} args - Label get arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Label details
+ */
+export async function getLabel(args, bearerToken) {
+  const { labelId } = args;
+
+  const result = await makeGmailRequest(`/users/me/labels/${labelId}`, bearerToken);
+
+  return {
+    action: 'get_label',
+    label: {
+      id: result.id,
+      name: result.name,
+      type: result.type,
+      messagesTotal: result.messagesTotal || 0,
+      messagesUnread: result.messagesUnread || 0,
+      threadsTotal: result.threadsTotal || 0,
+      threadsUnread: result.threadsUnread || 0,
+      messageListVisibility: result.messageListVisibility || 'show',
+      labelListVisibility: result.labelListVisibility || 'labelShow'
+    },
+    timestamp: new Date().toISOString()
+  };
+}

@@ -59,12 +59,14 @@ start_service() {
 echo ""
 echo "🛑 Stopping existing MCP services..."
 pm2 delete mcp-figma 2>/dev/null || true
+pm2 delete mcp-gmail 2>/dev/null || true
 
 echo ""
 echo "🏁 Starting MCP services..."
 
 # Start individual services with PM2
 start_service "figma" "$MCP_SERVERS_ROOT/figma" "49280"
+start_service "gmail" "$MCP_SERVERS_ROOT/gmail" "49296"
 
 echo ""
 echo "⏳ Waiting for services to initialize..."
@@ -104,6 +106,7 @@ check_service_health() {
 
 # Check each service
 check_service_health "figma" "49280"
+check_service_health "gmail" "49296"
 
 echo ""
 echo "🎉 MCP Services startup complete!"
@@ -111,6 +114,7 @@ echo ""
 echo "📊 Service Status:"
 echo "Available services:"
 echo "  📐 Figma: http://localhost:49280/health"
+echo "  📧 Gmail: http://localhost:49296/health"
 
 echo ""
 echo "📊 PM2 Status:"
@@ -123,7 +127,7 @@ pm2 save
 echo ""
 echo "📝 Service Logs:"
 echo "  View all logs: pm2 logs"
-echo "  Individual logs: pm2 logs mcp-figma"
+echo "  Individual logs: pm2 logs mcp-figma | pm2 logs mcp-gmail"
 echo "  Real-time logs: pm2 monit"
 
 echo ""

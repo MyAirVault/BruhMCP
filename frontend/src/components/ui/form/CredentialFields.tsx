@@ -20,6 +20,8 @@ interface CredentialFieldsProps {
   onInputChange: (field: string, value: string) => void;
   onKeyDown?: (e: React.KeyboardEvent) => void;
   onRetryValidation?: () => void;
+  isLoadingMcpType?: boolean;
+  mcpTypeError?: string | null;
 }
 
 /**
@@ -33,12 +35,56 @@ const CredentialFields: React.FC<CredentialFieldsProps> = ({
   onCredentialChange,
   onInputChange,
   onKeyDown,
-  onRetryValidation
+  onRetryValidation,
+  isLoadingMcpType,
+  mcpTypeError
 }) => {
+  // Show loading state while fetching MCP type data
+  if (isLoadingMcpType) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <span className="ml-2 text-gray-600">Loading credential fields...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if MCP type failed to load
+  if (mcpTypeError) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="text-red-600 text-sm">
+              <strong>Error loading credential fields:</strong> {mcpTypeError}
+            </div>
+          </div>
+          <p className="text-xs text-red-500 mt-1">
+            Unable to determine required credentials for this MCP type.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Check if credentials are required for the selected MCP type
   const requiresCredentials = selectedMcpType && selectedMcpType.required_fields && selectedMcpType.required_fields.length > 0;
 
+  // Show helpful message if no credentials are required
   if (!requiresCredentials) {
+    if (selectedMcpType) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="text-blue-700 text-sm">
+              No credentials required for this MCP type.
+            </div>
+          </div>
+        </div>
+      );
+    }
     return null;
   }
 

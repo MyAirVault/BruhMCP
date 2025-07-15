@@ -24,7 +24,9 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
     handleCredentialChange,
     isFormValid,
     retryValidation,
-    mcpType
+    mcpType,
+    isLoadingMcpType,
+    mcpTypeError
   } = useEditMCPForm({ isOpen, mcp });
 
   const firstInputRef = useRef<HTMLInputElement>(null);
@@ -155,6 +157,8 @@ const EditMCPModal: React.FC<EditMCPModalProps> = ({ isOpen, onClose, onSubmit, 
                 }}
                 onKeyDown={handleKeyDown}
                 onRetryValidation={retryValidation}
+                isLoadingMcpType={isLoadingMcpType}
+                mcpTypeError={mcpTypeError}
               />
 
               {/* Expiration Extension */}

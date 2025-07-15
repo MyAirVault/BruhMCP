@@ -33,6 +33,8 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
   });
 
   const [mcpType, setMcpType] = useState<MCPType | null>(null);
+  const [isLoadingMcpType, setIsLoadingMcpType] = useState(false);
+  const [mcpTypeError, setMcpTypeError] = useState<string | null>(null);
   const [validationState, setValidationState] = useState<ValidationState>({
     isValidating: false,
     isValid: null,
@@ -60,15 +62,26 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
   useEffect(() => {
     const loadMcpType = async () => {
       if (isOpen && mcp && mcp.mcpType) {
+        setIsLoadingMcpType(true);
+        setMcpTypeError(null);
         try {
+          console.log('Loading MCP type:', mcp.mcpType);
           const mcpTypeData = await apiService.getMCPTypeByName(mcp.mcpType);
+          console.log('MCP type loaded successfully:', mcpTypeData);
           setMcpType(mcpTypeData);
+          setMcpTypeError(null);
         } catch (error) {
           console.error('Failed to load MCP type:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+          setMcpTypeError(errorMessage);
           setMcpType(null);
+        } finally {
+          setIsLoadingMcpType(false);
         }
       } else {
         setMcpType(null);
+        setMcpTypeError(null);
+        setIsLoadingMcpType(false);
       }
     };
 
@@ -95,6 +108,8 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
         lastFailedCredentials: null
       });
       lastValidatedCredentialsRef.current = null;
+      // Reset MCP type loading states when modal opens
+      setMcpTypeError(null);
     }
   }, [isOpen, mcp]);
 
@@ -237,6 +252,8 @@ export const useEditMCPForm = ({ isOpen, mcp }: UseEditMCPFormProps) => {
     getRequiredFields: () => getRequiredFields(mcpType),
     requiresCredentials: () => requiresCredentials(mcpType),
     retryValidation,
-    mcpType // Expose the actual MCP type for advanced usage
+    mcpType, // Expose the actual MCP type for advanced usage
+    isLoadingMcpType,
+    mcpTypeError
   };
 };
