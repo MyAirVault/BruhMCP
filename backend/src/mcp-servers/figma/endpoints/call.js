@@ -34,13 +34,24 @@ export async function executeToolCall(toolName, args, apiKey) {
 	try {
 		switch (toolName) {
 			case 'get_figma_file':
-				const fileData = await getFigmaFile(args.file_key, apiKey);
-				return createFigmaOptimizedResponse(fileData, {
-					outputFormat: 'yaml',
-					depth: args.depth || 10,
-					maxNodes: args.max_nodes || 1000,
-					fileKey: args.file_key
-				});
+				if (args.node_id) {
+					const nodeData = await getFigmaNodes(args.file_key, apiKey, [args.node_id]);
+					return createFigmaOptimizedResponse(nodeData, {
+						outputFormat: 'yaml',
+						depth: args.depth || 10,
+						maxNodes: args.max_nodes || 1000,
+						fileKey: args.file_key,
+						nodeId: args.node_id
+					});
+				} else {
+					const fileData = await getFigmaFile(args.file_key, apiKey);
+					return createFigmaOptimizedResponse(fileData, {
+						outputFormat: 'yaml',
+						depth: args.depth || 10,
+						maxNodes: args.max_nodes || 1000,
+						fileKey: args.file_key
+					});
+				}
 
 			case 'list_components':
 				const components = await getFigmaComponents(args.file_key, apiKey);

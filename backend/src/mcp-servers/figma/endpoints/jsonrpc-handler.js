@@ -1,232 +1,203 @@
 /**
- * Figma MCP JSON-RPC protocol handler
+ * Figma MCP JSON-RPC protocol handler using official SDK
  * Implements proper JSON-RPC 2.0 message handling for Figma MCP server
  */
 
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
 import { executeToolCall } from './call.js';
 import { getTools } from './tools.js';
 
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name
+ * @property {string} displayName
+ * @property {string} version
+ */
+
 export class FigmaMCPJsonRpcHandler {
+	/**
+	 * @param {ServiceConfig} serviceConfig
+	 * @param {string} apiKey
+	 */
 	constructor(serviceConfig, apiKey) {
 		this.serviceConfig = serviceConfig;
 		this.apiKey = apiKey;
-		this.initialized = false;
+		this.server = new McpServer({
+			name: `${serviceConfig.displayName} MCP Server`,
+			version: serviceConfig.version,
+		});
+		this.setupTools();
 	}
 
 	/**
-	 * Process incoming JSON-RPC message
-	 * @param {Object} message - JSON-RPC message
-	 * @returns {Object|null} Response object or null for notifications
+	 * Setup MCP tools using the official SDK
+	 */
+	setupTools() {
+		const toolsData = getTools();
+		
+		// Register each tool with the server
+		toolsData.tools.forEach(/** @type {any} */ (tool) => {
+			this.server.tool(
+				tool.name,
+				tool.description,
+				/** @type {any} */ (this.convertInputSchema(tool.inputSchema)),
+				async (/** @type {any} */ args) => {
+					console.log(`🔧 Tool call: ${tool.name} for ${this.serviceConfig.name}`);
+					
+					try {
+						const result = await executeToolCall(tool.name, args, this.apiKey);
+						
+						return {
+							content: /** @type {any} */ (result).content || [
+								{
+									type: 'text',
+									text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+								},
+							],
+						};
+					} catch (/** @type {any} */ error) {
+						return {
+							content: [
+								{
+									type: 'text',
+									text: `Error executing ${tool.name}: ${error.message}`,
+								},
+							],
+							isError: true,
+						};
+					}
+				}
+			);
+		});
+	}
+
+	/**
+	 * Convert JSON schema to Zod schema for MCP SDK
+	 * @param {any} inputSchema - JSON schema object
+	 * @returns {any} Zod schema object
+	 */
+	convertInputSchema(inputSchema) {
+		/** @type {any} */ const zodSchema = {};
+		
+		if (inputSchema.properties) {
+			Object.entries(inputSchema.properties).forEach(([key, /** @type {any} */ prop]) => {
+				let zodType;
+				
+				switch (prop.type) {
+					case 'string':
+						zodType = z.string();
+						break;
+					case 'number':
+						zodType = z.number();
+						break;
+					case 'boolean':
+						zodType = z.boolean();
+						break;
+					case 'object':
+						zodType = z.object({});
+						break;
+					case 'array':
+						zodType = z.array(z.unknown());
+						break;
+					default:
+						zodType = z.unknown();
+				}
+				
+				if (prop.description) {
+					zodType = zodType.describe(prop.description);
+				}
+				
+				if (!inputSchema.required || !inputSchema.required.includes(key)) {
+					zodType = zodType.optional();
+				}
+				
+				zodSchema[key] = zodType;
+			});
+		}
+		
+		return zodSchema;
+	}
+
+	/**
+	 * Process incoming JSON-RPC message using the official SDK
+	 * @param {any} message - JSON-RPC message
+	 * @returns {Promise<any>} Response object or null for notifications
 	 */
 	async processMessage(message) {
-		// Validate JSON-RPC format
-		if (!this.isValidJsonRpc(message)) {
-			return this.createErrorResponse(message.id || null, -32600, 'Invalid Request');
-		}
-
-		const { method, params, id } = message;
-
+		// Use the server's connect method to handle the message
 		try {
-			// Handle different MCP methods
-			switch (method) {
-				case 'initialize':
-					return await this.handleInitialize(params, id);
+			// Create a mock transport that handles single messages
+			const transport = new MockTransport();
+			
+			// Connect the server to the transport
+			await this.server.connect(transport);
+			
+			// Simulate receiving the message
+			const response = await transport.simulateMessage(message);
+			
+			return response;
+		} catch (/** @type {any} */ error) {
+			console.error('SDK processing error:', error);
+			
+			// Return proper JSON-RPC error response
+			return {
+				jsonrpc: '2.0',
+				id: message?.id || null,
+				error: {
+					code: -32603,
+					message: 'Internal error',
+					data: { details: error.message }
+				}
+			};
+		}
+	}
+}
 
-				case 'tools/list':
-					return await this.handleToolsList(params, id);
+/**
+ * Mock transport for single message processing
+ */
+class MockTransport {
+	constructor() {
+		/** @type {any} */ this.onMessage = null;
+		/** @type {any} */ this.onError = null;
+		/** @type {any} */ this.onClose = null;
+		/** @type {any} */ this.responsePromise = null;
+		/** @type {any} */ this.responseResolve = null;
+	}
 
-				case 'tools/call':
-					return await this.handleToolsCall(params, id);
+	async start() {
+		// No-op for mock transport
+	}
 
-				case 'resources/list':
-					return await this.handleResourcesList(params, id);
-
-				case 'resources/read':
-					return await this.handleResourcesRead(params, id);
-
-				default:
-					return this.createErrorResponse(id, -32601, `Method not found: ${method}`);
-			}
-		} catch (error) {
-			console.error(`JSON-RPC error for method ${method}:`, error);
-			return this.createErrorResponse(id, -32603, 'Internal error', { details: error.message });
+	async send(/** @type {any} */ message) {
+		// Resolve the response promise with the message
+		if (this.responseResolve) {
+			this.responseResolve(message);
 		}
 	}
 
-	/**
-	 * Validate JSON-RPC 2.0 message format
-	 */
-	isValidJsonRpc(message) {
-		return (
-			message &&
-			message.jsonrpc === '2.0' &&
-			typeof message.method === 'string' &&
-			(message.id !== undefined || message.id === null)
-		);
+	async close() {
+		// No-op for mock transport
 	}
 
 	/**
-	 * Handle initialize method
+	 * Simulate processing a message and return the response
+	 * @param {any} message - JSON-RPC message
+	 * @returns {Promise<any>} Response object
 	 */
-	async handleInitialize(params, id) {
-		console.log(`🚀 Initialize request for ${this.serviceConfig.name} MCP Server`);
-		console.log('Initialize params:', JSON.stringify(params));
-
-		if (!params || !params.protocolVersion) {
-			return this.createErrorResponse(id, -32602, 'Invalid params: missing protocolVersion');
-		}
-
-		// Validate protocol version - accept common versions
-		const supportedVersions = ['2024-11-05', '2025-06-18', '1.0', '0.1.0'];
-		if (!supportedVersions.includes(params.protocolVersion)) {
-			console.log(`Unsupported protocol version: ${params.protocolVersion}`);
-			return this.createErrorResponse(id, -32602, `Unsupported protocol version: ${params.protocolVersion}. Supported: ${supportedVersions.join(', ')}`);
-		}
-
-		this.initialized = true;
-
-		return this.createSuccessResponse(id, {
-			protocolVersion: params.protocolVersion, // Echo back the requested version
-			capabilities: {
-				tools: {},
-			},
-			serverInfo: {
-				name: `${this.serviceConfig.displayName} MCP Server`,
-				version: this.serviceConfig.version,
-			},
-			instructions: `This is a ${this.serviceConfig.displayName} MCP server providing tools for Figma API integration. Available tools: get_figma_file, get_figma_components, get_figma_styles, get_figma_comments`,
+	async simulateMessage(message) {
+		// Create a promise to capture the response
+		this.responsePromise = new Promise((resolve) => {
+			this.responseResolve = resolve;
 		});
-	}
-
-	/**
-	 * Handle tools/list method
-	 */
-	async handleToolsList(params, id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -31000, 'Server not initialized');
-		}
-
-		console.log(`🔧 Tools list request for ${this.serviceConfig.name} MCP Server`);
-
-		const toolsData = getTools();
-
-		// Handle pagination cursor (optional)
-		const cursor = params?.cursor;
 		
-		return this.createSuccessResponse(id, {
-			tools: toolsData.tools.map(tool => ({
-				name: tool.name,
-				description: tool.description,
-				inputSchema: tool.inputSchema,
-			})),
-			// No pagination needed for Figma tools, but include nextCursor if provided
-			...(cursor && { nextCursor: null })
-		});
-	}
-
-	/**
-	 * Handle tools/call method
-	 */
-	async handleToolsCall(params, id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -31000, 'Server not initialized');
+		// Simulate receiving the message
+		if (this.onMessage) {
+			this.onMessage(message);
 		}
-
-		if (!params || !params.name) {
-			return this.createErrorResponse(id, -32602, 'Invalid params: missing tool name');
-		}
-
-		const { name: toolName, arguments: args = {} } = params;
-
-		console.log(`🔧 Tool call: ${toolName} for ${this.serviceConfig.name}`);
-
-		try {
-			const result = await executeToolCall(toolName, args, this.apiKey);
-
-			return this.createSuccessResponse(id, {
-				content: result.content || [
-					{
-						type: 'text',
-						text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-					},
-				],
-			});
-		} catch (error) {
-			// Return success response with isError flag as per MCP spec
-			return this.createSuccessResponse(id, {
-				content: [
-					{
-						type: 'text',
-						text: `Error executing ${toolName}: ${error.message}`,
-					},
-				],
-				isError: true,
-			});
-		}
-	}
-
-	/**
-	 * Create success response
-	 */
-	createSuccessResponse(id, result) {
-		return {
-			jsonrpc: '2.0',
-			id,
-			result,
-		};
-	}
-
-	/**
-	 * Create error response
-	 */
-	createErrorResponse(id, code, message, data = null) {
-		const response = {
-			jsonrpc: '2.0',
-			id,
-			error: {
-				code,
-				message,
-			},
-		};
-
-		if (data) {
-			response.error.data = data;
-		}
-
-		return response;
-	}
-
-	/**
-	 * Handle resources/list method
-	 */
-	async handleResourcesList(params, id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -31000, 'Server not initialized');
-		}
-
-		console.log(`📋 Resources list request for ${this.serviceConfig.name} MCP Server`);
-
-		// Figma server doesn't provide resources, return empty list
-		return this.createSuccessResponse(id, {
-			resources: [],
-		});
-	}
-
-	/**
-	 * Handle resources/read method
-	 */
-	async handleResourcesRead(params, id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -31000, 'Server not initialized');
-		}
-
-		if (!params || !params.uri) {
-			return this.createErrorResponse(id, -32602, 'Invalid params: missing resource URI');
-		}
-
-		console.log(`📄 Resource read request for ${params.uri}`);
-
-		// Figma server doesn't provide resources
-		return this.createErrorResponse(id, -31001, 'Resource not found');
+		
+		// Wait for the response
+		return await this.responsePromise;
 	}
 }

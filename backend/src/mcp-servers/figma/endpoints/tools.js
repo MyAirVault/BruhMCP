@@ -20,6 +20,10 @@ export function getTools() {
 							type: 'string',
 							description: 'The key of the Figma file to retrieve.'
 						},
+						node_id: {
+							type: 'string',
+							description: 'The ID of the specific node to retrieve.'
+						},
 						depth: {
 							type: 'number',
 							description: 'Maximum depth to traverse the node tree (default: 10).'
