@@ -103,9 +103,9 @@ app.post('/start-oauth', async (req, res) => {
 
 /**
  * Handle OAuth callback
- * GET /callback/:provider
+ * GET /oauth/callback/:provider
  */
-app.get('/callback/:provider', async (req, res) => {
+app.get('/oauth/callback/:provider', async (req, res) => {
   try {
     const { provider } = req.params;
     const { code, state, error } = req.query;
