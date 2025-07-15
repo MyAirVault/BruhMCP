@@ -76,6 +76,11 @@ export class FigmaService {
 			const response = await this.request(endpoint);
 			Logger.log('Got response');
 			
+			// Check if response is valid before parsing
+			if (!response || typeof response !== 'object') {
+				throw new Error('Invalid response from Figma API');
+			}
+			
 			// Simplify the response like Figma-Context-MCP
 			const simplifiedResponse = parseFigmaResponse(response);
 			
@@ -99,6 +104,11 @@ export class FigmaService {
 			
 			const response = await this.request(endpoint);
 			Logger.log('Got response from getNode, now parsing.');
+			
+			// Check if response is valid before parsing
+			if (!response || typeof response !== 'object') {
+				throw new Error('Invalid response from Figma API');
+			}
 			
 			// Simplify the response like Figma-Context-MCP
 			const simplifiedResponse = parseFigmaResponse(response);

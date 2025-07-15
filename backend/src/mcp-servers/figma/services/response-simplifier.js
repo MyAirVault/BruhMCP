@@ -25,6 +25,11 @@ import {
  * @returns {any} Simplified design object with global variables
  */
 export function parseFigmaResponse(data) {
+	// Validate input data
+	if (!data || typeof data !== 'object') {
+		throw new Error('Invalid data provided to parseFigmaResponse');
+	}
+	
 	const aggregatedComponents = {};
 	const aggregatedComponentSets = {};
 	let nodesToParse;
@@ -84,7 +89,7 @@ export function parseFigmaResponse(data) {
  */
 function findOrCreateVar(globalVars, value, prefix) {
 	// Check if the same value already exists
-	const existingEntry = Object.entries(globalVars.styles).find(
+	const existingEntry = Object.entries(globalVars.styles || {}).find(
 		([_, existingValue]) => JSON.stringify(existingValue) === JSON.stringify(value)
 	);
 
@@ -132,7 +137,7 @@ function parseNode(globalVars, n, parent) {
 	}
 
 	// text
-	if (hasValue("style", n) && Object.keys(n.style).length) {
+	if (hasValue("style", n) && n.style && Object.keys(n.style).length) {
 		const style = n.style;
 		const textStyle = {
 			fontFamily: style.fontFamily,
@@ -165,13 +170,13 @@ function parseNode(globalVars, n, parent) {
 	}
 
 	const effects = buildSimplifiedEffects(n);
-	if (Object.keys(effects).length) {
+	if (effects && Object.keys(effects).length) {
 		simplified.effects = findOrCreateVar(globalVars, effects, "effect");
 	}
 
 	// Process layout
 	const layout = buildSimplifiedLayout(n, parent);
-	if (Object.keys(layout).length > 1) {
+	if (layout && Object.keys(layout).length > 1) {
 		simplified.layout = findOrCreateVar(globalVars, layout, "layout");
 	}
 
