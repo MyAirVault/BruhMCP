@@ -116,15 +116,8 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
       req.figmaApiKey || ''
     );
     
-    // Process the JSON-RPC message with persistent handler
-    const response = await jsonRpcHandler.processMessage(req.body);
-    
-    if (response) {
-      res.json(response);
-    } else {
-      // No response for notifications
-      res.status(204).send();
-    }
+    // Process the JSON-RPC message with persistent handler (using new signature)
+    await jsonRpcHandler.processMessage(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -153,15 +146,8 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
       req.figmaApiKey || ''
     );
     
-    // Process the JSON-RPC message with persistent handler
-    const response = await jsonRpcHandler.processMessage(req.body);
-    
-    if (response) {
-      res.json(response);
-    } else {
-      // No response for notifications
-      res.status(204).send();
-    }
+    // Process the JSON-RPC message with persistent handler (using new signature)
+    await jsonRpcHandler.processMessage(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

@@ -1,9 +1,10 @@
 /**
  * Figma MCP JSON-RPC protocol handler using official SDK
- * Implements proper JSON-RPC 2.0 message handling for Figma MCP server
+ * Using persistent connection approach like Figma-Context-MCP
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
 import { executeToolCall } from './call.js';
 import { getTools } from './tools.js';
@@ -27,49 +28,53 @@ export class FigmaMCPJsonRpcHandler {
 			name: `${serviceConfig.displayName} MCP Server`,
 			version: serviceConfig.version,
 		});
+		this.transport = null;
 		this.setupTools();
 	}
 
 	/**
-	 * Setup MCP tools using the official SDK
+	 * Setup MCP tools using the official SDK - copying Figma-Context-MCP pattern
 	 */
 	setupTools() {
 		const toolsData = getTools();
-		
-		// Register each tool with the server
-		toolsData.tools.forEach(/** @type {any} */ (tool) => {
-			this.server.tool(
-				tool.name,
-				tool.description,
-				/** @type {any} */ (this.convertInputSchema(tool.inputSchema)),
-				async (/** @type {any} */ args) => {
-					console.log(`🔧 Tool call: ${tool.name} for ${this.serviceConfig.name}`);
-					
-					try {
-						const result = await executeToolCall(tool.name, args, this.apiKey);
-						
-						return {
-							content: /** @type {any} */ (result).content || [
-								{
-									type: 'text',
-									text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-								},
-							],
-						};
-					} catch (/** @type {any} */ error) {
-						return {
-							content: [
-								{
-									type: 'text',
-									text: `Error executing ${tool.name}: ${error.message}`,
-								},
-							],
-							isError: true,
-						};
+
+		// Register tools like Figma-Context-MCP does
+		toolsData.tools.forEach(
+			/** @type {any} */ tool => {
+				this.server.tool(
+					tool.name,
+					tool.description,
+					/** @type {any} */ (this.convertInputSchema(tool.inputSchema)),
+					async (/** @type {any} */ args) => {
+						console.log(`🔧 Tool call: ${tool.name} for ${this.serviceConfig.name}`);
+
+						try {
+							const result = await executeToolCall(tool.name, args, this.apiKey);
+
+							// Return in the same format as Figma-Context-MCP
+							return {
+								content: /** @type {any} */ (result).content || [
+									{
+										type: 'text',
+										text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+									},
+								],
+							};
+						} catch (/** @type {any} */ error) {
+							return {
+								content: [
+									{
+										type: 'text',
+										text: `Error executing ${tool.name}: ${error.message}`,
+									},
+								],
+								isError: true,
+							};
+						}
 					}
-				}
-			);
-		});
+				);
+			}
+		);
 	}
 
 	/**
@@ -79,11 +84,11 @@ export class FigmaMCPJsonRpcHandler {
 	 */
 	convertInputSchema(inputSchema) {
 		/** @type {any} */ const zodSchema = {};
-		
+
 		if (inputSchema.properties) {
 			Object.entries(inputSchema.properties).forEach(([key, /** @type {any} */ prop]) => {
 				let zodType;
-				
+
 				switch (prop.type) {
 					case 'string':
 						zodType = z.string();
@@ -103,101 +108,60 @@ export class FigmaMCPJsonRpcHandler {
 					default:
 						zodType = z.unknown();
 				}
-				
+
 				if (prop.description) {
 					zodType = zodType.describe(prop.description);
 				}
-				
+
 				if (!inputSchema.required || !inputSchema.required.includes(key)) {
 					zodType = zodType.optional();
 				}
-				
+
 				zodSchema[key] = zodType;
 			});
 		}
-		
+
 		return zodSchema;
 	}
 
 	/**
-	 * Process incoming JSON-RPC message using the official SDK
+	 * Process incoming JSON-RPC message using StreamableHTTP transport like Figma-Context-MCP
+	 * @param {any} req - Express request object
+	 * @param {any} res - Express response object
 	 * @param {any} message - JSON-RPC message
-	 * @returns {Promise<any>} Response object or null for notifications
+	 * @returns {Promise<void>}
 	 */
-	async processMessage(message) {
-		// Use the server's connect method to handle the message
+	async processMessage(req, res, message) {
 		try {
-			// Create a mock transport that handles single messages
-			const transport = new MockTransport();
-			
-			// Connect the server to the transport
-			await this.server.connect(transport);
-			
-			// Simulate receiving the message
-			const response = await transport.simulateMessage(message);
-			
-			return response;
+			// Create StreamableHTTP transport for this request (like Figma-Context-MCP)
+			if (!this.transport) {
+				this.transport = new StreamableHTTPServerTransport({
+					sessionIdGenerator: () => `figma-${Date.now()}`,
+					onsessioninitialized: (sessionId) => {
+						console.log(`Figma MCP session initialized: ${sessionId}`);
+					},
+				});
+				
+				// Connect the server to the transport
+				await this.server.connect(this.transport);
+			}
+
+			// Handle the request using the transport
+			await this.transport.handleRequest(req, res, message);
 		} catch (/** @type {any} */ error) {
-			console.error('SDK processing error:', error);
-			
+			console.error('StreamableHTTP processing error:', error);
+
 			// Return proper JSON-RPC error response
-			return {
+			res.json({
 				jsonrpc: '2.0',
 				id: message?.id || null,
 				error: {
 					code: -32603,
 					message: 'Internal error',
-					data: { details: error.message }
-				}
-			};
+					data: { details: error.message },
+				},
+			});
 		}
 	}
 }
 
-/**
- * Mock transport for single message processing
- */
-class MockTransport {
-	constructor() {
-		/** @type {any} */ this.onMessage = null;
-		/** @type {any} */ this.onError = null;
-		/** @type {any} */ this.onClose = null;
-		/** @type {any} */ this.responsePromise = null;
-		/** @type {any} */ this.responseResolve = null;
-	}
-
-	async start() {
-		// No-op for mock transport
-	}
-
-	async send(/** @type {any} */ message) {
-		// Resolve the response promise with the message
-		if (this.responseResolve) {
-			this.responseResolve(message);
-		}
-	}
-
-	async close() {
-		// No-op for mock transport
-	}
-
-	/**
-	 * Simulate processing a message and return the response
-	 * @param {any} message - JSON-RPC message
-	 * @returns {Promise<any>} Response object
-	 */
-	async simulateMessage(message) {
-		// Create a promise to capture the response
-		this.responsePromise = new Promise((resolve) => {
-			this.responseResolve = resolve;
-		});
-		
-		// Simulate receiving the message
-		if (this.onMessage) {
-			this.onMessage(message);
-		}
-		
-		// Wait for the response
-		return await this.responsePromise;
-	}
-}

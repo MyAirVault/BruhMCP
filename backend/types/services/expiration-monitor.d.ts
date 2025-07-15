@@ -26,9 +26,10 @@ declare class ExpirationMonitor {
     /**
      * Manually check a specific MCP instance for expiration
      * @param {string} instanceId - MCP instance ID
+     * @param {string} userId - User ID (for authorization)
      * @returns {Promise<boolean>} True if instance was expired
      */
-    checkSingleMCP(instanceId: string): Promise<boolean>;
+    checkSingleMCP(instanceId: string, userId: string): Promise<boolean>;
     /**
      * Get expiration status
      * @returns {Object} Monitor status
