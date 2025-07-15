@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { type MCPType } from '../types';
+import { type MCPType, type MCPInstanceCreationResponse } from '../types';
 import { type CreateMCPFormData, type ValidationState } from '../types/createMCPModal';
 import { apiService } from '../services/apiService';
 import { useMCPValidation } from '../utils/mcpValidation';
@@ -7,7 +7,7 @@ import { useMCPValidation } from '../utils/mcpValidation';
 interface UseCreateMCPFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateMCPFormData) => void;
+  onSubmit: (data: CreateMCPFormData) => Promise<MCPInstanceCreationResponse>;
 }
 
 /**
@@ -217,6 +217,15 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     return true;
   }, [formData, selectedMcpType, requiresCredentials, hasAllRequiredFields, validationState]);
 
+  // OAuth detection functions
+  const isOAuthService = useCallback((mcpType: MCPType | null) => {
+    return mcpType?.type === 'oauth';
+  }, []);
+
+  const isApiKeyService = useCallback((mcpType: MCPType | null) => {
+    return mcpType?.type === 'api_key';
+  }, []);
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -252,7 +261,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         }
       } else {
         // For API key services, use the normal flow
-        onSubmit(transformedData);
+        await onSubmit(transformedData);
       }
       
       // Reset form
@@ -285,15 +294,6 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     lastValidatedCredentialsRef.current = null;
     validateCredentials();
   }, [validateCredentials]);
-
-  // OAuth detection functions
-  const isOAuthService = useCallback((mcpType: MCPType | null) => {
-    return mcpType?.type === 'oauth';
-  }, []);
-
-  const isApiKeyService = useCallback((mcpType: MCPType | null) => {
-    return mcpType?.type === 'api_key';
-  }, []);
 
 
   return {

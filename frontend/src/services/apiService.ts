@@ -1,4 +1,4 @@
-import type { MCPType, MCPInstance, APIKey, MCPLog } from '../types';
+import type { MCPType, MCPInstance, MCPInstanceCreationResponse, APIKey, MCPLog } from '../types';
 
 const API_BASE_URL = '/api/v1';
 
@@ -89,8 +89,8 @@ export const apiService = {
     expiration_option: string;
     credentials: Record<string, string>;
     config?: Record<string, unknown>;
-  }): Promise<MCPInstance> => {
-    return makeRequest<MCPInstance>('/mcps', {
+  }): Promise<MCPInstanceCreationResponse> => {
+    return makeRequest<MCPInstanceCreationResponse>('/mcps', {
       method: 'POST',
       body: JSON.stringify(data),
     });

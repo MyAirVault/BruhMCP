@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { type MCPItem } from '../../types';
+import { type MCPItem, type MCPInstanceCreationResponse } from '../../types';
 import { type CreateMCPFormData, type EditMCPFormData, type ConfirmationModalState, type ModalState, type DashboardCallbacks } from './types';
 import { apiService } from '../../services/apiService';
 import { convertExpirationToISODate } from '../../utils/dateHelpers';
@@ -24,7 +24,7 @@ export const useDashboardActions = ({
   const navigate = useNavigate();
 
   // Handle create MCP form submission
-  const handleCreateMCP = async (formData: CreateMCPFormData) => {
+  const handleCreateMCP = async (formData: CreateMCPFormData): Promise<MCPInstanceCreationResponse> => {
     const data = {
       mcp_type: formData.type,
       custom_name: formData.name || undefined,
@@ -48,7 +48,7 @@ export const useDashboardActions = ({
       
       // Check if this is an OAuth service that requires user consent
       if (response && response.oauth && response.oauth.requires_user_consent) {
-        console.log('OAuth flow initiated for MCP:', response.instance);
+        console.log('OAuth flow initiated for MCP:', response.instance.id);
         // Close the modal since OAuth will redirect the user
         setIsCreateModalOpen(false);
         // Return the response for OAuth handling in the form
@@ -58,6 +58,7 @@ export const useDashboardActions = ({
         console.log('Created MCP:', response);
         await refreshMCPList();
         setIsCreateModalOpen(false);
+        return response;
       }
     } catch (error) {
       console.error('Failed to create MCP:', error);

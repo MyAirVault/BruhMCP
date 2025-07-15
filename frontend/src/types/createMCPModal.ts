@@ -37,5 +37,5 @@ export interface ExpirationOption {
 export interface CreateMCPModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateMCPFormData) => void;
+  onSubmit: (data: CreateMCPFormData) => Promise<import('../types').MCPInstanceCreationResponse>;
 }

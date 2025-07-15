@@ -66,6 +66,24 @@ export interface MCPInstance {
   };
   created_at: string;
   updated_at?: string;
+  oauth?: {
+    requires_user_consent: boolean;
+    authorization_url: string;
+    provider: string;
+    instance_id: string;
+    message: string;
+  };
+}
+
+export interface MCPInstanceCreationResponse {
+  instance: MCPInstance;
+  oauth?: {
+    requires_user_consent: boolean;
+    authorization_url: string;
+    provider: string;
+    instance_id: string;
+    message: string;
+  };
 }
 
 export interface APIKey {
