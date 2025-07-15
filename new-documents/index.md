@@ -66,6 +66,15 @@ This folder contains comprehensive documentation for the multi-tenant MCP servic
 - Monitoring and troubleshooting sessions
 - Implementation guide for all MCP services
 
+### [centralized-oauth-flow.md](./centralized-oauth-flow.md)
+**Centralized OAuth Flow for MCP Services**
+- Unified OAuth 2.0 authentication system for all MCP services
+- OAuth consent during instance creation for seamless LLM integration
+- Memory-based token caching with flexible refresh strategies
+- Support for multiple OAuth providers (Google, Microsoft, etc.)
+- Detailed implementation guide and integration instructions
+- Complete flow from credential entry to API authentication
+
 ## Implementation Status
 
 ### ✅ Completed
@@ -86,7 +95,7 @@ This folder contains comprehensive documentation for the multi-tenant MCP servic
 
 ### 📋 Planned
 - Additional MCP services (GitHub, Slack, etc.)
-- OAuth authentication implementation
+- Centralized OAuth service implementation
 - Advanced monitoring and analytics
 - Service health monitoring dashboard
 
