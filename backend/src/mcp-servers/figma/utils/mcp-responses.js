@@ -1,12 +1,11 @@
 /**
- * MCP Response Formatter
+ * MCP Response Formatter - Enhanced with Figma-Context-MCP deduplication logic
  * Ensures all responses follow the MCP protocol specification
  * Handles content formatting, error responses, and resource URIs
- * Now supports YAML formatting and global variable deduplication
+ * Now includes sophisticated data deduplication to reduce token size
  */
 
 import yaml from 'js-yaml';
-import { parseSimplifiedResponse } from '../services/simplified-node-parser.js';
 
 /**
  * Creates a successful MCP response with content
@@ -16,29 +15,18 @@ import { parseSimplifiedResponse } from '../services/simplified-node-parser.js';
  */
 function createSuccessResponse(data, options = {}) {
     const outputFormat = options.outputFormat || 'json';
-    const useSimplifiedParser = options.useSimplifiedParser || false;
-    
-    let processedData = data;
-    
-    // Use simplified parser if enabled
-    if (useSimplifiedParser && data && (data.document || data.components)) {
-        processedData = parseSimplifiedResponse(data, {
-            depth: options.depth,
-            maxNodes: options.maxNodes
-        });
-    }
     
     // Format output
     let formattedText;
     if (outputFormat === 'yaml') {
-        formattedText = yaml.dump(processedData, {
+        formattedText = yaml.dump(data, {
             indent: 2,
             lineWidth: 120,
             noRefs: true,
             sortKeys: false
         });
     } else {
-        formattedText = JSON.stringify(processedData, null, 2);
+        formattedText = JSON.stringify(data, null, 2);
     }
     
     return {
@@ -52,246 +40,294 @@ function createSuccessResponse(data, options = {}) {
 }
 
 /**
- * Creates an error response following MCP protocol
+ * Creates an error MCP response
  * @param {string} message - Error message
- * @param {string} code - Error code
- * @param {any} data - Additional error data
+ * @param {object} options - Error options
  * @returns {object} MCP-compliant error response
  */
-function createErrorResponse(message, code = 'UNKNOWN_ERROR', data = null) {
-    const response = {
-        content: [
-            {
-                type: 'text',
-                text: message
-            }
-        ],
-        isError: true,
-        error: {
-            code,
-            message
-        }
+function createErrorResponse(message, options = {}) {
+    const errorData = {
+        error: message,
+        timestamp: new Date().toISOString(),
+        ...options
     };
-    
-    if (data) {
-        response.error.data = data;
-    }
-    
-    return response;
-}
-
-
-/**
- * Creates a chunked response with continuation information
- * @param {any} data - Current chunk data
- * @param {string} continuationToken - Token for next chunk
- * @param {array} availableChunks - List of available chunks
- * @returns {object} MCP-compliant response
- */
-function createChunkedResponse(data, continuationToken, availableChunks = []) {
-    const summary = `Partial response (chunk 1 of ${availableChunks.length || 'multiple'}). Use continuation token to get more data.`;
-    
-    const response = createSuccessResponse(data, {
-        summary,
-        hasMore: true,
-        continuation: {
-            token: continuationToken,
-            availableChunks: availableChunks.map(chunk => ({
-                name: chunk.name,
-                description: chunk.description,
-                estimatedTokens: chunk.estimatedTokens
-            }))
-        }
-    });
-    
-    return response;
-}
-
-/**
- * Creates a response for file overview with available details
- * @param {object} overview - File overview data
- * @param {object} availableDetails - Available detail options
- * @returns {object} MCP-compliant response
- */
-function createOverviewResponse(overview, availableDetails = {}) {
-    let summary = `File: ${overview.meta?.name || 'Unknown'}`;
-    
-    if (overview.summary) {
-        summary += ` (${overview.summary.type})`;
-        if (overview.summary.componentCount) {
-            summary += ` - ${overview.summary.componentCount} components`;
-        }
-        if (overview.summary.pageCount) {
-            summary += `, ${overview.summary.pageCount} pages`;
-        }
-    }
-    
-    if (Object.keys(availableDetails).length > 0) {
-        summary += '\n\nAvailable details:';
-        Object.entries(availableDetails).forEach(([key, description]) => {
-            summary += `\n- ${key}: ${description}`;
-        });
-    }
-    
-    return createSuccessResponse(overview, {
-        summary,
-        hasMore: Object.keys(availableDetails).length > 0,
-        tokenCount: overview._meta?.tokenCount
-    });
-}
-
-/**
- * Creates a Figma resource URI
- * @param {string} fileKey - Figma file key
- * @param {string} type - Resource type (overview, components, styles, nodes)
- * @param {string} id - Optional specific resource ID
- * @returns {string} Figma resource URI
- */
-function createFigmaResourceUri(fileKey, type, id = null) {
-    let uri = `figma://file/${fileKey}/${type}`;
-    if (id) {
-        uri += `/${id}`;
-    }
-    return uri;
-}
-
-/**
- * Parses a Figma resource URI
- * @param {string} uri - Figma resource URI
- * @returns {object|null} Parsed URI components or null if invalid
- */
-function parseFigmaResourceUri(uri) {
-    const figmaUriPattern = /^figma:\/\/file\/([^\/]+)\/([^\/]+)(?:\/(.+))?$/;
-    const match = uri.match(figmaUriPattern);
-    
-    if (!match) return null;
     
     return {
-        fileKey: match[1],
-        type: match[2],
-        id: match[3] || null
+        content: [
+            {
+                type: "text", 
+                text: JSON.stringify(errorData, null, 2)
+            }
+        ],
+        isError: true
     };
 }
 
 /**
- * Formats data for human-readable display
- * @param {any} data - Data to format
- * @returns {string} Formatted string
+ * Generate a unique variable ID
+ * @param {string} prefix - Variable prefix
+ * @returns {string} Generated variable ID
  */
-function formatDataForDisplay(data) {
-    if (typeof data === 'string') {
-        return data;
+function generateVarId(prefix = "var") {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    
+    for (let i = 0; i < 6; i++) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        result += chars[randomIndex];
     }
     
-    if (typeof data === 'object' && data !== null) {
-        // Special formatting for common Figma data structures
-        if (data.summary) {
-            return formatFileSummary(data.summary, data.meta);
+    return `${prefix}_${result}`;
+}
+
+/**
+ * Find or create global variables (key deduplication logic from Figma-Context-MCP)
+ * @param {object} globalVars - Global variables object
+ * @param {any} value - Value to store
+ * @param {string} prefix - Variable ID prefix
+ * @returns {string} Variable ID
+ */
+function findOrCreateVar(globalVars, value, prefix) {
+    // Check if the same value already exists
+    const existingEntry = Object.entries(globalVars.styles).find(
+        ([_, existingValue]) => JSON.stringify(existingValue) === JSON.stringify(value)
+    );
+    
+    if (existingEntry) {
+        return existingEntry[0];
+    }
+    
+    // Create a new variable if it doesn't exist
+    const varId = generateVarId(prefix);
+    globalVars.styles[varId] = value;
+    return varId;
+}
+
+/**
+ * Check if element is visible
+ * @param {object} element - Figma element
+ * @returns {boolean} Whether element is visible
+ */
+function isVisible(element) {
+    return element && element.visible !== false;
+}
+
+/**
+ * Remove empty keys from object
+ * @param {any} input - Input object
+ * @returns {any} Cleaned object
+ */
+function removeEmptyKeys(input) {
+    if (input === null || input === undefined) {
+        return input;
+    }
+    
+    if (Array.isArray(input)) {
+        return input.map(item => removeEmptyKeys(item)).filter(item => 
+            item !== null && item !== undefined && 
+            !(Array.isArray(item) && item.length === 0) &&
+            !(typeof item === 'object' && Object.keys(item).length === 0)
+        );
+    }
+    
+    if (typeof input === 'object') {
+        const cleaned = {};
+        Object.entries(input).forEach(([key, value]) => {
+            const cleanedValue = removeEmptyKeys(value);
+            if (cleanedValue !== null && cleanedValue !== undefined &&
+                !(Array.isArray(cleanedValue) && cleanedValue.length === 0) &&
+                !(typeof cleanedValue === 'object' && Object.keys(cleanedValue).length === 0)) {
+                cleaned[key] = cleanedValue;
+            }
+        });
+        return cleaned;
+    }
+    
+    return input;
+}
+
+/**
+ * Parse a single Figma node with deduplication (copying Figma-Context-MCP approach)
+ * @param {object} globalVars - Global variables for deduplication
+ * @param {object} node - Figma node object
+ * @param {object} parent - Parent node (optional)
+ * @returns {object} Simplified node
+ */
+function parseNode(globalVars, node, parent = null) {
+    if (!node || !isVisible(node)) return null;
+    
+    const { id, name, type } = node;
+    
+    const simplified = {
+        id,
+        name,
+        type
+    };
+    
+    // Handle text content
+    if (node.characters) {
+        simplified.text = node.characters;
+    }
+    
+    // Handle text styles with deduplication
+    if (node.style && Object.keys(node.style).length > 0) {
+        const style = node.style;
+        const textStyle = {
+            fontFamily: style.fontFamily,
+            fontWeight: style.fontWeight,
+            fontSize: style.fontSize,
+            lineHeight: style.lineHeightPx && style.fontSize ? 
+                `${style.lineHeightPx / style.fontSize}em` : undefined,
+            letterSpacing: style.letterSpacing && style.letterSpacing !== 0 && style.fontSize ?
+                `${(style.letterSpacing / style.fontSize) * 100}%` : undefined,
+            textCase: style.textCase,
+            textAlignHorizontal: style.textAlignHorizontal,
+            textAlignVertical: style.textAlignVertical
+        };
+        
+        // Remove undefined values
+        Object.keys(textStyle).forEach(key => {
+            if (textStyle[key] === undefined) {
+                delete textStyle[key];
+            }
+        });
+        
+        if (Object.keys(textStyle).length > 0) {
+            simplified.textStyle = findOrCreateVar(globalVars, textStyle, "style");
+        }
+    }
+    
+    // Handle fills with deduplication
+    if (node.fills && Array.isArray(node.fills) && node.fills.length > 0) {
+        const fills = node.fills.map(fill => {
+            if (fill.type === 'SOLID' && fill.color) {
+                return {
+                    type: 'SOLID',
+                    color: {
+                        r: Math.round(fill.color.r * 255),
+                        g: Math.round(fill.color.g * 255),
+                        b: Math.round(fill.color.b * 255),
+                        a: fill.opacity || 1
+                    }
+                };
+            }
+            return fill;
+        });
+        simplified.fills = findOrCreateVar(globalVars, fills, "fill");
+    }
+    
+    // Handle layout with deduplication
+    if (node.absoluteBoundingBox) {
+        const layout = {
+            x: node.absoluteBoundingBox.x,
+            y: node.absoluteBoundingBox.y,
+            width: node.absoluteBoundingBox.width,
+            height: node.absoluteBoundingBox.height
+        };
+        
+        // Add positioning context if parent exists
+        if (parent && parent.absoluteBoundingBox) {
+            layout.relativeX = layout.x - parent.absoluteBoundingBox.x;
+            layout.relativeY = layout.y - parent.absoluteBoundingBox.y;
         }
         
-        if (Array.isArray(data)) {
-            return formatArrayData(data);
-        }
-        
-        return JSON.stringify(data, null, 2);
+        simplified.layout = findOrCreateVar(globalVars, layout, "layout");
     }
     
-    return String(data);
+    // Handle opacity
+    if (node.opacity !== undefined && node.opacity !== 1) {
+        simplified.opacity = node.opacity;
+    }
+    
+    // Handle border radius
+    if (node.cornerRadius !== undefined) {
+        simplified.borderRadius = `${node.cornerRadius}px`;
+    }
+    
+    // Handle component instances
+    if (type === "INSTANCE" && node.componentId) {
+        simplified.componentId = node.componentId;
+    }
+    
+    // Convert VECTOR to IMAGE-SVG for clarity
+    if (type === "VECTOR") {
+        simplified.type = "IMAGE-SVG";
+    }
+    
+    // Recursively process children with limited depth
+    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
+        const children = node.children
+            .filter(isVisible)
+            .map(child => parseNode(globalVars, child, node))
+            .filter(child => child !== null && child !== undefined)
+            .slice(0, 100); // Limit children to prevent huge responses
+            
+        if (children.length > 0) {
+            simplified.children = children;
+        }
+    }
+    
+    return simplified;
 }
 
 /**
- * Formats file summary for display
- * @param {object} summary - File summary data
- * @param {object} meta - File metadata
- * @returns {string} Formatted summary
+ * Parse Figma response to simplified format (copying Figma-Context-MCP approach)
+ * @param {any} data - Raw Figma API response
+ * @param {string} nodeId - Optional node ID for node responses
+ * @returns {Object} Simplified design object
  */
-function formatFileSummary(summary, meta) {
-    let formatted = '';
+function parseFigmaResponse(data, nodeId = null) {
+    // Initialize global variables for deduplication
+    const globalVars = {
+        styles: {}
+    };
     
-    if (meta?.name) {
-        formatted += `File: ${meta.name}\n`;
-    }
+    let nodesToParse = [];
+    let components = {};
+    let componentSets = {};
     
-    if (summary.type) {
-        formatted += `Type: ${summary.type}\n`;
-    }
-    
-    if (summary.pageCount) {
-        formatted += `Pages: ${summary.pageCount}\n`;
-    }
-    
-    if (summary.componentCount) {
-        formatted += `Components: ${summary.componentCount}\n`;
-    }
-    
-    if (summary.styleCount) {
-        formatted += `Styles: ${summary.styleCount}\n`;
-    }
-    
-    if (summary.pages && summary.pages.length > 0) {
-        formatted += '\nPages:\n';
-        summary.pages.forEach(page => {
-            formatted += `- ${page.name} (${page.childCount} elements)\n`;
-        });
-    }
-    
-    if (summary.mainComponents && summary.mainComponents.length > 0) {
-        formatted += '\nMain Components:\n';
-        summary.mainComponents.forEach(comp => {
-            formatted += `- ${comp.name}${comp.description ? ': ' + comp.description : ''}\n`;
-        });
-    }
-    
-    if (summary.designTokens) {
-        const tokens = summary.designTokens;
-        if (tokens.colors?.length > 0 || tokens.typography?.length > 0) {
-            formatted += '\nDesign Tokens:\n';
-            if (tokens.colors?.length > 0) {
-                formatted += `- Colors: ${tokens.colors.slice(0, 5).join(', ')}${tokens.colors.length > 5 ? '...' : ''}\n`;
+    if (data.nodes && nodeId) {
+        // GetFileNodesResponse - extract the specific node
+        const nodeResponse = data.nodes[nodeId];
+        if (nodeResponse) {
+            if (nodeResponse.document) {
+                nodesToParse = [nodeResponse.document];
             }
-            if (tokens.typography?.length > 0) {
-                formatted += `- Typography: ${tokens.typography.slice(0, 3).join(', ')}${tokens.typography.length > 3 ? '...' : ''}\n`;
+            if (nodeResponse.components) {
+                components = nodeResponse.components;
+            }
+            if (nodeResponse.componentSets) {
+                componentSets = nodeResponse.componentSets;
             }
         }
+    } else if (data.document) {
+        // GetFileResponse - get all children
+        nodesToParse = data.document.children || [];
+        components = data.components || {};
+        componentSets = data.componentSets || {};
     }
     
-    return formatted;
+    // Process nodes with deduplication
+    const simplifiedNodes = nodesToParse
+        .filter(isVisible)
+        .map(node => parseNode(globalVars, node))
+        .filter(node => node !== null && node !== undefined);
+    
+    const result = {
+        name: data.name || 'Figma Design',
+        lastModified: data.lastModified || new Date().toISOString(),
+        thumbnailUrl: data.thumbnailUrl || "",
+        nodes: simplifiedNodes,
+        components: Object.keys(components).length > 10 ? {} : components, // Limit components
+        componentSets: Object.keys(componentSets).length > 10 ? {} : componentSets, // Limit component sets
+        globalVars
+    };
+    
+    return removeEmptyKeys(result);
 }
 
 /**
- * Formats array data for display
- * @param {array} data - Array to format
- * @returns {string} Formatted string
- */
-function formatArrayData(data) {
-    if (data.length === 0) return 'No items found.';
-    
-    if (data.length === 1) {
-        return formatDataForDisplay(data[0]);
-    }
-    
-    let formatted = `Found ${data.length} items:\n\n`;
-    data.slice(0, 10).forEach((item, index) => {
-        if (typeof item === 'object' && item.name) {
-            formatted += `${index + 1}. ${item.name}`;
-            if (item.description) {
-                formatted += ` - ${item.description}`;
-            }
-            formatted += '\n';
-        } else {
-            formatted += `${index + 1}. ${JSON.stringify(item)}\n`;
-        }
-    });
-    
-    if (data.length > 10) {
-        formatted += `\n... and ${data.length - 10} more items`;
-    }
-    
-    return formatted;
-}
-
-/**
- * Creates a Figma-optimized response using simplified parser
+ * Create optimized Figma response with deduplication (enhanced version)
  * @param {object} figmaData - Raw Figma API response
  * @param {object} options - Response options
  * @returns {object} MCP-compliant response
@@ -299,26 +335,21 @@ function formatArrayData(data) {
 function createFigmaOptimizedResponse(figmaData, options = {}) {
     const {
         outputFormat = 'yaml',
-        depth = null,
-        maxNodes = 1000,
         fileKey = null,
         nodeId = null
     } = options;
     
     try {
-        // Create simplified response like Figma-Context-MCP does
-        const simplifiedData = parseSimplifiedFigmaResponse(figmaData, nodeId);
+        // Use the sophisticated parser with deduplication
+        const simplifiedData = parseFigmaResponse(figmaData, nodeId);
         
-        // Add metadata
-        const metadata = {
-            fileKey,
-            nodeId
-        };
-        
+        // Add minimal metadata
         const result = {
-            metadata,
-            nodes: simplifiedData.nodes,
-            globalVars: simplifiedData.globalVars
+            metadata: {
+                fileKey,
+                nodeId
+            },
+            ...simplifiedData
         };
         
         // Format output as YAML like Figma-Context-MCP
@@ -342,76 +373,6 @@ function createFigmaOptimizedResponse(figmaData, options = {}) {
         console.error('Error in createFigmaOptimizedResponse:', error);
         return createErrorResponse(`Failed to optimize Figma response: ${error.message}`);
     }
-}
-
-/**
- * Parse Figma response to simplified format (copying Figma-Context-MCP approach)
- * @param {any} data - Raw Figma API response
- * @param {string} nodeId - Optional node ID for node responses
- * @returns {Object} Simplified design object
- */
-function parseSimplifiedFigmaResponse(data, nodeId = null) {
-    let nodesToParse = [];
-    
-    if (data.nodes && nodeId) {
-        // GetFileNodesResponse - extract the specific node
-        const nodeResponse = data.nodes[nodeId];
-        if (nodeResponse && nodeResponse.document) {
-            nodesToParse = [nodeResponse.document];
-        }
-    } else if (data.document) {
-        // GetFileResponse - get all children
-        nodesToParse = data.document.children || [];
-    }
-    
-    // Create simplified nodes (basic version - key fields only)
-    const simplifiedNodes = nodesToParse.map(node => parseSimplifiedNode(node)).filter(Boolean);
-    
-    return {
-        name: data.name || 'Figma Design',
-        lastModified: data.lastModified || new Date().toISOString(),
-        nodes: simplifiedNodes,
-        components: {}, // Simplified - not including full component data
-        componentSets: {},
-        globalVars: {
-            styles: {}
-        }
-    };
-}
-
-/**
- * Parse a single Figma node to simplified format
- * @param {any} node - Figma node object
- * @returns {Object} Simplified node
- */
-function parseSimplifiedNode(node) {
-    if (!node || !node.visible) return null;
-    
-    const simplified = {
-        id: node.id,
-        name: node.name,
-        type: node.type
-    };
-    
-    // Add basic layout info
-    if (node.absoluteBoundingBox) {
-        simplified.layout = {
-            x: node.absoluteBoundingBox.x,
-            y: node.absoluteBoundingBox.y,
-            width: node.absoluteBoundingBox.width,
-            height: node.absoluteBoundingBox.height
-        };
-    }
-    
-    // Add children if they exist (recursively, but limited depth)
-    if (node.children && node.children.length > 0) {
-        simplified.children = node.children
-            .map(child => parseSimplifiedNode(child))
-            .filter(Boolean)
-            .slice(0, 50); // Limit children to prevent huge responses
-    }
-    
-    return simplified;
 }
 
 export {
