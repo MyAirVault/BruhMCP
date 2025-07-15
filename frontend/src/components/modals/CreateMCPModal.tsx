@@ -20,7 +20,8 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     handleTypeSelect,
     handleSubmit,
     isFormValid,
-    retryValidation
+    retryValidation,
+    isOAuthService
   } = useCreateMCPForm({ isOpen, onClose, onSubmit });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
@@ -185,10 +186,10 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               {isSubmitting ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating...
+                  {isOAuthService(selectedMcpType) ? 'Creating & Authorizing...' : 'Creating...'}
                 </div>
               ) : (
-                'Done'
+                'Create'
               )}
             </button>
           </div>

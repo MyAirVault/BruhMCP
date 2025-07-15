@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import CreateMCPModal from '../components/modals/CreateMCPModal';
 import EditMCPModal from '../components/modals/EditMCPModal';
@@ -70,6 +70,27 @@ const Dashboard: React.FC = () => {
     setConfirmationModal,
     closeDropdowns,
   });
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthSuccess = urlParams.get('oauth_success');
+    const oauthError = urlParams.get('oauth_error');
+    const instanceId = urlParams.get('instance_id');
+
+    if (oauthSuccess === 'true') {
+      console.log('OAuth completed successfully for instance:', instanceId);
+      // Refresh the MCP list to show the new instance
+      refreshMCPList();
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (oauthError) {
+      console.error('OAuth error:', oauthError);
+      // You could show an error notification here
+      // For now, just log it and clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [refreshMCPList]);
 
   if (isLoading || isLoadingMCPs) {
     return (

@@ -12,6 +12,7 @@ import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
 import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
+import { handleOAuthFlow, getOAuthProvider, cacheOAuthTokens, deleteMCPInstance } from './oauth-helpers.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -122,6 +123,58 @@ export async function createMCP(req, res) {
 			clientSecret,
 			expiresAt
 		});
+
+		// Handle OAuth flow for OAuth services
+		if (mcpService.type === 'oauth') {
+			try {
+				const oauthResult = await handleOAuthFlow({
+					instanceId: createdInstance.instance_id,
+					provider: getOAuthProvider(mcpService.mcp_service_name),
+					clientId,
+					clientSecret,
+					serviceName: mcpService.mcp_service_name
+				});
+
+				if (!oauthResult.success) {
+					// OAuth failed - delete the created instance
+					await deleteMCPInstance(createdInstance.instance_id);
+					
+					return res.status(400).json({
+						error: {
+							code: 'OAUTH_FAILED',
+							message: 'OAuth authorization failed',
+							details: oauthResult.error
+						}
+					});
+				}
+
+				// OAuth flow initiated - return authorization URL for user consent
+				return res.status(200).json({
+					instance: createdInstance,
+					oauth: {
+						requires_user_consent: true,
+						authorization_url: oauthResult.authorization_url,
+						provider: oauthResult.provider,
+						instance_id: oauthResult.instance_id,
+						message: oauthResult.message
+					}
+				});
+				
+			} catch (oauthError) {
+				console.error(`❌ OAuth flow failed for instance ${createdInstance.instance_id}:`, oauthError);
+				
+				// Delete the created instance on OAuth failure
+				await deleteMCPInstance(createdInstance.instance_id);
+				
+				return res.status(400).json({
+					error: {
+						code: 'OAUTH_ERROR',
+						message: 'OAuth flow encountered an error',
+						details: oauthError.message
+					}
+				});
+			}
+		}
 
 		// Create log directory structure for the new instance
 		const logDirResult = await createMCPLogDirectory(userId, createdInstance.instance_id);

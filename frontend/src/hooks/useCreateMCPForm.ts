@@ -239,7 +239,21 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         expiration: formData.expiration
       };
       
-      onSubmit(transformedData);
+      // For OAuth services, we need to handle the OAuth flow differently
+      if (selectedMcpType && isOAuthService(selectedMcpType)) {
+        // Call the parent's onSubmit which will create the instance and initiate OAuth
+        const response = await onSubmit(transformedData);
+        
+        // Check if response contains OAuth information
+        if (response && response.oauth && response.oauth.requires_user_consent) {
+          // Open OAuth authorization URL in the same window
+          window.location.href = response.oauth.authorization_url;
+          return; // Don't close modal or reset form - OAuth will handle redirect
+        }
+      } else {
+        // For API key services, use the normal flow
+        onSubmit(transformedData);
+      }
       
       // Reset form
       setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '', credentials: {} });
@@ -258,7 +272,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting, selectedMcpType, requiresCredentials, validationState, validateCredentials, formData, onSubmit, onClose]);
+  }, [isFormValid, isSubmitting, selectedMcpType, requiresCredentials, validationState, validateCredentials, formData, onSubmit, onClose, isOAuthService]);
 
   const retryValidation = useCallback(() => {
     setValidationState(prev => ({ 
@@ -272,6 +286,16 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     validateCredentials();
   }, [validateCredentials]);
 
+  // OAuth detection functions
+  const isOAuthService = useCallback((mcpType: MCPType | null) => {
+    return mcpType?.type === 'oauth';
+  }, []);
+
+  const isApiKeyService = useCallback((mcpType: MCPType | null) => {
+    return mcpType?.type === 'api_key';
+  }, []);
+
+
   return {
     formData,
     mcpTypes,
@@ -284,6 +308,8 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     handleSubmit,
     isFormValid,
     requiresCredentials,
-    retryValidation
+    retryValidation,
+    isOAuthService,
+    isApiKeyService
   };
 };

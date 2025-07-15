@@ -21,6 +21,7 @@ export interface MCPType {
   display_name: string;
   description: string;
   icon_url?: string;
+  type: 'api_key' | 'oauth';
   config_template?: Record<string, unknown>;
   required_fields?: {
     name: string;

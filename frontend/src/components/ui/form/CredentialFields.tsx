@@ -152,7 +152,7 @@ const CredentialFields: React.FC<CredentialFieldsProps> = ({
       
       {/* Validation feedback */}
       <div className="mt-3">
-        <ValidationFeedback validationState={validationState} onRetryValidation={onRetryValidation} />
+        <ValidationFeedback validationState={validationState} onRetryValidation={onRetryValidation} selectedMcpType={selectedMcpType} />
       </div>
       
       <p className="text-xs text-gray-500 mt-2">

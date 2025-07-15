@@ -44,10 +44,21 @@ export const useDashboardActions = ({
     }
 
     try {
-      const newInstance = await apiService.createMCP(data);
-      console.log('Created MCP:', newInstance);
-      await refreshMCPList();
-      setIsCreateModalOpen(false);
+      const response = await apiService.createMCP(data);
+      
+      // Check if this is an OAuth service that requires user consent
+      if (response && response.oauth && response.oauth.requires_user_consent) {
+        console.log('OAuth flow initiated for MCP:', response.instance);
+        // Close the modal since OAuth will redirect the user
+        setIsCreateModalOpen(false);
+        // Return the response for OAuth handling in the form
+        return response;
+      } else {
+        // For API key services, handle normally
+        console.log('Created MCP:', response);
+        await refreshMCPList();
+        setIsCreateModalOpen(false);
+      }
     } catch (error) {
       console.error('Failed to create MCP:', error);
       throw error;

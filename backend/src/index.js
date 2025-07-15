@@ -28,8 +28,10 @@ import loggingService from './services/logging/loggingService.js';
 import { ErrorResponses } from './utils/errorResponse.js';
 import logMaintenanceService from './services/logging/logMaintenanceService.js';
 
+
 const app = express();
 const port = process.env.PORT || 5000;
+
 
 // Security middleware
 app.use(helmet());
@@ -190,6 +192,7 @@ const server = app.listen(port, async () => {
 			critical: false
 		});
 	}
+
 
 	console.log('🎯 All startup checks completed');
 });

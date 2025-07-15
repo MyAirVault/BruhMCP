@@ -3,8 +3,10 @@
  * Handles OAuth 2.0 token exchange and refresh operations
  */
 
+import oauthServiceManager from '../../../services/oauth-service-manager.js';
+
 /**
- * Exchange OAuth credentials for Bearer token
+ * Exchange OAuth credentials for Bearer token via OAuth service
  * @param {Object} credentials - OAuth credentials
  * @param {string} credentials.clientId - OAuth Client ID
  * @param {string} credentials.clientSecret - OAuth Client Secret
@@ -23,17 +25,51 @@ export async function exchangeOAuthForBearer(credentials) {
     throw new Error('OAuth scopes are required');
   }
 
-  // For this implementation, we'll simulate the OAuth exchange
-  // In a real implementation, this would involve:
-  // 1. Redirecting user to Google OAuth consent screen
-  // 2. Handling the authorization code callback
-  // 3. Exchanging the code for tokens
+  console.log(`🔐 Calling OAuth service for token exchange`);
   
-  console.log(`🔐 Simulating OAuth exchange for scopes: ${scopes.join(', ')}`);
-  
-  // This is a placeholder implementation
-  // In production, you would implement the full OAuth 2.0 flow
-  throw new Error('OAuth exchange requires user authorization flow - please implement full OAuth 2.0 flow with redirect handling');
+  try {
+    // Ensure OAuth service is running
+    const serviceStarted = await oauthServiceManager.ensureServiceRunning();
+    if (!serviceStarted) {
+      throw new Error('Failed to start OAuth service');
+    }
+
+    const oauthServiceUrl = oauthServiceManager.getServiceUrl();
+    
+    const response = await fetch(`${oauthServiceUrl}/exchange-credentials`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        provider: 'google',
+        client_id: clientId,
+        client_secret: clientSecret,
+        scopes
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`OAuth service error: ${errorData.error || 'Token exchange failed'}`);
+    }
+
+    const tokenData = await response.json();
+    
+    console.log(`✅ OAuth tokens obtained successfully from OAuth service`);
+    
+    return {
+      access_token: tokenData.tokens.access_token,
+      refresh_token: tokenData.tokens.refresh_token,
+      expires_in: tokenData.tokens.expires_in,
+      token_type: tokenData.tokens.token_type,
+      scope: tokenData.tokens.scope
+    };
+
+  } catch (error) {
+    console.error('OAuth service token exchange failed:', error);
+    throw new Error(`OAuth token exchange failed: ${error.message}`);
+  }
 }
 
 /**
@@ -59,56 +95,47 @@ export async function refreshBearerToken(refreshData) {
   console.log(`🔄 Refreshing Bearer token using refresh token`);
 
   try {
-    const tokenUrl = 'https://oauth2.googleapis.com/token';
-    
-    const requestBody = new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: clientId,
-      client_secret: clientSecret
-    });
+    // Ensure OAuth service is running
+    const serviceStarted = await oauthServiceManager.ensureServiceRunning();
+    if (!serviceStarted) {
+      throw new Error('Failed to start OAuth service');
+    }
 
-    const response = await fetch(tokenUrl, {
+    const oauthServiceUrl = oauthServiceManager.getServiceUrl();
+    
+    const response = await fetch(`${oauthServiceUrl}/exchange-refresh-token`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json'
       },
-      body: requestBody
+      body: JSON.stringify({
+        provider: 'google',
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret
+      })
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      let errorMessage = `Token refresh failed: ${response.status} ${response.statusText}`;
-      
-      try {
-        const errorJson = JSON.parse(errorData);
-        if (errorJson.error_description) {
-          errorMessage = `Token refresh failed: ${errorJson.error_description}`;
-        } else if (errorJson.error) {
-          errorMessage = `Token refresh failed: ${errorJson.error}`;
-        }
-      } catch (parseError) {
-        // Use the default error message
-      }
-      
-      throw new Error(errorMessage);
+      const errorData = await response.json();
+      throw new Error(`OAuth service error: ${errorData.error || 'Token refresh failed'}`);
     }
 
     const tokenData = await response.json();
     
     // Validate response contains required fields
-    if (!tokenData.access_token) {
+    if (!tokenData.tokens || !tokenData.tokens.access_token) {
       throw new Error('Invalid token response: missing access_token');
     }
 
-    console.log(`✅ Bearer token refreshed successfully (expires in ${tokenData.expires_in} seconds)`);
+    console.log(`✅ Bearer token refreshed successfully via OAuth service`);
 
     return {
-      access_token: tokenData.access_token,
-      refresh_token: tokenData.refresh_token || refreshToken, // Some responses don't include new refresh token
-      expires_in: tokenData.expires_in || 3600,
-      token_type: tokenData.token_type || 'Bearer',
-      scope: tokenData.scope
+      access_token: tokenData.tokens.access_token,
+      refresh_token: tokenData.tokens.refresh_token || refreshToken,
+      expires_in: tokenData.tokens.expires_in || 3600,
+      token_type: tokenData.tokens.token_type || 'Bearer',
+      scope: tokenData.tokens.scope
     };
 
   } catch (error) {

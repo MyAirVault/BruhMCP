@@ -66,6 +66,44 @@ if (process.env.NODE_ENV === 'development') {
 	app.use(createCachePerformanceMiddleware());
 }
 
+// OAuth token caching endpoint (for OAuth service integration)
+app.post('/cache-tokens', async (req, res) => {
+  try {
+    const { instance_id, tokens } = req.body;
+
+    if (!instance_id || !tokens) {
+      return res.status(400).json({
+        error: 'Instance ID and tokens are required'
+      });
+    }
+
+    // Cache tokens using existing credential cache
+    const { setCachedCredential } = await import('./services/credential-cache.js');
+    
+    setCachedCredential(instance_id, {
+      bearerToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      expiresAt: tokens.expires_at || (Date.now() + (tokens.expires_in * 1000)),
+      user_id: tokens.user_id || 'unknown'
+    });
+
+    console.log(`✅ OAuth tokens cached for instance: ${instance_id}`);
+
+    res.json({
+      success: true,
+      message: 'Tokens cached successfully',
+      instance_id
+    });
+
+  } catch (error) {
+    console.error('Token caching error:', error);
+    res.status(500).json({
+      error: 'Failed to cache tokens',
+      details: error.message
+    });
+  }
+});
+
 // Create authentication middleware (Phase 2 with OAuth caching)
 const credentialAuthMiddleware = createCredentialAuthMiddleware();
 const lightweightAuthMiddleware = createLightweightAuthMiddleware();
