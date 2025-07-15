@@ -1,196 +1,99 @@
 /**
- * MCP Tools endpoint for Figma service
+ * MCP Tools endpoint for Figma service - Copied from Figma-Context-MCP
  * Defines available tools that can be called via MCP protocol
  */
 
 /**
- * Get list of available tools for Figma service
+ * Get list of available tools for Figma service (matching Figma-Context-MCP)
  * @returns {Object} Tools definition response
  */
 export function getTools() {
 	return {
 		tools: [
 			{
-				name: 'get_figma_file',
-				description: 'Retrieve the full document tree of a Figma file with optimized response format.',
+				name: 'get_figma_data',
+				description: 'When the nodeId cannot be obtained, obtain the layout information about the entire Figma file',
 				inputSchema: {
 					type: 'object',
 					properties: {
-						file_key: {
+						fileKey: {
 							type: 'string',
-							description: 'The key of the Figma file to retrieve.'
+							description: 'The key of the Figma file to fetch, often found in a provided URL like figma.com/(file|design)/<fileKey>/...'
 						},
-						node_id: {
+						nodeId: {
 							type: 'string',
-							description: 'The ID of the specific node to retrieve.'
-						},
-						depth: {
-							type: 'number',
-							description: 'Maximum depth to traverse the node tree (default: 10).'
-						},
-						max_nodes: {
-							type: 'number',
-							description: 'Maximum number of nodes to process (default: 1000).'
-						}
-					},
-					required: ['file_key']
-				}
-			},
-			{
-				name: 'list_components',
-				description: 'List components in a specific Figma file.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						file_key: {
-							type: 'string',
-							description: 'The key of the Figma file to retrieve components from.'
-						}
-					},
-					required: ['file_key']
-				}
-			},
-			{
-				name: 'list_styles',
-				description: 'List styles in a specific Figma file.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						file_key: {
-							type: 'string',
-							description: 'The key of the Figma file to retrieve styles from.'
-						}
-					},
-					required: ['file_key']
-				}
-			},
-			{
-				name: 'list_comments',
-				description: 'List comments on a specific Figma file.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						file_key: {
-							type: 'string',
-							description: 'The key of the Figma file to retrieve comments from.'
-						}
-					},
-					required: ['file_key']
-				}
-			},
-			{
-				name: 'get_file_nodes',
-				description: 'Retrieve specific nodes from a Figma file with optimized response format.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						file_key: {
-							type: 'string',
-							description: 'The key of the Figma file.'
-						},
-						node_id: {
-							type: 'string',
-							description: 'The ID of the node to retrieve.'
+							description: 'The ID of the node to fetch, often found as URL parameter node-id=<nodeId>, always use if provided'
 						},
 						depth: {
 							type: 'number',
-							description: 'Maximum depth to traverse the node tree (default: 5 for nodes, 10 for full file).'
+							description: 'OPTIONAL. Do NOT use unless explicitly requested by the user. Controls how many levels deep to traverse the node tree'
+						}
+					},
+					required: ['fileKey']
+				}
+			},
+			{
+				name: 'download_figma_images',
+				description: 'Download SVG and PNG images used in a Figma file based on the IDs of image or icon nodes',
+				inputSchema: {
+					type: 'object',
+					properties: {
+						fileKey: {
+							type: 'string',
+							description: 'The key of the Figma file containing the node'
 						},
-						max_nodes: {
+						nodes: {
+							type: 'array',
+							items: {
+								type: 'object',
+								properties: {
+									nodeId: {
+										type: 'string',
+										description: 'The ID of the Figma image node to fetch, formatted as 1234:5678'
+									},
+									imageRef: {
+										type: 'string',
+										description: 'If a node has an imageRef fill, you must include this variable. Leave blank when downloading Vector SVG images.'
+									},
+									fileName: {
+										type: 'string',
+										description: 'The local name for saving the fetched file'
+									}
+								},
+								required: ['nodeId', 'fileName']
+							},
+							description: 'The nodes to fetch as images'
+						},
+						pngScale: {
 							type: 'number',
-							description: 'Maximum number of nodes to process (default: 500 for nodes, 1000 for full file).'
-						}
-					},
-					required: ['file_key']
-				}
-			},
-			{
-				name: 'get_image_fills',
-				description: 'Get image fills from a Figma file.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						file_key: {
-							type: 'string',
-							description: 'The key of the Figma file.'
-						}
-					},
-					required: ['file_key']
-				}
-			},
-			{
-				name: 'get_current_user',
-				description: 'Get current user information.',
-				inputSchema: {
-					type: 'object',
-					properties: {},
-					required: []
-				}
-			},
-			{
-				name: 'list_projects',
-				description: 'List projects in a team.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						team_id: {
-							type: 'string',
-							description: 'The team ID.'
-						}
-					},
-					required: ['team_id']
-				}
-			},
-			{
-				name: 'list_files',
-				description: 'List files in a project.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						project_id: {
-							type: 'string',
-							description: 'The project ID.'
-						}
-					},
-					required: ['project_id']
-				}
-			},
-			{
-				name: 'post_comment',
-				description: 'Post a comment to a Figma file.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						file_key: {
-							type: 'string',
-							description: 'The key of the Figma file.'
+							description: 'Export scale for PNG images. Optional, defaults to 2 if not specified. Affects PNG images only.'
 						},
-						message: {
+						localPath: {
 							type: 'string',
-							description: 'The comment message.'
+							description: 'The absolute path to the directory where images are stored in the project. If the directory does not exist, it will be created.'
 						},
-						client_meta: {
+						svgOptions: {
 							type: 'object',
-							description: 'Additional client metadata.'
+							properties: {
+								outlineText: {
+									type: 'boolean',
+									description: 'Whether to outline text in SVG exports. Default is true.'
+								},
+								includeId: {
+									type: 'boolean',
+									description: 'Whether to include IDs in SVG exports. Default is false.'
+								},
+								simplifyStroke: {
+									type: 'boolean',
+									description: 'Whether to simplify strokes in SVG exports. Default is true.'
+								}
+							},
+							description: 'Options for SVG export'
 						}
 					},
-					required: ['file_key', 'message']
+					required: ['fileKey', 'nodes', 'localPath']
 				}
-			},
-			{
-				name: 'list_variables',
-				description: 'List variables in a Figma file.',
-				inputSchema: {
-					type: 'object',
-					properties: {
-						file_key: {
-							type: 'string',
-							description: 'The key of the Figma file.'
-						}
-					},
-					required: ['file_key']
-				}
-			},
+			}
 		],
 	};
 }

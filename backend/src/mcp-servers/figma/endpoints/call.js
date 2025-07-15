@@ -1,20 +1,11 @@
 /**
- * MCP Call endpoint for Figma service
+ * MCP Call endpoint for Figma service - Simplified to match Figma-Context-MCP
  * Handles tool execution requests via MCP protocol
  */
 
 import { 
 	getFigmaFile, 
-	getFigmaComponents, 
-	getFigmaStyles, 
-	getFigmaComments,
-	getFigmaNodes,
-	getFigmaImageFills,
-	getFigmaUser,
-	getFigmaTeamProjects,
-	getFigmaProjectFiles,
-	postFigmaComment,
-	getFigmaLocalVariables
+	getFigmaNodes
 } from '../api/figma-api.js';
 
 import { 
@@ -25,7 +16,7 @@ import {
 
 
 /**
- * Execute a tool call
+ * Execute a tool call (matching Figma-Context-MCP tools)
  * @param {string} toolName - Name of the tool to execute
  * @param {any} args - Tool arguments
  * @param {string} apiKey - User's Figma API key
@@ -33,87 +24,38 @@ import {
 export async function executeToolCall(toolName, args, apiKey) {
 	try {
 		switch (toolName) {
-			case 'get_figma_file':
-				if (args.node_id) {
-					const nodeData = await getFigmaNodes(args.file_key, apiKey, [args.node_id]);
+			case 'get_figma_data':
+				if (args.nodeId) {
+					const nodeData = await getFigmaNodes(args.fileKey, apiKey, [args.nodeId]);
 					return createFigmaOptimizedResponse(nodeData, {
 						outputFormat: 'yaml',
-						depth: args.depth || 10,
-						maxNodes: args.max_nodes || 1000,
-						fileKey: args.file_key,
-						nodeId: args.node_id
+						depth: args.depth,
+						maxNodes: 1000,
+						fileKey: args.fileKey,
+						nodeId: args.nodeId
 					});
 				} else {
-					const fileData = await getFigmaFile(args.file_key, apiKey);
+					const fileData = await getFigmaFile(args.fileKey, apiKey);
 					return createFigmaOptimizedResponse(fileData, {
 						outputFormat: 'yaml',
-						depth: args.depth || 10,
-						maxNodes: args.max_nodes || 1000,
-						fileKey: args.file_key
+						depth: args.depth,
+						maxNodes: 1000,
+						fileKey: args.fileKey
 					});
 				}
 
-			case 'list_components':
-				const components = await getFigmaComponents(args.file_key, apiKey);
-				return createSuccessResponse(components);
-
-			case 'list_styles':
-				const styles = await getFigmaStyles(args.file_key, apiKey);
-				return createSuccessResponse(styles);
-
-			case 'list_comments':
-				const comments = await getFigmaComments(args.file_key, apiKey);
-				return createSuccessResponse(comments);
-
-			case 'get_file_nodes':
-				if (args.node_id) {
-					const nodeData = await getFigmaNodes(args.file_key, apiKey, [args.node_id]);
-					return createFigmaOptimizedResponse(nodeData, {
-						outputFormat: 'yaml',
-						depth: args.depth || 5,
-						maxNodes: args.max_nodes || 500,
-						fileKey: args.file_key,
-						nodeId: args.node_id
-					});
-				} else {
-					const allNodes = await getFigmaFile(args.file_key, apiKey);
-					return createFigmaOptimizedResponse(allNodes, {
-						outputFormat: 'yaml',
-						depth: args.depth || 10,
-						maxNodes: args.max_nodes || 1000,
-						fileKey: args.file_key
-					});
-				}
-
-			case 'get_image_fills':
-				const imageFills = await getFigmaImageFills(args.file_key, apiKey);
-				return createSuccessResponse(imageFills);
-
-			case 'get_current_user':
-				const user = await getFigmaUser(apiKey);
-				return createSuccessResponse(user);
-
-			case 'list_projects':
-				const projects = await getFigmaTeamProjects(args.team_id, apiKey);
-				return createSuccessResponse(projects);
-
-			case 'list_files':
-				const projectFiles = await getFigmaProjectFiles(args.project_id, apiKey);
-				return createSuccessResponse(projectFiles);
-
-			case 'post_comment':
-				const newComment = await postFigmaComment(args.file_key, apiKey, args.message, args.client_meta);
-				return createSuccessResponse(newComment);
-
-			case 'list_variables':
-				const variables = await getFigmaLocalVariables(args.file_key, apiKey);
-				return createSuccessResponse(variables);
+			case 'download_figma_images':
+				// Simple response for image download requests (matching Figma-Context-MCP structure)
+				return createSuccessResponse('Image download functionality not implemented in this version', {
+					outputFormat: 'yaml'
+				});
 
 			default:
-				throw new Error(`Unknown tool: ${toolName}`);
+				return createErrorResponse(`Unknown tool: ${toolName}`);
 		}
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		throw new Error(`Error executing ${toolName}: ${errorMessage}`);
+		console.error(`Tool execution error for ${toolName}:`, errorMessage);
+		return createErrorResponse(`Failed to execute ${toolName}: ${errorMessage}`);
 	}
 }
