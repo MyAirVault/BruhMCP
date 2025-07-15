@@ -29,7 +29,7 @@ export function parseFigmaResponse(data) {
 	const aggregatedComponentSets = {};
 	let nodesToParse;
 
-	if ("nodes" in data) {
+	if ("nodes" in data && data.nodes) {
 		// GetFileNodesResponse
 		const nodeResponses = Object.values(data.nodes);
 		nodeResponses.forEach((nodeResponse) => {

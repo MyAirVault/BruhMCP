@@ -284,3 +284,40 @@ export function pixelRound(num) {
 	}
 	return Number(Number(num).toFixed(2));
 }
+
+
+/**
+ * Create a valid variable key from a component name
+ * @param {string} name - Component name to convert
+ * @returns {string} Valid variable key
+ */
+export function createVariableKey(name) {
+	if (!name || typeof name !== 'string') {
+		return 'unnamed';
+	}
+
+	// Convert to camelCase and remove invalid characters
+	return name
+		.trim()
+		.replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+		.split(/\s+/) // Split on whitespace
+		.map((word, index) => {
+			if (index === 0) {
+				return word.toLowerCase();
+			}
+			return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+		})
+		.join('')
+		.replace(/^[^a-zA-Z_$]/, '_') // Ensure starts with valid character
+		|| 'unnamed'; // Fallback if empty
+}
+
+
+/**
+ * Check if a value exists and is not null/undefined
+ * @param {any} value - Value to check
+ * @returns {boolean} True if value exists
+ */
+export function hasValue(value) {
+	return value !== null && value !== undefined;
+}
