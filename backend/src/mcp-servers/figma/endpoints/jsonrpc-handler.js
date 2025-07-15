@@ -1,13 +1,15 @@
 /**
  * Figma MCP JSON-RPC protocol handler using official SDK
- * Using persistent connection approach like Figma-Context-MCP
+ * Fixed to match Figma-Context-MCP initialization pattern
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { executeToolCall } from './call.js';
-import { getTools } from './tools.js';
+import { FigmaService } from '../services/figma-service.js';
+import yaml from 'js-yaml';
 
 /**
  * @typedef {Object} ServiceConfig
@@ -28,104 +30,174 @@ export class FigmaMCPJsonRpcHandler {
 			name: `${serviceConfig.displayName} MCP Server`,
 			version: serviceConfig.version,
 		});
-		this.transport = null;
+		// Store transports by session like Figma-Context-MCP
+		/** @type {Record<string, StreamableHTTPServerTransport>} */
+		this.transports = {};
+		this.initialized = false;
+		
+		// Initialize Figma service like Figma-Context-MCP
+		this.figmaService = new FigmaService({
+			figmaApiKey: apiKey,
+			figmaOAuthToken: '', // Could be enhanced to support OAuth
+			useOAuth: false
+		});
+		
 		this.setupTools();
 	}
 
 	/**
-	 * Setup MCP tools using the official SDK - copying Figma-Context-MCP pattern
+	 * Setup MCP tools using direct Zod schemas like Figma-Context-MCP
 	 */
 	setupTools() {
-		const toolsData = getTools();
+		// Tool 1: get_figma_data (matching Figma-Context-MCP exactly)
+		this.server.tool(
+			"get_figma_data",
+			"When the nodeId cannot be obtained, obtain the layout information about the entire Figma file",
+			{
+				fileKey: z
+					.string()
+					.describe("The key of the Figma file to fetch, often found in a provided URL like figma.com/(file|design)/<fileKey>/..."),
+				nodeId: z
+					.string()
+					.optional()
+					.describe("The ID of the node to fetch, often found as URL parameter node-id=<nodeId>, always use if provided"),
+				depth: z
+					.number()
+					.optional()
+					.describe("OPTIONAL. Do NOT use unless explicitly requested by the user. Controls how many levels deep to traverse the node tree")
+			},
+			async ({ fileKey, nodeId, depth }) => {
+				console.log(`🔧 Tool call: get_figma_data for ${this.serviceConfig.name}`);
+				console.log(`📁 FileKey: ${fileKey}, NodeId: ${nodeId || 'none'}, Depth: ${depth || 'all'}`);
 
-		// Register tools like Figma-Context-MCP does
-		toolsData.tools.forEach(
-			/** @type {any} */ tool => {
-				this.server.tool(
-					tool.name,
-					tool.description,
-					/** @type {any} */ (this.convertInputSchema(tool.inputSchema)),
-					async (/** @type {any} */ args) => {
-						console.log(`🔧 Tool call: ${tool.name} for ${this.serviceConfig.name}`);
-
-						try {
-							const result = await executeToolCall(tool.name, args, this.apiKey);
-
-							// Return in the same format as Figma-Context-MCP
-							return {
-								content: /** @type {any} */ (result).content || [
-									{
-										type: 'text',
-										text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-									},
-								],
-							};
-						} catch (/** @type {any} */ error) {
-							return {
-								content: [
-									{
-										type: 'text',
-										text: `Error executing ${tool.name}: ${error.message}`,
-									},
-								],
-								isError: true,
-							};
-						}
+				try {
+					let file;
+					if (nodeId) {
+						file = await this.figmaService.getNode(fileKey, nodeId, depth);
+					} else {
+						file = await this.figmaService.getFile(fileKey, depth);
 					}
-				);
+
+					console.log(`✅ Successfully fetched file: ${file.name}`);
+					const { nodes, globalVars, ...metadata } = file;
+
+					const result = {
+						metadata,
+						nodes,
+						globalVars,
+					};
+
+					console.log('📤 Generating YAML result from file');
+					const formattedResult = yaml.dump(result, {
+						indent: 2,
+						lineWidth: 120,
+						noRefs: true,
+						sortKeys: false
+					});
+
+					console.log('📨 Sending result to client');
+					return {
+						content: [{ type: 'text', text: formattedResult }],
+					};
+				} catch (/** @type {any} */ error) {
+					const message = error instanceof Error ? error.message : JSON.stringify(error);
+					console.error(`❌ Error fetching file ${fileKey}:`, message);
+					return {
+						isError: true,
+						content: [{ type: 'text', text: `Error fetching file: ${message}` }],
+					};
+				}
+			}
+		);
+
+		// Tool 2: download_figma_images (matching Figma-Context-MCP structure)
+		this.server.tool(
+			"download_figma_images", 
+			"Download SVG and PNG images used in a Figma file based on the IDs of image or icon nodes",
+			{
+				fileKey: z.string().describe("The key of the Figma file containing the node"),
+				nodes: z
+					.object({
+						nodeId: z.string().describe("The ID of the Figma image node to fetch, formatted as 1234:5678"),
+						imageRef: z.string().optional().describe("If a node has an imageRef fill, you must include this variable. Leave blank when downloading Vector SVG images."),
+						fileName: z.string().describe("The local name for saving the fetched file")
+					})
+					.array()
+					.describe("The nodes to fetch as images"),
+				pngScale: z
+					.number()
+					.positive()
+					.optional()
+					.default(2)
+					.describe("Export scale for PNG images. Optional, defaults to 2 if not specified. Affects PNG images only."),
+				localPath: z
+					.string()
+					.describe("The absolute path to the directory where images are stored in the project. If the directory does not exist, it will be created."),
+				svgOptions: z
+					.object({
+						outlineText: z.boolean().optional().default(true).describe("Whether to outline text in SVG exports. Default is true."),
+						includeId: z.boolean().optional().default(false).describe("Whether to include IDs in SVG exports. Default is false."),
+						simplifyStroke: z.boolean().optional().default(true).describe("Whether to simplify strokes in SVG exports. Default is true.")
+					})
+					.optional()
+					.default({})
+					.describe("Options for SVG export")
+			},
+			async ({ fileKey, nodes, pngScale, localPath, svgOptions }) => {
+				console.log(`🔧 Tool call: download_figma_images for ${this.serviceConfig.name}`);
+				console.log(`📁 FileKey: ${fileKey}, Nodes: ${nodes.length}, Path: ${localPath}`);
+
+				try {
+					const imageFills = nodes.filter(({ imageRef }) => !!imageRef);
+					const fillDownloads = this.figmaService.getImageFills(fileKey, imageFills, localPath);
+					
+					const renderRequests = nodes
+						.filter(({ imageRef }) => !imageRef)
+						.map(({ nodeId, fileName }) => ({
+							nodeId,
+							fileName,
+							fileType: fileName.endsWith('.svg') ? 'svg' : 'png',
+						}));
+
+					const renderDownloads = this.figmaService.getImages(
+						fileKey,
+						renderRequests,
+						localPath,
+						pngScale,
+						svgOptions,
+					);
+
+					const downloads = await Promise.all([fillDownloads, renderDownloads]).then(([f, r]) => [
+						...f,
+						...r,
+					]);
+
+					// If any download fails, return false
+					const saveSuccess = !downloads.find((success) => !success);
+					return {
+						content: [
+							{
+								type: 'text',
+								text: saveSuccess
+									? `Success, ${downloads.length} images downloaded: ${downloads.join(', ')}`
+									: 'Failed',
+							},
+						],
+					};
+				} catch (/** @type {any} */ error) {
+					console.error(`❌ Error downloading images from file ${fileKey}:`, error);
+					return {
+						isError: true,
+						content: [{ type: 'text', text: `Error downloading images: ${error}` }],
+					};
+				}
 			}
 		);
 	}
 
-	/**
-	 * Convert JSON schema to Zod schema for MCP SDK
-	 * @param {any} inputSchema - JSON schema object
-	 * @returns {any} Zod schema object
-	 */
-	convertInputSchema(inputSchema) {
-		/** @type {any} */ const zodSchema = {};
-
-		if (inputSchema.properties) {
-			Object.entries(inputSchema.properties).forEach(([key, /** @type {any} */ prop]) => {
-				let zodType;
-
-				switch (prop.type) {
-					case 'string':
-						zodType = z.string();
-						break;
-					case 'number':
-						zodType = z.number();
-						break;
-					case 'boolean':
-						zodType = z.boolean();
-						break;
-					case 'object':
-						zodType = z.object({});
-						break;
-					case 'array':
-						zodType = z.array(z.unknown());
-						break;
-					default:
-						zodType = z.unknown();
-				}
-
-				if (prop.description) {
-					zodType = zodType.describe(prop.description);
-				}
-
-				if (!inputSchema.required || !inputSchema.required.includes(key)) {
-					zodType = zodType.optional();
-				}
-
-				zodSchema[key] = zodType;
-			});
-		}
-
-		return zodSchema;
-	}
 
 	/**
-	 * Process incoming JSON-RPC message using StreamableHTTP transport like Figma-Context-MCP
+	 * Process incoming JSON-RPC message using session-based transport like Figma-Context-MCP
 	 * @param {any} req - Express request object
 	 * @param {any} res - Express response object
 	 * @param {any} message - JSON-RPC message
@@ -133,23 +205,61 @@ export class FigmaMCPJsonRpcHandler {
 	 */
 	async processMessage(req, res, message) {
 		try {
-			// Create StreamableHTTP transport for this request (like Figma-Context-MCP)
-			if (!this.transport) {
-				this.transport = new StreamableHTTPServerTransport({
-					sessionIdGenerator: () => `figma-${Date.now()}`,
-					onsessioninitialized: (sessionId) => {
-						console.log(`Figma MCP session initialized: ${sessionId}`);
+			const sessionId = req.headers['mcp-session-id'];
+			console.log(`🔧 Processing MCP request - Session ID: ${sessionId}`);
+			console.log(`📨 Is Initialize Request: ${isInitializeRequest(message)}`);
+			
+			/** @type {StreamableHTTPServerTransport} */
+			let transport;
+
+			if (sessionId && this.transports[sessionId]) {
+				// Reuse existing transport (like Figma-Context-MCP)
+				console.log(`♻️  Reusing existing transport for session: ${sessionId}`);
+				transport = this.transports[sessionId];
+			} else if (!sessionId && isInitializeRequest(message)) {
+				// Create new transport only for initialization requests (like Figma-Context-MCP)
+				console.log(`🚀 Creating new transport for initialization request`);
+				transport = new StreamableHTTPServerTransport({
+					sessionIdGenerator: () => randomUUID(),
+					onsessioninitialized: (newSessionId) => {
+						console.log(`✅ Figma MCP session initialized: ${newSessionId}`);
+						// Store transport by session ID (like Figma-Context-MCP)
+						this.transports[newSessionId] = transport;
 					},
 				});
 				
-				// Connect the server to the transport
-				await this.server.connect(this.transport);
+				// Setup cleanup on transport close
+				transport.onclose = () => {
+					if (transport.sessionId) {
+						delete this.transports[transport.sessionId];
+						console.log(`🧹 Cleaned up transport for session: ${transport.sessionId}`);
+					}
+				};
+				
+				// Connect server to transport immediately (like Figma-Context-MCP)
+				await this.server.connect(transport);
+				this.initialized = true;
+			} else {
+				// Invalid request - no session ID and not an initialize request
+				console.log(`❌ Invalid request: No session ID and not initialize request`);
+				res.status(400).json({
+					jsonrpc: '2.0',
+					error: {
+						code: -32000,
+						message: 'Bad Request: No valid session ID provided and not an initialize request',
+					},
+					id: message?.id || null,
+				});
+				return;
 			}
 
-			// Handle the request using the transport
-			await this.transport.handleRequest(req, res, message);
+			// Handle the request using the appropriate transport (like Figma-Context-MCP)
+			console.log(`🔄 Handling request with transport`);
+			await transport.handleRequest(req, res, message);
+			console.log(`✅ Request handled successfully`);
+			
 		} catch (/** @type {any} */ error) {
-			console.error('StreamableHTTP processing error:', error);
+			console.error('❌ StreamableHTTP processing error:', error);
 
 			// Return proper JSON-RPC error response
 			res.json({
