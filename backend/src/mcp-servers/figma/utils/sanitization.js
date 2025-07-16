@@ -1,13 +1,11 @@
 /**
- * Sanitization utilities - Matches Figma-Context-MCP component processing
- * Handles component definitions, component sets, and data sanitization
+ * Sanitization utilities * Handles component definitions, component sets, and data sanitization
  */
 
 import { hasValue, generateVarId, createVariableKey } from './common.js';
 
 /**
- * Sanitize components data (matching Figma-Context-MCP)
- * @param {any} components - Raw components data from Figma
+ * Sanitize components data * @param {any} components - Raw components data from Figma
  * @param {Object} globalVars - Global variables store
  * @returns {Array} Sanitized component definitions
  */
@@ -29,8 +27,7 @@ export function sanitizeComponents(components, globalVars) {
 }
 
 /**
- * Sanitize component sets data (matching Figma-Context-MCP)
- * @param {any} componentSets - Raw component sets data from Figma
+ * Sanitize component sets data * @param {any} componentSets - Raw component sets data from Figma
  * @param {Object} globalVars - Global variables store
  * @returns {Array} Sanitized component set definitions
  */

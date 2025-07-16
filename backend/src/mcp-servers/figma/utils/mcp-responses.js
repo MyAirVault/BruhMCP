@@ -1,6 +1,5 @@
 /**
- * MCP Response Formatter - Enhanced with Figma-Context-MCP deduplication logic
- * Ensures all responses follow the MCP protocol specification
+ * MCP Response Formatter * Ensures all responses follow the MCP protocol specification
  * Handles content formatting, error responses, and resource URIs
  * Now includes sophisticated data deduplication to reduce token size
  */
@@ -81,8 +80,7 @@ function generateVarId(prefix = "var") {
 }
 
 /**
- * Find or create global variables (key deduplication logic from Figma-Context-MCP)
- * @param {object} globalVars - Global variables object
+ * Find or create global variables * @param {object} globalVars - Global variables object
  * @param {any} value - Value to store
  * @param {string} prefix - Variable ID prefix
  * @returns {string} Variable ID
@@ -147,8 +145,7 @@ function removeEmptyKeys(input) {
 }
 
 /**
- * Parse a single Figma node with deduplication (copying Figma-Context-MCP approach)
- * @param {object} globalVars - Global variables for deduplication
+ * Parse a single Figma node with deduplication * @param {object} globalVars - Global variables for deduplication
  * @param {object} node - Figma node object
  * @param {object} parent - Parent node (optional)
  * @returns {object} Simplified node
@@ -271,8 +268,7 @@ function parseNode(globalVars, node, parent = null) {
 }
 
 /**
- * Parse Figma response to simplified format (copying Figma-Context-MCP approach)
- * @param {any} data - Raw Figma API response
+ * Parse Figma response to simplified format * @param {any} data - Raw Figma API response
  * @param {string} nodeId - Optional node ID for node responses
  * @returns {Object} Simplified design object
  */

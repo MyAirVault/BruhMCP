@@ -1,6 +1,5 @@
 /**
- * Effects Transformer - Matches Figma-Context-MCP effects.ts functionality exactly
- * Handles visual effects like shadows, blurs
+ * Effects Transformer * Handles visual effects like shadows, blurs
  */
 
 import { formatRGBAColor } from '../utils/common.js';
@@ -15,8 +14,7 @@ import { hasValue } from '../utils/identity.js';
  */
 
 /**
- * Build simplified effects (matching Figma-Context-MCP exactly)
- * @param {any} n - Figma node
+ * Build simplified effects * @param {any} n - Figma node
  * @returns {SimplifiedEffects}
  */
 export function buildSimplifiedEffects(n) {

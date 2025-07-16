@@ -1,6 +1,5 @@
 /**
- * Figma Service Layer - Matches Figma-Context-MCP architecture
- * Handles authentication, API calls, and data processing
+ * Figma Service Layer * Handles authentication, API calls, and data processing
  */
 
 import { fetchWithRetry } from '../utils/fetch-with-retry.js';
@@ -61,8 +60,7 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get file data and return simplified response (matching Figma-Context-MCP)
-	 * @param {string} fileKey - Figma file key
+	 * Get file data and return simplified response	 * @param {string} fileKey - Figma file key
 	 * @param {number|null} [depth] - Depth limit for traversal
 	 * @returns {Promise<any>} Simplified design object
 	 */
@@ -89,8 +87,7 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get specific node data and return simplified response (matching Figma-Context-MCP)
-	 * @param {string} fileKey - Figma file key
+	 * Get specific node data and return simplified response	 * @param {string} fileKey - Figma file key
 	 * @param {string} nodeId - Node ID to fetch
 	 * @param {number|null} [depth] - Depth limit for traversal
 	 * @returns {Promise<any>} Simplified design object
@@ -117,8 +114,7 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get image downloads (matching Figma-Context-MCP exactly)
-	 * @param {string} fileKey - Figma file key
+	 * Get image downloads	 * @param {string} fileKey - Figma file key
 	 * @param {Array} nodes - Nodes to download
 	 * @param {string} localPath - Local path for downloads
 	 * @param {number} pngScale - PNG scale factor
@@ -164,8 +160,7 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get image fills (matching Figma-Context-MCP exactly)
-	 * @param {string} fileKey - Figma file key
+	 * Get image fills	 * @param {string} fileKey - Figma file key
 	 * @param {Array} nodes - Nodes with image fills
 	 * @param {string} localPath - Local path for downloads
 	 * @returns {Promise<string[]>} Array of download results

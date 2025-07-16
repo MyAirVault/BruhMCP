@@ -1,6 +1,6 @@
 /**
  * Layout Transformer - Converts Figma layout to CSS-friendly format
- * Matches Figma-Context-MCP layout.ts functionality exactly
+ * Converts Figma layout properties to CSS-friendly format
  */
 
 import { isInAutoLayoutFlow, isFrame, isLayout, isRectangle } from '../utils/identity.js';

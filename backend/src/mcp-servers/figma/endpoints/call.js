@@ -1,5 +1,5 @@
 /**
- * MCP Call endpoint for Figma service - Simplified to match Figma-Context-MCP
+ * MCP Call endpoint for Figma service
  * Handles tool execution requests via MCP protocol
  */
 
@@ -16,7 +16,7 @@ import {
 
 
 /**
- * Execute a tool call (matching Figma-Context-MCP tools)
+ * Execute a tool call
  * @param {string} toolName - Name of the tool to execute
  * @param {any} args - Tool arguments
  * @param {string} apiKey - User's Figma API key
@@ -45,7 +45,7 @@ export async function executeToolCall(toolName, args, apiKey) {
 				}
 
 			case 'download_figma_images':
-				// Simple response for image download requests (matching Figma-Context-MCP structure)
+				// Simple response for image download requests
 				return createSuccessResponse('Image download functionality not implemented in this version', {
 					outputFormat: 'yaml'
 				});

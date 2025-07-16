@@ -1,11 +1,9 @@
 /**
- * Identity utilities - Matches Figma-Context-MCP identity.ts functionality exactly
- * Type guards and utility functions for Figma object identification
+ * Identity utilities * Type guards and utility functions for Figma object identification
  */
 
 /**
- * Check if an object has a specific value (matching Figma-Context-MCP exactly)
- * @param {string} key - Property key to check
+ * Check if an object has a specific value * @param {string} key - Property key to check
  * @param {any} obj - Object to check
  * @param {Function} [typeGuard] - Optional type guard function
  * @returns {boolean} True if object has the key with valid value
@@ -18,8 +16,7 @@ export function hasValue(key, obj, typeGuard) {
 }
 
 /**
- * Check if value is a frame (matching Figma-Context-MCP exactly)
- * @param {any} val - Value to check
+ * Check if value is a frame * @param {any} val - Value to check
  * @returns {boolean} True if value is a frame
  */
 export function isFrame(val) {
@@ -32,8 +29,7 @@ export function isFrame(val) {
 }
 
 /**
- * Check if value has layout properties (matching Figma-Context-MCP exactly)
- * @param {any} val - Value to check
+ * Check if value has layout properties * @param {any} val - Value to check
  * @returns {boolean} True if value has layout properties
  */
 export function isLayout(val) {
@@ -51,8 +47,7 @@ export function isLayout(val) {
 }
 
 /**
- * Checks if a node is a child to an auto layout frame and adheres to auto layout rules (matching Figma-Context-MCP exactly)
- * @param {any} node - The node to check
+ * Checks if a node is a child to an auto layout frame and adheres to auto layout rules * @param {any} node - The node to check
  * @param {any} parent - The parent node
  * @returns {boolean} True if the node is a child of an auto layout frame
  */
@@ -67,8 +62,7 @@ export function isInAutoLayoutFlow(node, parent) {
 }
 
 /**
- * Check if value is stroke weights object (matching Figma-Context-MCP exactly)
- * @param {any} val - Value to check
+ * Check if value is stroke weights object * @param {any} val - Value to check
  * @returns {boolean} True if value is stroke weights
  */
 export function isStrokeWeights(val) {
@@ -83,8 +77,7 @@ export function isStrokeWeights(val) {
 }
 
 /**
- * Check if value is a rectangle (matching Figma-Context-MCP exactly)
- * @param {string} key - Key to check
+ * Check if value is a rectangle * @param {string} key - Key to check
  * @param {any} obj - Object to check
  * @returns {boolean} True if object has rectangle at key
  */
@@ -104,8 +97,7 @@ export function isRectangle(key, obj) {
 }
 
 /**
- * Check if value is rectangle corner radii array (matching Figma-Context-MCP exactly)
- * @param {any} val - Value to check
+ * Check if value is rectangle corner radii array * @param {any} val - Value to check
  * @returns {boolean} True if value is corner radii array
  */
 export function isRectangleCornerRadii(val) {
@@ -113,8 +105,7 @@ export function isRectangleCornerRadii(val) {
 }
 
 /**
- * Check if value is CSS color value (matching Figma-Context-MCP exactly)
- * @param {any} val - Value to check
+ * Check if value is CSS color value * @param {any} val - Value to check
  * @returns {boolean} True if value is CSS color
  */
 export function isCSSColorValue(val) {

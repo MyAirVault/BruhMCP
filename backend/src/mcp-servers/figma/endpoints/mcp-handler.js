@@ -1,6 +1,5 @@
 /**
  * Figma MCP JSON-RPC protocol handler using official SDK
- * Fixed to match Figma-Context-MCP initialization pattern
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -49,7 +48,7 @@ export class FigmaMCPHandler {
 	 * Setup MCP tools using direct Zod schemas
 	 */
 	setupTools() {
-		// Tool 1: get_figma_data (matching Figma-Context-MCP exactly)
+		// Tool 1: get_figma_data
 		this.server.tool(
 			"get_figma_data",
 			"When the nodeId cannot be obtained, obtain the layout information about the entire Figma file",
@@ -110,7 +109,7 @@ export class FigmaMCPHandler {
 			}
 		);
 
-		// Tool 2: download_figma_images (matching Figma-Context-MCP structure)
+		// Tool 2: download_figma_images
 		this.server.tool(
 			"download_figma_images", 
 			"Download SVG and PNG images used in a Figma file based on the IDs of image or icon nodes",

@@ -1,6 +1,5 @@
 /**
- * Response Simplifier - Matches Figma-Context-MCP simplify-node-response.ts functionality exactly
- * Converts Figma API responses into simplified, usable data with global variables
+ * Response Simplifier * Converts Figma API responses into simplified, usable data with global variables
  */
 
 import { buildSimplifiedLayout } from '../transformers/layout.js';
@@ -20,8 +19,7 @@ import {
 } from '../utils/identity.js';
 
 /**
- * Parse Figma API response (matching Figma-Context-MCP parseFigmaResponse exactly)
- * @param {any} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
+ * Parse Figma API response * @param {any} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
  * @returns {any} Simplified design object with global variables
  */
 export function parseFigmaResponse(data) {
@@ -82,8 +80,7 @@ export function parseFigmaResponse(data) {
 }
 
 /**
- * Find or create global variables (matching Figma-Context-MCP exactly)
- * @param {Object} globalVars - Global variables object
+ * Find or create global variables * @param {Object} globalVars - Global variables object
  * @param {any} value - Value to store
  * @param {string} prefix - Variable ID prefix
  * @returns {string} Variable ID
@@ -105,8 +102,7 @@ function findOrCreateVar(globalVars, value, prefix) {
 }
 
 /**
- * Parse individual node (matching Figma-Context-MCP parseNode exactly)
- * @param {Object} globalVars - Global variables object
+ * Parse individual node * @param {Object} globalVars - Global variables object
  * @param {any} n - Figma node
  * @param {any} [parent] - Parent node
  * @returns {Object|null} Simplified node

@@ -1,7 +1,7 @@
 /**
  * Simplified Node Response Parser
  * Transforms Figma API responses into optimized, deduplicated structure
- * Based on Figma-Context-MCP's approach with global variable deduplication
+ * Uses global variable deduplication to optimize response size
  */
 
 import { GlobalVariableManager } from './global-variable-manager.js';

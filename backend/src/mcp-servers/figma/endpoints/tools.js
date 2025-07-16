@@ -1,11 +1,9 @@
 /**
- * MCP Tools endpoint for Figma service - Copied from Figma-Context-MCP
- * Defines available tools that can be called via MCP protocol
+ * MCP Tools endpoint for Figma service * Defines available tools that can be called via MCP protocol
  */
 
 /**
- * Get list of available tools for Figma service (matching Figma-Context-MCP)
- * @returns {Object} Tools definition response
+ * Get list of available tools for Figma service * @returns {Object} Tools definition response
  */
 export function getTools() {
 	return {

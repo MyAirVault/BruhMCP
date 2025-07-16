@@ -1,6 +1,6 @@
 /**
  * Global Variable Manager for Figma Response Deduplication
- * Based on Figma-Context-MCP's approach to reduce response size through variable extraction
+ * Reduces response size through variable extraction
  */
 
 import crypto from 'crypto';

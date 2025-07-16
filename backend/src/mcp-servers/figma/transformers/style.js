@@ -1,6 +1,5 @@
 /**
- * Style Transformer - Matches Figma-Context-MCP style.ts functionality exactly
- * Handles strokes and visual styling
+ * Style Transformer * Handles strokes and visual styling
  */
 
 import { generateCSSShorthand, isVisible, parsePaint } from '../utils/common.js';
@@ -15,8 +14,7 @@ import { hasValue, isStrokeWeights } from '../utils/identity.js';
  */
 
 /**
- * Build simplified strokes (matching Figma-Context-MCP exactly)
- * @param {any} n - Figma node
+ * Build simplified strokes * @param {any} n - Figma node
  * @returns {SimplifiedStroke}
  */
 export function buildSimplifiedStrokes(n) {

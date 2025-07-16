@@ -1,6 +1,5 @@
 /**
- * Fetch with Retry - Matches Figma-Context-MCP fetch-with-retry.ts functionality exactly
- * Provides robust fetching with curl fallback for corporate networks
+ * Fetch with Retry * Provides robust fetching with curl fallback for corporate networks
  */
 
 import { exec } from "child_process";
@@ -11,8 +10,7 @@ import { Logger } from './logger.js';
 const execAsync = promisify(exec);
 
 /**
- * Fetch with retry and curl fallback (matching Figma-Context-MCP exactly)
- * @param {string} url - URL to fetch
+ * Fetch with retry and curl fallback * @param {string} url - URL to fetch
  * @param {Object} options - Request options
  * @returns {Promise<any>} Response data
  */
@@ -70,8 +68,7 @@ export async function fetchWithRetry(url, options = {}) {
 }
 
 /**
- * Converts HeadersInit to an array of curl header arguments (matching Figma-Context-MCP exactly)
- * @param {Object} headers - Headers to convert
+ * Converts HeadersInit to an array of curl header arguments * @param {Object} headers - Headers to convert
  * @returns {string[]} Array of strings, each a curl -H argument
  */
 function formatHeadersForCurl(headers) {

@@ -1,6 +1,5 @@
 /**
- * Logger utility - Matches Figma-Context-MCP logger.ts functionality exactly
- * Provides consistent logging for both HTTP and stdio modes
+ * Logger utility * Provides consistent logging for both HTTP and stdio modes
  */
 
 export const Logger = {
