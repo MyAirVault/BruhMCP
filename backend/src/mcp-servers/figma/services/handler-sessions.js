@@ -6,7 +6,7 @@
  * required by the MCP protocol specification.
  */
 
-import { FigmaMCPJsonRpcHandler } from '../endpoints/jsonrpc-handler.js';
+import { FigmaMCPHandler } from '../endpoints/mcp-handler.js';
 
 
 // Global handler session cache for Figma service instances
@@ -21,9 +21,9 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {ServiceConfig} serviceConfig - Service configuration object
  * @param {string} apiKey - Figma API key for this instance
- * @returns {FigmaMCPJsonRpcHandler} Persistent handler instance
+ * @returns {FigmaMCPHandler} Persistent handler instance
  */
 export function getOrCreateHandler(instanceId, serviceConfig, apiKey) {
 	let session = handlerSessions.get(instanceId);
@@ -31,7 +31,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, apiKey) {
 	if (!session) {
 		// Create new handler instance for this instanceId
 		console.log(`🔧 Creating new handler session for instance: ${instanceId}`);
-		const handler = new FigmaMCPJsonRpcHandler(serviceConfig, apiKey);
+		const handler = new FigmaMCPHandler(serviceConfig, apiKey);
 		
 		session = {
 			handler,

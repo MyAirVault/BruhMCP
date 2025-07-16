@@ -116,14 +116,14 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
       req.figmaApiKey || ''
     );
     
-    // Process the JSON-RPC message with persistent handler (using new signature)
-    await jsonRpcHandler.processMessage(req, res, req.body);
+    // Process the MCP message with persistent handler (using new signature)
+    await jsonRpcHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('JSON-RPC processing error:', errorMessage);
+    console.error('MCP processing error:', errorMessage);
     
-    // Return proper JSON-RPC error response
+    // Return proper MCP JSON-RPC error response
     res.json({
       jsonrpc: '2.0',
       id: req.body?.id || null,
@@ -146,14 +146,14 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
       req.figmaApiKey || ''
     );
     
-    // Process the JSON-RPC message with persistent handler (using new signature)
-    await jsonRpcHandler.processMessage(req, res, req.body);
+    // Process the MCP message with persistent handler (using new signature)
+    await jsonRpcHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('JSON-RPC processing error:', errorMessage);
+    console.error('MCP processing error:', errorMessage);
     
-    // Return proper JSON-RPC error response
+    // Return proper MCP JSON-RPC error response
     res.json({
       jsonrpc: '2.0',
       id: req.body?.id || null,

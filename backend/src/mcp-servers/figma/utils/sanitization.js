@@ -52,8 +52,7 @@ export function sanitizeComponentSets(componentSets, globalVars) {
 }
 
 /**
- * Sanitize individual component definition (like Figma-Context-MCP)
- * @param {string} componentId - Component ID
+ * Sanitize individual component definition * @param {string} componentId - Component ID
  * @param {any} component - Raw component data
  * @param {Object} globalVars - Global variables store
  * @returns {any} Sanitized component definition
@@ -117,8 +116,7 @@ export function sanitizeComponentDefinition(componentId, component, globalVars) 
 }
 
 /**
- * Sanitize component set definition (like Figma-Context-MCP)
- * @param {string} setId - Component set ID
+ * Sanitize component set definition * @param {string} setId - Component set ID
  * @param {any} componentSet - Raw component set data
  * @param {Object} globalVars - Global variables store
  * @returns {any} Sanitized component set definition
@@ -172,8 +170,7 @@ export function sanitizeComponentSetDefinition(setId, componentSet, globalVars) 
 }
 
 /**
- * Process component properties for instances (like Figma-Context-MCP)
- * @param {any} node - Component instance node
+ * Process component properties for instances * @param {any} node - Component instance node
  * @param {Object} globalVars - Global variables store
  * @returns {any} Component properties object
  */
@@ -267,8 +264,7 @@ function sanitizeComponentProperty(propValue) {
 }
 
 /**
- * Extract component metadata for AI analysis (like Figma-Context-MCP)
- * @param {any} components - Components data
+ * Extract component metadata for AI analysis * @param {any} components - Components data
  * @param {any} componentSets - Component sets data
  * @returns {any} Component metadata summary
  */

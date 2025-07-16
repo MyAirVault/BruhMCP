@@ -352,7 +352,7 @@ function createFigmaOptimizedResponse(figmaData, options = {}) {
             ...simplifiedData
         };
         
-        // Format output as YAML like Figma-Context-MCP
+        // Format output as YAML
         const formattedText = yaml.dump(result, {
             indent: 2,
             lineWidth: 120,

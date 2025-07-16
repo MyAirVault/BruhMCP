@@ -18,7 +18,7 @@ import yaml from 'js-yaml';
  * @property {string} version
  */
 
-export class FigmaMCPJsonRpcHandler {
+export class FigmaMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} apiKey
@@ -30,12 +30,12 @@ export class FigmaMCPJsonRpcHandler {
 			name: `${serviceConfig.displayName} MCP Server`,
 			version: serviceConfig.version,
 		});
-		// Store transports by session like Figma-Context-MCP
+		// Store transports by session
 		/** @type {Record<string, StreamableHTTPServerTransport>} */
 		this.transports = {};
 		this.initialized = false;
 		
-		// Initialize Figma service like Figma-Context-MCP
+		// Initialize Figma service
 		this.figmaService = new FigmaService({
 			figmaApiKey: apiKey,
 			figmaOAuthToken: '', // Could be enhanced to support OAuth
@@ -46,7 +46,7 @@ export class FigmaMCPJsonRpcHandler {
 	}
 
 	/**
-	 * Setup MCP tools using direct Zod schemas like Figma-Context-MCP
+	 * Setup MCP tools using direct Zod schemas
 	 */
 	setupTools() {
 		// Tool 1: get_figma_data (matching Figma-Context-MCP exactly)
@@ -197,13 +197,13 @@ export class FigmaMCPJsonRpcHandler {
 
 
 	/**
-	 * Process incoming JSON-RPC message using session-based transport like Figma-Context-MCP
+	 * Handle incoming MCP request using session-based transport
 	 * @param {any} req - Express request object
 	 * @param {any} res - Express response object
-	 * @param {any} message - JSON-RPC message
+	 * @param {any} message - MCP message
 	 * @returns {Promise<void>}
 	 */
-	async processMessage(req, res, message) {
+	async handleMCPRequest(req, res, message) {
 		try {
 			const sessionId = req.headers['mcp-session-id'];
 			console.log(`🔧 Processing MCP request - Session ID: ${sessionId}`);
@@ -213,17 +213,17 @@ export class FigmaMCPJsonRpcHandler {
 			let transport;
 
 			if (sessionId && this.transports[sessionId]) {
-				// Reuse existing transport (like Figma-Context-MCP)
+				// Reuse existing transport
 				console.log(`♻️  Reusing existing transport for session: ${sessionId}`);
 				transport = this.transports[sessionId];
 			} else if (!sessionId && isInitializeRequest(message)) {
-				// Create new transport only for initialization requests (like Figma-Context-MCP)
+				// Create new transport only for initialization requests
 				console.log(`🚀 Creating new transport for initialization request`);
 				transport = new StreamableHTTPServerTransport({
 					sessionIdGenerator: () => randomUUID(),
 					onsessioninitialized: (newSessionId) => {
 						console.log(`✅ Figma MCP session initialized: ${newSessionId}`);
-						// Store transport by session ID (like Figma-Context-MCP)
+						// Store transport by session ID
 						this.transports[newSessionId] = transport;
 					},
 				});
@@ -236,7 +236,7 @@ export class FigmaMCPJsonRpcHandler {
 					}
 				};
 				
-				// Connect server to transport immediately (like Figma-Context-MCP)
+				// Connect server to transport immediately
 				await this.server.connect(transport);
 				this.initialized = true;
 			} else {
@@ -253,7 +253,7 @@ export class FigmaMCPJsonRpcHandler {
 				return;
 			}
 
-			// Handle the request using the appropriate transport (like Figma-Context-MCP)
+			// Handle the request using the appropriate transport
 			console.log(`🔄 Handling request with transport`);
 			await transport.handleRequest(req, res, message);
 			console.log(`✅ Request handled successfully`);
