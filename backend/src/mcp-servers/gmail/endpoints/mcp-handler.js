@@ -21,13 +21,16 @@ import {
   searchEmails,
   getThread,
   markAsRead,
-  markAsUnread
+  markAsUnread,
+  downloadAttachment,
+  sendEmailWithAttachments
 } from '../api/gmail-api.js';
 
 import { 
   listLabels, 
   createLabel, 
-  modifyLabels 
+  modifyLabels,
+  deleteLabel 
 } from '../api/label-operations.js';
 
 /**
@@ -465,6 +468,89 @@ export class GmailMCPHandler {
 					return {
 						isError: true,
 						content: [{ type: 'text', text: `Error marking as unread: ${error.message}` }]
+					};
+				}
+			}
+		);
+
+		// Tool 17: download_attachment
+		this.server.tool(
+			"download_attachment",
+			"Download an attachment from a Gmail message",
+			{
+				messageId: z.string().describe("Gmail message ID containing the attachment"),
+				attachmentId: z.string().describe("Attachment ID to download")
+			},
+			async ({ messageId, attachmentId }) => {
+				console.log(`🔧 Tool call: download_attachment for ${this.serviceConfig.name}`);
+				try {
+					const result = await downloadAttachment({ messageId, attachmentId }, this.bearerToken);
+					return {
+						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
+					};
+				} catch (error) {
+					console.error(`❌ Error downloading attachment:`, error);
+					return {
+						isError: true,
+						content: [{ type: 'text', text: `Error downloading attachment: ${error.message}` }]
+					};
+				}
+			}
+		);
+
+		// Tool 18: send_email_with_attachments
+		this.server.tool(
+			"send_email_with_attachments",
+			"Send an email with file attachments",
+			{
+				to: z.string().describe("Recipient email address"),
+				subject: z.string().describe("Email subject line"),
+				body: z.string().describe("Email body content (supports HTML)"),
+				cc: z.string().optional().default("").describe("CC email addresses (comma separated)"),
+				bcc: z.string().optional().default("").describe("BCC email addresses (comma separated)"),
+				format: z.enum(["text", "html"]).optional().default("text").describe("Email format (text or html)"),
+				attachments: z.array(z.object({
+					filename: z.string().describe("Filename of the attachment"),
+					mimeType: z.string().describe("MIME type of the attachment (e.g., application/pdf, image/jpeg)"),
+					data: z.string().describe("Base64 encoded attachment data")
+				})).optional().default([]).describe("Array of attachment objects")
+			},
+			async ({ to, subject, body, cc, bcc, format, attachments }) => {
+				console.log(`🔧 Tool call: send_email_with_attachments for ${this.serviceConfig.name}`);
+				try {
+					const result = await sendEmailWithAttachments({ to, subject, body, cc, bcc, format, attachments }, this.bearerToken);
+					return {
+						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
+					};
+				} catch (error) {
+					console.error(`❌ Error sending email with attachments:`, error);
+					return {
+						isError: true,
+						content: [{ type: 'text', text: `Error sending email with attachments: ${error.message}` }]
+					};
+				}
+			}
+		);
+
+		// Tool 19: delete_label
+		this.server.tool(
+			"delete_label",
+			"Delete a Gmail label",
+			{
+				labelId: z.string().describe("Label ID to delete")
+			},
+			async ({ labelId }) => {
+				console.log(`🔧 Tool call: delete_label for ${this.serviceConfig.name}`);
+				try {
+					const result = await deleteLabel({ labelId }, this.bearerToken);
+					return {
+						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
+					};
+				} catch (error) {
+					console.error(`❌ Error deleting label:`, error);
+					return {
+						isError: true,
+						content: [{ type: 'text', text: `Error deleting label: ${error.message}` }]
 					};
 				}
 			}

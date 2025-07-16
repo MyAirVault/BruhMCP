@@ -383,6 +383,99 @@ export function getTools() {
           },
           required: ['messageIds']
         }
+      },
+      {
+        name: 'download_attachment',
+        description: 'Download an attachment from a Gmail message',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            messageId: {
+              type: 'string',
+              description: 'Gmail message ID containing the attachment'
+            },
+            attachmentId: {
+              type: 'string',
+              description: 'Attachment ID to download'
+            }
+          },
+          required: ['messageId', 'attachmentId']
+        }
+      },
+      {
+        name: 'send_email_with_attachments',
+        description: 'Send an email with file attachments',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            to: {
+              type: 'string',
+              description: 'Recipient email address'
+            },
+            subject: {
+              type: 'string',
+              description: 'Email subject line'
+            },
+            body: {
+              type: 'string',
+              description: 'Email body content (supports HTML)'
+            },
+            cc: {
+              type: 'string',
+              description: 'CC email addresses (comma separated)',
+              default: ''
+            },
+            bcc: {
+              type: 'string',
+              description: 'BCC email addresses (comma separated)',
+              default: ''
+            },
+            format: {
+              type: 'string',
+              enum: ['text', 'html'],
+              description: 'Email format (text or html)',
+              default: 'text'
+            },
+            attachments: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  filename: {
+                    type: 'string',
+                    description: 'Filename of the attachment'
+                  },
+                  mimeType: {
+                    type: 'string',
+                    description: 'MIME type of the attachment (e.g., application/pdf, image/jpeg)'
+                  },
+                  data: {
+                    type: 'string',
+                    description: 'Base64 encoded attachment data'
+                  }
+                },
+                required: ['filename', 'mimeType', 'data']
+              },
+              description: 'Array of attachment objects',
+              default: []
+            }
+          },
+          required: ['to', 'subject', 'body']
+        }
+      },
+      {
+        name: 'delete_label',
+        description: 'Delete a Gmail label',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            labelId: {
+              type: 'string',
+              description: 'Label ID to delete'
+            }
+          },
+          required: ['labelId']
+        }
       }
     ]
   };
