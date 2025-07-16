@@ -27,8 +27,15 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     return {} as T;
   }
   
-  const data: ApiResponse<T> = await response.json();
-  return data.data;
+  const data = await response.json();
+  
+  // Check if this is an OAuth response (has oauth field)
+  if (data.oauth && data.instance) {
+    return data as T;
+  }
+  
+  // Otherwise, assume it's wrapped in a data field
+  return (data as ApiResponse<T>).data || data;
 };
 
 const makeRequest = async <T>(

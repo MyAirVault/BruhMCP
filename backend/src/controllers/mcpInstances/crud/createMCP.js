@@ -150,8 +150,24 @@ export async function createMCP(req, res) {
 				}
 
 				// OAuth flow initiated - return authorization URL for user consent
+				// Format instance to match frontend expectations
+				const formattedInstance = {
+					id: createdInstance.instance_id,
+					custom_name: createdInstance.custom_name,
+					status: createdInstance.status,
+					oauth_status: createdInstance.oauth_status,
+					expires_at: createdInstance.expires_at,
+					expiration_option: createdInstance.expiration_option,
+					mcp_type: {
+						name: mcpService.mcp_service_name,
+						display_name: mcpService.display_name,
+						type: mcpService.type
+					},
+					created_at: createdInstance.created_at
+				};
+				
 				return res.status(200).json({
-					instance: createdInstance,
+					instance: formattedInstance,
 					oauth: {
 						requires_user_consent: true,
 						authorization_url: oauthResult.authorization_url,

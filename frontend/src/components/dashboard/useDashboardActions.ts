@@ -65,12 +65,13 @@ export const useDashboardActions = ({
 
     try {
       const response = await apiService.createMCP(data);
+      console.log('API response:', response); // Debug log
       
       // Check if this is an OAuth service that requires user consent
       if (response && response.oauth && response.oauth.requires_user_consent) {
         console.log('OAuth flow initiated for MCP:', response.instance.id);
-        // Close the modal since OAuth will redirect the user
-        setIsCreateModalOpen(false);
+        console.log('OAuth data:', response.oauth); // Debug log
+        // Don't close the modal - let the OAuth popup handle it
         // Return the response for OAuth handling in the form
         return response;
       } else {

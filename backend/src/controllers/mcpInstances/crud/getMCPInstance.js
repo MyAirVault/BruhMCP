@@ -30,6 +30,7 @@ export async function getMCPInstance(req, res) {
 			access_token: instance.access_token,
 			access_url: generateAccessUrl(instance.instance_id, instance.mcp_service_name),
 			status: instance.status,
+			oauth_status: instance.oauth_status,
 			is_active: instance.is_active,
 			expiration_option: instance.expiration_option,
 			expires_at: instance.expires_at,

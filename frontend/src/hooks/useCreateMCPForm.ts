@@ -36,12 +36,9 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     lastFailedCredentials: null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [oAuthData, setOAuthData] = useState<{
-    authorizationUrl: string;
-    provider: string;
-    instanceId: string;
-    showPopup: boolean;
-  } | null>(null);
+  const [oAuthError, setOAuthError] = useState<string | null>(null);
+  const [oAuthState, setOAuthState] = useState<'idle' | 'authorizing' | 'completed' | 'error'>('idle');
+  const [oAuthInstanceId, setOAuthInstanceId] = useState<string | null>(null);
   
   // Use shared validation utility
   const {
@@ -55,6 +52,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
   
   // Stable ref to validateCredentials to avoid circular dependencies
   const validateCredentialsRef = useRef<(() => Promise<void>) | null>(null);
+  const pollIntervalRef = useRef<number | null>(null);
 
   // Load MCP types from backend
   useEffect(() => {
@@ -92,13 +90,26 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         lastFailedCredentials: null
       });
       setIsSubmitting(false);
+      setOAuthError(null);
+      setOAuthState('idle');
+      setOAuthInstanceId(null);
       lastValidatedCredentialsRef.current = null;
+      
+      // Clear any existing polling
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
     }
   }, [isOpen]);
 
   const handleInputChange = useCallback((field: keyof CreateMCPFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  }, []);
+    // Clear OAuth error when user makes changes
+    if (oAuthError) {
+      setOAuthError(null);
+    }
+  }, [oAuthError]);
 
   const handleCredentialChange = useCallback((credentialName: string, value: string) => {
     setFormData(prev => ({
@@ -123,7 +134,11 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
       lastFailedCredentials: null
     });
     lastValidatedCredentialsRef.current = null;
-  }, [handleInputChange]);
+    // Clear OAuth error when type changes
+    if (oAuthError) {
+      setOAuthError(null);
+    }
+  }, [handleInputChange, oAuthError]);
 
   // Validation functions are now provided by useMCPValidation hook
 
@@ -260,15 +275,52 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         const response = await onSubmit(transformedData);
         
         // Check if response contains OAuth information
+        console.log('OAuth service response:', response); // Debug log
         if (response && response.oauth && response.oauth.requires_user_consent) {
-          // Store OAuth info for popup handling
-          setOAuthData({
-            authorizationUrl: response.oauth.authorization_url,
-            provider: response.oauth.provider,
-            instanceId: response.oauth.instance_id,
-            showPopup: true
-          });
-          return; // Don't close modal or reset form - OAuth popup will handle flow
+          // OAuth flow initiated - open authorization URL in new window
+          console.log('Opening OAuth authorization URL'); // Debug log
+          console.log('Authorization URL:', response.oauth.authorization_url);
+          console.log('Provider:', response.oauth.provider);
+          console.log('Instance ID:', response.instance?.id);
+          console.log('Full response structure:', response);
+          
+          // Validate the authorization URL
+          if (!response.oauth.authorization_url || response.oauth.authorization_url === '') {
+            console.error('Invalid authorization URL received');
+            setOAuthError('Invalid authorization URL received from server');
+            setIsSubmitting(false);
+            return;
+          }
+          
+          // Get instance ID from the response
+          const instanceId = response.instance?.id || response.oauth?.instance_id;
+          
+          if (!instanceId) {
+            console.error('No instance ID found in response:', response);
+            setOAuthError('Failed to get instance ID from server response');
+            setIsSubmitting(false);
+            return;
+          }
+          
+          // Open OAuth URL in new window
+          const authWindow = window.open(
+            response.oauth.authorization_url,
+            `oauth_${response.oauth.provider}_${instanceId}`,
+            'width=600,height=700,scrollbars=yes,resizable=yes,status=yes,location=yes'
+          );
+          
+          if (!authWindow) {
+            setOAuthError('Failed to open authorization window. Please check your popup blocker settings.');
+            setIsSubmitting(false);
+            return;
+          }
+          
+          // Store instance ID for status polling
+          setOAuthInstanceId(instanceId);
+          setOAuthState('authorizing');
+          
+          // Keep modal open - will close after OAuth completes
+          return;
         }
       } else {
         // For API key services, use the normal flow
@@ -306,38 +358,73 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     validateCredentials();
   }, [validateCredentials]);
 
-  // OAuth handlers
-  const handleOAuthSuccess = useCallback((_result: any) => {
-    setOAuthData(null);
-    setIsSubmitting(false);
-    
-    // Reset form
-    setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '', credentials: {} });
-    setSelectedMcpType(null);
-    setValidationState({
-      isValidating: false,
-      isValid: null,
-      error: null,
-      apiInfo: null,
-      failureCount: 0,
-      lastFailedCredentials: null
-    });
-    
-    onClose();
-  }, [onClose]);
+  // Poll OAuth status
+  useEffect(() => {
+    if (oAuthState === 'authorizing' && oAuthInstanceId) {
+      console.log('Starting OAuth polling for instance:', oAuthInstanceId);
+      
+      // Start polling for OAuth completion
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          const instance = await apiService.getMCPInstance(oAuthInstanceId);
+          console.log('Polling - Instance:', instance);
+          console.log('Polling - OAuth status:', instance.oauth_status);
+          
+          if (instance.oauth_status === 'completed') {
+            // OAuth completed successfully
+            setOAuthState('completed');
+            setIsSubmitting(false);
+            
+            // Clear polling
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
+            
+            // Close modal and refresh
+            onClose();
+            
+            // Optionally trigger a refresh of the MCP list
+            window.location.reload();
+          } else if (instance.oauth_status === 'failed') {
+            // OAuth failed
+            setOAuthState('error');
+            setOAuthError('OAuth authorization failed. Please try again.');
+            setIsSubmitting(false);
+            
+            // Clear polling
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
+          } else if (instance.oauth_status === 'expired') {
+            // OAuth expired
+            setOAuthState('error');
+            setOAuthError('OAuth authorization expired. Please try again.');
+            setIsSubmitting(false);
+            
+            // Clear polling
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
+          }
+          // If oauth_status is still 'pending', continue polling
+        } catch (error) {
+          console.error('Error polling OAuth status:', error);
+        }
+      }, 2000); // Poll every 2 seconds
+      
+      // Cleanup on unmount
+      return () => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+      };
+    }
+  }, [oAuthState, oAuthInstanceId, onClose]);
 
-  const handleOAuthError = useCallback((error: string) => {
-    setOAuthData(null);
-    setIsSubmitting(false);
-    console.error('OAuth error:', error);
-    // Keep form open for retry
-  }, []);
-
-  const handleOAuthClose = useCallback(() => {
-    setOAuthData(null);
-    setIsSubmitting(false);
-    // Keep form open
-  }, []);
 
 
   return {
@@ -346,7 +433,8 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     selectedMcpType,
     validationState,
     isSubmitting,
-    oAuthData,
+    oAuthState,
+    oAuthError,
     handleInputChange,
     handleCredentialChange,
     handleTypeSelect,
@@ -355,9 +443,6 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     requiresCredentials,
     retryValidation,
     isOAuthService,
-    isApiKeyService,
-    handleOAuthSuccess,
-    handleOAuthError,
-    handleOAuthClose
+    isApiKeyService
   };
 };

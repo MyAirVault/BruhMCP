@@ -7,7 +7,6 @@ import FormField from '../ui/form/FormField';
 import TypeDropdown from '../ui/form/TypeDropdown';
 import ExpirationDropdown from '../ui/form/ExpirationDropdown';
 import CredentialFields from '../ui/form/CredentialFields';
-import OAuthPopup from './OAuthPopup';
 
 const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const {
@@ -16,17 +15,15 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     selectedMcpType,
     validationState,
     isSubmitting,
-    oAuthData,
+    oAuthState,
+    oAuthError,
     handleInputChange,
     handleCredentialChange,
     handleTypeSelect,
     handleSubmit,
     isFormValid,
     retryValidation,
-    isOAuthService,
-    handleOAuthSuccess,
-    handleOAuthError,
-    handleOAuthClose
+    isOAuthService
   } = useCreateMCPForm({ isOpen, onClose, onSubmit });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
@@ -164,6 +161,29 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               onRetryValidation={retryValidation}
             />
 
+            {oAuthError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-red-600">{oAuthError}</p>
+                </div>
+              </div>
+            )}
+
+            {oAuthState === 'authorizing' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-3"></div>
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">Waiting for authorization...</p>
+                    <p className="text-xs text-blue-700 mt-1">Please complete the authorization in the new window that opened.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <FormField label="Expiration Time" required>
               <ExpirationDropdown
                 value={formData.expiration}
@@ -185,13 +205,13 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
             </button>
             <button
               type="submit"
-              disabled={!isFormValid() || isSubmitting}
+              disabled={!isFormValid() || isSubmitting || oAuthState === 'authorizing'}
               className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {isSubmitting ? (
+              {isSubmitting || oAuthState === 'authorizing' ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isOAuthService(selectedMcpType) ? 'Creating & Authorizing...' : 'Creating...'}
+                  {oAuthState === 'authorizing' ? 'Authorizing...' : isOAuthService(selectedMcpType) ? 'Creating...' : 'Creating...'}
                 </div>
               ) : (
                 'Create'
@@ -201,21 +221,6 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
         </form>
         </div>
       </div>
-
-      {/* OAuth Popup */}
-      {oAuthData && oAuthData.showPopup && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/50" />
-          <OAuthPopup
-            authorizationUrl={oAuthData.authorizationUrl}
-            provider={oAuthData.provider}
-            instanceId={oAuthData.instanceId}
-            onSuccess={handleOAuthSuccess}
-            onError={handleOAuthError}
-            onClose={handleOAuthClose}
-          />
-        </div>
-      )}
     </>
   );
 };

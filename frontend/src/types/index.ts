@@ -45,6 +45,7 @@ export interface MCPInstance {
   access_url: string;
   process_id?: number;
   status: 'active' | 'inactive' | 'expired';
+  oauth_status?: 'pending' | 'completed' | 'failed' | 'expired';
   expiration_option: string;
   expires_at: string;
   last_accessed?: string;
