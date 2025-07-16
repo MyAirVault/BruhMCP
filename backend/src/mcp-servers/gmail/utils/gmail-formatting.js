@@ -38,10 +38,12 @@ Your reply has been added to the email conversation.`;
     case 'fetch':
       const emailList = data.messages.map((msg, index) => {
         const snippet = msg.snippet ? msg.snippet.substring(0, 100) + '...' : '';
+        const attachmentInfo = msg.hasAttachments ? 
+          `\n   📎 Attachments: ${msg.attachments.length} file(s) - ${msg.attachments.map(att => att.filename).join(', ')}` : '';
         return `${index + 1}. ${msg.subject}
    From: ${msg.from}
    Date: ${msg.date}
-   ${snippet}
+   ${snippet}${attachmentInfo}
    Message ID: ${msg.id}`;
       }).join('\n\n');
 
@@ -91,6 +93,50 @@ The messages are now marked as read.`;
 
 The messages are now marked as unread.`;
 
+    case 'list_attachments':
+      if (data.attachmentCount === 0) {
+        return `📎 No attachments found for message ${data.messageId}
+
+This message does not contain any file attachments.`;
+      }
+
+      const attachmentList = data.attachments.map((att, index) => {
+        return `${index + 1}. ${att.filename}
+   📋 Type: ${att.mimeType}
+   📏 Size: ${att.readableSize}
+   🔗 Attachment ID: ${att.attachmentId}
+   🔗 Part ID: ${att.partId}`;
+      }).join('\n\n');
+
+      return `📎 Found ${data.attachmentCount} attachment(s) for message ${data.messageId}
+
+${attachmentList}
+
+Use the download_attachment tool with the messageId and attachmentId to download any attachment.`;
+
+    case 'download_attachment':
+      return `📥 Attachment downloaded successfully!
+
+- Message ID: ${data.messageId}
+- Attachment ID: ${data.attachmentId}
+- Size: ${data.size} bytes
+- Downloaded at: ${timestamp}
+
+The attachment data is available in base64 format.`;
+
+    case 'sent_with_attachments':
+      return `✅ Email with attachments sent successfully!
+
+Message Details:
+- Message ID: ${data.messageId}
+- Thread ID: ${data.threadId}
+- To: ${data.to}
+- Subject: ${data.subject}
+- Attachments: ${data.attachmentCount} file(s)
+- Sent at: ${timestamp}
+
+The email and all attachments have been delivered.`;
+
     default:
       return JSON.stringify(data, null, 2);
   }
@@ -122,6 +168,9 @@ export function formatMessageResponse(message) {
     body = extractMessageBody(message.payload);
   }
 
+  // Extract attachments
+  const attachments = message.payload ? extractAttachments(message.payload) : [];
+
   // Format date
   let formattedDate;
   try {
@@ -148,8 +197,57 @@ export function formatMessageResponse(message) {
     labelIds: message.labelIds || [],
     messageId,
     sizeEstimate: message.sizeEstimate || 0,
-    raw: message.raw ? 'Available' : 'Not available'
+    raw: message.raw ? 'Available' : 'Not available',
+    attachments: attachments,
+    hasAttachments: attachments.length > 0
   };
+}
+
+/**
+ * Extract attachments from Gmail payload
+ * @param {Object} payload - Gmail message payload
+ * @returns {Array} Array of attachment objects
+ */
+function extractAttachments(payload) {
+  const attachments = [];
+
+  function processPayloadPart(part) {
+    // Check if this part is an attachment
+    if (part.filename && part.filename.length > 0 && part.body && part.body.attachmentId) {
+      attachments.push({
+        filename: part.filename,
+        mimeType: part.mimeType || 'application/octet-stream',
+        size: part.body.size || 0,
+        attachmentId: part.body.attachmentId,
+        partId: part.partId
+      });
+    }
+
+    // Recursively process nested parts
+    if (part.parts && part.parts.length > 0) {
+      for (const subPart of part.parts) {
+        processPayloadPart(subPart);
+      }
+    }
+  }
+
+  // Process the main payload
+  if (payload.parts && payload.parts.length > 0) {
+    for (const part of payload.parts) {
+      processPayloadPart(part);
+    }
+  } else if (payload.filename && payload.filename.length > 0 && payload.body && payload.body.attachmentId) {
+    // Handle case where the entire payload is an attachment
+    attachments.push({
+      filename: payload.filename,
+      mimeType: payload.mimeType || 'application/octet-stream',
+      size: payload.body.size || 0,
+      attachmentId: payload.body.attachmentId,
+      partId: payload.partId
+    });
+  }
+
+  return attachments;
 }
 
 /**
@@ -257,11 +355,13 @@ Try adjusting your search terms or using Gmail search operators like:
   const resultList = messages.map((msg, index) => {
     const date = new Date(msg.date).toLocaleDateString();
     const snippet = msg.snippet ? msg.snippet.substring(0, 80) + '...' : '';
+    const attachmentInfo = msg.hasAttachments ? 
+      `\n   📎 ${msg.attachments.length} attachment(s): ${msg.attachments.map(att => att.filename).join(', ')}` : '';
     
     return `${index + 1}. ${msg.subject}
    📧 ${msg.from}
    📅 ${date}
-   ${snippet}`;
+   ${snippet}${attachmentInfo}`;
   }).join('\n\n');
 
   return `🔍 Found ${messages.length} email(s) matching "${query}"

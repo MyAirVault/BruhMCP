@@ -23,6 +23,7 @@ import {
   markAsRead,
   markAsUnread,
   downloadAttachment,
+  listAttachments,
   sendEmailWithAttachments
 } from '../api/gmail-api.js';
 
@@ -473,7 +474,31 @@ export class GmailMCPHandler {
 			}
 		);
 
-		// Tool 17: download_attachment
+		// Tool 17: list_attachments
+		this.server.tool(
+			"list_attachments",
+			"List all attachments for a specific Gmail message",
+			{
+				messageId: z.string().describe("Gmail message ID to list attachments for")
+			},
+			async ({ messageId }) => {
+				console.log(`🔧 Tool call: list_attachments for ${this.serviceConfig.name}`);
+				try {
+					const result = await listAttachments({ messageId }, this.bearerToken);
+					return {
+						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
+					};
+				} catch (error) {
+					console.error(`❌ Error listing attachments:`, error);
+					return {
+						isError: true,
+						content: [{ type: 'text', text: `Error listing attachments: ${error.message}` }]
+					};
+				}
+			}
+		);
+
+		// Tool 18: download_attachment
 		this.server.tool(
 			"download_attachment",
 			"Download an attachment from a Gmail message",
@@ -498,7 +523,7 @@ export class GmailMCPHandler {
 			}
 		);
 
-		// Tool 18: send_email_with_attachments
+		// Tool 19: send_email_with_attachments
 		this.server.tool(
 			"send_email_with_attachments",
 			"Send an email with file attachments",
@@ -532,7 +557,7 @@ export class GmailMCPHandler {
 			}
 		);
 
-		// Tool 19: delete_label
+		// Tool 20: delete_label
 		this.server.tool(
 			"delete_label",
 			"Delete a Gmail label",

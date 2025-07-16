@@ -385,6 +385,20 @@ export function getTools() {
         }
       },
       {
+        name: 'list_attachments',
+        description: 'List all attachments for a specific Gmail message',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            messageId: {
+              type: 'string',
+              description: 'Gmail message ID to list attachments for'
+            }
+          },
+          required: ['messageId']
+        }
+      },
+      {
         name: 'download_attachment',
         description: 'Download an attachment from a Gmail message',
         inputSchema: {

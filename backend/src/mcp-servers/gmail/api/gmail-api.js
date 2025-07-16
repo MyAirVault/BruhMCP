@@ -526,6 +526,48 @@ export async function downloadAttachment(args, bearerToken) {
 }
 
 /**
+ * List attachments for a specific message
+ * @param {Object} args - List attachments arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Attachments list
+ */
+export async function listAttachments(args, bearerToken) {
+	const { messageId } = args;
+
+	const result = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
+	const messageResponse = formatMessageResponse(result);
+
+	return {
+		action: 'list_attachments',
+		messageId,
+		attachmentCount: messageResponse.attachments.length,
+		hasAttachments: messageResponse.hasAttachments,
+		attachments: messageResponse.attachments.map(att => ({
+			filename: att.filename,
+			mimeType: att.mimeType,
+			size: att.size,
+			attachmentId: att.attachmentId,
+			partId: att.partId,
+			readableSize: formatFileSize(att.size)
+		})),
+		timestamp: new Date().toISOString()
+	};
+}
+
+/**
+ * Format file size in human readable format
+ * @param {number} bytes - File size in bytes
+ * @returns {string} Formatted file size
+ */
+function formatFileSize(bytes) {
+	if (bytes === 0) return '0 Bytes';
+	const k = 1024;
+	const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
  * Send an email with attachments
  * @param {Object} args - Email with attachments arguments
  * @param {string} bearerToken - OAuth Bearer token
