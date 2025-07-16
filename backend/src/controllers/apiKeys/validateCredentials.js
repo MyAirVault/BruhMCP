@@ -1,5 +1,6 @@
 import { testAPICredentials, getCredentialSchemaByType } from '../../services/credentialValidationService.js';
 import { credentialValidationSchema } from './schemas.js';
+import { getMCPTypeById, getMCPTypeByName } from '../../db/queries/mcpTypesQueries.js';
 
 /**
  * Validate API credentials
@@ -26,6 +27,31 @@ export async function validateCredentials(req, res) {
 
 		const { mcp_type_id, credentials } = validationResult.data;
 
+		// Look up the MCP type to get the service name
+		// First try by ID (UUID), then by name (string)
+		let mcpType = null;
+		
+		// Check if mcp_type_id is a UUID or a service name
+		const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(mcp_type_id);
+		
+		if (isUUID) {
+			mcpType = await getMCPTypeById(mcp_type_id);
+		} else {
+			mcpType = await getMCPTypeByName(mcp_type_id);
+		}
+		
+		if (!mcpType) {
+			return res.status(404).json({
+				error: {
+					code: 'MCP_TYPE_NOT_FOUND',
+					message: 'Invalid MCP type ID or service name',
+					details: { mcp_type_id },
+				},
+			});
+		}
+
+		const serviceName = mcpType.mcp_service_name;
+
 		// Additional credential-specific validation based on MCP type
 		const credentialSchema = /** @type {any} */ (getCredentialSchemaByType(mcp_type_id));
 		const credentialValidation = credentialSchema.safeParse(credentials);
@@ -43,8 +69,8 @@ export async function validateCredentials(req, res) {
 			});
 		}
 
-		// Test credentials with actual API
-		const testResult = /** @type {any} */ (await testAPICredentials(mcp_type_id, credentials));
+		// Test credentials with actual API using the service name
+		const testResult = /** @type {any} */ (await testAPICredentials(serviceName, credentials));
 
 		if (testResult.valid) {
 			return res.status(200).json({

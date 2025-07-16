@@ -32,15 +32,35 @@ export const useDashboardActions = ({
       credentials: {} as Record<string, string>
     };
 
-    // Only add non-empty credentials
-    if (formData.apiKey?.trim()) {
-      data.credentials.api_key = formData.apiKey.trim();
-    }
-    if (formData.clientId?.trim()) {
-      data.credentials.client_id = formData.clientId.trim();
-    }
-    if (formData.clientSecret?.trim()) {
-      data.credentials.client_secret = formData.clientSecret.trim();
+    // Get MCP types to determine the service type
+    const mcpTypes = await apiService.getMCPTypes();
+    const mcpType = mcpTypes.find(type => type.name === formData.type);
+    
+    // Only add credentials appropriate for the service type
+    if (mcpType?.type === 'oauth') {
+      // For OAuth services, only send client_id and client_secret
+      if (formData.clientId?.trim()) {
+        data.credentials.client_id = formData.clientId.trim();
+      }
+      if (formData.clientSecret?.trim()) {
+        data.credentials.client_secret = formData.clientSecret.trim();
+      }
+    } else if (mcpType?.type === 'api_key') {
+      // For API key services, only send api_key
+      if (formData.apiKey?.trim()) {
+        data.credentials.api_key = formData.apiKey.trim();
+      }
+    } else {
+      // Fallback: add all non-empty credentials (for backward compatibility)
+      if (formData.apiKey?.trim()) {
+        data.credentials.api_key = formData.apiKey.trim();
+      }
+      if (formData.clientId?.trim()) {
+        data.credentials.client_id = formData.clientId.trim();
+      }
+      if (formData.clientSecret?.trim()) {
+        data.credentials.client_secret = formData.clientSecret.trim();
+      }
     }
 
     try {
@@ -74,15 +94,35 @@ export const useDashboardActions = ({
       // Build credentials object from both new credentials format and legacy fields
       const credentials: Record<string, string> = { ...data.credentials };
       
-      // Add legacy field mapping for backward compatibility
-      if (data.apiKey?.trim()) {
-        credentials.api_key = data.apiKey.trim();
-      }
-      if (data.clientId?.trim()) {
-        credentials.client_id = data.clientId.trim();
-      }
-      if (data.clientSecret?.trim()) {
-        credentials.client_secret = data.clientSecret.trim();
+      // Get MCP types to determine the service type
+      const mcpTypes = await apiService.getMCPTypes();
+      const mcpType = mcpTypes.find(type => type.name === editModalData.mcp?.type);
+      
+      // Only add credentials appropriate for the service type
+      if (mcpType?.type === 'oauth') {
+        // For OAuth services, only send client_id and client_secret
+        if (data.clientId?.trim()) {
+          credentials.client_id = data.clientId.trim();
+        }
+        if (data.clientSecret?.trim()) {
+          credentials.client_secret = data.clientSecret.trim();
+        }
+      } else if (mcpType?.type === 'api_key') {
+        // For API key services, only send api_key
+        if (data.apiKey?.trim()) {
+          credentials.api_key = data.apiKey.trim();
+        }
+      } else {
+        // Fallback: add all non-empty credentials (for backward compatibility)
+        if (data.apiKey?.trim()) {
+          credentials.api_key = data.apiKey.trim();
+        }
+        if (data.clientId?.trim()) {
+          credentials.client_id = data.clientId.trim();
+        }
+        if (data.clientSecret?.trim()) {
+          credentials.client_secret = data.clientSecret.trim();
+        }
       }
 
       // Update MCP name and credentials
