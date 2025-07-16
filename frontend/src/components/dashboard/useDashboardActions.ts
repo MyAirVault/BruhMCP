@@ -96,7 +96,7 @@ export const useDashboardActions = ({
       
       // Get MCP types to determine the service type
       const mcpTypes = await apiService.getMCPTypes();
-      const mcpType = mcpTypes.find(type => type.name === editModalData.mcp?.type);
+      const mcpType = mcpTypes.find(type => type.name === editModalData.mcp?.mcpType);
       
       // Only add credentials appropriate for the service type
       if (mcpType?.type === 'oauth') {

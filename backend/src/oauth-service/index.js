@@ -27,7 +27,7 @@ app.post('/validate-credentials', async (req, res) => {
     const { provider, client_id, client_secret } = req.body;
 
     if (!provider || !client_id || !client_secret) {
-      return ErrorResponses.badRequest(res, 'Missing required parameters', {
+      return ErrorResponses.invalidInput(res, 'Missing required parameters', {
         required: ['provider', 'client_id', 'client_secret']
       });
     }
@@ -35,7 +35,7 @@ app.post('/validate-credentials', async (req, res) => {
     const validation = await validateCredentialFormat(provider, client_id, client_secret);
     
     if (!validation.valid) {
-      return ErrorResponses.badRequest(res, validation.error, {
+      return ErrorResponses.invalidInput(res, validation.error, {
         provider,
         field: validation.field
       });
@@ -64,7 +64,7 @@ app.post('/start-oauth', async (req, res) => {
     const { provider, client_id, client_secret, instance_id, scopes } = req.body;
 
     if (!provider || !client_id || !client_secret || !instance_id) {
-      return ErrorResponses.badRequest(res, 'Missing required parameters', {
+      return ErrorResponses.invalidInput(res, 'Missing required parameters', {
         required: ['provider', 'client_id', 'client_secret', 'instance_id']
       });
     }
@@ -72,7 +72,7 @@ app.post('/start-oauth', async (req, res) => {
     // Validate UUID format for instance_id
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(instance_id)) {
-      return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
+      return ErrorResponses.invalidInput(res, 'Invalid instance ID format', {
         instanceId: instance_id,
         expectedFormat: 'UUID v4'
       });
@@ -156,7 +156,7 @@ app.post('/exchange-refresh-token', async (req, res) => {
     const { provider, refresh_token, client_id, client_secret } = req.body;
 
     if (!provider || !refresh_token || !client_id || !client_secret) {
-      return ErrorResponses.badRequest(res, 'Missing required parameters', {
+      return ErrorResponses.invalidInput(res, 'Missing required parameters', {
         required: ['provider', 'refresh_token', 'client_id', 'client_secret']
       });
     }
@@ -192,7 +192,7 @@ app.post('/exchange-credentials', async (req, res) => {
     const { provider, client_id, client_secret, scopes } = req.body;
 
     if (!provider || !client_id || !client_secret) {
-      return ErrorResponses.badRequest(res, 'Missing required parameters', {
+      return ErrorResponses.invalidInput(res, 'Missing required parameters', {
         required: ['provider', 'client_id', 'client_secret']
       });
     }
