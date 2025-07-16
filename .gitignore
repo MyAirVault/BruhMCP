@@ -1,6 +1,5 @@
 # === Node modules ===
 node_modules/
-Figma-Context-MCP/
 
 # === Logs ===
 npm-debug.log*

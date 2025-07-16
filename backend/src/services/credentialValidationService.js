@@ -1,14 +1,19 @@
 // @ts-check
 import fetch from 'node-fetch';
+import { validationRegistry } from './validation/validation-registry.js';
 
 /**
- * Test API credentials against the actual API
- * @param {string} _mcpTypeId - MCP type ID
+ * Test API credentials using the modular validation system
+ * @param {string} serviceName - Service name (gmail, figma, github, etc.)
  * @param {any} credentials - Credentials to test
+ * @param {boolean} performApiTest - Whether to perform actual API test (default: format validation only)
  * @returns {Promise<any>} Validation result
  */
-export async function testAPICredentials(_mcpTypeId, credentials) {
+export async function testAPICredentials(serviceName, credentials, performApiTest = false) {
 	try {
+		// Initialize validation registry
+		await validationRegistry.initialize();
+
 		const result = /** @type {any} */ ({
 			valid: false,
 			api_info: null,
@@ -24,91 +29,44 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 			return result;
 		}
 
-		// Figma API validation
-		if (credentials.api_key && credentials.api_key.startsWith('figd_')) {
+		// Try to get service-specific validator
+		const validatorFactory = validationRegistry.getValidator(serviceName);
+		
+		if (validatorFactory) {
 			try {
-				const response = await fetch('https://api.figma.com/v1/me', {
-					headers: {
-						'X-Figma-Token': credentials.api_key,
-					},
-				});
+				// Create validator instance based on credentials
+				const validator = validatorFactory(credentials);
+				
+				// Use API test if requested and available, otherwise use format validation
+				const validation = performApiTest && typeof validator.testCredentials === 'function'
+					? await validator.testCredentials(credentials)
+					: await validator.validateFormat(credentials);
 
-				if (response.ok) {
-					const data = /** @type {any} */ (await response.json());
+				if (validation.valid) {
 					result.valid = true;
-					result.api_info = {
-						service: 'Figma API',
-						user_id: data.id,
-						email: data.email,
-						handle: data.handle,
-						permissions: ['file_read', 'file_write'],
-					};
+					result.api_info = validation.service_info;
 					return result;
 				} else {
 					result.error_code = 'INVALID_CREDENTIALS';
-					result.error_message = 'Invalid Figma API token';
+					result.error_message = validation.error;
+					result.details = {
+						field: validation.field,
+						reason: 'Service-specific validation failed',
+					};
 					return result;
 				}
 			} catch (/** @type {any} */ error) {
 				result.error_code = 'API_ERROR';
-				result.error_message = 'Failed to validate Figma API token';
+				result.error_message = `Failed to validate ${serviceName} credentials: ${error.message}`;
 				result.details = { error: error.message };
 				return result;
 			}
 		}
 
-		// GitHub API validation
-		if (credentials.personal_access_token && credentials.personal_access_token.startsWith('ghp_')) {
-			try {
-				const response = await fetch('https://api.github.com/user', {
-					headers: {
-						Authorization: `token ${credentials.personal_access_token}`,
-						'User-Agent': 'MCP-Server',
-					},
-				});
-
-				if (response.ok) {
-					const data = /** @type {any} */ (await response.json());
-					result.valid = true;
-					result.api_info = {
-						service: 'GitHub API',
-						user_id: data.id,
-						login: data.login,
-						name: data.name,
-						permissions: ['repo', 'read:org'],
-					};
-					return result;
-				} else {
-					result.error_code = 'INVALID_CREDENTIALS';
-					result.error_message = 'Invalid GitHub personal access token';
-					return result;
-				}
-			} catch (/** @type {any} */ error) {
-				result.error_code = 'API_ERROR';
-				result.error_message = 'Failed to validate GitHub token';
-				result.details = { error: error.message };
-				return result;
-			}
-		}
-
-		// Gmail API validation
-		if (credentials.api_key && credentials.api_key.startsWith('AIza')) {
-			try {
-				// Gmail API requires OAuth2, so we'll just validate the key format
-				// In a real implementation, you'd need to handle OAuth2 flow
-				result.valid = true;
-				result.api_info = {
-					service: 'Gmail API',
-					note: 'OAuth2 validation required for full access',
-					permissions: ['read', 'send'],
-				};
-				return result;
-			} catch (/** @type {any} */ error) {
-				result.error_code = 'API_ERROR';
-				result.error_message = 'Failed to validate Gmail API key';
-				result.details = { error: error.message };
-				return result;
-			}
+		// Fallback to legacy hardcoded validation for unsupported services
+		const legacyResult = await legacyValidation(credentials);
+		if (legacyResult) {
+			return legacyResult;
 		}
 
 		// If no valid credentials found
@@ -132,6 +90,26 @@ export async function testAPICredentials(_mcpTypeId, credentials) {
 			},
 		};
 	}
+}
+
+/**
+ * Legacy validation fallback for services without custom validators
+ * @param {any} credentials - Credentials to validate
+ * @returns {Promise<any|null>} Validation result or null if no match
+ */
+async function legacyValidation(credentials) {
+	const result = /** @type {any} */ ({
+		valid: false,
+		api_info: null,
+		error_code: null,
+		error_message: null,
+		details: null,
+	});
+
+	// Add support for other services that don't have custom validators yet
+	// This can be gradually removed as services get their own validators
+
+	return null; // No legacy validation found
 }
 
 /**

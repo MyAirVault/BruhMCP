@@ -162,27 +162,20 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
 app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
-    const jsonRpcHandler = getOrCreateHandler(
+    const mcpHandler = getOrCreateHandler(
       req.instanceId,
       SERVICE_CONFIG,
       req.bearerToken || ''
     );
     
-    // Process the JSON-RPC message with persistent handler
-    const response = await jsonRpcHandler.processMessage(req.body);
-    
-    if (response) {
-      res.json(response);
-    } else {
-      // No response for notifications
-      res.status(204).send();
-    }
+    // Process the MCP message with persistent handler (using new SDK signature)
+    await mcpHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('JSON-RPC processing error:', errorMessage);
+    console.error('MCP processing error:', errorMessage);
     
-    // Return proper JSON-RPC error response
+    // Return proper MCP JSON-RPC error response
     res.json({
       jsonrpc: '2.0',
       id: req.body?.id || null,
@@ -199,27 +192,20 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
 app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
-    const jsonRpcHandler = getOrCreateHandler(
+    const mcpHandler = getOrCreateHandler(
       req.instanceId,
       SERVICE_CONFIG,
       req.bearerToken || ''
     );
     
-    // Process the JSON-RPC message with persistent handler
-    const response = await jsonRpcHandler.processMessage(req.body);
-    
-    if (response) {
-      res.json(response);
-    } else {
-      // No response for notifications
-      res.status(204).send();
-    }
+    // Process the MCP message with persistent handler (using new SDK signature)
+    await mcpHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('JSON-RPC processing error:', errorMessage);
+    console.error('MCP processing error:', errorMessage);
     
-    // Return proper JSON-RPC error response
+    // Return proper MCP JSON-RPC error response
     res.json({
       jsonrpc: '2.0',
       id: req.body?.id || null,
@@ -297,10 +283,10 @@ const server = app.listen(SERVICE_CONFIG.port, () => {
   console.log(`✅ ${SERVICE_CONFIG.displayName} service running on port ${SERVICE_CONFIG.port}`);
   console.log(`🔗 Global Health: http://localhost:${SERVICE_CONFIG.port}/health`);
   console.log(`🏠 Instance Health: http://localhost:${SERVICE_CONFIG.port}/:instanceId/health`);
-  console.log(`🔧 MCP JSON-RPC: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp`);
+  console.log(`🔧 MCP SDK: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp`);
   console.log(`🌐 Multi-tenant architecture enabled with instance-based routing`);
   console.log(`🚀 Phase 2: OAuth Bearer token caching system enabled`);
-  console.log(`📋 MCP Protocol: JSON-RPC 2.0 exclusively`);
+  console.log(`📋 MCP Protocol: JSON-RPC 2.0 via MCP SDK`);
   console.log(`📝 Instance logging system enabled`);
   console.log(`🔐 OAuth Scopes: ${SERVICE_CONFIG.scopes.join(', ')}`);
   

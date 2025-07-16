@@ -3,9 +3,9 @@
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
- * @returns {GmailMCPJsonRpcHandler} Persistent handler instance
+ * @returns {GmailMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: Object, bearerToken: string): GmailMCPJsonRpcHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: Object, bearerToken: string): GmailMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance
@@ -40,5 +40,5 @@ export function invalidateHandlerSession(instanceId: string): void;
  * @param {string} newBearerToken - New bearer token
  */
 export function updateSessionBearerToken(instanceId: string, newBearerToken: string): boolean;
-import { GmailMCPJsonRpcHandler } from '../endpoints/jsonrpc-handler.js';
+import { GmailMCPHandler } from '../endpoints/mcp-handler.js';
 //# sourceMappingURL=handler-sessions.d.ts.map

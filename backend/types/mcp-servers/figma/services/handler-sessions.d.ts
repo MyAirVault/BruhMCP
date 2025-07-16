@@ -1,11 +1,11 @@
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {ServiceConfig} serviceConfig - Service configuration object
  * @param {string} apiKey - Figma API key for this instance
- * @returns {FigmaMCPJsonRpcHandler} Persistent handler instance
+ * @returns {FigmaMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: Object, apiKey: string): FigmaMCPJsonRpcHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: ServiceConfig, apiKey: string): FigmaMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance
@@ -33,5 +33,5 @@ export function stopSessionCleanup(): void;
  * @param {string} instanceId - UUID of the service instance
  */
 export function invalidateHandlerSession(instanceId: string): void;
-import { FigmaMCPJsonRpcHandler } from '../endpoints/jsonrpc-handler.js';
+import { FigmaMCPHandler } from '../endpoints/mcp-handler.js';
 //# sourceMappingURL=handler-sessions.d.ts.map

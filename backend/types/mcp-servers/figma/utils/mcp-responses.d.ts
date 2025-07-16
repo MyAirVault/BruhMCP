@@ -6,15 +6,14 @@
  */
 export function createSuccessResponse(data: any, options?: object): object;
 /**
- * Creates an error response following MCP protocol
+ * Creates an error MCP response
  * @param {string} message - Error message
- * @param {string} code - Error code
- * @param {any} data - Additional error data
+ * @param {object} options - Error options
  * @returns {object} MCP-compliant error response
  */
-export function createErrorResponse(message: string, code?: string, data?: any): object;
+export function createErrorResponse(message: string, options?: object): object;
 /**
- * Creates a Figma-optimized response using simplified parser
+ * Create optimized Figma response with deduplication (enhanced version)
  * @param {object} figmaData - Raw Figma API response
  * @param {object} options - Response options
  * @returns {object} MCP-compliant response

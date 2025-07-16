@@ -6,7 +6,7 @@
  * required by the MCP protocol specification.
  */
 
-import { GmailMCPJsonRpcHandler } from '../endpoints/jsonrpc-handler.js';
+import { GmailMCPHandler } from '../endpoints/mcp-handler.js';
 
 // Global handler session cache for Gmail service instances
 const handlerSessions = new Map();
@@ -20,7 +20,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
- * @returns {GmailMCPJsonRpcHandler} Persistent handler instance
+ * @returns {GmailMCPHandler} Persistent handler instance
  */
 export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	let session = handlerSessions.get(instanceId);
@@ -28,7 +28,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	if (!session) {
 		// Create new handler instance for this instanceId
 		console.log(`🔧 Creating new Gmail handler session for instance: ${instanceId}`);
-		const handler = new GmailMCPJsonRpcHandler(serviceConfig, bearerToken);
+		const handler = new GmailMCPHandler(serviceConfig, bearerToken);
 		
 		session = {
 			handler,
