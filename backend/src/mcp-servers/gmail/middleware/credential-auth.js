@@ -6,6 +6,7 @@
 import { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata } from '../services/credential-cache.js';
 import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
 import { exchangeOAuthForBearer, refreshBearerToken } from '../utils/oauth-validation.js';
+import { updateOAuthStatus } from '../../../db/queries/mcpInstancesQueries.js';
 import { ErrorResponses } from '../../../utils/errorResponse.js';
 
 /**
@@ -94,23 +95,62 @@ export function createCredentialAuthMiddleware() {
         });
       }
 
-      // Check if we have a cached Bearer token that just expired
-      if (cachedCredential && cachedCredential.refreshToken) {
+      // Check if we have cached tokens or database tokens that need refreshing
+      const refreshToken = cachedCredential?.refreshToken || instance.refresh_token;
+      const accessToken = cachedCredential?.bearerToken || instance.access_token;
+      const tokenExpiresAt = cachedCredential?.expiresAt || (instance.token_expires_at ? new Date(instance.token_expires_at).getTime() : null);
+
+      // If we have an access token that's still valid, use it
+      if (accessToken && tokenExpiresAt && tokenExpiresAt > Date.now()) {
+        console.log(`✅ Using valid access token for instance: ${instanceId}`);
+        
+        // Cache the token if it wasn't cached before
+        if (!cachedCredential) {
+          setCachedCredential(instanceId, {
+            bearerToken: accessToken,
+            refreshToken: refreshToken,
+            expiresAt: tokenExpiresAt,
+            user_id: instance.user_id
+          });
+        }
+
+        req.bearerToken = accessToken;
+        req.instanceId = instanceId;
+        req.userId = instance.user_id;
+
+        // Update usage tracking
+        await updateInstanceUsage(instanceId);
+        return next();
+      }
+
+      // If we have a refresh token, try to refresh the access token
+      if (refreshToken) {
         console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
         
         try {
           const newTokens = await refreshBearerToken({
-            refreshToken: cachedCredential.refreshToken,
+            refreshToken: refreshToken,
             clientId: instance.client_id,
             clientSecret: instance.client_secret
           });
 
+          const newExpiresAt = new Date(Date.now() + (newTokens.expires_in * 1000));
+
           // Update cache with new Bearer token
           setCachedCredential(instanceId, {
             bearerToken: newTokens.access_token,
-            refreshToken: newTokens.refresh_token || cachedCredential.refreshToken,
-            expiresAt: Date.now() + (newTokens.expires_in * 1000),
+            refreshToken: newTokens.refresh_token || refreshToken,
+            expiresAt: newExpiresAt.getTime(),
             user_id: instance.user_id
+          });
+
+          // Update database with new tokens
+          await updateOAuthStatus(instanceId, {
+            status: 'completed',
+            accessToken: newTokens.access_token,
+            refreshToken: newTokens.refresh_token || refreshToken,
+            tokenExpiresAt: newExpiresAt,
+            scope: newTokens.scope
           });
 
           req.bearerToken = newTokens.access_token;
@@ -141,12 +181,23 @@ export function createCredentialAuthMiddleware() {
           ]
         });
 
+        const expiresAt = new Date(Date.now() + (tokenResponse.expires_in * 1000));
+
         // Cache the Bearer token and refresh token
         setCachedCredential(instanceId, {
           bearerToken: tokenResponse.access_token,
           refreshToken: tokenResponse.refresh_token,
-          expiresAt: Date.now() + (tokenResponse.expires_in * 1000),
+          expiresAt: expiresAt.getTime(),
           user_id: instance.user_id
+        });
+
+        // Update database with new tokens
+        await updateOAuthStatus(instanceId, {
+          status: 'completed',
+          accessToken: tokenResponse.access_token,
+          refreshToken: tokenResponse.refresh_token,
+          tokenExpiresAt: expiresAt,
+          scope: tokenResponse.scope
         });
 
         req.bearerToken = tokenResponse.access_token;

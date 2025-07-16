@@ -65,7 +65,7 @@ export async function updateInstanceCredentials(req, res) {
 
 		if (!validationResult.isValid) {
 			console.log(`❌ Credential validation failed for instance ${id}: ${validationResult.error}`);
-			
+
 			return res.status(400).json({
 				error: {
 					code: validationResult.errorCode || 'CREDENTIAL_VALIDATION_FAILED',
@@ -111,13 +111,13 @@ export async function updateInstanceCredentials(req, res) {
 
 		// Update credentials in database (within transaction)
 		const client = await pool.connect();
-		
+
 		try {
 			await client.query('BEGIN');
 
-			// Update API key in database
+			// Update API key in credentials table
 			const updateResult = await client.query(
-				'UPDATE mcp_service_table SET api_key = $1, updated_at = NOW() WHERE instance_id = $2 AND user_id = $3 RETURNING updated_at',
+				'UPDATE mcp_credentials SET api_key = $1, updated_at = NOW() WHERE instance_id = $2 AND instance_id IN (SELECT instance_id FROM mcp_service_table WHERE user_id = $3) RETURNING updated_at',
 				[newApiKey, id, userId]
 			);
 
@@ -130,6 +130,12 @@ export async function updateInstanceCredentials(req, res) {
 					},
 				});
 			}
+
+			// Also update the credentials_updated_at in mcp_service_table
+			await client.query(
+				'UPDATE mcp_service_table SET credentials_updated_at = NOW() WHERE instance_id = $1 AND user_id = $2',
+				[id, userId]
+			);
 
 			await client.query('COMMIT');
 
@@ -150,7 +156,7 @@ export async function updateInstanceCredentials(req, res) {
 				service: serviceName,
 				success: true,
 				validationResult: 'success',
-				cacheInvalidated: true
+				cacheInvalidated: true,
 			});
 
 			res.status(200).json({
@@ -169,7 +175,6 @@ export async function updateInstanceCredentials(req, res) {
 					notes: 'New credentials will be used on next service request',
 				},
 			});
-
 		} catch (dbError) {
 			await client.query('ROLLBACK');
 			console.error(`❌ Database error updating instance ${id} credentials:`, dbError);
@@ -177,11 +182,10 @@ export async function updateInstanceCredentials(req, res) {
 		} finally {
 			client.release();
 		}
-
 	} catch (error) {
 		console.error('Error updating instance credentials:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		
+
 		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -279,11 +283,10 @@ export async function validateInstanceCredentialsOnly(req, res) {
 				},
 			});
 		}
-
 	} catch (error) {
 		console.error('Error validating credentials:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		
+
 		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',

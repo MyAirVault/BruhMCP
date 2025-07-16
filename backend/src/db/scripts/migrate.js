@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const migrations = [
-	'001_complete_database_setup.sql',
+	'002_separate_credentials_table.sql',
 ];
 
 async function loadMCPServiceRegistrations() {

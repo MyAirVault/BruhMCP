@@ -36,6 +36,12 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     lastFailedCredentials: null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [oAuthData, setOAuthData] = useState<{
+    authorizationUrl: string;
+    provider: string;
+    instanceId: string;
+    showPopup: boolean;
+  } | null>(null);
   
   // Use shared validation utility
   const {
@@ -255,9 +261,14 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
         
         // Check if response contains OAuth information
         if (response && response.oauth && response.oauth.requires_user_consent) {
-          // Open OAuth authorization URL in the same window
-          window.location.href = response.oauth.authorization_url;
-          return; // Don't close modal or reset form - OAuth will handle redirect
+          // Store OAuth info for popup handling
+          setOAuthData({
+            authorizationUrl: response.oauth.authorization_url,
+            provider: response.oauth.provider,
+            instanceId: response.oauth.instance_id,
+            showPopup: true
+          });
+          return; // Don't close modal or reset form - OAuth popup will handle flow
         }
       } else {
         // For API key services, use the normal flow
@@ -295,6 +306,39 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     validateCredentials();
   }, [validateCredentials]);
 
+  // OAuth handlers
+  const handleOAuthSuccess = useCallback((result: any) => {
+    setOAuthData(null);
+    setIsSubmitting(false);
+    
+    // Reset form
+    setFormData({ name: '', type: '', apiKey: '', clientId: '', clientSecret: '', expiration: '', credentials: {} });
+    setSelectedMcpType(null);
+    setValidationState({
+      isValidating: false,
+      isValid: null,
+      error: null,
+      apiInfo: null,
+      failureCount: 0,
+      lastFailedCredentials: null
+    });
+    
+    onClose();
+  }, [onClose]);
+
+  const handleOAuthError = useCallback((error: string) => {
+    setOAuthData(null);
+    setIsSubmitting(false);
+    console.error('OAuth error:', error);
+    // Keep form open for retry
+  }, []);
+
+  const handleOAuthClose = useCallback(() => {
+    setOAuthData(null);
+    setIsSubmitting(false);
+    // Keep form open
+  }, []);
+
 
   return {
     formData,
@@ -302,6 +346,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     selectedMcpType,
     validationState,
     isSubmitting,
+    oAuthData,
     handleInputChange,
     handleCredentialChange,
     handleTypeSelect,
@@ -310,6 +355,9 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     requiresCredentials,
     retryValidation,
     isOAuthService,
-    isApiKeyService
+    isApiKeyService,
+    handleOAuthSuccess,
+    handleOAuthError,
+    handleOAuthClose
   };
 };

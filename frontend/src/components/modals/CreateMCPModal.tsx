@@ -7,6 +7,7 @@ import FormField from '../ui/form/FormField';
 import TypeDropdown from '../ui/form/TypeDropdown';
 import ExpirationDropdown from '../ui/form/ExpirationDropdown';
 import CredentialFields from '../ui/form/CredentialFields';
+import OAuthPopup from './OAuthPopup';
 
 const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const {
@@ -15,13 +16,17 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     selectedMcpType,
     validationState,
     isSubmitting,
+    oAuthData,
     handleInputChange,
     handleCredentialChange,
     handleTypeSelect,
     handleSubmit,
     isFormValid,
     retryValidation,
-    isOAuthService
+    isOAuthService,
+    handleOAuthSuccess,
+    handleOAuthError,
+    handleOAuthClose
   } = useCreateMCPForm({ isOpen, onClose, onSubmit });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
@@ -197,6 +202,20 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
         </div>
       </div>
 
+      {/* OAuth Popup */}
+      {oAuthData && oAuthData.showPopup && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/50" />
+          <OAuthPopup
+            authorizationUrl={oAuthData.authorizationUrl}
+            provider={oAuthData.provider}
+            instanceId={oAuthData.instanceId}
+            onSuccess={handleOAuthSuccess}
+            onError={handleOAuthError}
+            onClose={handleOAuthClose}
+          />
+        </div>
+      )}
     </>
   );
 };

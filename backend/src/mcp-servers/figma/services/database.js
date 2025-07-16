@@ -15,9 +15,7 @@ export async function getInstanceCredentials(instanceId) {
     SELECT 
       ms.instance_id,
       ms.user_id,
-      ms.api_key,
-      ms.client_id,
-      ms.client_secret,
+      ms.oauth_status,
       ms.status,
       ms.expires_at,
       ms.last_used_at,
@@ -26,11 +24,20 @@ export async function getInstanceCredentials(instanceId) {
       m.mcp_service_name,
       m.display_name,
       m.type as auth_type,
-      m.is_active as service_active
+      m.is_active as service_active,
+      c.api_key,
+      c.client_id,
+      c.client_secret,
+      c.access_token,
+      c.refresh_token,
+      c.token_expires_at,
+      c.oauth_completed_at
     FROM mcp_service_table ms
     JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+    LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
     WHERE ms.instance_id = $1
       AND m.mcp_service_name = 'figma'
+      AND ms.oauth_status = 'completed'
   `;
 
 	try {
@@ -44,7 +51,7 @@ export async function getInstanceCredentials(instanceId) {
 
 /**
  * Validate if instance is accessible
- * @param {{ service_active?: boolean, status?: string, expires_at?: string, auth_type?: string, api_key?: string, client_id?: string, client_secret?: string }|null} instance - Instance data from database
+ * @param {{ service_active?: boolean, status?: string, oauth_status?: string, expires_at?: string, auth_type?: string, api_key?: string, client_id?: string, client_secret?: string, access_token?: string, refresh_token?: string, token_expires_at?: string }|null} instance - Instance data from database
  * @returns {{ isValid: boolean, error?: string, statusCode?: number }} Validation result with isValid boolean and error message
  */
 export function validateInstanceAccess(instance) {
@@ -62,6 +69,23 @@ export function validateInstanceAccess(instance) {
 			isValid: false,
 			error: 'Service is currently disabled',
 			statusCode: 503,
+		};
+	}
+
+	// Check OAuth status
+	if (instance.oauth_status === 'pending') {
+		return {
+			isValid: false,
+			error: 'Instance OAuth authorization is still pending',
+			statusCode: 403,
+		};
+	}
+
+	if (instance.oauth_status === 'failed') {
+		return {
+			isValid: false,
+			error: 'Instance OAuth authorization failed',
+			statusCode: 403,
 		};
 	}
 
@@ -100,12 +124,32 @@ export function validateInstanceAccess(instance) {
 		};
 	}
 
-	if (instance.auth_type === 'oauth' && (!instance.client_id || !instance.client_secret)) {
-		return {
-			isValid: false,
-			error: 'OAuth credentials not configured for this instance',
-			statusCode: 500,
-		};
+	if (instance.auth_type === 'oauth') {
+		if (!instance.client_id || !instance.client_secret) {
+			return {
+				isValid: false,
+				error: 'OAuth credentials not configured for this instance',
+				statusCode: 500,
+			};
+		}
+
+		// Check if OAuth tokens are available for OAuth services
+		if (!instance.access_token) {
+			return {
+				isValid: false,
+				error: 'OAuth access token not available for this instance',
+				statusCode: 500,
+			};
+		}
+
+		// Check if access token is expired
+		if (instance.token_expires_at && new Date(instance.token_expires_at) < new Date()) {
+			return {
+				isValid: false,
+				error: 'OAuth access token has expired',
+				statusCode: 403,
+			};
+		}
 	}
 
 	return {

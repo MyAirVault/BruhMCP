@@ -18,9 +18,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
       SELECT 
         ms.instance_id,
         ms.user_id,
-        ms.client_id,
-        ms.client_secret,
-        ms.api_key,
+        ms.oauth_status,
         ms.status,
         ms.expires_at,
         ms.usage_count,
@@ -30,11 +28,20 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
         m.display_name,
         m.type as auth_type,
         m.is_active as service_active,
-        m.port
+        m.port,
+        c.api_key,
+        c.client_id,
+        c.client_secret,
+        c.access_token,
+        c.refresh_token,
+        c.token_expires_at,
+        c.oauth_completed_at
       FROM mcp_service_table ms
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+      LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
       WHERE ms.instance_id = $1
         AND m.mcp_service_name = $2
+        AND ms.oauth_status = 'completed'
     `;
     
     const result = await pool.query(query, [instanceId, serviceName]);
@@ -184,6 +191,7 @@ export async function getActiveGmailInstances() {
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
       WHERE m.mcp_service_name = 'gmail'
         AND ms.status = 'active'
+        AND ms.oauth_status = 'completed'
         AND (ms.expires_at IS NULL OR ms.expires_at > NOW())
         AND m.is_active = true
       ORDER BY ms.last_used_at DESC NULLS LAST
@@ -217,6 +225,7 @@ export async function validateInstanceAccess(instanceId, userId) {
         AND ms.user_id = $2
         AND m.mcp_service_name = 'gmail'
         AND ms.status IN ('active', 'inactive')
+        AND ms.oauth_status = 'completed'
         AND (ms.expires_at IS NULL OR ms.expires_at > NOW())
         AND m.is_active = true
     `;

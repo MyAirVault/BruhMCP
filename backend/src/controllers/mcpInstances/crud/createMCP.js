@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
 import { createMCPSchema } from '../schemas.js';
 import { calculateExpirationDate } from '../utils.js';
 import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
-import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats } from '../../../db/queries/mcpInstancesQueries.js';
+import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats, updateOAuthStatus } from '../../../db/queries/mcpInstancesQueries.js';
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
@@ -121,7 +121,8 @@ export async function createMCP(req, res) {
 			apiKey,
 			clientId,
 			clientSecret,
-			expiresAt
+			expiresAt,
+			serviceType: mcpService.type
 		});
 
 		// Handle OAuth flow for OAuth services

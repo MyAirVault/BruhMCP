@@ -11,6 +11,7 @@ import { tokenExchange } from './core/token-exchange.js';
 import { validateCredentialFormat } from './utils/validation.js';
 import { ErrorResponses } from '../utils/errorResponse.js';
 import { pool } from '../db/config.js';
+import { updateOAuthStatus } from '../db/queries/mcpInstancesQueries.js';
 
 const app = express();
 
@@ -112,12 +113,52 @@ app.get('/oauth/callback/:provider', async (req, res) => {
 
     if (error) {
       console.error(`OAuth callback error from ${provider}:`, error);
-      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?oauth_error=${encodeURIComponent(error)}`);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>OAuth Error</title>
+        </head>
+        <body>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'OAUTH_ERROR',
+                error: '${String(error).replace(/'/g, "\\'")}',
+                provider: '${provider}'
+              }, '${process.env.FRONTEND_URL || 'http://localhost:3000'}');
+            }
+            window.close();
+          </script>
+          <p>Authorization failed. This window will close automatically.</p>
+        </body>
+        </html>
+      `);
     }
 
     if (!code || !state) {
       console.error(`Missing OAuth callback parameters from ${provider}`);
-      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?oauth_error=missing_parameters`);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>OAuth Error</title>
+        </head>
+        <body>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'OAUTH_ERROR',
+                error: 'Missing OAuth parameters',
+                provider: '${provider}'
+              }, '${process.env.FRONTEND_URL || 'http://localhost:3000'}');
+            }
+            window.close();
+          </script>
+          <p>Authorization failed. This window will close automatically.</p>
+        </body>
+        </html>
+      `);
     }
 
     const tokens = await oauthManager.handleCallback({
@@ -138,12 +179,61 @@ app.get('/oauth/callback/:provider', async (req, res) => {
     // Cache tokens in the service
     await cacheTokensInService(instance_id, tokens, serviceName);
 
-    // Redirect to frontend with success
-    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?oauth_success=true&instance_id=${instance_id}`);
+    // Update OAuth status in database
+    await updateOAuthStatus(instance_id, {
+      status: 'completed',
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      tokenExpiresAt: tokens.expires_at ? new Date(tokens.expires_at) : null,
+      scope: tokens.scope
+    });
+
+    // Instead of redirecting, send HTML that communicates with parent window
+    return res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>OAuth Success</title>
+      </head>
+      <body>
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'OAUTH_SUCCESS',
+              instanceId: '${instance_id}',
+              provider: '${provider}'
+            }, '${process.env.FRONTEND_URL || 'http://localhost:3000'}');
+          }
+          window.close();
+        </script>
+        <p>Authorization successful! This window will close automatically.</p>
+      </body>
+      </html>
+    `);
 
   } catch (error) {
     console.error('OAuth callback error:', error);
-    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}?oauth_error=${encodeURIComponent(error.message)}`);
+    return res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>OAuth Error</title>
+      </head>
+      <body>
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'OAUTH_ERROR',
+              error: '${String(error.message || error).replace(/'/g, "\\'")}',
+              provider: '${req.params.provider || 'unknown'}'
+            }, '${process.env.FRONTEND_URL || 'http://localhost:3000'}');
+          }
+          window.close();
+        </script>
+        <p>Authorization failed. This window will close automatically.</p>
+      </body>
+      </html>
+    `);
   }
 });
 

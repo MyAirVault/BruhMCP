@@ -18,6 +18,7 @@ export async function getAllMCPInstances(userId, filters = {}) {
 			ms.user_id,
 			ms.custom_name,
 			ms.status,
+			ms.oauth_status,
 			ms.expires_at,
 			ms.last_used_at,
 			ms.usage_count,
@@ -28,10 +29,13 @@ export async function getAllMCPInstances(userId, filters = {}) {
 			m.display_name,
 			m.type,
 			m.port,
-			m.icon_url_path
+			m.icon_url_path,
+			c.oauth_completed_at,
+			c.token_expires_at
 		FROM mcp_service_table ms
 		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
-		WHERE ms.user_id = $1
+		LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
+		WHERE ms.user_id = $1 AND ms.oauth_status = 'completed'
 	`;
 
 	const params = [userId];
@@ -74,6 +78,7 @@ export async function getMCPInstanceById(instanceId, userId) {
 			ms.user_id,
 			ms.custom_name,
 			ms.status,
+			ms.oauth_status,
 			ms.expires_at,
 			ms.last_used_at,
 			ms.usage_count,
@@ -84,9 +89,17 @@ export async function getMCPInstanceById(instanceId, userId) {
 			m.display_name,
 			m.type,
 			m.port,
-			m.icon_url_path
+			m.icon_url_path,
+			c.api_key,
+			c.client_id,
+			c.client_secret,
+			c.access_token,
+			c.refresh_token,
+			c.token_expires_at,
+			c.oauth_completed_at
 		FROM mcp_service_table ms
 		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+		LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
 		WHERE ms.instance_id = $1 AND ms.user_id = $2
 	`;
 
@@ -147,12 +160,12 @@ export async function updateMCPInstance(instanceId, userId, updateData) {
 	}
 
 	setClauses.push(`updated_at = NOW()`);
-	
+
 	// Add WHERE clause parameters
 	params.push(instanceId);
 	const instanceIdParam = paramIndex;
 	paramIndex++;
-	
+
 	params.push(userId);
 	const userIdParam = paramIndex;
 
@@ -363,26 +376,124 @@ export async function getUserInstanceCount(userId, status = null) {
  * @returns {Promise<Object>} Created instance record
  */
 export async function createMCPInstance(instanceData) {
-	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt } = instanceData;
+	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
 
-	const query = `
-		INSERT INTO mcp_service_table (
-			user_id,
-			mcp_service_id,
-			custom_name,
-			api_key,
-			client_id,
-			client_secret,
-			status,
-			expires_at,
-			credentials_updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, 'active', $7, NOW())
-		RETURNING *
-	`;
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
 
-	const params = [userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt];
-	const result = await pool.query(query, params);
-	return result.rows[0];
+		// Set oauth_status based on service type
+		const oauthStatus = serviceType === 'oauth' ? 'pending' : 'completed';
+
+		// Create MCP instance
+		const instanceQuery = `
+			INSERT INTO mcp_service_table (
+				user_id,
+				mcp_service_id,
+				custom_name,
+				status,
+				oauth_status,
+				expires_at,
+				credentials_updated_at
+			) VALUES ($1, $2, $3, 'active', $4, $5, NOW())
+			RETURNING *
+		`;
+
+		const instanceParams = [userId, mcpServiceId, customName, oauthStatus, expiresAt];
+		const instanceResult = await client.query(instanceQuery, instanceParams);
+		const createdInstance = instanceResult.rows[0];
+
+		// Create credentials record
+		const credentialsQuery = `
+			INSERT INTO mcp_credentials (
+				instance_id,
+				api_key,
+				client_id,
+				client_secret,
+				oauth_status,
+				oauth_completed_at
+			) VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING *
+		`;
+
+		const oauthCompletedAt = serviceType === 'api_key' ? new Date() : null;
+		const credentialsParams = [
+			createdInstance.instance_id,
+			apiKey,
+			clientId,
+			clientSecret,
+			oauthStatus,
+			oauthCompletedAt,
+		];
+
+		await client.query(credentialsQuery, credentialsParams);
+
+		await client.query('COMMIT');
+		return createdInstance;
+	} catch (error) {
+		await client.query('ROLLBACK');
+		throw error;
+	} finally {
+		client.release();
+	}
+}
+
+/**
+ * Update OAuth status and tokens for an instance
+ * @param {string} instanceId - Instance ID
+ * @param {Object} oauthData - OAuth data
+ * @param {string} oauthData.status - OAuth status ('completed', 'failed', 'expired')
+ * @param {string} [oauthData.accessToken] - Access token
+ * @param {string} [oauthData.refreshToken] - Refresh token
+ * @param {Date} [oauthData.tokenExpiresAt] - Token expiration date
+ * @param {string} [oauthData.scope] - OAuth scope
+ * @returns {Promise<Object>} Updated instance record
+ */
+export async function updateOAuthStatus(instanceId, oauthData) {
+	const { status, accessToken, refreshToken, tokenExpiresAt, scope } = oauthData;
+
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+
+		// Update credentials table
+		const credentialsQuery = `
+			UPDATE mcp_credentials SET
+				oauth_status = $1,
+				oauth_completed_at = $2,
+				access_token = $3,
+				refresh_token = $4,
+				token_expires_at = $5,
+				token_scope = $6,
+				updated_at = NOW()
+			WHERE instance_id = $7
+			RETURNING *
+		`;
+
+		const completedAt = status === 'completed' ? new Date() : null;
+		const credentialsParams = [status, completedAt, accessToken, refreshToken, tokenExpiresAt, scope, instanceId];
+
+		await client.query(credentialsQuery, credentialsParams);
+
+		// Update mcp_service_table oauth_status for quick filtering
+		const instanceQuery = `
+			UPDATE mcp_service_table SET
+				oauth_status = $1,
+				updated_at = NOW()
+			WHERE instance_id = $2
+			RETURNING *
+		`;
+
+		const instanceResult = await client.query(instanceQuery, [status, instanceId]);
+
+		await client.query('COMMIT');
+		return instanceResult.rows[0];
+	} catch (error) {
+		await client.query('ROLLBACK');
+		throw error;
+	} finally {
+		client.release();
+	}
 }
 
 /**
