@@ -307,7 +307,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
   }, [validateCredentials]);
 
   // OAuth handlers
-  const handleOAuthSuccess = useCallback((result: any) => {
+  const handleOAuthSuccess = useCallback((_result: any) => {
     setOAuthData(null);
     setIsSubmitting(false);
     

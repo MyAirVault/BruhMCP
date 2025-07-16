@@ -20,7 +20,7 @@ const OAuthPopup: React.FC<OAuthPopupProps> = ({
   const [status, setStatus] = useState<'opening' | 'waiting' | 'processing' | 'success' | 'error'>('opening');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const popupRef = useRef<Window | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<number | null>(null);
 
   // Provider-specific branding
   const getProviderInfo = (provider: string) => {
