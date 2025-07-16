@@ -27,7 +27,8 @@ export class FigmaService {
 	}
 
 	/**
-	 * Make authenticated request to Figma API	 * @param {string} endpoint - API endpoint
+	 * Make authenticated request to Figma API
+	 * @param {string} endpoint - API endpoint
 	 * @returns {Promise<any>}
 	 */
 	async request(endpoint) {
@@ -60,7 +61,8 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get file data and return simplified response	 * @param {string} fileKey - Figma file key
+	 * Get file data and return simplified response
+	 * @param {string} fileKey - Figma file key
 	 * @param {number|null} [depth] - Depth limit for traversal
 	 * @returns {Promise<any>} Simplified design object
 	 */
@@ -87,7 +89,8 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get specific node data and return simplified response	 * @param {string} fileKey - Figma file key
+	 * Get specific node data and return simplified response
+	 * @param {string} fileKey - Figma file key
 	 * @param {string} nodeId - Node ID to fetch
 	 * @param {number|null} [depth] - Depth limit for traversal
 	 * @returns {Promise<any>} Simplified design object
@@ -114,8 +117,9 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get image downloads	 * @param {string} fileKey - Figma file key
-	 * @param {Array} nodes - Nodes to download
+	 * Get image downloads
+	 * @param {string} fileKey - Figma file key
+	 * @param {Array<Object>} nodes - Nodes to download
 	 * @param {string} localPath - Local path for downloads
 	 * @param {number} pngScale - PNG scale factor
 	 * @param {Object} svgOptions - SVG export options
@@ -160,8 +164,9 @@ export class FigmaService {
 	}
 
 	/**
-	 * Get image fills	 * @param {string} fileKey - Figma file key
-	 * @param {Array} nodes - Nodes with image fills
+	 * Get image fills
+	 * @param {string} fileKey - Figma file key
+	 * @param {Array<Object>} nodes - Nodes with image fills
 	 * @param {string} localPath - Local path for downloads
 	 * @returns {Promise<string[]>} Array of download results
 	 */
