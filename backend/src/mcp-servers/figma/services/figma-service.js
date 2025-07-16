@@ -35,7 +35,8 @@ export class FigmaService {
 		try {
 			Logger.log(`Calling ${FIGMA_BASE_URL}${endpoint}`);
 
-			// Set auth headers based on authentication method			const headers = {};
+			// Set auth headers based on authentication method
+			const headers = {};
 
 			if (this.useOAuth) {
 				// Use OAuth token with Authorization: Bearer header
@@ -79,7 +80,8 @@ export class FigmaService {
 				throw new Error('Invalid response from Figma API');
 			}
 			
-			// Simplify the response			const simplifiedResponse = parseFigmaResponse(response);
+			// Simplify the response
+			const simplifiedResponse = parseFigmaResponse(response);
 			
 			return simplifiedResponse;
 		} catch (error) {
@@ -107,7 +109,8 @@ export class FigmaService {
 				throw new Error('Invalid response from Figma API');
 			}
 			
-			// Simplify the response			const simplifiedResponse = parseFigmaResponse(response);
+			// Simplify the response
+			const simplifiedResponse = parseFigmaResponse(response);
 			
 			return simplifiedResponse;
 		} catch (error) {
