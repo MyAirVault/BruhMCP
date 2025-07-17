@@ -230,3 +230,109 @@ export function formatErrorResponse(error) {
 		timestamp: new Date().toISOString(),
 	};
 }
+
+/**
+ * Format Notion API response
+ * @param {Object} responseData - Response data with action and results
+ * @returns {Object} Formatted Notion response
+ */
+export function formatNotionResponse(responseData) {
+	const { action, ...data } = responseData;
+	
+	const baseResponse = {
+		action,
+		timestamp: new Date().toISOString(),
+		success: true,
+	};
+
+	// Format based on action type
+	switch (action) {
+		case 'search':
+			return {
+				...baseResponse,
+				query: data.query,
+				results: formatSearchResults({ results: data.results }),
+			};
+
+		case 'get_page':
+			return {
+				...baseResponse,
+				page: formatPageData(data.page),
+			};
+
+		case 'get_page_blocks':
+			return {
+				...baseResponse,
+				pageId: data.pageId,
+				blocks: formatBlocksData({ results: data.blocks }),
+			};
+
+		case 'create_page':
+		case 'update_page':
+			return {
+				...baseResponse,
+				page: formatPageData(data.page),
+			};
+
+		case 'get_database':
+			return {
+				...baseResponse,
+				database: formatDatabaseData(data.database),
+			};
+
+		case 'query_database':
+			return {
+				...baseResponse,
+				databaseId: data.databaseId,
+				results: formatQueryResults({ results: data.results }),
+			};
+
+		case 'create_database':
+		case 'update_database':
+			return {
+				...baseResponse,
+				database: formatDatabaseData(data.database),
+			};
+
+		case 'append_blocks':
+			return {
+				...baseResponse,
+				pageId: data.pageId,
+				blocks: formatBlocksData({ results: data.blocks }),
+			};
+
+		case 'delete_block':
+			return {
+				...baseResponse,
+				blockId: data.blockId,
+				deleted: data.deleted,
+			};
+
+		case 'get_current_user':
+			return {
+				...baseResponse,
+				user: formatUserData(data.user),
+			};
+
+		case 'list_users':
+			return {
+				...baseResponse,
+				users: data.users.map(user => formatUserData(user)),
+				hasMore: data.hasMore,
+			};
+
+		case 'raw_api_call':
+			return {
+				...baseResponse,
+				method: data.method,
+				path: data.path,
+				data: data.result,
+			};
+
+		default:
+			return {
+				...baseResponse,
+				...data,
+			};
+	}
+}

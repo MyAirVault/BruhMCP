@@ -639,7 +639,7 @@ export async function listBranches(args, bearerToken) {
 			sha: branch.commit?.sha,
 			url: branch.commit?.url
 		},
-		protected: branch.protected
+		'protected': branch.protected
 	}));
 }
 
@@ -663,7 +663,7 @@ export async function getBranch(args, bearerToken) {
 			sha: result.commit?.sha,
 			url: result.commit?.url
 		},
-		protected: result.protected,
+		'protected': result.protected,
 		protection: result.protection,
 		protection_url: result.protection_url
 	};

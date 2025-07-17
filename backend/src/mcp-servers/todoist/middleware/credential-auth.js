@@ -1,5 +1,5 @@
 /**
- * OAuth Credential Authentication Middleware for Gmail MCP Service
+ * OAuth Credential Authentication Middleware for Todoist MCP Service
  * Handles OAuth Bearer token authentication and credential caching
  */
 
@@ -49,20 +49,20 @@ export function createCredentialAuthMiddleware() {
       console.log(`⏳ OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'todoist');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'todoist'
         });
       }
 
       // Validate service is active
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Todoist service is currently disabled', {
           instanceId,
-          service: 'gmail'
+          service: 'todoist'
         });
       }
 
@@ -354,13 +354,13 @@ export function createLightweightAuthMiddleware() {
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'todoist'
         });
       }
 
       // Basic validation
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Todoist service is currently disabled', {
           instanceId
         });
       }

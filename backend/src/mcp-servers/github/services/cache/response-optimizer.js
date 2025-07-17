@@ -61,7 +61,7 @@ export class ResponseOptimizer {
 				avatar_url: response.owner.avatar_url,
 				type: response.owner.type
 			} : null,
-			private: response.private,
+			'private': response.private,
 			html_url: response.html_url,
 			description: response.description,
 			fork: response.fork,

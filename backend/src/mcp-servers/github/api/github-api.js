@@ -159,7 +159,7 @@ export class GitHubAPI {
 		const { 
 			name, 
 			description = '', 
-			private = false, 
+			'private': isPrivate = false, 
 			has_issues = true, 
 			has_projects = true, 
 			has_wiki = true,
@@ -181,7 +181,7 @@ export class GitHubAPI {
 			body: {
 				name,
 				description,
-				private,
+				private: isPrivate,
 				has_issues,
 				has_projects,
 				has_wiki,
@@ -603,7 +603,7 @@ export class GitHubAPI {
 				sha: branch.commit?.sha,
 				url: branch.commit?.url
 			},
-			protected: branch.protected
+			'protected': branch.protected
 		}));
 	}
 
@@ -626,7 +626,7 @@ export class GitHubAPI {
 				sha: result.commit?.sha,
 				url: result.commit?.url
 			},
-			protected: result.protected,
+			'protected': result.protected,
 			protection: result.protection,
 			protection_url: result.protection_url
 		};

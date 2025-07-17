@@ -56,7 +56,7 @@ export class ResponseSimplifier {
 			name: repo.name,
 			full_name: repo.full_name,
 			owner: repo.owner?.login,
-			private: repo.private,
+			'private': repo.private,
 			description: repo.description,
 			language: repo.language,
 			stars: repo.stargazers_count,
@@ -394,7 +394,7 @@ export class ResponseSimplifier {
 		
 		const simplified = branches.map(branch => ({
 			name: branch.name,
-			protected: branch.protected,
+			'protected': branch.protected,
 			commit_sha: branch.commit?.sha,
 			commit_url: branch.commit?.url
 		}));

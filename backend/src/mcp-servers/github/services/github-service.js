@@ -218,7 +218,7 @@ export class GitHubService {
 
 		logger.info('Creating repository', {
 			name: sanitizedParams.name,
-			private: sanitizedParams.private
+			'private': sanitizedParams.private
 		});
 
 		try {

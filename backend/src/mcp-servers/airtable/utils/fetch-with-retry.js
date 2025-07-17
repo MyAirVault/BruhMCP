@@ -5,7 +5,9 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import fetch from 'node-fetch';
-import { Logger } from './logger.js';
+import { createLogger } from './logger.js';
+
+const logger = createLogger('FetchWithRetry');
 
 const execAsync = promisify(exec);
 
@@ -23,8 +25,8 @@ export async function fetchWithRetry(url, options = {}) {
 		}
 		return await response.json();
 	} catch (fetchError) {
-		Logger.log(
-			`[fetchWithRetry] Initial fetch failed for ${url}: ${fetchError.message}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
+		logger.warn(
+			`Initial fetch failed for ${url}: ${fetchError.message}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
 		);
 
 		const curlHeaders = formatHeadersForCurl(options.headers);
@@ -36,7 +38,7 @@ export async function fetchWithRetry(url, options = {}) {
 
 		try {
 			// Fallback to curl for corporate networks that have proxies that sometimes block fetch
-			Logger.log(`[fetchWithRetry] Executing curl command: ${curlCommand}`);
+			logger.info(`Executing curl command: ${curlCommand}`);
 			const { stdout, stderr } = await execAsync(curlCommand);
 
 			if (stderr) {
@@ -49,8 +51,8 @@ export async function fetchWithRetry(url, options = {}) {
 				) {
 					throw new Error(`Curl command failed with stderr: ${stderr}`);
 				}
-				Logger.log(
-					`[fetchWithRetry] Curl command for ${url} produced stderr (but might be informational): ${stderr}`
+				logger.info(
+					`Curl command for ${url} produced stderr (but might be informational): ${stderr}`
 				);
 			}
 
@@ -60,7 +62,7 @@ export async function fetchWithRetry(url, options = {}) {
 
 			return JSON.parse(stdout);
 		} catch (curlError) {
-			Logger.error(`[fetchWithRetry] Curl fallback also failed for ${url}: ${curlError.message}`);
+			logger.error(`Curl fallback also failed for ${url}: ${curlError.message}`);
 			// Re-throw the original fetch error to give context about the initial failure
 			throw fetchError;
 		}

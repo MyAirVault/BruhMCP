@@ -16,7 +16,7 @@ export function formatRepositoryResponse(repo) {
         name: repo.name,
         full_name: repo.full_name,
         description: repo.description,
-        private: repo.private,
+        'private': repo.private,
         html_url: repo.html_url,
         clone_url: repo.clone_url,
         ssh_url: repo.ssh_url,
@@ -319,7 +319,7 @@ export function formatBranchResponse(branch) {
             sha: branch.commit?.sha,
             url: branch.commit?.url
         },
-        protected: branch.protected,
+        'protected': branch.protected,
         protection: branch.protection ? {
             enabled: branch.protection.enabled,
             required_status_checks: branch.protection.required_status_checks

@@ -150,7 +150,7 @@ export class GitHubMCPHandler {
 			{
 				name: z.string().describe("Repository name"),
 				description: z.string().optional().default("").describe("Repository description"),
-				private: z.boolean().optional().default(false).describe("Whether the repository is private"),
+				'private': z.boolean().optional().default(false).describe("Whether the repository is private"),
 				has_issues: z.boolean().optional().default(true).describe("Whether to enable issues"),
 				has_projects: z.boolean().optional().default(true).describe("Whether to enable projects"),
 				has_wiki: z.boolean().optional().default(true).describe("Whether to enable wiki"),
@@ -158,13 +158,13 @@ export class GitHubMCPHandler {
 				gitignore_template: z.string().optional().default("").describe("Gitignore template to use"),
 				license_template: z.string().optional().default("").describe("License template to use")
 			},
-			async ({ name, description, private: isPrivate, has_issues, has_projects, has_wiki, auto_init, gitignore_template, license_template }) => {
+			async ({ name, description, 'private': isPrivate, has_issues, has_projects, has_wiki, auto_init, gitignore_template, license_template }) => {
 				console.log(`🔧 Tool call: create_repository for ${this.serviceConfig.name}`);
 				try {
 					const result = await createRepository({ 
 						name, 
 						description, 
-						private: isPrivate, 
+						'private': isPrivate, 
 						has_issues, 
 						has_projects, 
 						has_wiki, 

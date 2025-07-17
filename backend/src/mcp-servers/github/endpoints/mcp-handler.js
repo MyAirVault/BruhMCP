@@ -162,7 +162,7 @@ export class GitHubMCPHandler {
 			{
 				name: z.string().describe("Repository name"),
 				description: z.string().optional().default("").describe("Repository description"),
-				private: z.boolean().optional().default(false).describe("Whether the repository is private"),
+				'private': z.boolean().optional().default(false).describe("Whether the repository is private"),
 				has_issues: z.boolean().optional().default(true).describe("Whether to enable issues"),
 				has_projects: z.boolean().optional().default(true).describe("Whether to enable projects"),
 				has_wiki: z.boolean().optional().default(true).describe("Whether to enable wiki"),

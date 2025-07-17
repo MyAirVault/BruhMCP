@@ -3,10 +3,14 @@
  * Database operations for Todoist MCP service
  */
 
-import { createLogger } from '../../../utils/mcpInstanceLogger.js';
-import { createConnection } from '../../../utils/connection-pool.js';
+import { pool } from '../../../db/config.js';
 
-const logger = createLogger('TodoistDatabaseService');
+// Simple console logging for now
+const logger = {
+  info: (msg, meta = {}) => console.log(`ℹ️ TodoistDB: ${msg}`, meta),
+  error: (msg, meta = {}) => console.error(`❌ TodoistDB: ${msg}`, meta),
+  debug: (msg, meta = {}) => console.log(`🔍 TodoistDB: ${msg}`, meta)
+};
 
 // Global database connection and config
 let connection = null;
@@ -21,7 +25,7 @@ const config = {
  */
 export async function initialize() {
 	try {
-		connection = await createConnection();
+		connection = pool;
 		isConnected = true;
 		
 		// Ensure table exists
@@ -464,3 +468,7 @@ export async function close() {
 		logger.info('Database connection closed');
 	}
 }
+
+// Alias exports for compatibility with middleware
+export { getInstanceCredentials as lookupInstanceCredentials };
+export { updateUsageTracking as updateInstanceUsage };

@@ -21,7 +21,7 @@ import { healthCheck } from './endpoints/health.js';
 import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
 import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
 import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
+import { getOrCreateHandler, startSessionCleanup, getSessionStats } from './services/session/handler-sessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
@@ -219,7 +219,7 @@ if (process.env.NODE_ENV === 'development') {
     try {
       const cacheStats = getCacheStatistics();
       const watcherStatus = getWatcherStatus();
-      const sessionStats = getSessionStatistics();
+      const sessionStats = getSessionStats();
       
       res.json({
         service: SERVICE_CONFIG.name,
@@ -292,14 +292,16 @@ const server = app.listen(SERVICE_CONFIG.port, () => {
   startCredentialWatcher();
   
   // Start handler session cleanup service
-  startSessionCleanup();
+  global.githubSessionCleanup = startSessionCleanup();
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
   stopCredentialWatcher();
-  stopSessionCleanup();
+  if (global.githubSessionCleanup) {
+    global.githubSessionCleanup.stop();
+  }
   server.close(() => {
     console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
     process.exit(0);
@@ -309,7 +311,9 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
   stopCredentialWatcher();
-  stopSessionCleanup();
+  if (global.githubSessionCleanup) {
+    global.githubSessionCleanup.stop();
+  }
   server.close(() => {
     console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
     process.exit(0);

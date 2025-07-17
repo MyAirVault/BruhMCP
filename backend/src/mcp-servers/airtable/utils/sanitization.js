@@ -3,9 +3,12 @@
  * Data sanitization and security utilities for Airtable operations
  */
 
-import { createLogger } from './logger.js';
-
-const logger = createLogger('Sanitization');
+// Simple logging for sanitization to avoid circular dependency
+const logger = {
+  debug: (msg, meta = {}) => console.log(`🔍 AirtableSanitize: ${msg}`, meta),
+  warn: (msg, meta = {}) => console.warn(`⚠️ AirtableSanitize: ${msg}`, meta),
+  error: (msg, meta = {}) => console.error(`❌ AirtableSanitize: ${msg}`, meta)
+};
 
 /**
  * HTML entities to escape
