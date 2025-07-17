@@ -9,8 +9,8 @@ INSERT INTO mcp_table (
 ) VALUES (
     'github',
     'GitHub',
-    'Version control and collaboration platform for software development',
+    'GitHub is a code hosting platform for version control and collaboration, offering Git-based repository management',
     '/mcp-logos/github.svg',
     49294,
-    'api_key'
+    'oauth'
 );

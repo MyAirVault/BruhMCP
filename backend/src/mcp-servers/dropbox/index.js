@@ -1,9 +1,9 @@
 /**
- * Slack MCP Service Entry Point
+ * Dropbox MCP Service Entry Point
  * OAuth 2.0 Implementation following Multi-Tenant Architecture
  */
 
-/// <reference path="../../types/slack.d.ts" />
+/// <reference path="../../types/dropbox.d.ts" />
 
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -25,16 +25,16 @@ import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSession
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
-// Service configuration (from mcp-ports/slack/config.json)
+// Service configuration (from mcp-ports/dropbox/config.json)
 const SERVICE_CONFIG = {
-  name: 'slack',
-  displayName: 'Slack',
-  port: 49458,
+  name: 'dropbox',
+  displayName: 'Dropbox',
+  port: 49264,
   authType: 'oauth',
-  description: 'Slack is a channel-based messaging platform. With Slack, people can work together more effectively',
+  description: 'Cloud storage service offering file syncing, sharing, and collaboration across devices with version control',
   version: '1.0.0',
-  iconPath: '/mcp-logos/slack.svg',
-  scopes: ['channels:history', 'chat:write', 'team:read', 'channels:read', 'users:read', 'reminders:write', 'reactions:read']
+  iconPath: '/mcp-logos/dropbox.svg',
+  scopes: ["account_info.read","files.metadata.write","files.content.write","sharing.write"]
 };
 
 console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVICE_CONFIG.port}`);
@@ -122,9 +122,9 @@ app.get('/health', (_, res) => {
 // OAuth well-known endpoint for OAuth 2.0 discovery
 app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
   res.json({
-    issuer: `https://slack.com`,
-    authorization_endpoint: 'https://slack.com/oauth/v2/authorize',
-    token_endpoint: 'https://slack.com/api/oauth.v2.access',
+    issuer: `https://oauth.dropbox.com`,
+    authorization_endpoint: 'https://oauth.dropbox.com/authorize',
+    token_endpoint: 'https://oauth.dropbox.com/token',
     scopes_supported: SERVICE_CONFIG.scopes,
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],

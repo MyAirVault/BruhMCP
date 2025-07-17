@@ -1,9 +1,9 @@
 /**
- * Slack MCP Service Entry Point
+ * Google Drive MCP Service Entry Point
  * OAuth 2.0 Implementation following Multi-Tenant Architecture
  */
 
-/// <reference path="../../types/slack.d.ts" />
+/// <reference path="../../types/googledrive.d.ts" />
 
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -25,16 +25,19 @@ import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSession
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
-// Service configuration (from mcp-ports/slack/config.json)
+// Service configuration (from mcp-ports/googledrive/config.json)
 const SERVICE_CONFIG = {
-  name: 'slack',
-  displayName: 'Slack',
-  port: 49458,
+  name: 'googledrive',
+  displayName: 'Google Drive',
+  port: 49303,
   authType: 'oauth',
-  description: 'Slack is a channel-based messaging platform. With Slack, people can work together more effectively',
+  description: 'Google Drive is a cloud storage solution for uploading, sharing, and collaborating on files across devices',
   version: '1.0.0',
-  iconPath: '/mcp-logos/slack.svg',
-  scopes: ['channels:history', 'chat:write', 'team:read', 'channels:read', 'users:read', 'reminders:write', 'reactions:read']
+  iconPath: '/mcp-logos/googledrive.svg',
+  scopes: [
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/userinfo.email'
+  ]
 };
 
 console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVICE_CONFIG.port}`);
@@ -122,9 +125,11 @@ app.get('/health', (_, res) => {
 // OAuth well-known endpoint for OAuth 2.0 discovery
 app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
   res.json({
-    issuer: `https://slack.com`,
-    authorization_endpoint: 'https://slack.com/oauth/v2/authorize',
-    token_endpoint: 'https://slack.com/api/oauth.v2.access',
+    issuer: `https://accounts.google.com`,
+    authorization_endpoint: 'https://accounts.google.com/o/oauth2/auth',
+    token_endpoint: 'https://oauth2.googleapis.com/token',
+    userinfo_endpoint: 'https://www.googleapis.com/oauth2/v2/userinfo',
+    revocation_endpoint: 'https://oauth2.googleapis.com/revoke',
     scopes_supported: SERVICE_CONFIG.scopes,
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
@@ -241,6 +246,12 @@ if (process.env.NODE_ENV === 'development') {
 // Error handling middleware with logging
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
+/**
+ * @param {any} err
+ * @param {any} req
+ * @param {any} res
+ * @param {any} next
+ */
 app.use((err, req, res, next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);

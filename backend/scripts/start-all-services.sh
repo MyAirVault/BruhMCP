@@ -60,6 +60,15 @@ echo ""
 echo "🛑 Stopping existing MCP services..."
 pm2 delete mcp-figma 2>/dev/null || true
 pm2 delete mcp-gmail 2>/dev/null || true
+pm2 delete mcp-airtable 2>/dev/null || true
+pm2 delete mcp-dropbox 2>/dev/null || true
+pm2 delete mcp-googledrive 2>/dev/null || true
+pm2 delete mcp-reddit 2>/dev/null || true
+pm2 delete mcp-todoist 2>/dev/null || true
+pm2 delete mcp-github 2>/dev/null || true
+pm2 delete mcp-notion 2>/dev/null || true
+pm2 delete mcp-slack 2>/dev/null || true
+pm2 delete mcp-discord 2>/dev/null || true
 
 echo ""
 echo "🏁 Starting MCP services..."
@@ -67,6 +76,15 @@ echo "🏁 Starting MCP services..."
 # Start individual services with PM2
 start_service "figma" "$MCP_SERVERS_ROOT/figma" "49280"
 start_service "gmail" "$MCP_SERVERS_ROOT/gmail" "49296"
+start_service "airtable" "$MCP_SERVERS_ROOT/airtable" "49171"
+start_service "dropbox" "$MCP_SERVERS_ROOT/dropbox" "49282"
+start_service "googledrive" "$MCP_SERVERS_ROOT/googledrive" "49295"
+start_service "reddit" "$MCP_SERVERS_ROOT/reddit" "49484"
+start_service "todoist" "$MCP_SERVERS_ROOT/todoist" "49559"
+start_service "github" "$MCP_SERVERS_ROOT/github" "49294"
+start_service "notion" "$MCP_SERVERS_ROOT/notion" "49391"
+start_service "slack" "$MCP_SERVERS_ROOT/slack" "49516"
+start_service "discord" "$MCP_SERVERS_ROOT/discord" "49281"
 
 echo ""
 echo "⏳ Waiting for services to initialize..."
@@ -107,6 +125,15 @@ check_service_health() {
 # Check each service
 check_service_health "figma" "49280"
 check_service_health "gmail" "49296"
+check_service_health "airtable" "49171"
+check_service_health "dropbox" "49282"
+check_service_health "googledrive" "49295"
+check_service_health "reddit" "49484"
+check_service_health "todoist" "49559"
+check_service_health "github" "49294"
+check_service_health "notion" "49391"
+check_service_health "slack" "49516"
+check_service_health "discord" "49281"
 
 echo ""
 echo "🎉 MCP Services startup complete!"
@@ -115,6 +142,15 @@ echo "📊 Service Status:"
 echo "Available services:"
 echo "  📐 Figma: http://localhost:49280/health"
 echo "  📧 Gmail: http://localhost:49296/health"
+echo "  📋 Airtable: http://localhost:49171/health"
+echo "  📦 Dropbox: http://localhost:49282/health"
+echo "  🗂️ Google Drive: http://localhost:49295/health"
+echo "  🤖 Reddit: http://localhost:49484/health"
+echo "  ✅ Todoist: http://localhost:49559/health"
+echo "  🐙 GitHub: http://localhost:49294/health"
+echo "  📝 Notion: http://localhost:49391/health"
+echo "  💬 Slack: http://localhost:49516/health"
+echo "  🎮 Discord: http://localhost:49281/health"
 
 echo ""
 echo "📊 PM2 Status:"
@@ -127,7 +163,7 @@ pm2 save
 echo ""
 echo "📝 Service Logs:"
 echo "  View all logs: pm2 logs"
-echo "  Individual logs: pm2 logs mcp-figma | pm2 logs mcp-gmail"
+echo "  Individual logs: pm2 logs mcp-figma | pm2 logs mcp-gmail | pm2 logs mcp-airtable | pm2 logs mcp-dropbox | pm2 logs mcp-googledrive | pm2 logs mcp-reddit | pm2 logs mcp-todoist | pm2 logs mcp-github | pm2 logs mcp-notion | pm2 logs mcp-slack | pm2 logs mcp-discord"
 echo "  Real-time logs: pm2 monit"
 
 echo ""

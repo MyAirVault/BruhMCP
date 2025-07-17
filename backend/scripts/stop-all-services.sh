@@ -41,9 +41,15 @@ echo "🏁 Stopping MCP services..."
 
 # Stop individual services
 stop_service "figma"
+stop_service "gmail"
+stop_service "airtable"
+stop_service "dropbox"
+stop_service "googledrive"
+stop_service "reddit"
+stop_service "todoist"
 stop_service "github"
-stop_service "slack"
 stop_service "notion"
+stop_service "slack"
 stop_service "discord"
 
 echo ""

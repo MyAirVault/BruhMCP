@@ -1,9 +1,9 @@
 /**
- * Slack MCP Service Entry Point
- * OAuth 2.0 Implementation following Multi-Tenant Architecture
+ * Airtable MCP Service Entry Point
+ * API Key Implementation following Multi-Tenant Architecture
  */
 
-/// <reference path="../../types/slack.d.ts" />
+/// <reference path="../../types/airtable.d.ts" />
 
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -25,16 +25,15 @@ import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSession
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
-// Service configuration (from mcp-ports/slack/config.json)
+// Service configuration (from mcp-ports/airtable/config.json)
 const SERVICE_CONFIG = {
-  name: 'slack',
-  displayName: 'Slack',
-  port: 49458,
-  authType: 'oauth',
-  description: 'Slack is a channel-based messaging platform. With Slack, people can work together more effectively',
+  name: 'airtable',
+  displayName: 'Airtable',
+  port: 49171,
+  authType: 'api_key',
+  description: 'Merges spreadsheet functionality with database power, enabling teams to organize projects, track tasks, and collaborate',
   version: '1.0.0',
-  iconPath: '/mcp-logos/slack.svg',
-  scopes: ['channels:history', 'chat:write', 'team:read', 'channels:read', 'users:read', 'reminders:write', 'reactions:read']
+  iconPath: '/mcp-logos/airtable.svg'
 };
 
 console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVICE_CONFIG.port}`);
@@ -62,45 +61,7 @@ if (process.env.NODE_ENV === 'development') {
 	app.use(createCachePerformanceMiddleware());
 }
 
-// OAuth token caching endpoint (for OAuth service integration)
-app.post('/cache-tokens', async (req, res) => {
-  try {
-    const { instance_id, tokens } = req.body;
-
-    if (!instance_id || !tokens) {
-      return res.status(400).json({
-        error: 'Instance ID and tokens are required'
-      });
-    }
-
-    // Cache tokens using existing credential cache
-    const { setCachedCredential } = await import('./services/credential-cache.js');
-    
-    setCachedCredential(instance_id, {
-      bearerToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      expiresAt: tokens.expires_at || (Date.now() + (tokens.expires_in * 1000)),
-      user_id: tokens.user_id || 'unknown'
-    });
-
-    console.log(`✅ OAuth tokens cached for instance: ${instance_id}`);
-
-    res.json({
-      success: true,
-      message: 'Tokens cached successfully',
-      instance_id
-    });
-
-  } catch (error) {
-    console.error('Token caching error:', error);
-    res.status(500).json({
-      error: 'Failed to cache tokens',
-      details: error.message
-    });
-  }
-});
-
-// Create authentication middleware (Phase 2 with OAuth caching)
+// Create authentication middleware (Phase 2 with caching)
 const credentialAuthMiddleware = createCredentialAuthMiddleware();
 const lightweightAuthMiddleware = createLightweightAuthMiddleware();
 
@@ -119,16 +80,11 @@ app.get('/health', (_, res) => {
 
 // Instance-based endpoints with multi-tenant routing
 
-// OAuth well-known endpoint for OAuth 2.0 discovery
+// OAuth well-known endpoint (return 404 as Airtable uses API keys, not OAuth)
 app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
-  res.json({
-    issuer: `https://slack.com`,
-    authorization_endpoint: 'https://slack.com/oauth/v2/authorize',
-    token_endpoint: 'https://slack.com/api/oauth.v2.access',
-    scopes_supported: SERVICE_CONFIG.scopes,
-    response_types_supported: ['code'],
-    grant_types_supported: ['authorization_code', 'refresh_token'],
-    token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic']
+  res.status(404).json({
+    error: 'Not Found',
+    message: 'This MCP server uses API key authentication, not OAuth'
   });
 });
 
@@ -139,8 +95,7 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
       ...healthCheck(SERVICE_CONFIG),
       instanceId: req.instanceId,
       message: 'Instance-specific health check',
-      authType: 'oauth',
-      scopes: SERVICE_CONFIG.scopes
+      authType: 'api_key'
     };
     res.json(healthStatus);
   } catch (error) {
@@ -159,10 +114,10 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
     const mcpHandler = getOrCreateHandler(
       req.instanceId,
       SERVICE_CONFIG,
-      req.bearerToken || ''
+      req.airtableApiKey || ''
     );
     
-    // Process the MCP message with persistent handler (using new SDK signature)
+    // Process the MCP message with persistent handler (using new signature)
     await mcpHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
@@ -189,10 +144,10 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
     const mcpHandler = getOrCreateHandler(
       req.instanceId,
       SERVICE_CONFIG,
-      req.bearerToken || ''
+      req.airtableApiKey || ''
     );
     
-    // Process the MCP message with persistent handler (using new SDK signature)
+    // Process the MCP message with persistent handler (using new signature)
     await mcpHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
@@ -225,7 +180,6 @@ if (process.env.NODE_ENV === 'development') {
         cache_statistics: cacheStats,
         watcher_status: watcherStatus,
         session_statistics: sessionStats,
-        oauth_scopes: SERVICE_CONFIG.scopes,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
@@ -259,8 +213,7 @@ app.use('*', (req, res) => {
         'GET /health (global)',
         'GET /:instanceId/health',
         'POST /:instanceId (JSON-RPC 2.0)',
-        'POST /:instanceId/mcp (JSON-RPC 2.0)',
-        'GET /.well-known/oauth-authorization-server/:instanceId'
+        'POST /:instanceId/mcp (JSON-RPC 2.0)'
       ]
     }
   });
@@ -271,12 +224,11 @@ const server = app.listen(SERVICE_CONFIG.port, () => {
   console.log(`✅ ${SERVICE_CONFIG.displayName} service running on port ${SERVICE_CONFIG.port}`);
   console.log(`🔗 Global Health: http://localhost:${SERVICE_CONFIG.port}/health`);
   console.log(`🏠 Instance Health: http://localhost:${SERVICE_CONFIG.port}/:instanceId/health`);
-  console.log(`🔧 MCP SDK: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp`);
+  console.log(`🔧 MCP JSON-RPC: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp`);
   console.log(`🌐 Multi-tenant architecture enabled with instance-based routing`);
-  console.log(`🚀 Phase 2: OAuth Bearer token caching system enabled`);
-  console.log(`📋 MCP Protocol: JSON-RPC 2.0 via MCP SDK`);
+  console.log(`🚀 Phase 2: Credential caching system enabled`);
+  console.log(`📋 MCP Protocol: JSON-RPC 2.0 exclusively`);
   console.log(`📝 Instance logging system enabled`);
-  console.log(`🔐 OAuth Scopes: ${SERVICE_CONFIG.scopes.join(', ')}`);
   
   // Initialize logging for service
   serviceLogger.logServiceStartup();
