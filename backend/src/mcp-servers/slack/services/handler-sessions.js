@@ -1,14 +1,14 @@
 /**
- * Handler session management for Gmail MCP JSON-RPC handlers
+ * Handler session management for Slack MCP JSON-RPC handlers
  * Maintains persistent handler instances per instanceId to preserve state between requests
  * 
  * This service works alongside the OAuth credential cache to provide stateful MCP sessions
  * required by the MCP protocol specification.
  */
 
-import { GmailMCPHandler } from '../endpoints/mcp-handler.js';
+import { SlackMCPHandler } from '../endpoints/mcp-handler.js';
 
-// Global handler session cache for Gmail service instances
+// Global handler session cache for Slack service instances
 const handlerSessions = new Map();
 
 // Session configuration
@@ -20,15 +20,15 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
- * @returns {GmailMCPHandler} Persistent handler instance
+ * @returns {SlackMCPHandler} Persistent handler instance
  */
 export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	let session = handlerSessions.get(instanceId);
 	
 	if (!session) {
 		// Create new handler instance for this instanceId
-		console.log(`🔧 Creating new Gmail handler session for instance: ${instanceId}`);
-		const handler = new GmailMCPHandler(serviceConfig, bearerToken);
+		console.log(`🔧 Creating new Slack handler session for instance: ${instanceId}`);
+		const handler = new SlackMCPHandler(serviceConfig, bearerToken);
 		
 		session = {
 			handler,
@@ -38,9 +38,9 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 		};
 		
 		handlerSessions.set(instanceId, session);
-		console.log(`✅ Gmail handler session created. Total sessions: ${handlerSessions.size}`);
+		console.log(`✅ Slack handler session created. Total sessions: ${handlerSessions.size}`);
 	} else {
-		console.log(`♻️  Reusing existing Gmail handler session for instance: ${instanceId}`);
+		console.log(`♻️  Reusing existing Slack handler session for instance: ${instanceId}`);
 		
 		// Update bearer token in case it was refreshed
 		if (bearerToken && session.handler.bearerToken !== bearerToken) {
@@ -63,7 +63,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 export function removeHandlerSession(instanceId) {
 	const removed = handlerSessions.delete(instanceId);
 	if (removed) {
-		console.log(`🗑️  Removed Gmail handler session for instance: ${instanceId}`);
+		console.log(`🗑️  Removed Slack handler session for instance: ${instanceId}`);
 	}
 	return removed;
 }
@@ -104,12 +104,12 @@ function cleanupExpiredSessions() {
 		if (idleTime > SESSION_TIMEOUT) {
 			handlerSessions.delete(instanceId);
 			removedCount++;
-			console.log(`🧹 Cleaned up expired Gmail session: ${instanceId} (idle for ${Math.floor(idleTime / 60000)} minutes)`);
+			console.log(`🧹 Cleaned up expired Slack session: ${instanceId} (idle for ${Math.floor(idleTime / 60000)} minutes)`);
 		}
 	}
 	
 	if (removedCount > 0) {
-		console.log(`🧹 Gmail session cleanup complete. Removed ${removedCount} expired sessions. Active sessions: ${handlerSessions.size}`);
+		console.log(`🧹 Slack session cleanup complete. Removed ${removedCount} expired sessions. Active sessions: ${handlerSessions.size}`);
 	}
 }
 
@@ -122,12 +122,12 @@ let cleanupInterval = null;
  */
 export function startSessionCleanup() {
 	if (cleanupInterval) {
-		console.warn('⚠️  Gmail session cleanup already running');
+		console.warn('⚠️  Slack session cleanup already running');
 		return;
 	}
 	
 	cleanupInterval = setInterval(cleanupExpiredSessions, CLEANUP_INTERVAL);
-	console.log('🧹 Started Gmail handler session cleanup service');
+	console.log('🧹 Started Slack handler session cleanup service');
 }
 
 /**
@@ -138,12 +138,12 @@ export function stopSessionCleanup() {
 	if (cleanupInterval) {
 		clearInterval(cleanupInterval);
 		cleanupInterval = null;
-		console.log('🛑 Stopped Gmail handler session cleanup service');
+		console.log('🛑 Stopped Slack handler session cleanup service');
 	}
 	
 	// Clear all sessions on shutdown
 	handlerSessions.clear();
-	console.log('🗑️  Cleared all Gmail handler sessions');
+	console.log('🗑️  Cleared all Slack handler sessions');
 }
 
 /**
@@ -154,7 +154,7 @@ export function stopSessionCleanup() {
 export function invalidateHandlerSession(instanceId) {
 	const removed = removeHandlerSession(instanceId);
 	if (removed) {
-		console.log(`🔄 Gmail handler session invalidated due to credential change: ${instanceId}`);
+		console.log(`🔄 Slack handler session invalidated due to credential change: ${instanceId}`);
 	}
 }
 
@@ -169,7 +169,7 @@ export function updateSessionBearerToken(instanceId, newBearerToken) {
 	if (session && session.handler) {
 		session.handler.bearerToken = newBearerToken;
 		session.lastAccessed = Date.now();
-		console.log(`🔄 Updated bearer token in Gmail session: ${instanceId}`);
+		console.log(`🔄 Updated bearer token in Slack session: ${instanceId}`);
 		return true;
 	}
 	return false;

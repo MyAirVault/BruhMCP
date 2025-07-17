@@ -1,9 +1,9 @@
 /**
- * OAuth Credential Authentication Middleware for Gmail MCP Service
+ * OAuth Credential Authentication Middleware for GitHub MCP Service
  * Handles OAuth Bearer token authentication and credential caching
  */
 
-import { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata } from '../services/credential-cache.js';
+import { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata } from '../services/auth/credential-cache.js';
 import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
 import { exchangeOAuthForBearer, refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauth-validation.js';
 import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
@@ -33,7 +33,7 @@ export function createCredentialAuthMiddleware() {
       let cachedCredential = getCachedCredential(instanceId);
       
       if (cachedCredential && cachedCredential.bearerToken) {
-        console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`);
+        console.log(`✅ GitHub OAuth Bearer token cache hit for instance: ${instanceId}`);
         req.bearerToken = cachedCredential.bearerToken;
         req.instanceId = instanceId;
         req.userId = cachedCredential.user_id;
@@ -46,10 +46,10 @@ export function createCredentialAuthMiddleware() {
         return next();
       }
 
-      console.log(`⏳ OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
+      console.log(`⏳ GitHub OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'github');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
@@ -60,9 +60,9 @@ export function createCredentialAuthMiddleware() {
 
       // Validate service is active
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'GitHub service is currently disabled', {
           instanceId,
-          service: 'gmail'
+          service: 'github'
         });
       }
 
@@ -104,7 +104,7 @@ export function createCredentialAuthMiddleware() {
 
       // If we have an access token that's still valid, use it
       if (accessToken && tokenExpiresAt && tokenExpiresAt > Date.now()) {
-        console.log(`✅ Using valid access token for instance: ${instanceId}`);
+        console.log(`✅ Using valid GitHub access token for instance: ${instanceId}`);
         
         // Cache the token if it wasn't cached before
         if (!cachedCredential) {
@@ -127,7 +127,7 @@ export function createCredentialAuthMiddleware() {
 
       // If we have a refresh token, try to refresh the access token
       if (refreshToken) {
-        console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
+        console.log(`🔄 Refreshing expired GitHub Bearer token for instance: ${instanceId}`);
         
         const refreshStartTime = Date.now();
         let usedMethod = 'oauth_service';
@@ -144,13 +144,13 @@ export function createCredentialAuthMiddleware() {
             });
             usedMethod = 'oauth_service';
           } catch (oauthServiceError) {
-            console.log(`⚠️  OAuth service failed, trying direct Google OAuth: ${oauthServiceError.message}`);
+            console.log(`⚠️  OAuth service failed, trying direct GitHub OAuth: ${oauthServiceError.message}`);
             
             // Check if error indicates OAuth service unavailable
             if (oauthServiceError.message.includes('OAuth service error') || 
                 oauthServiceError.message.includes('Failed to start OAuth service')) {
               
-              // Fallback to direct Google OAuth
+              // Fallback to direct GitHub OAuth
               newTokens = await refreshBearerTokenDirect({
                 refreshToken: refreshToken,
                 clientId: instance.client_id,
@@ -312,7 +312,7 @@ export function createCredentialAuthMiddleware() {
       });
       
       // Return specific error requiring re-authentication
-      return ErrorResponses.unauthorized(res, 'OAuth authentication required - please re-authenticate', {
+      return ErrorResponses.unauthorized(res, 'GitHub OAuth authentication required - please re-authenticate', {
         instanceId,
         error: 'No valid access token and refresh token failed',
         requiresReauth: true,
@@ -320,7 +320,7 @@ export function createCredentialAuthMiddleware() {
       });
 
     } catch (error) {
-      console.error('Credential authentication middleware error:', error);
+      console.error('GitHub credential authentication middleware error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       return ErrorResponses.internal(res, 'Authentication system error', {
         instanceId,
@@ -349,7 +349,7 @@ export function createLightweightAuthMiddleware() {
 
     try {
       // Quick database lookup without credential exchange
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'github');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
@@ -360,7 +360,7 @@ export function createLightweightAuthMiddleware() {
 
       // Basic validation
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'GitHub service is currently disabled', {
           instanceId
         });
       }
@@ -371,7 +371,7 @@ export function createLightweightAuthMiddleware() {
       return next();
 
     } catch (error) {
-      console.error('Lightweight authentication middleware error:', error);
+      console.error('GitHub lightweight authentication middleware error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       return ErrorResponses.internal(res, 'Authentication system error', {
         instanceId,

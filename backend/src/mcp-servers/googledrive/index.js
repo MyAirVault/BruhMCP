@@ -24,18 +24,18 @@ import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from 
 import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
-
 // Service configuration (from mcp-ports/googledrive/config.json)
 const SERVICE_CONFIG = {
   name: 'googledrive',
   displayName: 'Google Drive',
   port: 49303,
   authType: 'oauth',
-  description: 'Google Drive is a cloud storage solution for uploading, sharing, and collaborating on files across devices',
+  description: 'Google Drive cloud storage service for file management, collaboration, and synchronization',
   version: '1.0.0',
   iconPath: '/mcp-logos/googledrive.svg',
   scopes: [
     'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/drive.file',
     'https://www.googleapis.com/auth/userinfo.email'
   ]
 };

@@ -1,218 +1,179 @@
 /**
- * Response Simplifier * Converts Figma API responses into simplified, usable data with global variables
+ * Response Simplifier for Notion API responses
+ * Converts Notion API responses into simplified, usable data
  */
 
-import { buildSimplifiedLayout } from '../transformers/layout.js';
-import { buildSimplifiedStrokes } from '../transformers/style.js';
-import { buildSimplifiedEffects } from '../transformers/effects.js';
-import { sanitizeComponents, sanitizeComponentSets } from '../utils/sanitization.js';
-import { 
-	hasValue, 
-	parsePaint, 
-	isVisible, 
-	removeEmptyKeys, 
-	generateVarId 
-} from '../utils/common.js';
-import { 
-	isTruthy, 
-	isRectangleCornerRadii 
-} from '../utils/identity.js';
+import { Logger } from '../utils/logger.js';
 
 /**
- * Parse Figma API response * @param {any} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
- * @returns {any} Simplified design object with global variables
+ * Parse Notion API response and simplify it
+ * @param {any} data - Raw Notion API response
+ * @returns {any} Simplified response object
  */
-export function parseFigmaResponse(data) {
+export function parseNotionResponse(data) {
 	// Validate input data
 	if (!data || typeof data !== 'object') {
-		throw new Error('Invalid data provided to parseFigmaResponse');
-	}
-	
-	const aggregatedComponents = {};
-	const aggregatedComponentSets = {};
-	let nodesToParse;
-
-	if ("nodes" in data && data.nodes) {
-		// GetFileNodesResponse
-		const nodeResponses = Object.values(data.nodes);
-		nodeResponses.forEach((nodeResponse) => {
-		if (!nodeResponse) return;
-			if (nodeResponse.components) {
-				Object.assign(aggregatedComponents, nodeResponse.components);
-			}
-			if (nodeResponse.componentSets) {
-				Object.assign(aggregatedComponentSets, nodeResponse.componentSets);
-			}
-		});
-		nodesToParse = nodeResponses.map((n) => n && n.document).filter(Boolean);
-	} else {
-		// GetFileResponse
-		Object.assign(aggregatedComponents, data.components);
-		Object.assign(aggregatedComponentSets, data.componentSets);
-		nodesToParse = data.document.children;
+		throw new Error('Invalid data provided to parseNotionResponse');
 	}
 
-	const sanitizedComponents = sanitizeComponents(aggregatedComponents);
-	const sanitizedComponentSets = sanitizeComponentSets(aggregatedComponentSets);
+	try {
+		// For search results
+		if (data.results && Array.isArray(data.results)) {
+			return {
+				results: data.results.map(item => simplifyNotionItem(item)),
+				has_more: data.has_more || false,
+				next_cursor: data.next_cursor || null,
+			};
+		}
 
-	const { name, lastModified, thumbnailUrl } = data;
+		// For single items (page, database, etc.)
+		if (data.object) {
+			return simplifyNotionItem(data);
+		}
 
-	let globalVars = {
-		styles: {},
-	};
+		// For blocks
+		if (data.type) {
+			return simplifyNotionBlock(data);
+		}
 
-	const simplifiedNodes = (nodesToParse || [])
-		.filter(node => node && isVisible(node))
-		.map((n) => parseNode(globalVars, n))
-		.filter((child) => child !== null && child !== undefined);
-
-	const simplifiedDesign = {
-		name,
-		lastModified,
-		thumbnailUrl: thumbnailUrl || "",
-		nodes: simplifiedNodes,
-		components: sanitizedComponents,
-		componentSets: sanitizedComponentSets,
-		globalVars,
-	};
-
-	return removeEmptyKeys(simplifiedDesign);
+		// Return as-is if we can't simplify
+		return data;
+	} catch (error) {
+		Logger.error('Error parsing Notion response:', error);
+		return data;
+	}
 }
 
 /**
- * Find or create global variables * @param {Object} globalVars - Global variables object
- * @param {any} value - Value to store
- * @param {string} prefix - Variable ID prefix
- * @returns {string} Variable ID
+ * Simplify a Notion item (page, database, etc.)
+ * @param {Object} item - Notion item
+ * @returns {Object} Simplified item
  */
-function findOrCreateVar(globalVars, value, prefix) {
-	// Check if the same value already exists
-	const existingEntry = Object.entries(globalVars.styles || {}).find(
-		([_, existingValue]) => JSON.stringify(existingValue) === JSON.stringify(value)
-	);
-
-	if (existingEntry && existingEntry.length > 0) {
-		return existingEntry[0];
+function simplifyNotionItem(item) {
+	if (!item || typeof item !== 'object') {
+		return item;
 	}
-
-	// Create a new variable if it doesn't exist
-	const varId = generateVarId(prefix);
-	globalVars.styles[varId] = value;
-	return varId;
-}
-
-/**
- * Parse individual node * @param {Object} globalVars - Global variables object
- * @param {any} n - Figma node
- * @param {any} [parent] - Parent node
- * @returns {Object|null} Simplified node
- */
-function parseNode(globalVars, n, parent) {
-	const { id, name, type } = n;
 
 	const simplified = {
-		id,
-		name,
-		type,
+		id: item.id,
+		object: item.object,
+		created_time: item.created_time,
+		last_edited_time: item.last_edited_time,
+		created_by: item.created_by,
+		last_edited_by: item.last_edited_by,
+		cover: item.cover,
+		icon: item.icon,
+		parent: item.parent,
+		archived: item.archived,
+		url: item.url,
 	};
 
-	if (type === "INSTANCE") {
-		if (hasValue("componentId", n)) {
-			simplified.componentId = n.componentId;
+	// Add title if available
+	if (item.properties) {
+		const title = extractTitle(item.properties);
+		if (title) {
+			simplified.title = title;
 		}
-
-		// Add specific properties for instances of components
-		if (hasValue("componentProperties", n)) {
-			simplified.componentProperties = Object.entries(n.componentProperties ?? {}).map(
-				([name, { value, type }]) => ({
-					name,
-					value: value.toString(),
-					type,
-				})
-			);
-		}
+		simplified.properties = item.properties;
 	}
 
-	// text
-	if (hasValue("style", n) && n.style && Object.keys(n.style).length) {
-		const style = n.style;
-		const textStyle = {
-			fontFamily: style.fontFamily,
-			fontWeight: style.fontWeight,
-			fontSize: style.fontSize,
-			lineHeight:
-				style.lineHeightPx && style.fontSize
-					? `${style.lineHeightPx / style.fontSize}em`
-					: undefined,
-			letterSpacing:
-				style.letterSpacing && style.letterSpacing !== 0 && style.fontSize
-					? `${(style.letterSpacing / style.fontSize) * 100}%`
-					: undefined,
-			textCase: style.textCase,
-			textAlignHorizontal: style.textAlignHorizontal,
-			textAlignVertical: style.textAlignVertical,
-		};
-		simplified.textStyle = findOrCreateVar(globalVars, textStyle, "style");
+	// Add children if available
+	if (item.children) {
+		simplified.children = item.children.map(child => simplifyNotionBlock(child));
 	}
 
-	// fills & strokes
-	if (hasValue("fills", n) && Array.isArray(n.fills) && n.fills && n.fills.length) {
-		const fills = n.fills.filter(Boolean).map(parsePaint);
-		simplified.fills = findOrCreateVar(globalVars, fills, "fill");
+	// Remove null/undefined values
+	return removeEmptyKeys(simplified);
+}
+
+/**
+ * Simplify a Notion block
+ * @param {Object} block - Notion block
+ * @returns {Object} Simplified block
+ */
+function simplifyNotionBlock(block) {
+	if (!block || typeof block !== 'object') {
+		return block;
 	}
 
-	const strokes = buildSimplifiedStrokes(n);
-	if (strokes && strokes.colors && strokes.colors.length) {
-		simplified.strokes = findOrCreateVar(globalVars, strokes, "stroke");
-	}
+	const simplified = {
+		id: block.id,
+		type: block.type,
+		created_time: block.created_time,
+		last_edited_time: block.last_edited_time,
+		created_by: block.created_by,
+		last_edited_by: block.last_edited_by,
+		has_children: block.has_children,
+		archived: block.archived,
+	};
 
-	const effects = buildSimplifiedEffects(n);
-	if (effects && Object.keys(effects).length) {
-		simplified.effects = findOrCreateVar(globalVars, effects, "effect");
-	}
+	// Add type-specific content
+	if (block.type && block[block.type]) {
+		simplified.content = block[block.type];
 
-	// Process layout
-	const layout = buildSimplifiedLayout(n, parent);
-	if (layout && Object.keys(layout).length > 1) {
-		simplified.layout = findOrCreateVar(globalVars, layout, "layout");
-	}
-
-	// Keep other simple properties directly
-	if (hasValue("characters", n, isTruthy)) {
-		simplified.text = n.characters;
-	}
-
-	// opacity
-	if (hasValue("opacity", n) && typeof n.opacity === "number" && n.opacity !== 1) {
-		simplified.opacity = n.opacity;
-	}
-
-	if (hasValue("cornerRadius", n) && typeof n.cornerRadius === "number") {
-		simplified.borderRadius = `${n.cornerRadius}px`;
-	}
-	if (hasValue("rectangleCornerRadii", n, isRectangleCornerRadii) && n.rectangleCornerRadii && n.rectangleCornerRadii.length >= 4) {
-		simplified.borderRadius = `${n.rectangleCornerRadii[0]}px ${n.rectangleCornerRadii[1]}px ${n.rectangleCornerRadii[2]}px ${n.rectangleCornerRadii[3]}px`;
-	}
-
-	// Recursively process child nodes.
-	// Include children at the very end so all relevant configuration data for the element is output first and kept together for the AI.
-	if (hasValue("children", n) && Array.isArray(n.children) && n.children.length > 0) {
-		const children = (n.children || [])
-			.filter(child => child && isVisible(child))
-			.map((child) => parseNode(globalVars, child, n))
-			.filter((child) => child !== null && child !== undefined);
-		if (children && children.length) {
-			simplified.children = children;
+		// Extract plain text if available
+		if (block[block.type].rich_text && Array.isArray(block[block.type].rich_text)) {
+			simplified.text = block[block.type].rich_text.map(text => text.plain_text || '').join('');
 		}
 	}
 
-	// Convert VECTOR to IMAGE
-	if (type === "VECTOR") {
-		simplified.type = "IMAGE-SVG";
+	// Add children if available
+	if (block.children) {
+		simplified.children = block.children.map(child => simplifyNotionBlock(child));
 	}
 
-	return simplified;
+	return removeEmptyKeys(simplified);
+}
+
+/**
+ * Extract title from properties
+ * @param {Object} properties - Notion properties
+ * @returns {string|null} Title text
+ */
+function extractTitle(properties) {
+	if (!properties || typeof properties !== 'object') {
+		return null;
+	}
+
+	// Find title property
+	const titleProperty = Object.values(properties).find(prop => prop.type === 'title');
+	if (titleProperty && titleProperty.title && Array.isArray(titleProperty.title)) {
+		return titleProperty.title.map(text => text.plain_text || '').join('');
+	}
+
+	return null;
+}
+
+/**
+ * Remove empty keys from object
+ * @param {Object} obj - Object to clean
+ * @returns {Object} Cleaned object
+ */
+function removeEmptyKeys(obj) {
+	if (!obj || typeof obj !== 'object') {
+		return obj;
+	}
+
+	const cleaned = {};
+	for (const [key, value] of Object.entries(obj)) {
+		if (value !== null && value !== undefined && value !== '') {
+			if (Array.isArray(value)) {
+				if (value.length > 0) {
+					cleaned[key] = value;
+				}
+			} else if (typeof value === 'object') {
+				const cleanedValue = removeEmptyKeys(value);
+				if (Object.keys(cleanedValue).length > 0) {
+					cleaned[key] = cleanedValue;
+				}
+			} else {
+				cleaned[key] = value;
+			}
+		}
+	}
+
+	return cleaned;
 }
 
 // For backward compatibility, export both function names
-export const simplifyFigmaResponse = parseFigmaResponse;
+export const simplifyNotionResponse = parseNotionResponse;

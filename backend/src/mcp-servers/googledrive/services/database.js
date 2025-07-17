@@ -1,5 +1,5 @@
 /**
- * Database service for Gmail MCP instance management
+ * Database service for Google Drive MCP instance management
  * Handles instance credential lookup and usage tracking
  */
 
@@ -8,11 +8,13 @@ import { pool } from '../../../db/config.js';
 /**
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
- * @param {string} serviceName - Name of the MCP service (gmail)
+ * @param {string} serviceName - Name of the MCP service (googledrive)
  * @returns {Object|null} Instance credentials or null if not found
  */
 export async function lookupInstanceCredentials(instanceId, serviceName) {
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
     
     const query = `
       SELECT 
@@ -44,7 +46,9 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
         AND ms.oauth_status = 'completed'
     `;
     
-    const result = await pool.query(query, [instanceId, serviceName]);
+    const result = await client.query(query, [instanceId, serviceName]);
+    
+    await client.query('COMMIT');
     
     if (result.rows.length === 0) {
       console.log(`ℹ️  No instance found for ID: ${instanceId} (service: ${serviceName})`);
@@ -57,8 +61,11 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
     return instance;
     
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Database lookup error:', error);
     throw new Error(`Failed to lookup instance credentials: ${error.message}`);
+  } finally {
+    client.release();
   }
 }
 
@@ -173,10 +180,10 @@ export async function updateInstanceStatus(instanceId, newStatus) {
 }
 
 /**
- * Get all active instances for Gmail service
+ * Get all active instances for Google Drive service
  * @returns {Array} Array of active instance records
  */
-export async function getActiveGmailInstances() {
+export async function getActiveGoogleDriveInstances() {
   try {
     
     const query = `
@@ -189,7 +196,7 @@ export async function getActiveGmailInstances() {
         ms.custom_name
       FROM mcp_service_table ms
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
-      WHERE m.mcp_service_name = 'gmail'
+      WHERE m.mcp_service_name = 'googledrive'
         AND ms.status = 'active'
         AND ms.oauth_status = 'completed'
         AND (ms.expires_at IS NULL OR ms.expires_at > NOW())
@@ -199,12 +206,12 @@ export async function getActiveGmailInstances() {
     
     const result = await pool.query(query);
     
-    console.log(`📊 Found ${result.rows.length} active Gmail instances`);
+    console.log(`📊 Found ${result.rows.length} active Google Drive instances`);
     return result.rows;
     
   } catch (error) {
     console.error('Database active instances query error:', error);
-    throw new Error(`Failed to get active Gmail instances: ${error.message}`);
+    throw new Error(`Failed to get active Google Drive instances: ${error.message}`);
   }
 }
 
@@ -223,7 +230,7 @@ export async function validateInstanceAccess(instanceId, userId) {
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
       WHERE ms.instance_id = $1
         AND ms.user_id = $2
-        AND m.mcp_service_name = 'gmail'
+        AND m.mcp_service_name = 'googledrive'
         AND ms.status IN ('active', 'inactive')
         AND ms.oauth_status = 'completed'
         AND (ms.expires_at IS NULL OR ms.expires_at > NOW())

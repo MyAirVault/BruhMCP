@@ -19,7 +19,11 @@ import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
 import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
+import { createRedditApiRateLimitMiddleware, createStrictRateLimitMiddleware, getRateLimitStatistics } from './middleware/rate-limit.js';
+import { createResponseCacheMiddleware, createCacheInvalidationMiddleware } from './middleware/response-cache.js';
+import { createResponseSizeLimitMiddleware, getSizeLimits } from './middleware/response-size-limit.js';
 import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
+import { initializeResponseCache, getCacheStatistics as getResponseCacheStatistics } from './services/response-cache.js';
 import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
 import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
@@ -42,6 +46,9 @@ console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVI
 // Initialize Phase 2 credential caching system
 initializeCredentialCache();
 
+// Initialize response caching system
+initializeResponseCache();
+
 // Initialize logging system
 const serviceLogger = createMCPServiceLogger(SERVICE_CONFIG.name, SERVICE_CONFIG);
 
@@ -56,6 +63,18 @@ app.use(express.urlencoded({ extended: true }));
 // Add MCP logging middleware for all instance-based routes
 app.use('/:instanceId/*', createMCPLoggingMiddleware(SERVICE_CONFIG.name));
 app.use('/:instanceId/*', createMCPOperationMiddleware(SERVICE_CONFIG.name));
+
+// Add rate limiting middleware
+app.use('/:instanceId/*', createRedditApiRateLimitMiddleware());
+
+// Add response caching middleware (before authentication for better performance)
+app.use('/:instanceId', createResponseCacheMiddleware({ enabled: true }));
+
+// Add cache invalidation middleware
+app.use('/:instanceId', createCacheInvalidationMiddleware());
+
+// Add response size limiting middleware
+app.use('/:instanceId', createResponseSizeLimitMiddleware());
 
 // Add cache performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
@@ -146,6 +165,66 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     ErrorResponses.internal(res, `${SERVICE_CONFIG.displayName} instance health check failed`, {
+      instanceId: req.instanceId,
+      metadata: { service: SERVICE_CONFIG.name, errorMessage }
+    });
+  }
+});
+
+// Rate limiting statistics endpoint
+app.get('/:instanceId/statistics/rate-limits', lightweightAuthMiddleware, (req, res) => {
+  try {
+    const stats = getRateLimitStatistics();
+    res.json({
+      success: true,
+      service: SERVICE_CONFIG.name,
+      instanceId: req.instanceId,
+      rateLimitStats: stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    ErrorResponses.internal(res, 'Failed to get rate limit statistics', {
+      instanceId: req.instanceId,
+      metadata: { service: SERVICE_CONFIG.name, errorMessage }
+    });
+  }
+});
+
+// Response cache statistics endpoint
+app.get('/:instanceId/statistics/cache', lightweightAuthMiddleware, (req, res) => {
+  try {
+    const cacheStats = getResponseCacheStatistics();
+    res.json({
+      success: true,
+      service: SERVICE_CONFIG.name,
+      instanceId: req.instanceId,
+      cacheStats: cacheStats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    ErrorResponses.internal(res, 'Failed to get cache statistics', {
+      instanceId: req.instanceId,
+      metadata: { service: SERVICE_CONFIG.name, errorMessage }
+    });
+  }
+});
+
+// Response size limits statistics endpoint
+app.get('/:instanceId/statistics/size-limits', lightweightAuthMiddleware, (req, res) => {
+  try {
+    const sizeLimits = getSizeLimits();
+    res.json({
+      success: true,
+      service: SERVICE_CONFIG.name,
+      instanceId: req.instanceId,
+      sizeLimits: sizeLimits,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    ErrorResponses.internal(res, 'Failed to get size limits statistics', {
       instanceId: req.instanceId,
       metadata: { service: SERVICE_CONFIG.name, errorMessage }
     });
@@ -260,7 +339,10 @@ app.use('*', (req, res) => {
         'GET /:instanceId/health',
         'POST /:instanceId (JSON-RPC 2.0)',
         'POST /:instanceId/mcp (JSON-RPC 2.0)',
-        'GET /.well-known/oauth-authorization-server/:instanceId'
+        'GET /.well-known/oauth-authorization-server/:instanceId',
+        'GET /:instanceId/statistics/rate-limits',
+        'GET /:instanceId/statistics/cache',
+        'GET /:instanceId/statistics/size-limits'
       ]
     }
   });

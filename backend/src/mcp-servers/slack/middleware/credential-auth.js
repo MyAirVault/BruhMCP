@@ -1,5 +1,5 @@
 /**
- * OAuth Credential Authentication Middleware for Gmail MCP Service
+ * OAuth Credential Authentication Middleware for Slack MCP Service
  * Handles OAuth Bearer token authentication and credential caching
  */
 
@@ -33,10 +33,11 @@ export function createCredentialAuthMiddleware() {
       let cachedCredential = getCachedCredential(instanceId);
       
       if (cachedCredential && cachedCredential.bearerToken) {
-        console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`);
+        console.log(`✅ Slack OAuth Bearer token cache hit for instance: ${instanceId}`);
         req.bearerToken = cachedCredential.bearerToken;
         req.instanceId = instanceId;
         req.userId = cachedCredential.user_id;
+        req.teamId = cachedCredential.team_id;
         
         // Update usage tracking asynchronously
         updateInstanceUsage(instanceId).catch(err => {
@@ -46,23 +47,23 @@ export function createCredentialAuthMiddleware() {
         return next();
       }
 
-      console.log(`⏳ OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
+      console.log(`⏳ Slack OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'slack');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'slack'
         });
       }
 
       // Validate service is active
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Slack service is currently disabled', {
           instanceId,
-          service: 'gmail'
+          service: 'slack'
         });
       }
 
@@ -104,7 +105,7 @@ export function createCredentialAuthMiddleware() {
 
       // If we have an access token that's still valid, use it
       if (accessToken && tokenExpiresAt && tokenExpiresAt > Date.now()) {
-        console.log(`✅ Using valid access token for instance: ${instanceId}`);
+        console.log(`✅ Using valid Slack access token for instance: ${instanceId}`);
         
         // Cache the token if it wasn't cached before
         if (!cachedCredential) {
@@ -112,13 +113,15 @@ export function createCredentialAuthMiddleware() {
             bearerToken: accessToken,
             refreshToken: refreshToken,
             expiresAt: tokenExpiresAt,
-            user_id: instance.user_id
+            user_id: instance.user_id,
+            team_id: instance.team_id
           });
         }
 
         req.bearerToken = accessToken;
         req.instanceId = instanceId;
         req.userId = instance.user_id;
+        req.teamId = instance.team_id;
 
         // Update usage tracking
         await updateInstanceUsage(instanceId);
@@ -127,7 +130,7 @@ export function createCredentialAuthMiddleware() {
 
       // If we have a refresh token, try to refresh the access token
       if (refreshToken) {
-        console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
+        console.log(`🔄 Refreshing expired Slack Bearer token for instance: ${instanceId}`);
         
         const refreshStartTime = Date.now();
         let usedMethod = 'oauth_service';
@@ -135,7 +138,7 @@ export function createCredentialAuthMiddleware() {
         try {
           let newTokens;
           
-          // Try OAuth service first, then fallback to direct Google OAuth
+          // Try OAuth service first, then fallback to direct Slack OAuth
           try {
             newTokens = await refreshBearerToken({
               refreshToken: refreshToken,
@@ -144,13 +147,13 @@ export function createCredentialAuthMiddleware() {
             });
             usedMethod = 'oauth_service';
           } catch (oauthServiceError) {
-            console.log(`⚠️  OAuth service failed, trying direct Google OAuth: ${oauthServiceError.message}`);
+            console.log(`⚠️  OAuth service failed, trying direct Slack OAuth: ${oauthServiceError.message}`);
             
             // Check if error indicates OAuth service unavailable
             if (oauthServiceError.message.includes('OAuth service error') || 
                 oauthServiceError.message.includes('Failed to start OAuth service')) {
               
-              // Fallback to direct Google OAuth
+              // Fallback to direct Slack OAuth
               newTokens = await refreshBearerTokenDirect({
                 refreshToken: refreshToken,
                 clientId: instance.client_id,
@@ -187,7 +190,8 @@ export function createCredentialAuthMiddleware() {
             metadata: {
               expiresIn: newTokens.expires_in,
               scope: newTokens.scope,
-              responseTime: refreshEndTime - refreshStartTime
+              responseTime: refreshEndTime - refreshStartTime,
+              teamId: newTokens.team_id
             }
           }).catch(err => {
             console.error('Failed to create audit log:', err);
@@ -198,7 +202,8 @@ export function createCredentialAuthMiddleware() {
             bearerToken: newTokens.access_token,
             refreshToken: newTokens.refresh_token || refreshToken,
             expiresAt: newExpiresAt.getTime(),
-            user_id: instance.user_id
+            user_id: instance.user_id,
+            team_id: newTokens.team_id
           });
 
           // Update database with new tokens using optimistic locking
@@ -208,7 +213,8 @@ export function createCredentialAuthMiddleware() {
               accessToken: newTokens.access_token,
               refreshToken: newTokens.refresh_token || refreshToken,
               tokenExpiresAt: newExpiresAt,
-              scope: newTokens.scope
+              scope: newTokens.scope,
+              teamId: newTokens.team_id
             });
           } catch (lockingError) {
             // Fallback to regular update if optimistic locking fails
@@ -218,13 +224,15 @@ export function createCredentialAuthMiddleware() {
               accessToken: newTokens.access_token,
               refreshToken: newTokens.refresh_token || refreshToken,
               tokenExpiresAt: newExpiresAt,
-              scope: newTokens.scope
+              scope: newTokens.scope,
+              teamId: newTokens.team_id
             });
           }
 
           req.bearerToken = newTokens.access_token;
           req.instanceId = instanceId;
           req.userId = instance.user_id;
+          req.teamId = newTokens.team_id;
 
           // Update usage tracking
           await updateInstanceUsage(instanceId);
@@ -262,7 +270,7 @@ export function createCredentialAuthMiddleware() {
           });
 
           // Use centralized error handling
-          logOAuthError(refreshError, 'token refresh', instanceId);
+          logOAuthError(refreshError, 'slack token refresh', instanceId);
           
           const errorResponse = await handleTokenRefreshFailure(instanceId, refreshError, updateOAuthStatus);
           
@@ -282,7 +290,7 @@ export function createCredentialAuthMiddleware() {
       }
 
       // Need to perform full OAuth exchange - this indicates user needs to re-authenticate
-      console.log(`🔐 Full OAuth exchange required for instance: ${instanceId}`);
+      console.log(`🔐 Full OAuth exchange required for Slack instance: ${instanceId}`);
       
       // Create audit log entry for re-auth requirement
       createTokenAuditLog({
@@ -320,7 +328,7 @@ export function createCredentialAuthMiddleware() {
       });
 
     } catch (error) {
-      console.error('Credential authentication middleware error:', error);
+      console.error('Slack credential authentication middleware error:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       return ErrorResponses.internal(res, 'Authentication system error', {
         instanceId,
@@ -349,24 +357,25 @@ export function createLightweightAuthMiddleware() {
 
     try {
       // Quick database lookup without credential exchange
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'slack');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'slack'
         });
       }
 
       // Basic validation
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Slack service is currently disabled', {
           instanceId
         });
       }
 
       req.instanceId = instanceId;
       req.userId = instance.user_id;
+      req.teamId = instance.team_id;
       
       return next();
 
@@ -397,6 +406,7 @@ export function createCachePerformanceMiddleware() {
       // Add performance headers in development
       res.set('X-Cache-Performance-Ms', responseTime.toString());
       res.set('X-Instance-Id', req.instanceId || 'unknown');
+      res.set('X-Team-Id', req.teamId || 'unknown');
       
       // Log performance metrics
       if (responseTime > 100) {

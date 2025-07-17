@@ -1,22 +1,51 @@
 /**
- * Credential cache service for Figma MCP instance management
+ * Credential cache service for Notion MCP instance management
  * Phase 2: Token Management and Caching System implementation
- * 
- * This service manages in-memory caching of Figma Personal Access Tokens (PAT)
+ *
+ * This service manages in-memory caching of Notion OAuth Bearer tokens
  * to reduce database hits and improve request performance.
  */
 
-// Global credential cache for Figma service instances
-const figmaCredentialCache = new Map();
+// Global credential cache for Notion service instances
+const notionCredentialCache = new Map();
+
+// Cache operation locks to prevent race conditions
+const cacheLocks = new Map();
+
+/**
+ * Acquire a lock for cache operations on a specific instance
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Promise<Function>} Release function to unlock
+ */
+async function acquireCacheLock(instanceId) {
+	// Wait for any existing lock to be released
+	while (cacheLocks.has(instanceId)) {
+		await new Promise(resolve => setTimeout(resolve, 10));
+	}
+	
+	// Acquire the lock
+	const lockPromise = new Promise((resolve) => {
+		cacheLocks.set(instanceId, resolve);
+	});
+	
+	// Return release function
+	return () => {
+		const resolve = cacheLocks.get(instanceId);
+		if (resolve) {
+			cacheLocks.delete(instanceId);
+			resolve();
+		}
+	};
+}
 
 /**
  * Initialize the credential cache system
  * Called on service startup
  */
 export function initializeCredentialCache() {
-	console.log('🚀 Initializing Figma credential cache system');
-	figmaCredentialCache.clear();
-	console.log('✅ Figma credential cache initialized');
+	console.log('🚀 Initializing Notion credential cache system');
+	notionCredentialCache.clear();
+	console.log('✅ Notion credential cache initialized');
 }
 
 /**
@@ -25,46 +54,64 @@ export function initializeCredentialCache() {
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
 export function getCachedCredential(instanceId) {
-	const cached = figmaCredentialCache.get(instanceId);
-	
+	const cached = notionCredentialCache.get(instanceId);
+
 	if (!cached) {
 		return null;
 	}
-	
+
 	// Check if instance has expired
 	if (cached.expires_at && new Date(cached.expires_at) < new Date()) {
 		console.log(`🗑️ Removing expired instance from cache: ${instanceId}`);
-		figmaCredentialCache.delete(instanceId);
+		notionCredentialCache.delete(instanceId);
 		return null;
 	}
-	
+
 	// Update last used timestamp
 	cached.last_used = new Date().toISOString();
-	
+
 	console.log(`✅ Cache hit for instance: ${instanceId}`);
-	return cached;
+
+	// Return in the format expected by middleware
+	return {
+		bearerToken: cached.credential,
+		refreshToken: cached.refreshToken,
+		expiresAt: cached.expires_at,
+		user_id: cached.user_id,
+		last_used: cached.last_used,
+		refresh_attempts: cached.refresh_attempts,
+		cached_at: cached.cached_at,
+	};
 }
 
 /**
  * Store credential in cache
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} credentialData - Credential data to cache
- * @param {string} credentialData.api_key - Figma Personal Access Token
+ * @param {string} credentialData.bearerToken - OAuth Bearer token
+ * @param {string} credentialData.refreshToken - OAuth refresh token
  * @param {string} credentialData.expires_at - Instance expiration timestamp
  * @param {string} credentialData.user_id - User ID who owns this instance
  */
-export function setCachedCredential(instanceId, credentialData) {
-	const cacheEntry = {
-		credential: credentialData.api_key,
-		expires_at: credentialData.expires_at,
-		user_id: credentialData.user_id,
-		last_used: new Date().toISOString(),
-		refresh_attempts: 0,
-		cached_at: new Date().toISOString()
-	};
+export async function setCachedCredential(instanceId, credentialData) {
+	const releaseLock = await acquireCacheLock(instanceId);
 	
-	figmaCredentialCache.set(instanceId, cacheEntry);
-	console.log(`💾 Cached credential for instance: ${instanceId} (expires: ${credentialData.expires_at})`);
+	try {
+		const cacheEntry = {
+			credential: credentialData.bearerToken,
+			refreshToken: credentialData.refreshToken,
+			expires_at: credentialData.expires_at,
+			user_id: credentialData.user_id,
+			last_used: new Date().toISOString(),
+			refresh_attempts: 0,
+			cached_at: new Date().toISOString(),
+		};
+
+		notionCredentialCache.set(instanceId, cacheEntry);
+		console.log(`💾 Cached credential for instance: ${instanceId} (expires: ${credentialData.expires_at})`);
+	} finally {
+		releaseLock();
+	}
 }
 
 /**
@@ -72,7 +119,7 @@ export function setCachedCredential(instanceId, credentialData) {
  * @param {string} instanceId - UUID of the service instance
  */
 export function removeCachedCredential(instanceId) {
-	const removed = figmaCredentialCache.delete(instanceId);
+	const removed = notionCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed credential from cache: ${instanceId}`);
 	}
@@ -84,26 +131,26 @@ export function removeCachedCredential(instanceId) {
  * @returns {Object} Cache statistics
  */
 export function getCacheStatistics() {
-	const totalEntries = figmaCredentialCache.size;
-	const entries = Array.from(figmaCredentialCache.values());
-	
+	const totalEntries = notionCredentialCache.size;
+	const entries = Array.from(notionCredentialCache.values());
+
 	const now = new Date();
 	const expiredCount = entries.filter(entry => {
 		return entry.expires_at && new Date(entry.expires_at) < now;
 	}).length;
-	
+
 	const recentlyUsed = entries.filter(entry => {
 		const lastUsed = new Date(entry.last_used);
 		const hoursSinceUsed = (now - lastUsed) / (1000 * 60 * 60);
 		return hoursSinceUsed < 1;
 	}).length;
-	
+
 	return {
 		total_entries: totalEntries,
 		expired_entries: expiredCount,
 		recently_used: recentlyUsed,
-		cache_hit_rate_last_hour: recentlyUsed > 0 ? (recentlyUsed / totalEntries * 100).toFixed(2) : 0,
-		memory_usage_mb: (JSON.stringify(Array.from(figmaCredentialCache.entries())).length / 1024 / 1024).toFixed(2)
+		cache_hit_rate_last_hour: recentlyUsed > 0 ? ((recentlyUsed / totalEntries) * 100).toFixed(2) : 0,
+		memory_usage_mb: (JSON.stringify(Array.from(notionCredentialCache.entries())).length / 1024 / 1024).toFixed(2),
 	};
 }
 
@@ -112,7 +159,7 @@ export function getCacheStatistics() {
  * @returns {string[]} Array of cached instance IDs
  */
 export function getCachedInstanceIds() {
-	return Array.from(figmaCredentialCache.keys());
+	return Array.from(notionCredentialCache.keys());
 }
 
 /**
@@ -121,14 +168,14 @@ export function getCachedInstanceIds() {
  * @returns {boolean} True if instance is cached and valid
  */
 export function isInstanceCached(instanceId) {
-	const cached = figmaCredentialCache.get(instanceId);
+	const cached = notionCredentialCache.get(instanceId);
 	if (!cached) return false;
-	
+
 	// Check expiration
 	if (cached.expires_at && new Date(cached.expires_at) < new Date()) {
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -136,8 +183,8 @@ export function isInstanceCached(instanceId) {
  * Clear all cached credentials (for testing/restart)
  */
 export function clearCredentialCache() {
-	const count = figmaCredentialCache.size;
-	figmaCredentialCache.clear();
+	const count = notionCredentialCache.size;
+	notionCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} entries from credential cache`);
 }
 
@@ -147,7 +194,7 @@ export function clearCredentialCache() {
  * @returns {Object|null} Cache entry or null
  */
 export function peekCachedCredential(instanceId) {
-	return figmaCredentialCache.get(instanceId) || null;
+	return notionCredentialCache.get(instanceId) || null;
 }
 
 /**
@@ -157,31 +204,37 @@ export function peekCachedCredential(instanceId) {
  * @param {Object} updates - Updates to apply to cache entry
  * @param {string} [updates.status] - New instance status
  * @param {string} [updates.expires_at] - New expiration timestamp
- * @returns {boolean} True if cache entry was updated, false if not found
+ * @returns {Promise<boolean>} True if cache entry was updated, false if not found
  */
-export function updateCachedCredentialMetadata(instanceId, updates) {
-	const cached = figmaCredentialCache.get(instanceId);
-	if (!cached) {
-		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
-		return false;
+export async function updateCachedCredentialMetadata(instanceId, updates) {
+	const releaseLock = await acquireCacheLock(instanceId);
+	
+	try {
+		const cached = notionCredentialCache.get(instanceId);
+		if (!cached) {
+			console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
+			return false;
+		}
+
+		// Update metadata fields
+		if (updates.expires_at !== undefined) {
+			cached.expires_at = updates.expires_at;
+			console.log(`📅 Updated cached expiration for instance ${instanceId}: ${updates.expires_at}`);
+		}
+
+		if (updates.status !== undefined) {
+			cached.status = updates.status;
+			console.log(`🔄 Updated cached status for instance ${instanceId}: ${updates.status}`);
+		}
+
+		// Update last modified timestamp
+		cached.last_modified = new Date().toISOString();
+
+		notionCredentialCache.set(instanceId, cached);
+		return true;
+	} finally {
+		releaseLock();
 	}
-
-	// Update metadata fields
-	if (updates.expires_at !== undefined) {
-		cached.expires_at = updates.expires_at;
-		console.log(`📅 Updated cached expiration for instance ${instanceId}: ${updates.expires_at}`);
-	}
-
-	if (updates.status !== undefined) {
-		cached.status = updates.status;
-		console.log(`🔄 Updated cached status for instance ${instanceId}: ${updates.status}`);
-	}
-
-	// Update last modified timestamp
-	cached.last_modified = new Date().toISOString();
-
-	figmaCredentialCache.set(instanceId, cached);
-	return true;
 }
 
 /**
@@ -194,7 +247,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = new Date();
 
-	for (const [instanceId, cached] of figmaCredentialCache.entries()) {
+	for (const [instanceId, cached] of notionCredentialCache.entries()) {
 		let shouldRemove = false;
 		let removeReason = '';
 
@@ -211,7 +264,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 		}
 
 		if (shouldRemove) {
-			figmaCredentialCache.delete(instanceId);
+			notionCredentialCache.delete(instanceId);
 			removedCount++;
 			console.log(`🗑️ Removed ${removeReason} cache entry for instance: ${instanceId}`);
 		}

@@ -31,10 +31,20 @@ const SERVICE_CONFIG = {
   displayName: 'Slack',
   port: 49458,
   authType: 'oauth',
-  description: 'Slack is a channel-based messaging platform. With Slack, people can work together more effectively',
+  description: 'Slack workspace communication and collaboration platform',
   version: '1.0.0',
   iconPath: '/mcp-logos/slack.svg',
-  scopes: ['channels:history', 'chat:write', 'team:read', 'channels:read', 'users:read', 'reminders:write', 'reactions:read']
+  scopes: [
+    'channels:history',
+    'chat:write',
+    'team:read',
+    'channels:read',
+    'users:read',
+    'reminders:write',
+    'reactions:read',
+    'files:read',
+    'files:write'
+  ]
 };
 
 console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVICE_CONFIG.port}`);
@@ -80,7 +90,8 @@ app.post('/cache-tokens', async (req, res) => {
       bearerToken: tokens.access_token,
       refreshToken: tokens.refresh_token,
       expiresAt: tokens.expires_at || (Date.now() + (tokens.expires_in * 1000)),
-      user_id: tokens.user_id || 'unknown'
+      user_id: tokens.user_id || 'unknown',
+      team_id: tokens.team_id || 'unknown'
     });
 
     console.log(`✅ OAuth tokens cached for instance: ${instance_id}`);
@@ -125,6 +136,8 @@ app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
     issuer: `https://slack.com`,
     authorization_endpoint: 'https://slack.com/oauth/v2/authorize',
     token_endpoint: 'https://slack.com/api/oauth.v2.access',
+    userinfo_endpoint: 'https://slack.com/api/auth.test',
+    revocation_endpoint: 'https://slack.com/api/auth.revoke',
     scopes_supported: SERVICE_CONFIG.scopes,
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
@@ -140,7 +153,9 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
       instanceId: req.instanceId,
       message: 'Instance-specific health check',
       authType: 'oauth',
-      scopes: SERVICE_CONFIG.scopes
+      scopes: SERVICE_CONFIG.scopes,
+      userId: req.userId,
+      teamId: req.teamId
     };
     res.json(healthStatus);
   } catch (error) {
@@ -212,6 +227,7 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   }
 });
 
+
 // Debug endpoint for cache monitoring (development only)
 if (process.env.NODE_ENV === 'development') {
   app.get('/debug/cache-status', (_, res) => {
@@ -241,6 +257,12 @@ if (process.env.NODE_ENV === 'development') {
 // Error handling middleware with logging
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
+/**
+ * @param {any} err
+ * @param {any} req
+ * @param {any} res
+ * @param {any} next
+ */
 app.use((err, req, res, next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);

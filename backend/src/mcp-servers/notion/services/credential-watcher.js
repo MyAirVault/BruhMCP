@@ -1,11 +1,16 @@
 /**
  * Credential watcher service for background cache maintenance
  * Phase 2: Token Management and Caching System implementation
- * 
+ *
  * Runs every 30 seconds to monitor cached credentials and perform cleanup
  */
 
-import { getCachedInstanceIds, peekCachedCredential, removeCachedCredential, getCacheStatistics } from './credential-cache.js';
+import {
+	getCachedInstanceIds,
+	peekCachedCredential,
+	removeCachedCredential,
+	getCacheStatistics,
+} from './credential-cache.js';
 
 // Watcher configuration
 const WATCHER_INTERVAL_MS = 30000; // 30 seconds
@@ -27,15 +32,15 @@ export function startCredentialWatcher() {
 	}
 
 	console.log('🚀 Starting Figma credential watcher (30-second intervals)');
-	
+
 	// Run initial cleanup
 	performCacheMaintenanceCheck();
-	
+
 	// Start recurring watcher
 	watcherInterval = setInterval(() => {
 		performCacheMaintenanceCheck();
 	}, WATCHER_INTERVAL_MS);
-	
+
 	isWatcherRunning = true;
 	console.log('✅ Credential watcher started successfully');
 }
@@ -53,7 +58,7 @@ export function stopCredentialWatcher() {
 		clearInterval(watcherInterval);
 		watcherInterval = null;
 	}
-	
+
 	isWatcherRunning = false;
 	console.log('📴 Credential watcher stopped');
 }
@@ -74,70 +79,76 @@ function performCacheMaintenanceCheck() {
 	try {
 		const startTime = Date.now();
 		const instanceIds = getCachedInstanceIds();
-		
+
 		if (instanceIds.length === 0) {
 			return; // No cached credentials to check
 		}
 
 		console.log(`🔍 Credential watcher: Checking ${instanceIds.length} cached instances`);
-		
+
 		let expiredCount = 0;
 		let staleCount = 0;
 		let healthyCount = 0;
-		
+
 		const currentTime = new Date();
-		
+
 		for (const instanceId of instanceIds) {
 			const cached = peekCachedCredential(instanceId);
-			
+
 			if (!cached) {
 				continue; // Already removed
 			}
-			
+
 			// Check for expired instances (with 30-second tolerance)
 			if (cached.expires_at) {
 				const expirationTime = new Date(cached.expires_at);
 				const timeUntilExpiration = expirationTime - currentTime;
-				
+
 				if (timeUntilExpiration <= EXPIRATION_TOLERANCE_MS) {
-					console.log(`⏰ Removing credential for instance expiring soon: ${instanceId} (expires in ${Math.round(timeUntilExpiration / 1000)}s)`);
+					console.log(
+						`⏰ Removing credential for instance expiring soon: ${instanceId} (expires in ${Math.round(timeUntilExpiration / 1000)}s)`
+					);
 					removeCachedCredential(instanceId);
 					expiredCount++;
 					continue;
 				}
 			}
-			
+
 			// Check for stale credentials (unused for 24+ hours)
 			const lastUsed = new Date(cached.last_used);
 			const hoursSinceUsed = (currentTime - lastUsed) / (1000 * 60 * 60);
-			
+
 			if (hoursSinceUsed >= STALE_THRESHOLD_HOURS) {
-				console.log(`🧹 Removing stale credential: ${instanceId} (unused for ${Math.round(hoursSinceUsed)} hours)`);
+				console.log(
+					`🧹 Removing stale credential: ${instanceId} (unused for ${Math.round(hoursSinceUsed)} hours)`
+				);
 				removeCachedCredential(instanceId);
 				staleCount++;
 				continue;
 			}
-			
+
 			healthyCount++;
 		}
-		
+
 		// Check cache size limits
 		const remainingInstanceIds = getCachedInstanceIds();
 		if (remainingInstanceIds.length > MAX_CACHE_SIZE) {
 			const excessCount = remainingInstanceIds.length - MAX_CACHE_SIZE;
 			console.log(`⚠️ Cache size limit exceeded, removing ${excessCount} least recently used entries`);
-			
+
 			// Get all entries with last_used timestamps
-			const entriesWithUsage = remainingInstanceIds.map(id => ({
-				instanceId: id,
-				cached: peekCachedCredential(id)
-			})).filter(entry => entry.cached);
-			
+			const entriesWithUsage = remainingInstanceIds
+				.map(id => ({
+					instanceId: id,
+					cached: peekCachedCredential(id),
+				}))
+				.filter(entry => entry.cached);
+
 			// Sort by last_used (oldest first)
 			entriesWithUsage.sort((a, b) => {
 				return new Date(a.cached.last_used) - new Date(b.cached.last_used);
 			});
-			
+
 			// Remove oldest entries
 			for (let i = 0; i < excessCount; i++) {
 				const entry = entriesWithUsage[i];
@@ -145,19 +156,20 @@ function performCacheMaintenanceCheck() {
 				removeCachedCredential(entry.instanceId);
 			}
 		}
-		
+
 		const duration = Date.now() - startTime;
-		
+
 		// Log maintenance summary (only if actions were taken)
 		if (expiredCount > 0 || staleCount > 0) {
-			console.log(`🧽 Cache maintenance completed in ${duration}ms: ${expiredCount} expired, ${staleCount} stale, ${healthyCount} healthy`);
+			console.log(
+				`🧽 Cache maintenance completed in ${duration}ms: ${expiredCount} expired, ${staleCount} stale, ${healthyCount} healthy`
+			);
 		}
-		
+
 		// Log cache statistics every 10 minutes (20 watcher cycles)
 		if (Math.floor(Date.now() / 1000) % 600 < 30) {
 			logCacheStatistics();
 		}
-		
 	} catch (error) {
 		console.error('❌ Error during credential cache maintenance:', error);
 	}
@@ -175,7 +187,7 @@ function logCacheStatistics() {
 			recently_used: stats.recently_used,
 			cache_hit_rate: `${stats.cache_hit_rate_last_hour}%`,
 			memory_usage: `${stats.memory_usage_mb}MB`,
-			watcher_status: isWatcherRunning ? 'running' : 'stopped'
+			watcher_status: isWatcherRunning ? 'running' : 'stopped',
 		});
 	} catch (error) {
 		console.error('❌ Error logging cache statistics:', error);
@@ -202,6 +214,8 @@ export function getWatcherStatus() {
 		expiration_tolerance_ms: EXPIRATION_TOLERANCE_MS,
 		stale_threshold_hours: STALE_THRESHOLD_HOURS,
 		max_cache_size: MAX_CACHE_SIZE,
-		uptime_seconds: isWatcherRunning ? Math.floor((Date.now() - (watcherInterval?._idleStart || Date.now())) / 1000) : 0
+		uptime_seconds: isWatcherRunning
+			? Math.floor((Date.now() - (watcherInterval?._idleStart || Date.now())) / 1000)
+			: 0,
 	};
 }

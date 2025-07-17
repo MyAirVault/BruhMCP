@@ -19,9 +19,9 @@ import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
 import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/auth/credential-cache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/auth/credential-watcher.js';
+import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/session/handler-sessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 

@@ -28,68 +28,64 @@
     ],
     "oauth": {
       "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
-      "scopes": ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/userinfo.email"],
+      "scopes": [
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/userinfo.email"
+      ],
       "authorization_url": "https://accounts.google.com/o/oauth2/auth",
       "token_url": "https://oauth2.googleapis.com/token"
     }
   },
   "tools": [
     {
-      "name": "create_file",
-      "description": "Create a new file in Google Drive",
+      "name": "list_files",
+      "description": "List files and folders in Google Drive",
       "endpoint": "/v3/files",
-      "method": "POST",
+      "method": "GET",
       "parameters": {
-        "name": {
-          "type": "string",
-          "required": true,
-          "description": "Name of the file to create"
-        },
-        "parents": {
-          "type": "array",
-          "required": false,
-          "description": "Parent folder IDs"
-        },
-        "mimeType": {
+        "query": {
           "type": "string",
           "required": false,
-          "description": "MIME type of the file"
+          "description": "Search query using Google Drive search syntax"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of files to return (1-1000)"
+        },
+        "orderBy": {
+          "type": "string",
+          "required": false,
+          "description": "Field to sort by"
+        },
+        "folderId": {
+          "type": "string",
+          "required": false,
+          "description": "ID of folder to list files from"
+        },
+        "includeItemsFromAllDrives": {
+          "type": "boolean",
+          "required": false,
+          "description": "Include items from all drives/shared drives"
         }
       }
     },
     {
-      "name": "create_folder",
-      "description": "Create a new folder in Google Drive",
-      "endpoint": "/v3/files",
-      "method": "POST",
-      "parameters": {
-        "name": {
-          "type": "string",
-          "required": true,
-          "description": "Name of the folder to create"
-        },
-        "parents": {
-          "type": "array",
-          "required": false,
-          "description": "Parent folder IDs"
-        }
-      }
-    },
-    {
-      "name": "create_comment",
-      "description": "Create a comment on a file",
-      "endpoint": "/v3/files/{fileId}/comments",
-      "method": "POST",
+      "name": "get_file_metadata",
+      "description": "Get metadata for a specific file or folder",
+      "endpoint": "/v3/files/{fileId}",
+      "method": "GET",
       "parameters": {
         "fileId": {
           "type": "string",
           "required": true,
-          "description": "ID of the file to comment on"
+          "description": "ID of the file or folder"
         },
-        "content": {
+        "fields": {
           "type": "string",
-          "required": true,
-          "description": "Comment content"
+          "required": false,
+          "description": "Comma-separated list of fields to include"
         }
       }
     },
@@ -104,10 +100,61 @@
           "required": true,
           "description": "ID of the file to download"
         },
-        "alt": {
+        "localPath": {
+          "type": "string",
+          "required": true,
+          "description": "Local path where the file should be saved"
+        },
+        "exportFormat": {
           "type": "string",
           "required": false,
-          "description": "Download format (media for binary)"
+          "description": "Export format for Google Workspace files"
+        }
+      }
+    },
+    {
+      "name": "upload_file",
+      "description": "Upload a file to Google Drive",
+      "endpoint": "/upload/v3/files",
+      "method": "POST",
+      "parameters": {
+        "localPath": {
+          "type": "string",
+          "required": true,
+          "description": "Local path to the file to upload"
+        },
+        "fileName": {
+          "type": "string",
+          "required": true,
+          "description": "Name for the file in Google Drive"
+        },
+        "parentFolderId": {
+          "type": "string",
+          "required": false,
+          "description": "ID of the parent folder"
+        },
+        "mimeType": {
+          "type": "string",
+          "required": false,
+          "description": "MIME type of the file"
+        }
+      }
+    },
+    {
+      "name": "create_folder",
+      "description": "Create a new folder in Google Drive",
+      "endpoint": "/v3/files",
+      "method": "POST",
+      "parameters": {
+        "folderName": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the folder to create"
+        },
+        "parentFolderId": {
+          "type": "string",
+          "required": false,
+          "description": "ID of the parent folder"
         }
       }
     },
@@ -120,45 +167,136 @@
         "fileId": {
           "type": "string",
           "required": true,
-          "description": "ID of the file to delete"
+          "description": "ID of the file or folder to delete"
         }
       }
     },
     {
-      "name": "get_file_metadata",
-      "description": "Get metadata for a specific file",
+      "name": "copy_file",
+      "description": "Copy a file in Google Drive",
+      "endpoint": "/v3/files/{fileId}/copy",
+      "method": "POST",
+      "parameters": {
+        "fileId": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the file to copy"
+        },
+        "newName": {
+          "type": "string",
+          "required": true,
+          "description": "Name for the copied file"
+        },
+        "parentFolderId": {
+          "type": "string",
+          "required": false,
+          "description": "ID of the parent folder for the copy"
+        }
+      }
+    },
+    {
+      "name": "move_file",
+      "description": "Move a file to a different folder in Google Drive",
       "endpoint": "/v3/files/{fileId}",
+      "method": "PATCH",
+      "parameters": {
+        "fileId": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the file to move"
+        },
+        "newParentFolderId": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the new parent folder"
+        },
+        "removeFromParents": {
+          "type": "array",
+          "required": false,
+          "description": "IDs of current parent folders to remove from"
+        }
+      }
+    },
+    {
+      "name": "share_file",
+      "description": "Share a file or folder with specific users or make it publicly accessible",
+      "endpoint": "/v3/files/{fileId}/permissions",
+      "method": "POST",
+      "parameters": {
+        "fileId": {
+          "type": "string",
+          "required": true,
+          "description": "ID of the file or folder to share"
+        },
+        "type": {
+          "type": "string",
+          "required": true,
+          "description": "Type of permission (user, group, domain, anyone)"
+        },
+        "role": {
+          "type": "string",
+          "required": true,
+          "description": "Role/permission level"
+        },
+        "emailAddress": {
+          "type": "string",
+          "required": false,
+          "description": "Email address for user/group types"
+        },
+        "domain": {
+          "type": "string",
+          "required": false,
+          "description": "Domain name for domain type"
+        },
+        "sendNotificationEmail": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether to send notification email"
+        }
+      }
+    },
+    {
+      "name": "search_files",
+      "description": "Search for files in Google Drive using advanced search syntax",
+      "endpoint": "/v3/files",
+      "method": "GET",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query using Google Drive search syntax"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of results to return"
+        },
+        "orderBy": {
+          "type": "string",
+          "required": false,
+          "description": "Field to sort by"
+        }
+      }
+    },
+    {
+      "name": "get_file_permissions",
+      "description": "Get sharing permissions for a file or folder",
+      "endpoint": "/v3/files/{fileId}/permissions",
       "method": "GET",
       "parameters": {
         "fileId": {
           "type": "string",
           "required": true,
-          "description": "ID of the file"
-        },
-        "fields": {
-          "type": "string",
-          "required": false,
-          "description": "Specific fields to return"
+          "description": "ID of the file or folder"
         }
       }
     },
     {
-      "name": "list_files",
-      "description": "List files and folders in Google Drive",
-      "endpoint": "/v3/files",
+      "name": "get_drive_info",
+      "description": "Get information about the user's Google Drive storage",
+      "endpoint": "/v3/about",
       "method": "GET",
-      "parameters": {
-        "q": {
-          "type": "string",
-          "required": false,
-          "description": "Query string to filter files"
-        },
-        "pageSize": {
-          "type": "number",
-          "required": false,
-          "description": "Maximum number of files to return"
-        }
-      }
+      "parameters": {}
     }
   ]
 }

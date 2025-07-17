@@ -1,16 +1,18 @@
 /**
- * Database service for Figma MCP instance management
+ * Database service for Notion MCP instance management
  * Handles instance credential lookup and validation
+ * Updated to support OAuth authentication
  */
 
 import { pool } from '../../../db/config.js';
 
 /**
- * Get instance credentials and validate access
+ * Lookup instance credentials for OAuth authentication
  * @param {string} instanceId - UUID of the service instance
+ * @param {string} serviceName - Name of the MCP service (e.g., 'notion')
  * @returns {Promise<Object|null>} Instance data with credentials or null if not found
  */
-export async function getInstanceCredentials(instanceId) {
+export async function lookupInstanceCredentials(instanceId, serviceName = 'notion') {
 	const query = `
     SELECT 
       ms.instance_id,
@@ -25,23 +27,22 @@ export async function getInstanceCredentials(instanceId) {
       m.display_name,
       m.type as auth_type,
       m.is_active as service_active,
-      c.api_key,
       c.client_id,
       c.client_secret,
-      c.access_token,
-      c.refresh_token,
-      c.token_expires_at,
+      ms.access_token,
+      ms.refresh_token,
+      ms.token_expires_at,
+      ms.scope,
       c.oauth_completed_at
     FROM mcp_service_table ms
     JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
     LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
     WHERE ms.instance_id = $1
-      AND m.mcp_service_name = 'figma'
-      AND ms.oauth_status = 'completed'
+      AND m.mcp_service_name = $2
   `;
 
 	try {
-		const result = await pool.query(query, [instanceId]);
+		const result = await pool.query(query, [instanceId, serviceName]);
 		return result.rows[0] || null;
 	} catch (error) {
 		console.error('Database error getting instance credentials:', error);
@@ -116,6 +117,15 @@ export function validateInstanceAccess(instance) {
 	}
 
 	// Check if credentials are available based on auth type
+	if (instance.auth_type === 'oauth' && !instance.client_id) {
+		return {
+			isValid: false,
+			error: 'No OAuth client credentials configured for this instance',
+			statusCode: 500,
+		};
+	}
+
+	// Legacy API key support (deprecated)
 	if (instance.auth_type === 'api_key' && !instance.api_key) {
 		return {
 			isValid: false,
@@ -163,7 +173,7 @@ export function validateInstanceAccess(instance) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<void>}
  */
-export async function updateUsageTracking(instanceId) {
+export async function updateInstanceUsage(instanceId) {
 	const query = `
     UPDATE mcp_service_table 
     SET 
@@ -182,20 +192,36 @@ export async function updateUsageTracking(instanceId) {
 }
 
 /**
- * Get API key for Figma service instance
- * @param {{ auth_type?: string, api_key?: string }} instance - Instance data from database
+ * Legacy function - kept for backward compatibility
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Promise<void>}
+ */
+export async function updateUsageTracking(instanceId) {
+	return updateInstanceUsage(instanceId);
+}
+
+/**
+ * Get API key for Notion service instance (legacy)
+ * @param {{ auth_type?: string, api_key?: string, access_token?: string }} instance - Instance data from database
  */
 export function getApiKeyForInstance(instance) {
 	if (instance.auth_type === 'api_key') {
 		return instance.api_key;
 	}
 
-	// For OAuth services, we might need to handle token refresh here
-	// For now, return the stored credentials
+	// For OAuth services, return access token
 	if (instance.auth_type === 'oauth') {
-		// TODO: Implement OAuth token handling
-		throw new Error('OAuth authentication not yet implemented');
+		return instance.access_token;
 	}
 
 	throw new Error('Invalid authentication type');
+}
+
+/**
+ * Get instance credentials (legacy function name)
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Promise<Object|null>} Instance data with credentials or null if not found
+ */
+export async function getInstanceCredentials(instanceId) {
+	return lookupInstanceCredentials(instanceId, 'notion');
 }

@@ -9,7 +9,7 @@ INSERT INTO mcp_table (
 ) VALUES (
     'slack',
     'Slack',
-    'Team communication and collaboration platform',
+    'Slack workspace communication and collaboration platform - send messages, manage channels, and interact with your team',
     '/mcp-logos/slack.svg',
     49458,
     'oauth'

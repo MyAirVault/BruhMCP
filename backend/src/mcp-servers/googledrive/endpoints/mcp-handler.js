@@ -9,6 +9,22 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
+// Import API functions
+import { 
+  listFiles, 
+  getFileMetadata, 
+  downloadFile, 
+  uploadFile, 
+  createFolder,
+  deleteFile,
+  copyFile,
+  moveFile,
+  shareFile,
+  searchFiles,
+  getFilePermissions,
+  getDriveInfo
+} from '../api/googledrive-api.js';
+
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -52,27 +68,12 @@ export class GoogleDriveMCPHandler {
 				folderId: z.string().optional().describe("ID of folder to list files from (leave empty for root)"),
 				includeItemsFromAllDrives: z.boolean().optional().default(false).describe("Include items from all drives/shared drives")
 			},
-			async ({ query, maxResults, orderBy, folderId, includeItemsFromAllDrives }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: list_files for ${this.serviceConfig.name}`);
 				try {
-					const params = new URLSearchParams();
-					if (query) params.append('q', query);
-					if (folderId) params.append('q', `'${folderId}' in parents`);
-					params.append('pageSize', maxResults.toString());
-					params.append('orderBy', orderBy);
-					params.append('includeItemsFromAllDrives', includeItemsFromAllDrives.toString());
-					params.append('supportsAllDrives', 'true');
-					
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						}
-					});
-					
-					const data = await response.json();
+					const result = await listFiles(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error listing files:`, error);
@@ -90,25 +91,14 @@ export class GoogleDriveMCPHandler {
 			"Get metadata for a specific file or folder",
 			{
 				fileId: z.string().describe("ID of the file or folder"),
-				fields: z.string().optional().default("id,name,mimeType,parents,createdTime,modifiedTime,size,webViewLink,webContentLink").describe("Comma-separated list of fields to include")
+				fields: z.string().optional().default("id,name,mimeType,parents,createdTime,modifiedTime,size,webViewLink,webContentLink,permissions,shared,starred,trashed").describe("Comma-separated list of fields to include")
 			},
-			async ({ fileId, fields }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: get_file_metadata for ${this.serviceConfig.name}`);
 				try {
-					const params = new URLSearchParams();
-					params.append('fields', fields);
-					params.append('supportsAllDrives', 'true');
-					
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?${params.toString()}`, {
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						}
-					});
-					
-					const data = await response.json();
+					const result = await getFileMetadata(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error getting file metadata:`, error);
@@ -129,38 +119,12 @@ export class GoogleDriveMCPHandler {
 				localPath: z.string().describe("Local path where the file should be saved"),
 				exportFormat: z.string().optional().describe("Export format for Google Workspace files (e.g., 'application/pdf', 'text/plain')")
 			},
-			async ({ fileId, localPath, exportFormat }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: download_file for ${this.serviceConfig.name}`);
 				try {
-					let url;
-					if (exportFormat) {
-						url = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=${encodeURIComponent(exportFormat)}`;
-					} else {
-						url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
-					}
-					
-					const response = await fetch(url, {
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`
-						}
-					});
-					
-					if (!response.ok) {
-						throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-					}
-					
-					const fs = await import('fs/promises');
-					const path = await import('path');
-					
-					// Create directory if it doesn't exist
-					await fs.mkdir(path.dirname(localPath), { recursive: true });
-					
-					// Write file
-					const arrayBuffer = await response.arrayBuffer();
-					await fs.writeFile(localPath, Buffer.from(arrayBuffer));
-					
+					const result = await downloadFile(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: `File downloaded successfully to: ${localPath}` }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error downloading file:`, error);
@@ -182,64 +146,12 @@ export class GoogleDriveMCPHandler {
 				parentFolderId: z.string().optional().describe("ID of the parent folder (leave empty for root)"),
 				mimeType: z.string().optional().describe("MIME type of the file (auto-detected if not provided)")
 			},
-			async ({ localPath, fileName, parentFolderId, mimeType }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: upload_file for ${this.serviceConfig.name}`);
 				try {
-					const fs = await import('fs/promises');
-					const path = await import('path');
-					
-					const fileContent = await fs.readFile(localPath);
-					
-					// Auto-detect MIME type if not provided
-					if (!mimeType) {
-						const extension = path.extname(localPath).toLowerCase();
-						const mimeTypes = {
-							'.pdf': 'application/pdf',
-							'.txt': 'text/plain',
-							'.doc': 'application/msword',
-							'.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-							'.xls': 'application/vnd.ms-excel',
-							'.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-							'.ppt': 'application/vnd.ms-powerpoint',
-							'.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-							'.jpg': 'image/jpeg',
-							'.jpeg': 'image/jpeg',
-							'.png': 'image/png',
-							'.gif': 'image/gif',
-							'.mp4': 'video/mp4',
-							'.mp3': 'audio/mpeg',
-							'.zip': 'application/zip',
-							'.json': 'application/json',
-							'.html': 'text/html',
-							'.css': 'text/css',
-							'.js': 'text/javascript'
-						};
-						mimeType = mimeTypes[extension] || 'application/octet-stream';
-					}
-					
-					const metadata = {
-						name: fileName
-					};
-					
-					if (parentFolderId) {
-						metadata.parents = [parentFolderId];
-					}
-					
-					const formData = new FormData();
-					formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-					formData.append('file', new Blob([fileContent], { type: mimeType }));
-					
-					const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true', {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`
-						},
-						body: formData
-					});
-					
-					const data = await response.json();
+					const result = await uploadFile(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error uploading file:`, error);
@@ -259,30 +171,12 @@ export class GoogleDriveMCPHandler {
 				folderName: z.string().describe("Name of the folder to create"),
 				parentFolderId: z.string().optional().describe("ID of the parent folder (leave empty for root)")
 			},
-			async ({ folderName, parentFolderId }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: create_folder for ${this.serviceConfig.name}`);
 				try {
-					const metadata = {
-						name: folderName,
-						mimeType: 'application/vnd.google-apps.folder'
-					};
-					
-					if (parentFolderId) {
-						metadata.parents = [parentFolderId];
-					}
-					
-					const response = await fetch('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify(metadata)
-					});
-					
-					const data = await response.json();
+					const result = await createFolder(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error creating folder:`, error);
@@ -301,24 +195,13 @@ export class GoogleDriveMCPHandler {
 			{
 				fileId: z.string().describe("ID of the file or folder to delete")
 			},
-			async ({ fileId }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: delete_file for ${this.serviceConfig.name}`);
 				try {
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?supportsAllDrives=true`, {
-						method: 'DELETE',
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`
-						}
-					});
-					
-					if (response.ok) {
-						return {
-							content: [{ type: 'text', text: `File deleted successfully` }]
-						};
-					} else {
-						const error = await response.json();
-						throw new Error(JSON.stringify(error));
-					}
+					const result = await deleteFile(args, this.bearerToken);
+					return {
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+					};
 				} catch (error) {
 					console.error(`❌ Error deleting file:`, error);
 					return {
@@ -338,29 +221,12 @@ export class GoogleDriveMCPHandler {
 				newName: z.string().describe("Name for the copied file"),
 				parentFolderId: z.string().optional().describe("ID of the parent folder for the copy (leave empty for same location)")
 			},
-			async ({ fileId, newName, parentFolderId }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: copy_file for ${this.serviceConfig.name}`);
 				try {
-					const metadata = {
-						name: newName
-					};
-					
-					if (parentFolderId) {
-						metadata.parents = [parentFolderId];
-					}
-					
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/copy?supportsAllDrives=true`, {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify(metadata)
-					});
-					
-					const data = await response.json();
+					const result = await copyFile(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error copying file:`, error);
@@ -381,28 +247,12 @@ export class GoogleDriveMCPHandler {
 				newParentFolderId: z.string().describe("ID of the new parent folder"),
 				removeFromParents: z.array(z.string()).optional().describe("IDs of current parent folders to remove from")
 			},
-			async ({ fileId, newParentFolderId, removeFromParents }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: move_file for ${this.serviceConfig.name}`);
 				try {
-					const params = new URLSearchParams();
-					params.append('addParents', newParentFolderId);
-					params.append('supportsAllDrives', 'true');
-					
-					if (removeFromParents && removeFromParents.length > 0) {
-						params.append('removeParents', removeFromParents.join(','));
-					}
-					
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?${params.toString()}`, {
-						method: 'PATCH',
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						}
-					});
-					
-					const data = await response.json();
+					const result = await moveFile(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error moving file:`, error);
@@ -426,33 +276,12 @@ export class GoogleDriveMCPHandler {
 				domain: z.string().optional().describe("Domain name (required for domain type)"),
 				sendNotificationEmail: z.boolean().optional().default(true).describe("Whether to send notification email")
 			},
-			async ({ fileId, type, role, emailAddress, domain, sendNotificationEmail }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: share_file for ${this.serviceConfig.name}`);
 				try {
-					const permission = {
-						type,
-						role
-					};
-					
-					if (emailAddress) permission.emailAddress = emailAddress;
-					if (domain) permission.domain = domain;
-					
-					const params = new URLSearchParams();
-					params.append('supportsAllDrives', 'true');
-					params.append('sendNotificationEmail', sendNotificationEmail.toString());
-					
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions?${params.toString()}`, {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify(permission)
-					});
-					
-					const data = await response.json();
+					const result = await shareFile(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error sharing file:`, error);
@@ -473,26 +302,12 @@ export class GoogleDriveMCPHandler {
 				maxResults: z.number().min(1).max(1000).optional().default(10).describe("Maximum number of results to return"),
 				orderBy: z.enum(["createdTime", "folder", "modifiedByMeTime", "modifiedTime", "name", "quotaBytesUsed", "recency", "sharedWithMeTime", "starred", "viewedByMeTime"]).optional().default("modifiedTime").describe("Field to sort by")
 			},
-			async ({ query, maxResults, orderBy }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: search_files for ${this.serviceConfig.name}`);
 				try {
-					const params = new URLSearchParams();
-					params.append('q', query);
-					params.append('pageSize', maxResults.toString());
-					params.append('orderBy', orderBy);
-					params.append('supportsAllDrives', 'true');
-					params.append('includeItemsFromAllDrives', 'true');
-					
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						}
-					});
-					
-					const data = await response.json();
+					const result = await searchFiles(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error searching files:`, error);
@@ -511,19 +326,12 @@ export class GoogleDriveMCPHandler {
 			{
 				fileId: z.string().describe("ID of the file or folder")
 			},
-			async ({ fileId }) => {
+			async (args) => {
 				console.log(`🔧 Tool call: get_file_permissions for ${this.serviceConfig.name}`);
 				try {
-					const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions?supportsAllDrives=true`, {
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						}
-					});
-					
-					const data = await response.json();
+					const result = await getFilePermissions(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error getting file permissions:`, error);
@@ -540,19 +348,12 @@ export class GoogleDriveMCPHandler {
 			"get_drive_info",
 			"Get information about the user's Google Drive storage",
 			{},
-			async () => {
+			async (args) => {
 				console.log(`🔧 Tool call: get_drive_info for ${this.serviceConfig.name}`);
 				try {
-					const response = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota,user', {
-						headers: {
-							'Authorization': `Bearer ${this.bearerToken}`,
-							'Content-Type': 'application/json'
-						}
-					});
-					
-					const data = await response.json();
+					const result = await getDriveInfo(args, this.bearerToken);
 					return {
-						content: [{ type: 'text', text: JSON.stringify(data, null, 2) }]
+						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};
 				} catch (error) {
 					console.error(`❌ Error getting drive info:`, error);

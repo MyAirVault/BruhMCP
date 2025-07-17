@@ -23,23 +23,51 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
  * @returns {GoogleDriveMCPHandler} Persistent handler instance
  */
 export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
+	// Validate input parameters
+	if (!instanceId || typeof instanceId !== 'string') {
+		throw new Error('Valid instanceId is required');
+	}
+	
+	if (!serviceConfig || typeof serviceConfig !== 'object') {
+		throw new Error('Valid serviceConfig is required');
+	}
+	
+	if (!bearerToken || typeof bearerToken !== 'string') {
+		throw new Error('Valid bearerToken is required');
+	}
+	
 	let session = handlerSessions.get(instanceId);
 	
 	if (!session) {
 		// Create new handler instance for this instanceId
 		console.log(`🔧 Creating new Google Drive handler session for instance: ${instanceId}`);
-		const handler = new GoogleDriveMCPHandler(serviceConfig, bearerToken);
+		
+		let handler;
+		try {
+			handler = new GoogleDriveMCPHandler(serviceConfig, bearerToken);
+		} catch (error) {
+			console.error(`❌ Failed to create handler for instance ${instanceId}:`, error);
+			throw new Error(`Failed to create handler: ${error.message}`);
+		}
 		
 		session = {
 			handler,
 			lastAccessed: Date.now(),
 			instanceId,
-			createdAt: Date.now()
+			createdAt: Date.now(),
+			isValid: true
 		};
 		
 		handlerSessions.set(instanceId, session);
 		console.log(`✅ Google Drive handler session created. Total sessions: ${handlerSessions.size}`);
 	} else {
+		// Validate existing session
+		if (!session.handler || !session.isValid) {
+			console.log(`🔄 Recreating invalid session for instance: ${instanceId}`);
+			handlerSessions.delete(instanceId);
+			return getOrCreateHandler(instanceId, serviceConfig, bearerToken);
+		}
+		
 		console.log(`♻️  Reusing existing Google Drive handler session for instance: ${instanceId}`);
 		
 		// Update bearer token in case it was refreshed
@@ -51,6 +79,13 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	
 	// Update last accessed timestamp
 	session.lastAccessed = Date.now();
+	
+	// Validate handler state before returning
+	if (!session.handler || typeof session.handler !== 'object') {
+		console.error(`❌ Invalid handler state for instance ${instanceId}`);
+		handlerSessions.delete(instanceId);
+		throw new Error('Handler is in invalid state');
+	}
 	
 	return session.handler;
 }
@@ -99,17 +134,52 @@ function cleanupExpiredSessions() {
 	let removedCount = 0;
 	
 	for (const [instanceId, session] of handlerSessions) {
-		const idleTime = now - session.lastAccessed;
+		let shouldRemove = false;
+		let reason = '';
 		
+		// Check for expired sessions
+		const idleTime = now - session.lastAccessed;
 		if (idleTime > SESSION_TIMEOUT) {
+			shouldRemove = true;
+			reason = `idle for ${Math.floor(idleTime / 60000)} minutes`;
+		}
+		
+		// Check for invalid sessions
+		if (!session.handler || !session.isValid || session.handler === null) {
+			shouldRemove = true;
+			reason = reason ? `${reason}, invalid handler` : 'invalid handler';
+		}
+		
+		// Check for missing required properties
+		if (!session.instanceId || !session.createdAt || !session.lastAccessed) {
+			shouldRemove = true;
+			reason = reason ? `${reason}, missing properties` : 'missing properties';
+		}
+		
+		// Check for corrupted timestamps
+		if (typeof session.createdAt !== 'number' || typeof session.lastAccessed !== 'number') {
+			shouldRemove = true;
+			reason = reason ? `${reason}, corrupted timestamps` : 'corrupted timestamps';
+		}
+		
+		if (shouldRemove) {
+			try {
+				// Clean up handler if it exists
+				if (session.handler && typeof session.handler.cleanup === 'function') {
+					session.handler.cleanup();
+				}
+			} catch (cleanupError) {
+				console.error(`❌ Error cleaning up handler for ${instanceId}:`, cleanupError);
+			}
+			
 			handlerSessions.delete(instanceId);
 			removedCount++;
-			console.log(`🧹 Cleaned up expired Google Drive session: ${instanceId} (idle for ${Math.floor(idleTime / 60000)} minutes)`);
+			console.log(`🧹 Cleaned up Google Drive session: ${instanceId} (${reason})`);
 		}
 	}
 	
 	if (removedCount > 0) {
-		console.log(`🧹 Google Drive session cleanup complete. Removed ${removedCount} expired sessions. Active sessions: ${handlerSessions.size}`);
+		console.log(`🧹 Google Drive session cleanup complete. Removed ${removedCount} sessions. Active sessions: ${handlerSessions.size}`);
 	}
 }
 

@@ -1,5 +1,5 @@
 /**
- * Credential watcher service for Gmail MCP OAuth token management
+ * Credential watcher service for Reddit MCP OAuth token management
  * Monitors and automatically refreshes OAuth Bearer tokens before expiration
  */
 
@@ -28,13 +28,13 @@ let watcherStats = {
  */
 export function startCredentialWatcher() {
   if (watcherInterval) {
-    console.warn('⚠️  Gmail credential watcher already running');
+    console.warn('⚠️  Reddit credential watcher already running');
     return;
   }
 
   watcherInterval = setInterval(runCredentialWatcher, WATCHER_INTERVAL);
   watcherStats.isRunning = true;
-  console.log('🔍 Started Gmail OAuth credential watcher service');
+  console.log('🔍 Started Reddit OAuth credential watcher service');
 }
 
 /**
@@ -45,7 +45,7 @@ export function stopCredentialWatcher() {
     clearInterval(watcherInterval);
     watcherInterval = null;
     watcherStats.isRunning = false;
-    console.log('🛑 Stopped Gmail OAuth credential watcher service');
+    console.log('🛑 Stopped Reddit OAuth credential watcher service');
   }
 }
 
@@ -76,7 +76,7 @@ async function runCredentialWatcher() {
   watcherStats.lastRun = new Date().toISOString();
   watcherStats.totalRuns++;
 
-  console.log(`🔍 Running Gmail OAuth credential watcher cycle #${watcherStats.totalRuns}`);
+  console.log(`🔍 Running Reddit OAuth credential watcher cycle #${watcherStats.totalRuns}`);
 
   try {
     // Get all cached instance IDs
@@ -107,10 +107,10 @@ async function runCredentialWatcher() {
     watcherStats.entriesCleanedUp += cleanupCount;
 
     const duration = Date.now() - startTime;
-    console.log(`✅ Gmail credential watcher cycle completed in ${duration}ms`);
+    console.log(`✅ Reddit credential watcher cycle completed in ${duration}ms`);
 
   } catch (error) {
-    console.error('❌ Gmail credential watcher cycle failed:', error);
+    console.error('❌ Reddit credential watcher cycle failed:', error);
   }
 }
 
@@ -151,7 +151,7 @@ async function checkAndRefreshToken(instanceId) {
     incrementRefreshAttempts(instanceId);
 
     // Get instance credentials from database
-    const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+    const instance = await lookupInstanceCredentials(instanceId, 'reddit');
     
     if (!instance || !instance.client_id || !instance.client_secret) {
       console.log(`❌ Invalid instance credentials for ${instanceId}, removing from cache`);

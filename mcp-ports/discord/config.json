@@ -4,11 +4,11 @@
   "description": "Discord is an instant messaging and VoIP social platform for communities and communication",
   "category": "communication",
   "iconUrl": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discord.svg",
-  "port": 49260  ,
+  "port": 49260,
   "api": {
-    "baseURL": "https://api.composio.dev",
-    "version": "v1",
-    "documentation": "https://v3.docs.composio.dev/tools/discord"
+    "baseURL": "https://discord.com/api",
+    "version": "v10",
+    "documentation": "https://discord.com/developers/docs/intro"
   },
   "auth": {
     "type": "oauth2",
@@ -30,65 +30,19 @@
         "type": "password",
         "required": false,
         "description": "Discord Bearer Token (alternative to OAuth)"
+      },
+      {
+        "name": "bot_token",
+        "type": "password",
+        "required": false,
+        "description": "Discord Bot Token (for bot-specific operations)"
       }
     ],
     "oauth": {
-      "redirect_uri": "https://backend.composio.dev/api/v1/auth-apps/add",
-      "scopes": ["identify", "email", "connections", "guilds", "guilds.members.read"],
+      "redirect_uri": "http://localhost:3000/auth/discord/callback",
+      "scopes": ["identify", "email", "connections", "guilds", "guilds.members.read", "messages.read", "bot"],
       "authorization_url": "https://discord.com/api/oauth2/authorize",
       "token_url": "https://discord.com/api/oauth2/token"
     }
-  },
-  "tools": [
-    {
-      "name": "get_invite",
-      "description": "Retrieve information about a specific invite code",
-      "endpoint": "/tools/discord/get_invite",
-      "method": "GET",
-      "parameters": {
-        "invite_code": {
-          "type": "string",
-          "required": true,
-          "description": "Discord invite code"
-        }
-      }
-    },
-    {
-      "name": "get_my_guild_member",
-      "description": "Fetch guild member details for authenticated user",
-      "endpoint": "/tools/discord/get_my_guild_member",
-      "method": "GET",
-      "parameters": {
-        "guild_id": {
-          "type": "string",
-          "required": true,
-          "description": "Guild ID"
-        }
-      }
-    },
-    {
-      "name": "get_my_oauth2_authorization",
-      "description": "Retrieve current OAuth2 authorization details",
-      "endpoint": "/tools/discord/get_my_oauth2_authorization",
-      "method": "GET"
-    },
-    {
-      "name": "get_my_user",
-      "description": "Fetch comprehensive user profile information",
-      "endpoint": "/tools/discord/get_my_user",
-      "method": "GET"
-    },
-    {
-      "name": "retrieve_user_connections",
-      "description": "List connected third-party accounts",
-      "endpoint": "/tools/discord/retrieve_user_connections",
-      "method": "GET"
-    },
-    {
-      "name": "list_my_guilds",
-      "description": "Display user's server memberships",
-      "endpoint": "/tools/discord/list_my_guilds",
-      "method": "GET"
-    }
-  ]
+  }
 }

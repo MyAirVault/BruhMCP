@@ -1,5 +1,5 @@
 /**
- * OAuth Credential Authentication Middleware for Gmail MCP Service
+ * OAuth Credential Authentication Middleware for Google Drive MCP Service
  * Handles OAuth Bearer token authentication and credential caching
  */
 
@@ -10,6 +10,27 @@ import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } 
 import { ErrorResponses } from '../../../utils/errorResponse.js';
 import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauth-error-handler.js';
 import { recordTokenRefreshMetrics } from '../utils/token-metrics.js';
+
+/**
+ * Helper function to record usage tracking failures
+ * @param {string} instanceId - Instance ID
+ * @param {string} errorMessage - Error message
+ */
+function recordUsageTrackingFailure(instanceId, errorMessage) {
+  console.error(`📊 Usage tracking failure for ${instanceId}: ${errorMessage}`);
+  // In a real implementation, this would send metrics to a monitoring system
+}
+
+/**
+ * Helper function to record audit log failures
+ * @param {string} instanceId - Instance ID
+ * @param {string} operation - Operation type
+ * @param {string} errorMessage - Error message
+ */
+function recordAuditLogFailure(instanceId, operation, errorMessage) {
+  console.error(`📋 Audit log failure for ${instanceId} (${operation}): ${errorMessage}`);
+  // In a real implementation, this would send metrics to a monitoring system
+}
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
@@ -38,10 +59,16 @@ export function createCredentialAuthMiddleware() {
         req.instanceId = instanceId;
         req.userId = cachedCredential.user_id;
         
-        // Update usage tracking asynchronously
-        updateInstanceUsage(instanceId).catch(err => {
-          console.error('Failed to update usage tracking:', err);
-        });
+        // Update usage tracking asynchronously with proper error handling
+        updateInstanceUsage(instanceId)
+          .then(() => {
+            console.log(`✅ Usage tracking updated for instance: ${instanceId}`);
+          })
+          .catch(err => {
+            console.error(`❌ Failed to update usage tracking for instance ${instanceId}:`, err);
+            // Record failure metrics for monitoring
+            recordUsageTrackingFailure(instanceId, err.message);
+          });
         
         return next();
       }
@@ -49,20 +76,20 @@ export function createCredentialAuthMiddleware() {
       console.log(`⏳ OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'googledrive');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'googledrive'
         });
       }
 
       // Validate service is active
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Google Drive service is currently disabled', {
           instanceId,
-          service: 'gmail'
+          service: 'googledrive'
         });
       }
 
@@ -103,7 +130,10 @@ export function createCredentialAuthMiddleware() {
       const tokenExpiresAt = cachedCredential?.expiresAt || (instance.token_expires_at ? new Date(instance.token_expires_at).getTime() : null);
 
       // If we have an access token that's still valid, use it
-      if (accessToken && tokenExpiresAt && tokenExpiresAt > Date.now()) {
+      if (accessToken && tokenExpiresAt && 
+          typeof tokenExpiresAt === 'number' && 
+          !isNaN(tokenExpiresAt) && 
+          tokenExpiresAt > Date.now()) {
         console.log(`✅ Using valid access token for instance: ${instanceId}`);
         
         // Cache the token if it wasn't cached before
@@ -189,8 +219,12 @@ export function createCredentialAuthMiddleware() {
               scope: newTokens.scope,
               responseTime: refreshEndTime - refreshStartTime
             }
+          }).then(() => {
+            console.log(`✅ Audit log created for token refresh: ${instanceId}`);
           }).catch(err => {
-            console.error('Failed to create audit log:', err);
+            console.error(`❌ Failed to create audit log for ${instanceId}:`, err);
+            // Record audit failure for monitoring
+            recordAuditLogFailure(instanceId, 'refresh', err.message);
           });
 
           // Update cache with new Bearer token
@@ -349,18 +383,18 @@ export function createLightweightAuthMiddleware() {
 
     try {
       // Quick database lookup without credential exchange
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'googledrive');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'googledrive'
         });
       }
 
       // Basic validation
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Google Drive service is currently disabled', {
           instanceId
         });
       }

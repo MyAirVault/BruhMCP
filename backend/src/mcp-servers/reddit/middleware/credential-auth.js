@@ -1,5 +1,5 @@
 /**
- * OAuth Credential Authentication Middleware for Gmail MCP Service
+ * OAuth Credential Authentication Middleware for Reddit MCP Service
  * Handles OAuth Bearer token authentication and credential caching
  */
 
@@ -49,20 +49,20 @@ export function createCredentialAuthMiddleware() {
       console.log(`⏳ OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'reddit');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'reddit'
         });
       }
 
       // Validate service is active
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Reddit service is currently disabled', {
           instanceId,
-          service: 'gmail'
+          service: 'reddit'
         });
       }
 
@@ -349,18 +349,18 @@ export function createLightweightAuthMiddleware() {
 
     try {
       // Quick database lookup without credential exchange
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'reddit');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'reddit'
         });
       }
 
       // Basic validation
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Reddit service is currently disabled', {
           instanceId
         });
       }

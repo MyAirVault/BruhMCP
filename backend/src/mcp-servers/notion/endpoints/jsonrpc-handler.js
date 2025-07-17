@@ -1,249 +1,149 @@
-import { handleToolExecution, generateTools } from './tool-handlers.js';
-import { handleResourceContent, generateResources } from './resource-handlers.js';
+/**
+ * Notion MCP JSON-RPC Handler
+ * Handles JSON-RPC requests for MCP protocol
+ */
+
+import { NotionMCPHandler } from './mcp-handler.js';
+import { handleNotionError } from '../utils/error-handler.js';
+import { Logger } from '../utils/logger.js';
 
 /**
- * MCP JSON-RPC protocol handler
- * Implements proper JSON-RPC 2.0 message handling for MCP servers
+ * Handle JSON-RPC endpoint
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
  */
-export class MCPJsonRpcHandler {
-	constructor(serviceConfig, mcpType, apiKey, port) {
-		this.serviceConfig = serviceConfig;
-		this.mcpType = mcpType;
-		this.apiKey = apiKey;
-		this.port = port;
-		this.initialized = false;
-	}
+export async function handleJsonRpcEndpoint(req, res) {
+	try {
+		const { bearerToken, instanceId, userId } = req;
 
-	/**
-	 * Process incoming JSON-RPC message
-	 * @param {Object} message - JSON-RPC message
-	 * @returns {Object|null} Response object or null for notifications
-	 */
-	async processMessage(message) {
-		// Validate JSON-RPC format
-		if (!this.isValidJsonRpc(message)) {
-			return this.createErrorResponse(message.id || null, -32600, 'Invalid Request');
-		}
-
-		const { method, params, id } = message;
-
-		try {
-			// Handle different MCP methods
-			switch (method) {
-				case 'initialize':
-					return await this.handleInitialize(params, id);
-
-				case 'tools/list':
-					return await this.handleToolsList(id);
-
-				case 'tools/call':
-					return await this.handleToolsCall(params, id);
-
-				case 'resources/list':
-					return await this.handleResourcesList(id);
-
-				case 'resources/read':
-					return await this.handleResourcesRead(params, id);
-
-				default:
-					return this.createErrorResponse(id, -32601, `Method not found: ${method}`);
-			}
-		} catch (error) {
-			console.error(`JSON-RPC error for method ${method}:`, error);
-			return this.createErrorResponse(id, -32603, 'Internal error', { details: error.message });
-		}
-	}
-
-	/**
-	 * Validate JSON-RPC 2.0 message format
-	 */
-	isValidJsonRpc(message) {
-		return (
-			message &&
-			message.jsonrpc === '2.0' &&
-			typeof message.method === 'string' &&
-			(message.id !== undefined || message.id === null)
-		);
-	}
-
-	/**
-	 * Handle initialize method
-	 */
-	async handleInitialize(params, id) {
-		console.log(`🚀 Initialize request for ${this.serviceConfig.name} MCP Server (Port: ${this.port})`);
-
-		this.initialized = true;
-
-		return this.createSuccessResponse(id, {
-			protocolVersion: '2024-11-05',
-			capabilities: {
-				tools: {},
-				resources: {},
-			},
-			serverInfo: {
-				name: `${this.serviceConfig.name} MCP Server`,
-				version: '1.0.0',
-			},
-			instructions: `This is a ${this.serviceConfig.name} MCP server providing tools and resources for ${this.serviceConfig.name} API integration.`,
-		});
-	}
-
-	/**
-	 * Handle tools/list method
-	 */
-	async handleToolsList(id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
-		}
-
-		console.log(`🔧 Tools list request for ${this.serviceConfig.name} MCP Server (Port: ${this.port})`);
-
-		const tools = generateTools(this.serviceConfig, this.mcpType);
-
-		return this.createSuccessResponse(id, {
-			tools: tools.map(tool => ({
-				name: tool.name,
-				description: tool.description,
-				inputSchema: tool.inputSchema || {
-					type: 'object',
-					properties: {},
-					required: [],
+		if (!bearerToken) {
+			return res.status(401).json({
+				jsonrpc: '2.0',
+				error: {
+					code: -32600,
+					message: 'Unauthorized - Bearer token required',
 				},
-			})),
-		});
-	}
-
-	/**
-	 * Handle tools/call method
-	 */
-	async handleToolsCall(params, id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
-		}
-
-		if (!params || !params.name) {
-			return this.createErrorResponse(id, -32602, 'Invalid params: missing tool name');
-		}
-
-		const { name: toolName, arguments: args = {} } = params;
-
-		console.log(`🔧 Tool call: ${toolName} for ${this.serviceConfig.name} (Port: ${this.port})`);
-
-		try {
-			const result = await handleToolExecution({
-				toolName,
-				args,
-				mcpType: this.mcpType,
-				serviceConfig: this.serviceConfig,
-				apiKey: this.apiKey,
-			});
-
-			return this.createSuccessResponse(id, {
-				content: [
-					{
-						type: 'text',
-						text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-					},
-				],
-			});
-		} catch (error) {
-			return this.createErrorResponse(id, -32603, `Tool execution failed: ${error.message}`, {
-				toolName,
-				details: error.message,
+				id: req.body?.id || null,
 			});
 		}
-	}
 
-	/**
-	 * Handle resources/list method
-	 */
-	async handleResourcesList(id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
-		}
+		// Validate JSON-RPC request format
+		const { jsonrpc, method, params, id } = req.body;
 
-		console.log(`📋 Resources list request for ${this.serviceConfig.name} MCP Server (Port: ${this.port})`);
-
-		const resources = generateResources(this.serviceConfig, this.mcpType);
-
-		return this.createSuccessResponse(id, {
-			resources: resources.map(resource => ({
-				uri: resource.uri,
-				name: resource.name,
-				description: resource.description,
-				mimeType: resource.mimeType || 'application/json',
-			})),
-		});
-	}
-
-	/**
-	 * Handle resources/read method
-	 */
-	async handleResourcesRead(params, id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
-		}
-
-		if (!params || !params.uri) {
-			return this.createErrorResponse(id, -32602, 'Invalid params: missing resource URI');
-		}
-
-		try {
-			// Extract resource path from URI
-			const resourcePath = params.uri.replace(/^.*\/resources\//, '');
-
-			const result = await handleResourceContent({
-				resourcePath,
-				mcpType: this.mcpType,
-				serviceConfig: this.serviceConfig,
-				apiKey: this.apiKey,
-			});
-
-			return this.createSuccessResponse(id, {
-				contents: [
-					{
-						uri: params.uri,
-						mimeType: 'application/json',
-						text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-					},
-				],
-			});
-		} catch (error) {
-			return this.createErrorResponse(id, -32603, `Resource read failed: ${error.message}`, {
-				uri: params.uri,
-				details: error.message,
+		if (jsonrpc !== '2.0') {
+			return res.status(400).json({
+				jsonrpc: '2.0',
+				error: {
+					code: -32600,
+					message: 'Invalid Request - jsonrpc must be 2.0',
+				},
+				id: id || null,
 			});
 		}
-	}
 
-	/**
-	 * Create success response
-	 */
-	createSuccessResponse(id, result) {
-		return {
-			jsonrpc: '2.0',
-			id,
-			result,
+		if (!method) {
+			return res.status(400).json({
+				jsonrpc: '2.0',
+				error: {
+					code: -32600,
+					message: 'Invalid Request - method is required',
+				},
+				id: id || null,
+			});
+		}
+
+		// Create MCP handler instance
+		const serviceConfig = {
+			name: 'notion',
+			version: '1.0.0',
 		};
-	}
 
-	/**
-	 * Create error response
-	 */
-	createErrorResponse(id, code, message, data = null) {
-		const response = {
+		const mcpHandler = new NotionMCPHandler(serviceConfig, bearerToken);
+
+		// Process JSON-RPC request
+		const response = await mcpHandler.handleMCPRequest(req, res, req.body);
+
+		// Response is already sent by handleMCPRequest
+	} catch (error) {
+		Logger.error('JSON-RPC endpoint error:', error);
+		const errorInfo = handleNotionError(error);
+
+		// Send JSON-RPC error response
+		res.status(500).json({
 			jsonrpc: '2.0',
-			id,
 			error: {
-				code,
-				message,
+				code: -32603,
+				message: 'Internal error',
+				data: {
+					error: errorInfo.message,
+					instanceId: req.instanceId,
+				},
 			},
-		};
-
-		if (data) {
-			response.error.data = data;
-		}
-
-		return response;
+			id: req.body?.id || null,
+		});
 	}
+}
+
+/**
+ * Validate JSON-RPC request format
+ * @param {Object} request - JSON-RPC request object
+ * @returns {Object} Validation result
+ */
+export function validateJsonRpcRequest(request) {
+	const errors = [];
+
+	if (!request || typeof request !== 'object') {
+		errors.push('Request must be a JSON object');
+	}
+
+	if (request.jsonrpc !== '2.0') {
+		errors.push('jsonrpc must be "2.0"');
+	}
+
+	if (!request.method || typeof request.method !== 'string') {
+		errors.push('method must be a string');
+	}
+
+	if (request.params !== undefined && typeof request.params !== 'object') {
+		errors.push('params must be an object or array');
+	}
+
+	return {
+		isValid: errors.length === 0,
+		errors: errors,
+	};
+}
+
+/**
+ * Create JSON-RPC error response
+ * @param {number} code - Error code
+ * @param {string} message - Error message
+ * @param {*} data - Additional error data
+ * @param {*} id - Request ID
+ * @returns {Object} JSON-RPC error response
+ */
+export function createJsonRpcErrorResponse(code, message, data, id) {
+	return {
+		jsonrpc: '2.0',
+		error: {
+			code: code,
+			message: message,
+			data: data,
+		},
+		id: id,
+	};
+}
+
+/**
+ * Create JSON-RPC success response
+ * @param {*} result - Response result
+ * @param {*} id - Request ID
+ * @returns {Object} JSON-RPC success response
+ */
+export function createJsonRpcSuccessResponse(result, id) {
+	return {
+		jsonrpc: '2.0',
+		result: result,
+		id: id,
+	};
 }

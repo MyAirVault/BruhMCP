@@ -1,5 +1,5 @@
 /**
- * OAuth Credential Authentication Middleware for Gmail MCP Service
+ * OAuth Credential Authentication Middleware for Dropbox MCP Service
  * Handles OAuth Bearer token authentication and credential caching
  */
 
@@ -49,20 +49,20 @@ export function createCredentialAuthMiddleware() {
       console.log(`⏳ OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'dropbox');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'dropbox'
         });
       }
 
       // Validate service is active
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Dropbox service is currently disabled', {
           instanceId,
-          service: 'gmail'
+          service: 'dropbox'
         });
       }
 
@@ -135,7 +135,7 @@ export function createCredentialAuthMiddleware() {
         try {
           let newTokens;
           
-          // Try OAuth service first, then fallback to direct Google OAuth
+          // Try OAuth service first, then fallback to direct Dropbox OAuth
           try {
             newTokens = await refreshBearerToken({
               refreshToken: refreshToken,
@@ -144,13 +144,13 @@ export function createCredentialAuthMiddleware() {
             });
             usedMethod = 'oauth_service';
           } catch (oauthServiceError) {
-            console.log(`⚠️  OAuth service failed, trying direct Google OAuth: ${oauthServiceError.message}`);
+            console.log(`⚠️  OAuth service failed, trying direct Dropbox OAuth: ${oauthServiceError.message}`);
             
             // Check if error indicates OAuth service unavailable
             if (oauthServiceError.message.includes('OAuth service error') || 
                 oauthServiceError.message.includes('Failed to start OAuth service')) {
               
-              // Fallback to direct Google OAuth
+              // Fallback to direct Dropbox OAuth
               newTokens = await refreshBearerTokenDirect({
                 refreshToken: refreshToken,
                 clientId: instance.client_id,
@@ -349,18 +349,18 @@ export function createLightweightAuthMiddleware() {
 
     try {
       // Quick database lookup without credential exchange
-      const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+      const instance = await lookupInstanceCredentials(instanceId, 'dropbox');
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'gmail'
+          service: 'dropbox'
         });
       }
 
       // Basic validation
       if (!instance.service_active) {
-        return ErrorResponses.serviceUnavailable(res, 'Gmail service is currently disabled', {
+        return ErrorResponses.serviceUnavailable(res, 'Dropbox service is currently disabled', {
           instanceId
         });
       }

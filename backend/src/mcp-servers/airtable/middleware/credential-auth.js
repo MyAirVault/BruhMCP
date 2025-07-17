@@ -5,7 +5,7 @@
  * Primary middleware that checks credential cache first, falls back to database lookup
  */
 
-import { getCachedCredential, setCachedCredential } from '../services/credential-cache.js';
+import { getCachedCredential, setCachedCredential } from '../services/auth/credential-cache.js';
 import {
 	getInstanceCredentials,
 	validateInstanceAccess,
@@ -49,7 +49,7 @@ export function createCredentialAuthMiddleware() {
 
 			if (cachedCredential) {
 				// Cache hit - use cached credential without database lookup
-				req.figmaApiKey = cachedCredential.credential;
+				req.airtableApiKey = cachedCredential.credential;
 				req.instanceId = instanceId;
 				req.userId = cachedCredential.user_id;
 				req.cacheHit = true;
@@ -89,7 +89,7 @@ export function createCredentialAuthMiddleware() {
 			});
 
 			// Attach instance data to request for use in handlers
-			req.figmaApiKey = apiKey;
+			req.airtableApiKey = apiKey;
 			req.instanceId = instanceId;
 			req.userId = instance.user_id;
 			req.instance = instance;

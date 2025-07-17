@@ -1,22 +1,22 @@
 /**
- * Credential cache service for Gmail MCP instance management
+ * Credential cache service for Slack MCP instance management
  * Phase 2: OAuth Bearer Token Management and Caching System implementation
  * 
  * This service manages in-memory caching of OAuth Bearer tokens and refresh tokens
  * to reduce database hits and improve request performance.
  */
 
-// Global credential cache for Gmail service instances
-const gmailCredentialCache = new Map();
+// Global credential cache for Slack service instances
+const slackCredentialCache = new Map();
 
 /**
  * Initialize the credential cache system
  * Called on service startup
  */
 export function initializeCredentialCache() {
-	console.log('🚀 Initializing Gmail OAuth credential cache system');
-	gmailCredentialCache.clear();
-	console.log('✅ Gmail OAuth credential cache initialized');
+	console.log('🚀 Initializing Slack OAuth credential cache system');
+	slackCredentialCache.clear();
+	console.log('✅ Slack OAuth credential cache initialized');
 }
 
 /**
@@ -25,7 +25,7 @@ export function initializeCredentialCache() {
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
 export function getCachedCredential(instanceId) {
-	const cached = gmailCredentialCache.get(instanceId);
+	const cached = slackCredentialCache.get(instanceId);
 	
 	if (!cached) {
 		return null;
@@ -33,15 +33,15 @@ export function getCachedCredential(instanceId) {
 	
 	// Check if Bearer token has expired
 	if (cached.expiresAt && cached.expiresAt < Date.now()) {
-		console.log(`🗑️ Removing expired Bearer token from cache: ${instanceId}`);
-		gmailCredentialCache.delete(instanceId);
+		console.log(`🗑️ Removing expired Slack Bearer token from cache: ${instanceId}`);
+		slackCredentialCache.delete(instanceId);
 		return null;
 	}
 	
 	// Update last used timestamp
 	cached.last_used = new Date().toISOString();
 	
-	console.log(`✅ Cache hit for instance: ${instanceId}`);
+	console.log(`✅ Slack cache hit for instance: ${instanceId}`);
 	return cached;
 }
 
@@ -53,6 +53,7 @@ export function getCachedCredential(instanceId) {
  * @param {string} tokenData.refreshToken - OAuth refresh token
  * @param {number} tokenData.expiresAt - Token expiration timestamp
  * @param {string} tokenData.user_id - User ID who owns this instance
+ * @param {string} tokenData.team_id - Slack team ID
  */
 export function setCachedCredential(instanceId, tokenData) {
 	const cacheEntry = {
@@ -60,14 +61,15 @@ export function setCachedCredential(instanceId, tokenData) {
 		refreshToken: tokenData.refreshToken,
 		expiresAt: tokenData.expiresAt,
 		user_id: tokenData.user_id,
+		team_id: tokenData.team_id,
 		last_used: new Date().toISOString(),
 		refresh_attempts: 0,
 		cached_at: new Date().toISOString()
 	};
 	
-	gmailCredentialCache.set(instanceId, cacheEntry);
+	slackCredentialCache.set(instanceId, cacheEntry);
 	const expiresInMinutes = Math.floor((tokenData.expiresAt - Date.now()) / 60000);
-	console.log(`💾 Cached OAuth tokens for instance: ${instanceId} (expires in ${expiresInMinutes} minutes)`);
+	console.log(`💾 Cached Slack OAuth tokens for instance: ${instanceId} (expires in ${expiresInMinutes} minutes)`);
 }
 
 /**
@@ -75,9 +77,9 @@ export function setCachedCredential(instanceId, tokenData) {
  * @param {string} instanceId - UUID of the service instance
  */
 export function removeCachedCredential(instanceId) {
-	const removed = gmailCredentialCache.delete(instanceId);
+	const removed = slackCredentialCache.delete(instanceId);
 	if (removed) {
-		console.log(`🗑️ Removed OAuth tokens from cache: ${instanceId}`);
+		console.log(`🗑️ Removed Slack OAuth tokens from cache: ${instanceId}`);
 	}
 	return removed;
 }
@@ -87,8 +89,8 @@ export function removeCachedCredential(instanceId) {
  * @returns {Object} Cache statistics
  */
 export function getCacheStatistics() {
-	const totalEntries = gmailCredentialCache.size;
-	const entries = Array.from(gmailCredentialCache.values());
+	const totalEntries = slackCredentialCache.size;
+	const entries = Array.from(slackCredentialCache.values());
 	
 	const now = Date.now();
 	const expiredCount = entries.filter(entry => {
@@ -114,7 +116,7 @@ export function getCacheStatistics() {
 		recently_used: recentlyUsed,
 		cache_hit_rate_last_hour: recentlyUsed > 0 ? (recentlyUsed / totalEntries * 100).toFixed(2) : 0,
 		average_expiry_minutes: Math.floor(averageExpiryMinutes),
-		memory_usage_mb: (JSON.stringify(Array.from(gmailCredentialCache.entries())).length / 1024 / 1024).toFixed(2)
+		memory_usage_mb: (JSON.stringify(Array.from(slackCredentialCache.entries())).length / 1024 / 1024).toFixed(2)
 	};
 }
 
@@ -123,7 +125,7 @@ export function getCacheStatistics() {
  * @returns {string[]} Array of cached instance IDs
  */
 export function getCachedInstanceIds() {
-	return Array.from(gmailCredentialCache.keys());
+	return Array.from(slackCredentialCache.keys());
 }
 
 /**
@@ -132,7 +134,7 @@ export function getCachedInstanceIds() {
  * @returns {boolean} True if instance is cached and token is valid
  */
 export function isInstanceCached(instanceId) {
-	const cached = gmailCredentialCache.get(instanceId);
+	const cached = slackCredentialCache.get(instanceId);
 	if (!cached) return false;
 	
 	// Check Bearer token expiration
@@ -147,9 +149,9 @@ export function isInstanceCached(instanceId) {
  * Clear all cached credentials (for testing/restart)
  */
 export function clearCredentialCache() {
-	const count = gmailCredentialCache.size;
-	gmailCredentialCache.clear();
-	console.log(`🧹 Cleared ${count} entries from OAuth credential cache`);
+	const count = slackCredentialCache.size;
+	slackCredentialCache.clear();
+	console.log(`🧹 Cleared ${count} entries from Slack OAuth credential cache`);
 }
 
 /**
@@ -158,7 +160,7 @@ export function clearCredentialCache() {
  * @returns {Object|null} Cache entry or null
  */
 export function peekCachedCredential(instanceId) {
-	return gmailCredentialCache.get(instanceId) || null;
+	return slackCredentialCache.get(instanceId) || null;
 }
 
 /**
@@ -170,12 +172,13 @@ export function peekCachedCredential(instanceId) {
  * @param {number} [updates.expiresAt] - New token expiration timestamp
  * @param {string} [updates.bearerToken] - New bearer token
  * @param {string} [updates.refreshToken] - New refresh token
+ * @param {string} [updates.team_id] - New team ID
  * @returns {boolean} True if cache entry was updated, false if not found
  */
 export function updateCachedCredentialMetadata(instanceId, updates) {
-	const cached = gmailCredentialCache.get(instanceId);
+	const cached = slackCredentialCache.get(instanceId);
 	if (!cached) {
-		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
+		console.log(`ℹ️ No cache entry to update for Slack instance: ${instanceId}`);
 		return false;
 	}
 
@@ -183,28 +186,33 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
 	if (updates.expiresAt !== undefined) {
 		cached.expiresAt = updates.expiresAt;
 		const expiresInMinutes = Math.floor((updates.expiresAt - Date.now()) / 60000);
-		console.log(`📅 Updated cached token expiration for instance ${instanceId}: ${expiresInMinutes} minutes`);
+		console.log(`📅 Updated cached token expiration for Slack instance ${instanceId}: ${expiresInMinutes} minutes`);
 	}
 
 	if (updates.bearerToken !== undefined) {
 		cached.bearerToken = updates.bearerToken;
-		console.log(`🔄 Updated cached bearer token for instance ${instanceId}`);
+		console.log(`🔄 Updated cached bearer token for Slack instance ${instanceId}`);
 	}
 
 	if (updates.refreshToken !== undefined) {
 		cached.refreshToken = updates.refreshToken;
-		console.log(`🔄 Updated cached refresh token for instance ${instanceId}`);
+		console.log(`🔄 Updated cached refresh token for Slack instance ${instanceId}`);
+	}
+
+	if (updates.team_id !== undefined) {
+		cached.team_id = updates.team_id;
+		console.log(`🏢 Updated cached team ID for Slack instance ${instanceId}: ${updates.team_id}`);
 	}
 
 	if (updates.status !== undefined) {
 		cached.status = updates.status;
-		console.log(`🔄 Updated cached status for instance ${instanceId}: ${updates.status}`);
+		console.log(`🔄 Updated cached status for Slack instance ${instanceId}: ${updates.status}`);
 	}
 
 	// Update last modified timestamp
 	cached.last_modified = new Date().toISOString();
 
-	gmailCredentialCache.set(instanceId, cached);
+	slackCredentialCache.set(instanceId, cached);
 	return true;
 }
 
@@ -218,7 +226,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = Date.now();
 
-	for (const [instanceId, cached] of gmailCredentialCache.entries()) {
+	for (const [instanceId, cached] of slackCredentialCache.entries()) {
 		let shouldRemove = false;
 		let removeReason = '';
 
@@ -235,14 +243,14 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 		}
 
 		if (shouldRemove) {
-			gmailCredentialCache.delete(instanceId);
+			slackCredentialCache.delete(instanceId);
 			removedCount++;
-			console.log(`🗑️ Removed ${removeReason} cache entry for instance: ${instanceId}`);
+			console.log(`🗑️ Removed ${removeReason} Slack cache entry for instance: ${instanceId}`);
 		}
 	}
 
 	if (removedCount > 0) {
-		console.log(`🧹 Cache cleanup (${reason}): removed ${removedCount} invalid entries`);
+		console.log(`🧹 Slack cache cleanup (${reason}): removed ${removedCount} invalid entries`);
 	}
 
 	return removedCount;
@@ -254,7 +262,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
  * @returns {number} Current refresh attempt count
  */
 export function incrementRefreshAttempts(instanceId) {
-	const cached = gmailCredentialCache.get(instanceId);
+	const cached = slackCredentialCache.get(instanceId);
 	if (!cached) {
 		return 0;
 	}
@@ -262,9 +270,9 @@ export function incrementRefreshAttempts(instanceId) {
 	cached.refresh_attempts = (cached.refresh_attempts || 0) + 1;
 	cached.last_refresh_attempt = new Date().toISOString();
 	
-	gmailCredentialCache.set(instanceId, cached);
+	slackCredentialCache.set(instanceId, cached);
 	
-	console.log(`🔄 Refresh attempt ${cached.refresh_attempts} for instance: ${instanceId}`);
+	console.log(`🔄 Refresh attempt ${cached.refresh_attempts} for Slack instance: ${instanceId}`);
 	return cached.refresh_attempts;
 }
 
@@ -273,7 +281,7 @@ export function incrementRefreshAttempts(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  */
 export function resetRefreshAttempts(instanceId) {
-	const cached = gmailCredentialCache.get(instanceId);
+	const cached = slackCredentialCache.get(instanceId);
 	if (!cached) {
 		return;
 	}
@@ -281,9 +289,9 @@ export function resetRefreshAttempts(instanceId) {
 	cached.refresh_attempts = 0;
 	cached.last_successful_refresh = new Date().toISOString();
 	
-	gmailCredentialCache.set(instanceId, cached);
+	slackCredentialCache.set(instanceId, cached);
 	
-	console.log(`✅ Reset refresh attempts for instance: ${instanceId}`);
+	console.log(`✅ Reset refresh attempts for Slack instance: ${instanceId}`);
 }
 
 /**
@@ -307,13 +315,13 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		const cachedCredential = peekCachedCredential(instanceId);
 		
 		// Get database state
-		const dbInstance = await lookupInstanceCredentials(instanceId, 'gmail');
+		const dbInstance = await lookupInstanceCredentials(instanceId, 'slack');
 		
 		if (!dbInstance) {
 			// Instance doesn't exist in database, remove from cache
 			if (cachedCredential) {
 				removeCachedCredential(instanceId);
-				console.log(`🗑️ Removed orphaned cache entry for instance: ${instanceId}`);
+				console.log(`🗑️ Removed orphaned Slack cache entry for instance: ${instanceId}`);
 			}
 			return false;
 		}
@@ -329,26 +337,27 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		
 		// Force refresh from database
 		if (forceRefresh || !cachedCredential || dbIsNewer) {
-			console.log(`🔄 Syncing cache from database for instance: ${instanceId} (force: ${forceRefresh}, dbNewer: ${dbIsNewer})`);
+			console.log(`🔄 Syncing Slack cache from database for instance: ${instanceId} (force: ${forceRefresh}, dbNewer: ${dbIsNewer})`);
 			
 			// Update cache with database data
 			if (dbInstance.access_token && dbInstance.refresh_token) {
 				const tokenExpiresAt = dbInstance.token_expires_at ? 
 					new Date(dbInstance.token_expires_at).getTime() : 
-					Date.now() + (3600 * 1000); // Default 1 hour
+					Date.now() + (43200 * 1000); // Default 12 hours for Slack
 				
 				setCachedCredential(instanceId, {
 					bearerToken: dbInstance.access_token,
 					refreshToken: dbInstance.refresh_token,
 					expiresAt: tokenExpiresAt,
-					user_id: dbInstance.user_id
+					user_id: dbInstance.user_id,
+					team_id: dbInstance.team_id
 				});
 				
-				console.log(`✅ Updated cache from database for instance: ${instanceId}`);
+				console.log(`✅ Updated Slack cache from database for instance: ${instanceId}`);
 			} else {
 				// No valid tokens in database, remove from cache
 				removeCachedCredential(instanceId);
-				console.log(`🗑️ Removed cache entry due to invalid database tokens: ${instanceId}`);
+				console.log(`🗑️ Removed Slack cache entry due to invalid database tokens: ${instanceId}`);
 			}
 			
 			return true;
@@ -356,7 +365,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		
 		// Update database if cache is newer and updateDatabase is true
 		if (updateDatabase && cacheIsNewer && cachedCredential) {
-			console.log(`🔄 Updating database from cache for instance: ${instanceId}`);
+			console.log(`🔄 Updating database from Slack cache for instance: ${instanceId}`);
 			
 			const { updateOAuthStatus } = await import('../../../db/queries/mcpInstancesQueries.js');
 			
@@ -368,19 +377,20 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 				accessToken: cachedCredential.bearerToken,
 				refreshToken: cachedCredential.refreshToken,
 				tokenExpiresAt: tokenExpiresAt,
-				scope: cachedCredential.scope || null
+				scope: cachedCredential.scope || null,
+				teamId: cachedCredential.team_id
 			});
 			
-			console.log(`✅ Updated database from cache for instance: ${instanceId}`);
+			console.log(`✅ Updated database from Slack cache for instance: ${instanceId}`);
 			return true;
 		}
 		
 		// Cache and database are in sync
-		console.log(`✅ Cache and database are in sync for instance: ${instanceId}`);
+		console.log(`✅ Slack cache and database are in sync for instance: ${instanceId}`);
 		return true;
 		
 	} catch (error) {
-		console.error(`❌ Failed to sync cache with database for instance ${instanceId}:`, error);
+		console.error(`❌ Failed to sync Slack cache with database for instance ${instanceId}:`, error);
 		return false;
 	}
 }
@@ -408,7 +418,7 @@ export async function backgroundCacheSync(options = {}) {
 		const cachedInstanceIds = getCachedInstanceIds();
 		results.total = cachedInstanceIds.length;
 		
-		console.log(`🔄 Starting background cache sync for ${cachedInstanceIds.length} instances`);
+		console.log(`🔄 Starting background Slack cache sync for ${cachedInstanceIds.length} instances`);
 		
 		// Process instances in batches
 		const instancesToProcess = cachedInstanceIds.slice(0, maxInstances);
@@ -430,7 +440,7 @@ export async function backgroundCacheSync(options = {}) {
 				await new Promise(resolve => setTimeout(resolve, 10));
 				
 			} catch (error) {
-				console.error(`❌ Error syncing instance ${instanceId}:`, error);
+				console.error(`❌ Error syncing Slack instance ${instanceId}:`, error);
 				results.errors++;
 			}
 		}
@@ -438,11 +448,11 @@ export async function backgroundCacheSync(options = {}) {
 		// Skip remaining instances if there are too many
 		results.skipped = cachedInstanceIds.length - instancesToProcess.length;
 		
-		console.log(`✅ Background cache sync completed:`, results);
+		console.log(`✅ Background Slack cache sync completed:`, results);
 		return results;
 		
 	} catch (error) {
-		console.error(`❌ Background cache sync failed:`, error);
+		console.error(`❌ Background Slack cache sync failed:`, error);
 		results.errors++;
 		return results;
 	}
@@ -456,7 +466,7 @@ export async function backgroundCacheSync(options = {}) {
 export function startBackgroundCacheSync(intervalMinutes = 5) {
 	const intervalMs = intervalMinutes * 60 * 1000;
 	
-	console.log(`🚀 Starting background cache sync service (interval: ${intervalMinutes} minutes)`);
+	console.log(`🚀 Starting background Slack cache sync service (interval: ${intervalMinutes} minutes)`);
 	
 	const syncInterval = setInterval(async () => {
 		await backgroundCacheSync();
@@ -470,7 +480,7 @@ export function startBackgroundCacheSync(intervalMinutes = 5) {
 	return {
 		stop: () => {
 			clearInterval(syncInterval);
-			console.log(`⏹️ Stopped background cache sync service`);
+			console.log(`⏹️ Stopped background Slack cache sync service`);
 		},
 		runSync: () => backgroundCacheSync()
 	};

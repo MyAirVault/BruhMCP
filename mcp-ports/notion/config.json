@@ -7,7 +7,7 @@
   "port": 49391  ,
   "api": {
     "baseURL": "https://api.notion.com/v1",
-    "version": "v1",
+    "version": "2022-06-28",
     "documentation": "https://developers.notion.com/reference"
   },
   "auth": {
@@ -41,8 +41,53 @@
   },
   "tools": [
     {
+      "name": "search",
+      "description": "Search for pages and databases in Notion",
+      "endpoint": "/search",
+      "method": "POST",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "page_size": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results to return (1-100)",
+          "default": 10
+        }
+      }
+    },
+    {
+      "name": "get_page",
+      "description": "Get a specific page by ID",
+      "endpoint": "/pages/{page_id}",
+      "method": "GET",
+      "parameters": {
+        "page_id": {
+          "type": "string",
+          "required": true,
+          "description": "Page ID"
+        }
+      }
+    },
+    {
+      "name": "get_page_blocks",
+      "description": "Get blocks/content of a page",
+      "endpoint": "/blocks/{block_id}/children",
+      "method": "GET",
+      "parameters": {
+        "page_id": {
+          "type": "string",
+          "required": true,
+          "description": "Page ID"
+        }
+      }
+    },
+    {
       "name": "create_page",
-      "description": "Create a new Notion page",
+      "description": "Create a new page",
       "endpoint": "/pages",
       "method": "POST",
       "parameters": {
@@ -53,44 +98,81 @@
         },
         "properties": {
           "type": "object",
-          "required": true,
-          "description": "Page properties including title"
-        },
-        "children": {
-          "type": "array",
           "required": false,
-          "description": "Array of block objects to add as content"
+          "description": "Page properties"
         }
       }
     },
     {
       "name": "update_page",
-      "description": "Update a Notion page",
+      "description": "Update page properties",
       "endpoint": "/pages/{page_id}",
       "method": "PATCH",
       "parameters": {
         "page_id": {
           "type": "string",
           "required": true,
-          "description": "Page ID to update"
+          "description": "Page ID"
         },
         "properties": {
           "type": "object",
+          "required": false,
+          "description": "Properties to update"
+        }
+      }
+    },
+    {
+      "name": "get_database",
+      "description": "Get database information",
+      "endpoint": "/databases/{database_id}",
+      "method": "GET",
+      "parameters": {
+        "database_id": {
+          "type": "string",
           "required": true,
-          "description": "Updated page properties"
+          "description": "Database ID"
+        }
+      }
+    },
+    {
+      "name": "query_database",
+      "description": "Query database entries",
+      "endpoint": "/databases/{database_id}/query",
+      "method": "POST",
+      "parameters": {
+        "database_id": {
+          "type": "string",
+          "required": true,
+          "description": "Database ID"
+        },
+        "filter": {
+          "type": "object",
+          "required": false,
+          "description": "Filter criteria"
+        },
+        "sorts": {
+          "type": "array",
+          "required": false,
+          "description": "Sort criteria"
+        },
+        "page_size": {
+          "type": "number",
+          "required": false,
+          "description": "Number of results",
+          "default": 100
         }
       }
     },
     {
       "name": "create_database",
-      "description": "Create a new Notion database",
+      "description": "Create a new database",
       "endpoint": "/databases",
       "method": "POST",
       "parameters": {
         "parent": {
           "type": "object",
           "required": true,
-          "description": "Parent page ID"
+          "description": "Parent page"
         },
         "title": {
           "type": "array",
@@ -100,140 +182,74 @@
         "properties": {
           "type": "object",
           "required": true,
-          "description": "Database schema properties"
+          "description": "Database properties schema"
         }
       }
     },
     {
-      "name": "query_database",
-      "description": "Query a Notion database",
-      "endpoint": "/databases/{database_id}/query",
-      "method": "POST",
-      "parameters": {
-        "database_id": {
-          "type": "string",
-          "required": true,
-          "description": "Database ID to query"
-        },
-        "filter": {
-          "type": "object",
-          "required": false,
-          "description": "Filter conditions"
-        },
-        "sorts": {
-          "type": "array",
-          "required": false,
-          "description": "Sort conditions"
-        },
-        "page_size": {
-          "type": "number",
-          "required": false,
-          "description": "Number of results to return",
-          "default": 100
-        }
-      }
-    },
-    {
-      "name": "insert_row_to_database",
-      "description": "Insert a new row to database",
-      "endpoint": "/pages",
-      "method": "POST",
-      "parameters": {
-        "parent": {
-          "type": "object",
-          "required": true,
-          "description": "Database ID as parent"
-        },
-        "properties": {
-          "type": "object",
-          "required": true,
-          "description": "Row data properties"
-        }
-      }
-    },
-    {
-      "name": "update_database_row",
-      "description": "Update database row",
-      "endpoint": "/pages/{page_id}",
+      "name": "update_database",
+      "description": "Update database properties",
+      "endpoint": "/databases/{database_id}",
       "method": "PATCH",
       "parameters": {
-        "page_id": {
-          "type": "string",
-          "required": true,
-          "description": "Row (page) ID to update"
-        },
-        "properties": {
-          "type": "object",
-          "required": true,
-          "description": "Updated row properties"
-        }
-      }
-    },
-    {
-      "name": "fetch_database",
-      "description": "Fetch database information",
-      "endpoint": "/databases/{database_id}",
-      "method": "GET",
-      "parameters": {
         "database_id": {
           "type": "string",
           "required": true,
-          "description": "Database ID to fetch"
+          "description": "Database ID"
+        },
+        "title": {
+          "type": "array",
+          "required": false,
+          "description": "Database title"
+        },
+        "properties": {
+          "type": "object",
+          "required": false,
+          "description": "Database properties schema"
         }
       }
     },
     {
-      "name": "fetch_page",
-      "description": "Fetch Notion page",
-      "endpoint": "/pages/{page_id}",
-      "method": "GET",
-      "parameters": {
-        "page_id": {
-          "type": "string",
-          "required": true,
-          "description": "Page ID to fetch"
-        }
-      }
-    },
-    {
-      "name": "add_page_content",
-      "description": "Add content blocks to a page",
+      "name": "append_blocks",
+      "description": "Append blocks to a page",
       "endpoint": "/blocks/{block_id}/children",
       "method": "PATCH",
       "parameters": {
-        "block_id": {
+        "page_id": {
           "type": "string",
           "required": true,
-          "description": "Page ID to add content to"
+          "description": "Page ID"
         },
         "children": {
           "type": "array",
           "required": true,
-          "description": "Array of block objects to add"
+          "description": "Blocks to append"
         }
       }
     },
     {
-      "name": "create_comment",
-      "description": "Create a comment on a page",
-      "endpoint": "/comments",
-      "method": "POST",
+      "name": "delete_block",
+      "description": "Delete a block",
+      "endpoint": "/blocks/{block_id}",
+      "method": "DELETE",
       "parameters": {
-        "parent": {
-          "type": "object",
+        "block_id": {
+          "type": "string",
           "required": true,
-          "description": "Page ID to comment on"
-        },
-        "rich_text": {
-          "type": "array",
-          "required": true,
-          "description": "Comment text content"
+          "description": "Block ID"
         }
       }
+    },
+    {
+      "name": "get_current_user",
+      "description": "Get current user information",
+      "endpoint": "/users/me",
+      "method": "GET",
+      "parameters": {}
     },
     {
       "name": "list_users",
-      "description": "List workspace users",
+      "description": "List all users",
       "endpoint": "/users",
       "method": "GET",
       "parameters": {

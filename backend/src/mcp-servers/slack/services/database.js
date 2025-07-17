@@ -1,5 +1,5 @@
 /**
- * Database service for Gmail MCP instance management
+ * Database service for Slack MCP instance management
  * Handles instance credential lookup and usage tracking
  */
 
@@ -8,7 +8,7 @@ import { pool } from '../../../db/config.js';
 /**
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
- * @param {string} serviceName - Name of the MCP service (gmail)
+ * @param {string} serviceName - Name of the MCP service (slack)
  * @returns {Object|null} Instance credentials or null if not found
  */
 export async function lookupInstanceCredentials(instanceId, serviceName) {
@@ -35,7 +35,9 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
         c.access_token,
         c.refresh_token,
         c.token_expires_at,
-        c.oauth_completed_at
+        c.oauth_completed_at,
+        c.team_id,
+        c.team_name
       FROM mcp_service_table ms
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
       LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
@@ -47,18 +49,18 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
     const result = await pool.query(query, [instanceId, serviceName]);
     
     if (result.rows.length === 0) {
-      console.log(`ℹ️  No instance found for ID: ${instanceId} (service: ${serviceName})`);
+      console.log(`ℹ️  No Slack instance found for ID: ${instanceId} (service: ${serviceName})`);
       return null;
     }
     
     const instance = result.rows[0];
-    console.log(`✅ Found instance credentials for: ${instanceId} (user: ${instance.user_id})`);
+    console.log(`✅ Found Slack instance credentials for: ${instanceId} (user: ${instance.user_id}, team: ${instance.team_id})`);
     
     return instance;
     
   } catch (error) {
     console.error('Database lookup error:', error);
-    throw new Error(`Failed to lookup instance credentials: ${error.message}`);
+    throw new Error(`Failed to lookup Slack instance credentials: ${error.message}`);
   }
 }
 
@@ -83,12 +85,12 @@ export async function updateInstanceUsage(instanceId) {
     const result = await pool.query(query, [instanceId]);
     
     if (result.rows.length === 0) {
-      console.warn(`⚠️  Could not update usage for instance: ${instanceId} (not found)`);
+      console.warn(`⚠️  Could not update usage for Slack instance: ${instanceId} (not found)`);
       return false;
     }
     
     const { usage_count } = result.rows[0];
-    console.log(`📊 Updated usage count for instance ${instanceId}: ${usage_count}`);
+    console.log(`📊 Updated usage count for Slack instance ${instanceId}: ${usage_count}`);
     
     return true;
     
@@ -118,9 +120,12 @@ export async function getInstanceStatistics(instanceId) {
         ms.expires_at,
         ms.custom_name,
         m.mcp_service_name,
-        m.display_name
+        m.display_name,
+        c.team_id,
+        c.team_name
       FROM mcp_service_table ms
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+      LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
       WHERE ms.instance_id = $1
     `;
     
@@ -134,7 +139,7 @@ export async function getInstanceStatistics(instanceId) {
     
   } catch (error) {
     console.error('Database statistics query error:', error);
-    throw new Error(`Failed to get instance statistics: ${error.message}`);
+    throw new Error(`Failed to get Slack instance statistics: ${error.message}`);
   }
 }
 
@@ -159,24 +164,24 @@ export async function updateInstanceStatus(instanceId, newStatus) {
     const result = await pool.query(query, [instanceId, newStatus]);
     
     if (result.rows.length === 0) {
-      console.warn(`⚠️  Could not update status for instance: ${instanceId} (not found)`);
+      console.warn(`⚠️  Could not update status for Slack instance: ${instanceId} (not found)`);
       return false;
     }
     
-    console.log(`🔄 Updated status for instance ${instanceId}: ${newStatus}`);
+    console.log(`🔄 Updated status for Slack instance ${instanceId}: ${newStatus}`);
     return true;
     
   } catch (error) {
     console.error('Database status update error:', error);
-    throw new Error(`Failed to update instance status: ${error.message}`);
+    throw new Error(`Failed to update Slack instance status: ${error.message}`);
   }
 }
 
 /**
- * Get all active instances for Gmail service
+ * Get all active instances for Slack service
  * @returns {Array} Array of active instance records
  */
-export async function getActiveGmailInstances() {
+export async function getActiveSlackInstances() {
   try {
     
     const query = `
@@ -186,10 +191,13 @@ export async function getActiveGmailInstances() {
         ms.usage_count,
         ms.last_used_at,
         ms.created_at,
-        ms.custom_name
+        ms.custom_name,
+        c.team_id,
+        c.team_name
       FROM mcp_service_table ms
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
-      WHERE m.mcp_service_name = 'gmail'
+      LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
+      WHERE m.mcp_service_name = 'slack'
         AND ms.status = 'active'
         AND ms.oauth_status = 'completed'
         AND (ms.expires_at IS NULL OR ms.expires_at > NOW())
@@ -199,12 +207,12 @@ export async function getActiveGmailInstances() {
     
     const result = await pool.query(query);
     
-    console.log(`📊 Found ${result.rows.length} active Gmail instances`);
+    console.log(`📊 Found ${result.rows.length} active Slack instances`);
     return result.rows;
     
   } catch (error) {
     console.error('Database active instances query error:', error);
-    throw new Error(`Failed to get active Gmail instances: ${error.message}`);
+    throw new Error(`Failed to get active Slack instances: ${error.message}`);
   }
 }
 
@@ -223,7 +231,7 @@ export async function validateInstanceAccess(instanceId, userId) {
       JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
       WHERE ms.instance_id = $1
         AND ms.user_id = $2
-        AND m.mcp_service_name = 'gmail'
+        AND m.mcp_service_name = 'slack'
         AND ms.status IN ('active', 'inactive')
         AND ms.oauth_status = 'completed'
         AND (ms.expires_at IS NULL OR ms.expires_at > NOW())
@@ -233,7 +241,7 @@ export async function validateInstanceAccess(instanceId, userId) {
     const result = await pool.query(query, [instanceId, userId]);
     
     const isValid = result.rows.length > 0;
-    console.log(`🔐 Instance access validation for ${instanceId}: ${isValid ? 'GRANTED' : 'DENIED'}`);
+    console.log(`🔐 Slack instance access validation for ${instanceId}: ${isValid ? 'GRANTED' : 'DENIED'}`);
     
     return isValid;
     
@@ -265,9 +273,9 @@ export async function cleanupExpiredInstances() {
     
     const expiredCount = result.rows.length;
     if (expiredCount > 0) {
-      console.log(`⏰ Marked ${expiredCount} instances as expired`);
+      console.log(`⏰ Marked ${expiredCount} Slack instances as expired`);
       result.rows.forEach(row => {
-        console.log(`⏰ Expired instance: ${row.instance_id}`);
+        console.log(`⏰ Expired Slack instance: ${row.instance_id}`);
       });
     }
     
@@ -275,6 +283,80 @@ export async function cleanupExpiredInstances() {
     
   } catch (error) {
     console.error('Database cleanup error:', error);
-    throw new Error(`Failed to cleanup expired instances: ${error.message}`);
+    throw new Error(`Failed to cleanup expired Slack instances: ${error.message}`);
+  }
+}
+
+/**
+ * Get Slack workspace information for an instance
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Object|null} Workspace information or null if not found
+ */
+export async function getSlackWorkspaceInfo(instanceId) {
+  try {
+    
+    const query = `
+      SELECT 
+        c.team_id,
+        c.team_name,
+        c.access_token,
+        c.token_expires_at,
+        ms.custom_name,
+        ms.user_id
+      FROM mcp_service_table ms
+      JOIN mcp_credentials c ON ms.instance_id = c.instance_id
+      WHERE ms.instance_id = $1
+        AND ms.oauth_status = 'completed'
+    `;
+    
+    const result = await pool.query(query, [instanceId]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const workspace = result.rows[0];
+    console.log(`✅ Found Slack workspace info for instance: ${instanceId} (team: ${workspace.team_name})`);
+    
+    return workspace;
+    
+  } catch (error) {
+    console.error('Database workspace info query error:', error);
+    throw new Error(`Failed to get Slack workspace info: ${error.message}`);
+  }
+}
+
+/**
+ * Update Slack team information
+ * @param {string} instanceId - UUID of the service instance
+ * @param {Object} teamInfo - Team information object
+ * @returns {boolean} True if update was successful
+ */
+export async function updateSlackTeamInfo(instanceId, teamInfo) {
+  try {
+    
+    const query = `
+      UPDATE mcp_credentials 
+      SET 
+        team_id = $2,
+        team_name = $3,
+        updated_at = NOW()
+      WHERE instance_id = $1
+      RETURNING instance_id, team_id, team_name
+    `;
+    
+    const result = await pool.query(query, [instanceId, teamInfo.team_id, teamInfo.team_name]);
+    
+    if (result.rows.length === 0) {
+      console.warn(`⚠️  Could not update team info for Slack instance: ${instanceId} (not found)`);
+      return false;
+    }
+    
+    console.log(`🏢 Updated team info for Slack instance ${instanceId}: ${teamInfo.team_name} (${teamInfo.team_id})`);
+    return true;
+    
+  } catch (error) {
+    console.error('Database team info update error:', error);
+    throw new Error(`Failed to update Slack team info: ${error.message}`);
   }
 }
