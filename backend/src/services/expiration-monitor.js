@@ -1,4 +1,4 @@
-import { getExpiredInstances, updateMCPInstance, getMCPInstanceById, bulkMarkInstancesExpired, getFailedOAuthInstances, deleteMCPInstance } from '../db/queries/mcpInstancesQueries.js';
+import { getExpiredInstances, updateMCPInstance, getMCPInstanceById, bulkMarkInstancesExpired, getFailedOAuthInstances, getPendingOAuthInstances, deleteMCPInstance } from '../db/queries/mcpInstancesQueries.js';
 import { invalidateInstanceCache } from './cacheInvalidationService.js';
 
 /**
@@ -65,6 +65,11 @@ class ExpirationMonitor {
 			console.log('🔄 Starting failed OAuth cleanup...');
 			await this.cleanupFailedOAuthInstances();
 			console.log('🔄 Failed OAuth cleanup completed');
+
+			// Also cleanup pending OAuth instances older than 5 minutes
+			console.log('🔄 Starting pending OAuth cleanup...');
+			await this.cleanupPendingOAuthInstances();
+			console.log('🔄 Pending OAuth cleanup completed');
 		} catch (error) {
 			console.error('❌ Error checking expired MCPs:', error);
 		}
@@ -170,6 +175,83 @@ class ExpirationMonitor {
 			}
 		} catch (error) {
 			console.error(`❌ [ERROR] Failed to delete OAuth instance ${instance.instance_id} (${instance.mcp_service_name}):`, error.message);
+			return false;
+		}
+	}
+
+	/**
+	 * Clean up pending OAuth instances older than 5 minutes
+	 */
+	async cleanupPendingOAuthInstances() {
+		try {
+			console.log('🗑️  [PENDING OAUTH CLEANUP] Checking for pending OAuth instances to cleanup...');
+
+			// Get all instances with pending OAuth status older than 5 minutes
+			const pendingInstances = await getPendingOAuthInstances(5);
+
+			if (pendingInstances.length === 0) {
+				console.log('✅ [PENDING OAUTH CLEANUP] No pending OAuth instances found');
+				return;
+			}
+
+			console.log(`🗑️  [PENDING OAUTH CLEANUP] Found ${pendingInstances.length} pending OAuth instances to delete:`);
+			
+			// Log details of pending instances before deletion
+			pendingInstances.forEach((instance, index) => {
+				const minutesOld = Math.floor((Date.now() - new Date(instance.updated_at)) / (1000 * 60));
+				console.log(`   ${index + 1}. Instance ID: ${instance.instance_id} | Service: ${instance.mcp_service_name} | User: ${instance.user_id} | Status: ${instance.oauth_status} | Age: ${minutesOld} minutes`);
+			});
+
+			let deletedCount = 0;
+			let errorCount = 0;
+
+			for (const instance of pendingInstances) {
+				const result = await this.handlePendingOAuthInstance(instance);
+				if (result) {
+					deletedCount++;
+				} else {
+					errorCount++;
+				}
+			}
+
+			console.log(`🗑️  [PENDING OAUTH CLEANUP] Cleanup completed - Deleted: ${deletedCount}, Errors: ${errorCount}`);
+		} catch (error) {
+			console.error('❌ [PENDING OAUTH CLEANUP] Error cleaning up pending OAuth instances:', error.message);
+		}
+	}
+
+	/**
+	 * Handle a pending OAuth instance by deleting it
+	 * @param {Object} instance - MCP instance object with pending OAuth
+	 * @returns {boolean} True if deletion was successful, false otherwise
+	 */
+	async handlePendingOAuthInstance(instance) {
+		try {
+			const minutesOld = Math.floor((Date.now() - new Date(instance.updated_at)) / (1000 * 60));
+			console.log(`🗑️  [DELETING] ${instance.mcp_service_name} instance ${instance.instance_id} (User: ${instance.user_id}) - pending for ${minutesOld} minutes`);
+
+			// Invalidate cache for pending instance
+			if (instance.mcp_service_name) {
+				try {
+					await invalidateInstanceCache(instance.mcp_service_name, instance.instance_id);
+					console.log(`✅ [CACHE] Invalidated cache for ${instance.mcp_service_name} instance ${instance.instance_id}`);
+				} catch (cacheError) {
+					console.log(`⚠️  [CACHE] Cache invalidation failed for ${instance.mcp_service_name} instance ${instance.instance_id}: ${cacheError.message}`);
+				}
+			}
+
+			// Delete the instance completely
+			const deleted = await deleteMCPInstance(instance.instance_id, instance.user_id);
+
+			if (deleted) {
+				console.log(`✅ [SUCCESS] Pending OAuth instance ${instance.instance_id} (${instance.mcp_service_name}) deleted successfully`);
+				return true;
+			} else {
+				console.log(`⚠️  [WARNING] Failed to delete pending OAuth instance ${instance.instance_id} (${instance.mcp_service_name}) - may have already been deleted`);
+				return false;
+			}
+		} catch (error) {
+			console.error(`❌ [ERROR] Failed to delete pending OAuth instance ${instance.instance_id} (${instance.mcp_service_name}):`, error.message);
 			return false;
 		}
 	}
