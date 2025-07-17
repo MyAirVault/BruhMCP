@@ -108,7 +108,7 @@ touch {service-name}/services/{credential-cache.js,credential-watcher.js,databas
 touch {service-name}/api/{service-name}-api.js
 touch {service-name}/middleware/credential-auth.js
 touch {service-name}/utils/{service-name}-formatting.js
-touch {service-name}/utils/{oauth-integration.js,oauth-validation.js,oauth-error-handler.js,token-metrics.js,validation.js}
+touch {service-name}/utils/{oauth-integration.js,oauth-validation.js,oauth-error-handler.js,token-metrics.js,validation.js,logger.js}
 touch {service-name}/validation/credential-validator.js
 ```
 

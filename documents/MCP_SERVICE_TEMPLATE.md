@@ -27,7 +27,7 @@ This comprehensive template provides everything needed to create a new MCP (Mode
 -   [ ] Define service tools and capabilities
 -   [ ] Set up database schema if needed
 
-### Required Files (24 total)
+### Required Files (25 total)
 
 -   [ ] `index.js` - Main entry point
 -   [ ] `db/service.sql` - Database schema
@@ -47,15 +47,18 @@ This comprehensive template provides everything needed to create a new MCP (Mode
     -   [ ] `api/{feature}-operations.js` - Feature-specific operations
 -   [ ] **Middleware** (1 file)
     -   [ ] `middleware/credential-auth.js` - Authentication middleware
--   [ ] **Utils** (6 files)
+-   [ ] **Utils** (7 files)
     -   [ ] `utils/{service}-formatting.js` - Response formatting
     -   [ ] `utils/oauth-integration.js` - OAuth service integration
     -   [ ] `utils/oauth-validation.js` - OAuth token validation
     -   [ ] `utils/oauth-error-handler.js` - OAuth error handling
     -   [ ] `utils/token-metrics.js` - Metrics collection
     -   [ ] `utils/validation.js` - Tool argument validation
+    -   [ ] `utils/logger.js` - Service-specific logging utilities
 -   [ ] **Validation** (1 file)
     -   [ ] `validation/credential-validator.js` - Credential validation
+-   [ ] **Logs** (auto-generated)
+    -   [ ] `logs/` - Directory for structured log files (created automatically)
 
 ---
 
@@ -88,11 +91,26 @@ backend/src/mcp-servers/{service}/
 │   ├── oauth-validation.js            # OAuth token validation
 │   ├── oauth-error-handler.js         # Centralized OAuth error handling
 │   ├── token-metrics.js               # Comprehensive metrics collection
-│   └── validation.js                  # Tool argument validation
+│   ├── validation.js                  # Tool argument validation
+│   └── logger.js                      # Service-specific logging utilities
 ├── validation/
 │   └── credential-validator.js        # Credential format validation
 └── logs/
-    └── system/                        # Log files (auto-generated)
+    └── system/                        # Structured log files (auto-generated)
+        ├── application-YYYY-MM-DD.log # General application events
+        ├── security-YYYY-MM-DD.log    # Security and auth events
+        ├── performance-YYYY-MM-DD.log # Performance monitoring
+        ├── audit-YYYY-MM-DD.log       # Audit trail
+        ├── database-YYYY-MM-DD.log    # Database operations
+        └── cache-YYYY-MM-DD.log       # Cache operations
+```
+
+**User-Specific Logs** (auto-generated per instance):
+```
+logs/users/user_{userId}/mcp_{instanceId}/
+├── app.log                            # Application-level events
+├── access.log                         # HTTP request/response logging
+└── error.log                          # Error logging with stack traces
 ```
 
 ---
@@ -140,6 +158,13 @@ All services use instance-based routing:
 -   **Protocol**: JSON-RPC 2.0 with MCP extensions
 -   **Validation**: Zod schemas for all tools
 -   **Error Handling**: MCP-compliant error responses
+
+### 5. Structured Logging System
+
+-   **System Logs**: Daily rotated logs with categorization (application, security, performance, audit, database, cache)
+-   **User Logs**: Per-instance logs for monitoring (`app.log`, `access.log`, `error.log`)
+-   **Log Format**: JSON structured with timestamps, context, and correlation IDs
+-   **Log Management**: Automatic rotation, compression, and 90-day retention
 
 ---
 
@@ -736,7 +761,253 @@ export async function exampleOperation(params, bearerToken) {
 // Add more API operations here
 ```
 
-### 5. Database Schema (`db/service.sql`)
+### 5. Service Logger (`utils/logger.js`)
+
+```javascript
+/**
+ * {Service Name} Service Logger
+ * Provides structured logging for service operations
+ */
+
+/**
+ * Log levels
+ */
+const LOG_LEVELS = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+  FATAL: 4
+};
+
+/**
+ * Current log level (can be set via environment variable)
+ */
+const CURRENT_LOG_LEVEL = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] || LOG_LEVELS.INFO;
+
+/**
+ * Log colors for console output
+ */
+const LOG_COLORS = {
+  DEBUG: '\x1b[36m', // Cyan
+  INFO: '\x1b[32m',  // Green
+  WARN: '\x1b[33m',  // Yellow
+  ERROR: '\x1b[31m', // Red
+  FATAL: '\x1b[35m', // Magenta
+  RESET: '\x1b[0m'   // Reset
+};
+
+/**
+ * Format log entry
+ */
+function formatLogEntry(level, message, context = {}) {
+  const timestamp = new Date().toISOString();
+  const color = LOG_COLORS[level];
+  const reset = LOG_COLORS.RESET;
+  
+  const contextStr = Object.keys(context).length > 0 
+    ? ` ${JSON.stringify(context)}`
+    : '';
+  
+  return `${color}[${timestamp}] ${level}${reset}: ${message}${contextStr}`;
+}
+
+/**
+ * Base logging function
+ */
+function log(level, message, context = {}) {
+  if (LOG_LEVELS[level] < CURRENT_LOG_LEVEL) {
+    return;
+  }
+  
+  const formattedMessage = formatLogEntry(level, message, context);
+  
+  if (LOG_LEVELS[level] >= LOG_LEVELS.ERROR) {
+    console.error(formattedMessage);
+  } else {
+    console.log(formattedMessage);
+  }
+}
+
+/**
+ * Debug logging
+ */
+export function debug(message, context = {}) {
+  log('DEBUG', message, context);
+}
+
+/**
+ * Info logging
+ */
+export function info(message, context = {}) {
+  log('INFO', message, context);
+}
+
+/**
+ * Warning logging
+ */
+export function warn(message, context = {}) {
+  log('WARN', message, context);
+}
+
+/**
+ * Error logging
+ */
+export function error(message, context = {}) {
+  log('ERROR', message, context);
+}
+
+/**
+ * Fatal error logging
+ */
+export function fatal(message, context = {}) {
+  log('FATAL', message, context);
+}
+
+/**
+ * Log API request start
+ */
+export function logApiRequest(method, endpoint, instanceId, params = {}) {
+  info(`🔄 {Service} API Request: ${method} ${endpoint}`, {
+    instanceId,
+    method,
+    endpoint,
+    params: Object.keys(params).length > 0 ? params : undefined
+  });
+}
+
+/**
+ * Log API response
+ */
+export function logApiResponse(method, endpoint, instanceId, success, duration, response = {}) {
+  const status = success ? '✅' : '❌';
+  const level = success ? 'INFO' : 'ERROR';
+  
+  log(level, `${status} {Service} API Response: ${method} ${endpoint} (${duration}ms)`, {
+    instanceId,
+    method,
+    endpoint,
+    duration,
+    success,
+    response: success ? undefined : response
+  });
+}
+
+/**
+ * Log OAuth token operations
+ */
+export function logTokenOperation(operation, instanceId, success, details = {}) {
+  const status = success ? '✅' : '❌';
+  const level = success ? 'INFO' : 'ERROR';
+  
+  log(level, `${status} OAuth Token ${operation}`, {
+    instanceId,
+    operation,
+    success,
+    ...details
+  });
+}
+
+/**
+ * Log MCP request processing
+ */
+export function logMcpRequest(method, params, instanceId) {
+  info(`🔄 MCP Request: ${method}`, {
+    instanceId,
+    method,
+    params: params ? Object.keys(params) : undefined
+  });
+}
+
+/**
+ * Log MCP response
+ */
+export function logMcpResponse(method, instanceId, success, duration, error = null) {
+  const status = success ? '✅' : '❌';
+  const level = success ? 'INFO' : 'ERROR';
+  
+  log(level, `${status} MCP Response: ${method} (${duration}ms)`, {
+    instanceId,
+    method,
+    success,
+    duration,
+    error: error ? error.message : undefined
+  });
+}
+
+/**
+ * Log database operations
+ */
+export function logDatabaseOperation(operation, table, instanceId, success, details = {}) {
+  const status = success ? '✅' : '❌';
+  const level = success ? 'DEBUG' : 'ERROR';
+  
+  log(level, `${status} Database ${operation}: ${table}`, {
+    instanceId,
+    operation,
+    table,
+    success,
+    ...details
+  });
+}
+
+/**
+ * Log service startup
+ */
+export function logStartup(port, environment, features = []) {
+  info(`🚀 {Service} MCP Server Starting`, {
+    port,
+    environment,
+    features,
+    logLevel: Object.keys(LOG_LEVELS).find(key => LOG_LEVELS[key] === CURRENT_LOG_LEVEL)
+  });
+}
+
+/**
+ * Log service shutdown
+ */
+export function logShutdown(reason, graceful = true) {
+  const level = graceful ? 'INFO' : 'ERROR';
+  const emoji = graceful ? '👋' : '💥';
+  
+  log(level, `${emoji} {Service} MCP Server Shutting Down`, {
+    reason,
+    graceful,
+    timestamp: new Date().toISOString()
+  });
+}
+
+/**
+ * Create performance timer
+ */
+export function createTimer(operation, instanceId) {
+  const startTime = Date.now();
+  
+  return {
+    end: (success = true, details = {}) => {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      const status = success ? '✅' : '❌';
+      const level = success ? 'DEBUG' : 'ERROR';
+      
+      log(level, `${status} ${operation} completed (${duration}ms)`, {
+        instanceId,
+        operation,
+        duration,
+        success,
+        ...details
+      });
+      
+      return duration;
+    }
+  };
+}
+
+export const currentLogLevel = CURRENT_LOG_LEVEL;
+export const logLevels = LOG_LEVELS;
+```
+
+### 6. Database Schema (`db/service.sql`)
 
 ```sql
 -- {Service Name} MCP Service Database Schema
@@ -1113,6 +1384,14 @@ describe('{Service} Load Testing', () => {
 -   **Setup Instructions**: Provide clear setup and configuration steps
 -   **Troubleshooting Guide**: Common issues and solutions
 -   **Change Log**: Track version changes and updates
+
+### 6. Logging & Monitoring
+
+-   **Structured Logging**: JSON-formatted logs with context and correlation IDs
+-   **User-Specific Logs**: Per-instance monitoring files (`app.log`, `access.log`, `error.log`)
+-   **System Logs**: Daily rotated logs for security, performance, and audit
+-   **Log Management**: Automatic rotation, compression, and retention policies
+-   **Real-time Monitoring**: Performance metrics and error tracking
 
 ---
 
