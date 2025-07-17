@@ -6,7 +6,7 @@
 import { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata } from '../services/credential-cache.js';
 import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
 import { exchangeOAuthForBearer, refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauth-validation.js';
-import { updateOAuthStatus, createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
+import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
 import { ErrorResponses } from '../../../utils/errorResponse.js';
 import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauth-error-handler.js';
 import { recordTokenRefreshMetrics } from '../utils/token-metrics.js';
@@ -201,14 +201,26 @@ export function createCredentialAuthMiddleware() {
             user_id: instance.user_id
           });
 
-          // Update database with new tokens
-          await updateOAuthStatus(instanceId, {
-            status: 'completed',
-            accessToken: newTokens.access_token,
-            refreshToken: newTokens.refresh_token || refreshToken,
-            tokenExpiresAt: newExpiresAt,
-            scope: newTokens.scope
-          });
+          // Update database with new tokens using optimistic locking
+          try {
+            await updateOAuthStatusWithLocking(instanceId, {
+              status: 'completed',
+              accessToken: newTokens.access_token,
+              refreshToken: newTokens.refresh_token || refreshToken,
+              tokenExpiresAt: newExpiresAt,
+              scope: newTokens.scope
+            });
+          } catch (lockingError) {
+            // Fallback to regular update if optimistic locking fails
+            console.warn(`⚠️ Optimistic locking failed for ${instanceId}, falling back to regular update`);
+            await updateOAuthStatus(instanceId, {
+              status: 'completed',
+              accessToken: newTokens.access_token,
+              refreshToken: newTokens.refresh_token || refreshToken,
+              tokenExpiresAt: newExpiresAt,
+              scope: newTokens.scope
+            });
+          }
 
           req.bearerToken = newTokens.access_token;
           req.instanceId = instanceId;

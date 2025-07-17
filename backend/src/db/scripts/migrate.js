@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 const migrations = [
 	'002_separate_credentials_table.sql',
 	'003_token_audit_log.sql',
+	'004_add_optimistic_locking.sql',
 ];
 
 async function loadMCPServiceRegistrations() {

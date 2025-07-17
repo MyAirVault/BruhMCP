@@ -5,6 +5,8 @@
 
 import oauthApp from '../oauth-service/index.js';
 import loggingService from './logging/loggingService.js';
+import circuitBreakerManager from '../utils/circuit-breaker.js';
+import connectionPoolManager from '../utils/connection-pool.js';
 
 class OAuthServiceManager {
   constructor() {
@@ -13,6 +15,35 @@ class OAuthServiceManager {
     this.port = process.env.OAUTH_SERVICE_PORT || 3001;
     this.healthMonitorInterval = null;
     this.startTime = null;
+    
+    // Initialize circuit breaker for OAuth service calls
+    this.circuitBreaker = circuitBreakerManager.getOrCreate('oauth-service', {
+      failureThreshold: 5,
+      resetTimeout: 60000, // 1 minute
+      halfOpenMaxCalls: 3,
+      successThreshold: 2,
+      onStateChange: (prevState, newState) => {
+        console.log(`🔄 OAuth service circuit breaker: ${prevState} → ${newState}`);
+        loggingService.logInfo(`OAuth service circuit breaker state changed: ${prevState} → ${newState}`);
+      },
+      onFailure: (error) => {
+        loggingService.logError(error, {
+          operation: 'oauth_service_circuit_breaker',
+          critical: false
+        });
+      }
+    });
+
+    // Initialize connection pool for OAuth service calls
+    this.connectionPool = connectionPoolManager.getOrCreate('oauth-service', {
+      maxSockets: 10,
+      maxFreeSockets: 5,
+      maxConcurrentRequests: 20,
+      timeout: 10000,
+      keepAlive: true,
+      maxRetries: 3,
+      retryDelay: 1000
+    });
   }
 
   /**
@@ -95,6 +126,43 @@ class OAuthServiceManager {
    */
   getServiceUrl() {
     return `http://localhost:${this.port}`;
+  }
+
+  /**
+   * Execute OAuth service call through circuit breaker
+   * @param {Function} fn - Function to execute
+   * @param {...any} args - Arguments to pass to function
+   * @returns {Promise} Result of function execution
+   */
+  async executeWithCircuitBreaker(fn, ...args) {
+    return this.circuitBreaker.execute(fn, ...args);
+  }
+
+  /**
+   * Make HTTP request to OAuth service with circuit breaker and connection pooling
+   * @param {string} path - API path
+   * @param {Object} options - Request options
+   * @returns {Promise<Response>} HTTP response
+   */
+  async makeOAuthServiceRequest(path, options = {}) {
+    const url = `${this.getServiceUrl()}${path}`;
+    
+    return this.executeWithCircuitBreaker(async () => {
+      // Use connection pool for the request
+      const response = await this.connectionPool.fetch(url, {
+        timeout: 10000,
+        ...options
+      });
+      
+      if (!response.ok) {
+        const error = new Error(`OAuth service request failed: ${response.status} ${response.statusText}`);
+        error.status = response.status;
+        error.response = response;
+        throw error;
+      }
+      
+      return response;
+    });
   }
 
   /**
@@ -342,6 +410,10 @@ class OAuthServiceManager {
   async getServiceStatus() {
     const health = await this.checkServiceHealth();
     const recommendations = await this.getHealthRecommendations();
+    const circuitBreakerStatus = this.circuitBreaker.getStatus();
+    const circuitBreakerHealth = this.circuitBreaker.getHealthAssessment();
+    const connectionPoolStatus = this.connectionPool.getStatus();
+    const connectionPoolHealth = this.connectionPool.getHealthAssessment();
     
     return {
       isRunning: this.isRunning,
@@ -349,9 +421,35 @@ class OAuthServiceManager {
       url: this.getServiceUrl(),
       health,
       recommendations,
+      circuitBreaker: {
+        status: circuitBreakerStatus,
+        health: circuitBreakerHealth
+      },
+      connectionPool: {
+        status: connectionPoolStatus,
+        health: connectionPoolHealth
+      },
       startTime: this.startTime ? new Date(this.startTime).toISOString() : null,
       uptime: health.uptime
     };
+  }
+
+  /**
+   * Cleanup resources (connection pool, circuit breaker, etc.)
+   */
+  async cleanup() {
+    console.log('🧹 Cleaning up OAuth service manager resources');
+    
+    // Stop health monitoring
+    this.stopHealthMonitoring();
+    
+    // Close connection pool
+    await this.connectionPool.close();
+    
+    // Reset circuit breaker
+    this.circuitBreaker.reset();
+    
+    console.log('✅ OAuth service manager cleanup completed');
   }
 }
 

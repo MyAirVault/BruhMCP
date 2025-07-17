@@ -285,3 +285,193 @@ export function resetRefreshAttempts(instanceId) {
 	
 	console.log(`✅ Reset refresh attempts for instance: ${instanceId}`);
 }
+
+/**
+ * Synchronize cache with database for consistency
+ * This function ensures cache and database are in sync during failure scenarios
+ * @param {string} instanceId - UUID of the service instance
+ * @param {Object} options - Sync options
+ * @param {boolean} [options.forceRefresh] - Force refresh from database
+ * @param {boolean} [options.updateDatabase] - Update database if cache is newer
+ * @returns {Promise<boolean>} True if sync was successful
+ */
+export async function syncCacheWithDatabase(instanceId, options = {}) {
+	const { forceRefresh = false, updateDatabase = false } = options;
+	
+	try {
+		// Import database functions dynamically to avoid circular dependencies
+		const { getMCPInstanceById } = await import('../../../db/queries/mcpInstancesQueries.js');
+		const { lookupInstanceCredentials } = await import('./database.js');
+		
+		// Get current cache state
+		const cachedCredential = peekCachedCredential(instanceId);
+		
+		// Get database state
+		const dbInstance = await lookupInstanceCredentials(instanceId, 'gmail');
+		
+		if (!dbInstance) {
+			// Instance doesn't exist in database, remove from cache
+			if (cachedCredential) {
+				removeCachedCredential(instanceId);
+				console.log(`🗑️ Removed orphaned cache entry for instance: ${instanceId}`);
+			}
+			return false;
+		}
+		
+		// Check if database has newer data
+		const dbTokenTimestamp = dbInstance.credentials_updated_at ? 
+			new Date(dbInstance.credentials_updated_at).getTime() : 0;
+		const cacheTimestamp = cachedCredential?.cached_at ? 
+			new Date(cachedCredential.cached_at).getTime() : 0;
+		
+		const dbIsNewer = dbTokenTimestamp > cacheTimestamp;
+		const cacheIsNewer = cacheTimestamp > dbTokenTimestamp;
+		
+		// Force refresh from database
+		if (forceRefresh || !cachedCredential || dbIsNewer) {
+			console.log(`🔄 Syncing cache from database for instance: ${instanceId} (force: ${forceRefresh}, dbNewer: ${dbIsNewer})`);
+			
+			// Update cache with database data
+			if (dbInstance.access_token && dbInstance.refresh_token) {
+				const tokenExpiresAt = dbInstance.token_expires_at ? 
+					new Date(dbInstance.token_expires_at).getTime() : 
+					Date.now() + (3600 * 1000); // Default 1 hour
+				
+				setCachedCredential(instanceId, {
+					bearerToken: dbInstance.access_token,
+					refreshToken: dbInstance.refresh_token,
+					expiresAt: tokenExpiresAt,
+					user_id: dbInstance.user_id
+				});
+				
+				console.log(`✅ Updated cache from database for instance: ${instanceId}`);
+			} else {
+				// No valid tokens in database, remove from cache
+				removeCachedCredential(instanceId);
+				console.log(`🗑️ Removed cache entry due to invalid database tokens: ${instanceId}`);
+			}
+			
+			return true;
+		}
+		
+		// Update database if cache is newer and updateDatabase is true
+		if (updateDatabase && cacheIsNewer && cachedCredential) {
+			console.log(`🔄 Updating database from cache for instance: ${instanceId}`);
+			
+			const { updateOAuthStatus } = await import('../../../db/queries/mcpInstancesQueries.js');
+			
+			const tokenExpiresAt = cachedCredential.expiresAt ? 
+				new Date(cachedCredential.expiresAt) : null;
+			
+			await updateOAuthStatus(instanceId, {
+				status: 'completed',
+				accessToken: cachedCredential.bearerToken,
+				refreshToken: cachedCredential.refreshToken,
+				tokenExpiresAt: tokenExpiresAt,
+				scope: cachedCredential.scope || null
+			});
+			
+			console.log(`✅ Updated database from cache for instance: ${instanceId}`);
+			return true;
+		}
+		
+		// Cache and database are in sync
+		console.log(`✅ Cache and database are in sync for instance: ${instanceId}`);
+		return true;
+		
+	} catch (error) {
+		console.error(`❌ Failed to sync cache with database for instance ${instanceId}:`, error);
+		return false;
+	}
+}
+
+/**
+ * Background synchronization for all cached instances
+ * This function runs periodically to ensure cache-database consistency
+ * @param {Object} options - Sync options
+ * @param {number} [options.maxInstances] - Maximum instances to sync per run
+ * @param {boolean} [options.removeOrphaned] - Remove orphaned cache entries
+ * @returns {Promise<Object>} Sync results
+ */
+export async function backgroundCacheSync(options = {}) {
+	const { maxInstances = 50, removeOrphaned = true } = options;
+	
+	const results = {
+		total: 0,
+		synced: 0,
+		errors: 0,
+		orphaned: 0,
+		skipped: 0
+	};
+	
+	try {
+		const cachedInstanceIds = getCachedInstanceIds();
+		results.total = cachedInstanceIds.length;
+		
+		console.log(`🔄 Starting background cache sync for ${cachedInstanceIds.length} instances`);
+		
+		// Process instances in batches
+		const instancesToProcess = cachedInstanceIds.slice(0, maxInstances);
+		
+		for (const instanceId of instancesToProcess) {
+			try {
+				const syncResult = await syncCacheWithDatabase(instanceId, { forceRefresh: false });
+				
+				if (syncResult) {
+					results.synced++;
+				} else {
+					results.orphaned++;
+					if (removeOrphaned) {
+						removeCachedCredential(instanceId);
+					}
+				}
+				
+				// Small delay to prevent overwhelming the database
+				await new Promise(resolve => setTimeout(resolve, 10));
+				
+			} catch (error) {
+				console.error(`❌ Error syncing instance ${instanceId}:`, error);
+				results.errors++;
+			}
+		}
+		
+		// Skip remaining instances if there are too many
+		results.skipped = cachedInstanceIds.length - instancesToProcess.length;
+		
+		console.log(`✅ Background cache sync completed:`, results);
+		return results;
+		
+	} catch (error) {
+		console.error(`❌ Background cache sync failed:`, error);
+		results.errors++;
+		return results;
+	}
+}
+
+/**
+ * Start background cache synchronization service
+ * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
+ * @returns {Object} Sync service controller
+ */
+export function startBackgroundCacheSync(intervalMinutes = 5) {
+	const intervalMs = intervalMinutes * 60 * 1000;
+	
+	console.log(`🚀 Starting background cache sync service (interval: ${intervalMinutes} minutes)`);
+	
+	const syncInterval = setInterval(async () => {
+		await backgroundCacheSync();
+	}, intervalMs);
+	
+	// Run initial sync after 30 seconds
+	setTimeout(async () => {
+		await backgroundCacheSync();
+	}, 30000);
+	
+	return {
+		stop: () => {
+			clearInterval(syncInterval);
+			console.log(`⏹️ Stopped background cache sync service`);
+		},
+		runSync: () => backgroundCacheSync()
+	};
+}
