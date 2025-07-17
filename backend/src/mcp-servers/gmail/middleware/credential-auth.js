@@ -5,9 +5,11 @@
 
 import { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata } from '../services/credential-cache.js';
 import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
-import { exchangeOAuthForBearer, refreshBearerToken } from '../utils/oauth-validation.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstancesQueries.js';
+import { exchangeOAuthForBearer, refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauth-validation.js';
+import { updateOAuthStatus, createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
 import { ErrorResponses } from '../../../utils/errorResponse.js';
+import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauth-error-handler.js';
+import { recordTokenRefreshMetrics } from '../utils/token-metrics.js';
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
@@ -127,14 +129,69 @@ export function createCredentialAuthMiddleware() {
       if (refreshToken) {
         console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
         
+        const refreshStartTime = Date.now();
+        let usedMethod = 'oauth_service';
+        
         try {
-          const newTokens = await refreshBearerToken({
-            refreshToken: refreshToken,
-            clientId: instance.client_id,
-            clientSecret: instance.client_secret
-          });
+          let newTokens;
+          
+          // Try OAuth service first, then fallback to direct Google OAuth
+          try {
+            newTokens = await refreshBearerToken({
+              refreshToken: refreshToken,
+              clientId: instance.client_id,
+              clientSecret: instance.client_secret
+            });
+            usedMethod = 'oauth_service';
+          } catch (oauthServiceError) {
+            console.log(`⚠️  OAuth service failed, trying direct Google OAuth: ${oauthServiceError.message}`);
+            
+            // Check if error indicates OAuth service unavailable
+            if (oauthServiceError.message.includes('OAuth service error') || 
+                oauthServiceError.message.includes('Failed to start OAuth service')) {
+              
+              // Fallback to direct Google OAuth
+              newTokens = await refreshBearerTokenDirect({
+                refreshToken: refreshToken,
+                clientId: instance.client_id,
+                clientSecret: instance.client_secret
+              });
+              usedMethod = 'direct_oauth';
+            } else {
+              // Re-throw if it's not a service availability issue
+              throw oauthServiceError;
+            }
+          }
 
           const newExpiresAt = new Date(Date.now() + (newTokens.expires_in * 1000));
+          const refreshEndTime = Date.now();
+
+          // Record successful metrics
+          recordTokenRefreshMetrics(
+            instanceId, 
+            usedMethod, 
+            true, // success
+            null, // errorType
+            null, // errorMessage
+            refreshStartTime, 
+            refreshEndTime
+          );
+
+          // Create audit log entry
+          createTokenAuditLog({
+            instanceId,
+            operation: 'refresh',
+            status: 'success',
+            method: usedMethod,
+            userId: instance.user_id,
+            metadata: {
+              expiresIn: newTokens.expires_in,
+              scope: newTokens.scope,
+              responseTime: refreshEndTime - refreshStartTime
+            }
+          }).catch(err => {
+            console.error('Failed to create audit log:', err);
+          });
 
           // Update cache with new Bearer token
           setCachedCredential(instanceId, {
@@ -162,60 +219,93 @@ export function createCredentialAuthMiddleware() {
 
           return next();
         } catch (refreshError) {
-          console.error(`Failed to refresh Bearer token for instance ${instanceId}:`, refreshError);
-          // Fall through to full OAuth exchange
+          const refreshEndTime = Date.now();
+          
+          // Record failed metrics
+          recordTokenRefreshMetrics(
+            instanceId, 
+            usedMethod, 
+            false, // failure
+            refreshError.errorType || 'UNKNOWN_ERROR',
+            refreshError.message || 'Token refresh failed',
+            refreshStartTime, 
+            refreshEndTime
+          );
+
+          // Create audit log entry for failure
+          createTokenAuditLog({
+            instanceId,
+            operation: 'refresh',
+            status: 'failure',
+            method: usedMethod,
+            errorType: refreshError.errorType || 'UNKNOWN_ERROR',
+            errorMessage: refreshError.message || 'Token refresh failed',
+            userId: instance.user_id,
+            metadata: {
+              responseTime: refreshEndTime - refreshStartTime,
+              originalError: refreshError.originalError || refreshError.message
+            }
+          }).catch(err => {
+            console.error('Failed to create audit log:', err);
+          });
+
+          // Use centralized error handling
+          logOAuthError(refreshError, 'token refresh', instanceId);
+          
+          const errorResponse = await handleTokenRefreshFailure(instanceId, refreshError, updateOAuthStatus);
+          
+          // If error requires re-authentication, return immediately
+          if (errorResponse.requiresReauth) {
+            return ErrorResponses.unauthorized(res, errorResponse.error, {
+              instanceId: errorResponse.instanceId,
+              error: errorResponse.error,
+              errorCode: errorResponse.errorCode,
+              requiresReauth: errorResponse.requiresReauth
+            });
+          }
+          
+          // For other errors, fall through to full OAuth exchange
+          console.log(`🔄 Falling back to full OAuth exchange due to refresh error: ${refreshError.message}`);
         }
       }
 
-      // Need to perform full OAuth exchange
-      console.log(`🔐 Performing OAuth exchange for instance: ${instanceId}`);
+      // Need to perform full OAuth exchange - this indicates user needs to re-authenticate
+      console.log(`🔐 Full OAuth exchange required for instance: ${instanceId}`);
       
-      try {
-        const tokenResponse = await exchangeOAuthForBearer({
-          clientId: instance.client_id,
-          clientSecret: instance.client_secret,
-          scopes: [
-            'https://www.googleapis.com/auth/gmail.modify',
-            'https://www.googleapis.com/auth/userinfo.profile', 
-            'https://www.googleapis.com/auth/userinfo.email'
-          ]
-        });
-
-        const expiresAt = new Date(Date.now() + (tokenResponse.expires_in * 1000));
-
-        // Cache the Bearer token and refresh token
-        setCachedCredential(instanceId, {
-          bearerToken: tokenResponse.access_token,
-          refreshToken: tokenResponse.refresh_token,
-          expiresAt: expiresAt.getTime(),
-          user_id: instance.user_id
-        });
-
-        // Update database with new tokens
-        await updateOAuthStatus(instanceId, {
-          status: 'completed',
-          accessToken: tokenResponse.access_token,
-          refreshToken: tokenResponse.refresh_token,
-          tokenExpiresAt: expiresAt,
-          scope: tokenResponse.scope
-        });
-
-        req.bearerToken = tokenResponse.access_token;
-        req.instanceId = instanceId;
-        req.userId = instance.user_id;
-
-        // Update usage tracking
-        await updateInstanceUsage(instanceId);
-
-        return next();
-
-      } catch (oauthError) {
-        console.error(`OAuth exchange failed for instance ${instanceId}:`, oauthError);
-        return ErrorResponses.unauthorized(res, 'OAuth authentication failed', {
-          instanceId,
-          error: oauthError.message
-        });
-      }
+      // Create audit log entry for re-auth requirement
+      createTokenAuditLog({
+        instanceId,
+        operation: 'validate',
+        status: 'failure',
+        method: 'middleware_check',
+        errorType: 'OAUTH_FLOW_REQUIRED',
+        errorMessage: 'No valid access token and refresh token failed',
+        userId: instance.user_id,
+        metadata: {
+          hasRefreshToken: !!refreshToken,
+          hasAccessToken: !!accessToken,
+          tokenExpired: tokenExpiresAt ? tokenExpiresAt <= Date.now() : 'unknown'
+        }
+      }).catch(err => {
+        console.error('Failed to create audit log:', err);
+      });
+      
+      // Mark OAuth status as failed in database to indicate re-authentication needed
+      await updateOAuthStatus(instanceId, {
+        status: 'failed',
+        accessToken: null,
+        refreshToken: refreshToken, // Keep refresh token for potential retry
+        tokenExpiresAt: null,
+        scope: null
+      });
+      
+      // Return specific error requiring re-authentication
+      return ErrorResponses.unauthorized(res, 'OAuth authentication required - please re-authenticate', {
+        instanceId,
+        error: 'No valid access token and refresh token failed',
+        requiresReauth: true,
+        errorCode: 'OAUTH_FLOW_REQUIRED'
+      });
 
     } catch (error) {
       console.error('Credential authentication middleware error:', error);

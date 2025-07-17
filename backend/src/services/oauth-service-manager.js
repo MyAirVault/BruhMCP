@@ -11,6 +11,8 @@ class OAuthServiceManager {
     this.server = null;
     this.isRunning = false;
     this.port = process.env.OAUTH_SERVICE_PORT || 3001;
+    this.healthMonitorInterval = null;
+    this.startTime = null;
   }
 
   /**
@@ -28,7 +30,11 @@ class OAuthServiceManager {
         console.log(`🔐 OAuth service started on port ${this.port}`);
         console.log(`📚 OAuth health check: http://localhost:${this.port}/health`);
         this.isRunning = true;
+        this.startTime = Date.now();
       });
+
+      // Start health monitoring
+      this.startHealthMonitoring();
 
       return true;
     } catch (error) {
@@ -52,11 +58,15 @@ class OAuthServiceManager {
     }
 
     try {
+      // Stop health monitoring
+      this.stopHealthMonitoring();
+
       await new Promise((resolve) => {
         this.server.close(() => {
           console.log('✅ OAuth service stopped');
           this.isRunning = false;
           this.server = null;
+          this.startTime = null;
           resolve();
         });
       });
@@ -98,6 +108,250 @@ class OAuthServiceManager {
 
     console.log('🔐 Starting OAuth service for operation...');
     return await this.startService();
+  }
+
+  /**
+   * Check service health by testing endpoints
+   * @returns {Promise<Object>} Health status
+   */
+  async checkServiceHealth() {
+    if (!this.isRunning) {
+      return {
+        status: 'unhealthy',
+        reason: 'Service not running',
+        uptime: 0,
+        endpoints: {}
+      };
+    }
+
+    const serviceUrl = this.getServiceUrl();
+    const endpoints = {
+      health: `${serviceUrl}/health`,
+      status: `${serviceUrl}/status`,
+      config: `${serviceUrl}/config`
+    };
+
+    const endpointResults = {};
+    let healthyEndpoints = 0;
+    
+    // Test each endpoint
+    for (const [name, url] of Object.entries(endpoints)) {
+      try {
+        const startTime = Date.now();
+        const response = await fetch(url, {
+          method: 'GET',
+          timeout: 5000
+        });
+        const responseTime = Date.now() - startTime;
+        
+        endpointResults[name] = {
+          status: response.ok ? 'healthy' : 'unhealthy',
+          statusCode: response.status,
+          responseTime,
+          error: null
+        };
+        
+        if (response.ok) {
+          healthyEndpoints++;
+        }
+      } catch (error) {
+        endpointResults[name] = {
+          status: 'unhealthy',
+          statusCode: null,
+          responseTime: null,
+          error: error.message
+        };
+      }
+    }
+
+    const totalEndpoints = Object.keys(endpoints).length;
+    const healthRatio = healthyEndpoints / totalEndpoints;
+    const uptime = this.startTime ? Date.now() - this.startTime : 0;
+
+    return {
+      status: healthRatio >= 0.8 ? 'healthy' : healthRatio >= 0.5 ? 'degraded' : 'unhealthy',
+      uptime,
+      endpoints: endpointResults,
+      healthRatio,
+      port: this.port,
+      pid: process.pid
+    };
+  }
+
+  /**
+   * Restart service if unhealthy
+   * @returns {Promise<boolean>} true if restart was successful
+   */
+  async restartIfUnhealthy() {
+    const health = await this.checkServiceHealth();
+    
+    if (health.status === 'unhealthy') {
+      console.log('🔄 OAuth service unhealthy, attempting restart...');
+      
+      const stopSuccess = await this.stopService();
+      if (!stopSuccess) {
+        console.error('❌ Failed to stop unhealthy OAuth service');
+        return false;
+      }
+      
+      // Wait a moment before restart
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const startSuccess = await this.startService();
+      if (startSuccess) {
+        console.log('✅ OAuth service restarted successfully');
+        return true;
+      } else {
+        console.error('❌ Failed to restart OAuth service');
+        return false;
+      }
+    }
+    
+    return true; // Service was healthy, no restart needed
+  }
+
+  /**
+   * Start health monitoring with periodic checks
+   */
+  startHealthMonitoring() {
+    if (this.healthMonitorInterval) {
+      clearInterval(this.healthMonitorInterval);
+    }
+    
+    // Check health every 2 minutes
+    this.healthMonitorInterval = setInterval(async () => {
+      try {
+        await this.monitorServiceHealth();
+      } catch (error) {
+        console.error('❌ Health monitoring error:', error);
+        loggingService.logError(error, {
+          operation: 'oauth_service_health_monitor',
+          critical: false
+        });
+      }
+    }, 2 * 60 * 1000);
+    
+    console.log('📊 OAuth service health monitoring started');
+  }
+
+  /**
+   * Stop health monitoring
+   */
+  stopHealthMonitoring() {
+    if (this.healthMonitorInterval) {
+      clearInterval(this.healthMonitorInterval);
+      this.healthMonitorInterval = null;
+      console.log('📊 OAuth service health monitoring stopped');
+    }
+  }
+
+  /**
+   * Perform health monitoring check
+   */
+  async monitorServiceHealth() {
+    const health = await this.checkServiceHealth();
+    
+    // Log health status
+    const uptimeHours = (health.uptime / (1000 * 60 * 60)).toFixed(2);
+    console.log(`📊 OAuth service health: ${health.status} (uptime: ${uptimeHours}h)`);
+    
+    // Check for issues
+    if (health.status === 'unhealthy') {
+      console.warn('⚠️  OAuth service unhealthy:', health);
+      
+      // Attempt restart
+      const restartSuccess = await this.restartIfUnhealthy();
+      if (!restartSuccess) {
+        loggingService.logError(new Error('OAuth service restart failed'), {
+          operation: 'oauth_service_restart',
+          critical: true,
+          details: health
+        });
+      }
+    } else if (health.status === 'degraded') {
+      console.warn('⚠️  OAuth service degraded:', health);
+      loggingService.logError(new Error('OAuth service performance degraded'), {
+        operation: 'oauth_service_degraded',
+        critical: false,
+        details: health
+      });
+    }
+  }
+
+  /**
+   * Get health recommendations based on current status
+   * @returns {Promise<Array>} Array of recommendations
+   */
+  async getHealthRecommendations() {
+    const health = await this.checkServiceHealth();
+    const recommendations = [];
+    
+    if (!this.isRunning) {
+      recommendations.push({
+        priority: 'high',
+        action: 'start_service',
+        message: 'OAuth service is not running and should be started'
+      });
+      return recommendations;
+    }
+    
+    if (health.status === 'unhealthy') {
+      recommendations.push({
+        priority: 'high',
+        action: 'restart_service',
+        message: 'Service is unhealthy and requires restart'
+      });
+    }
+    
+    // Check endpoint-specific issues
+    for (const [endpoint, result] of Object.entries(health.endpoints)) {
+      if (result.status === 'unhealthy') {
+        recommendations.push({
+          priority: 'medium',
+          action: 'check_endpoint',
+          message: `Endpoint ${endpoint} is not responding properly`,
+          details: result
+        });
+      } else if (result.responseTime > 3000) {
+        recommendations.push({
+          priority: 'low',
+          action: 'optimize_performance',
+          message: `Endpoint ${endpoint} has high response time (${result.responseTime}ms)`,
+          details: result
+        });
+      }
+    }
+    
+    // Check uptime
+    const uptimeHours = health.uptime / (1000 * 60 * 60);
+    if (uptimeHours > 24 * 7) { // Running for more than a week
+      recommendations.push({
+        priority: 'low',
+        action: 'scheduled_restart',
+        message: `Service has been running for ${uptimeHours.toFixed(1)} hours, consider scheduled restart`
+      });
+    }
+    
+    return recommendations;
+  }
+
+  /**
+   * Get comprehensive service status
+   * @returns {Promise<Object>} Complete service status
+   */
+  async getServiceStatus() {
+    const health = await this.checkServiceHealth();
+    const recommendations = await this.getHealthRecommendations();
+    
+    return {
+      isRunning: this.isRunning,
+      port: this.port,
+      url: this.getServiceUrl(),
+      health,
+      recommendations,
+      startTime: this.startTime ? new Date(this.startTime).toISOString() : null,
+      uptime: health.uptime
+    };
   }
 }
 

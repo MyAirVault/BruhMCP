@@ -4,7 +4,7 @@
  */
 
 /**
- * Refresh tokens using OAuth service
+ * Refresh tokens using OAuth service with retry logic
  * @param {Object} params - Refresh parameters
  * @param {string} params.refreshToken - Refresh token
  * @param {string} params.clientId - OAuth client ID
@@ -16,48 +16,100 @@ export async function refreshWithOAuthService(params) {
 
   console.log(`🔄 Refreshing tokens via OAuth service`);
 
-  try {
-    const oauthServiceUrl = process.env.OAUTH_SERVICE_URL || 'http://localhost:3001';
-    
-    const response = await fetch(`${oauthServiceUrl}/exchange-refresh-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        provider: 'google',
-        refresh_token: refreshToken,
-        client_id: clientId,
-        client_secret: clientSecret
-      })
-    });
+  const oauthServiceUrl = process.env.OAUTH_SERVICE_URL || 'http://localhost:3001';
+  const maxRetries = 3;
+  let lastError;
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`OAuth service error: ${errorData.error || 'Token refresh failed'}`);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(`${oauthServiceUrl}/exchange-refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          provider: 'google',
+          refresh_token: refreshToken,
+          client_id: clientId,
+          client_secret: clientSecret
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = `OAuth service error: ${errorData.error || 'Token refresh failed'}`;
+        
+        // Don't retry for certain errors
+        if (errorData.error && (
+          errorData.error.includes('invalid_grant') ||
+          errorData.error.includes('invalid_client') ||
+          errorData.error.includes('INVALID_REFRESH_TOKEN')
+        )) {
+          throw new Error(errorMessage);
+        }
+        
+        // Retry for server errors
+        if (response.status >= 500 && attempt < maxRetries) {
+          console.log(`🔄 Retrying OAuth service request (attempt ${attempt + 1})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          continue;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const tokenData = await response.json();
+      
+      if (!tokenData.tokens || !tokenData.tokens.access_token) {
+        throw new Error('Invalid token response from OAuth service');
+      }
+
+      console.log(`✅ Tokens refreshed successfully via OAuth service (attempt ${attempt})`);
+
+      return {
+        access_token: tokenData.tokens.access_token,
+        refresh_token: tokenData.tokens.refresh_token || refreshToken,
+        expires_in: tokenData.tokens.expires_in || 3600,
+        token_type: tokenData.tokens.token_type || 'Bearer',
+        scope: tokenData.tokens.scope,
+        expires_at: tokenData.tokens.expires_at
+      };
+
+    } catch (error) {
+      lastError = error;
+      console.error(`OAuth service token refresh failed (attempt ${attempt}):`, error);
+      
+      // Don't retry for certain errors
+      if (error.message.includes('invalid_grant') || 
+          error.message.includes('invalid_client') ||
+          error.message.includes('INVALID_REFRESH_TOKEN')) {
+        throw error;
+      }
+      
+      // For network errors, retry
+      if (attempt < maxRetries && (
+        error.name === 'AbortError' ||
+        error.code === 'ECONNRESET' ||
+        error.code === 'ETIMEDOUT' ||
+        error.code === 'ENOTFOUND'
+      )) {
+        console.log(`🔄 Retrying OAuth service request (attempt ${attempt + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        continue;
+      }
+      
+      break;
     }
-
-    const tokenData = await response.json();
-    
-    if (!tokenData.tokens || !tokenData.tokens.access_token) {
-      throw new Error('Invalid token response from OAuth service');
-    }
-
-    console.log(`✅ Tokens refreshed successfully via OAuth service`);
-
-    return {
-      access_token: tokenData.tokens.access_token,
-      refresh_token: tokenData.tokens.refresh_token || refreshToken,
-      expires_in: tokenData.tokens.expires_in || 3600,
-      token_type: tokenData.tokens.token_type || 'Bearer',
-      scope: tokenData.tokens.scope,
-      expires_at: tokenData.tokens.expires_at
-    };
-
-  } catch (error) {
-    console.error('OAuth service token refresh failed:', error);
-    throw new Error(`OAuth token refresh failed: ${error.message}`);
   }
+
+  throw new Error(`OAuth token refresh failed after ${maxRetries} attempts: ${lastError.message}`);
 }
 
 /**
@@ -182,12 +234,23 @@ export async function isOAuthServiceAvailable() {
   try {
     const oauthServiceUrl = process.env.OAUTH_SERVICE_URL || 'http://localhost:3001';
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const response = await fetch(`${oauthServiceUrl}/health`, {
       method: 'GET',
-      timeout: 5000
+      signal: controller.signal
     });
 
-    return response.ok;
+    clearTimeout(timeoutId);
+    
+    if (response.ok) {
+      const healthData = await response.json();
+      console.log(`✅ OAuth service is healthy: ${healthData.status}`);
+      return true;
+    }
+    
+    return false;
 
   } catch (error) {
     console.error('OAuth service health check failed:', error);

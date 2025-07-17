@@ -212,19 +212,26 @@ class GoogleOAuth extends baseOAuth {
       if (!response.ok) {
         const errorData = await response.text();
         let errorMessage = `Token refresh failed: ${response.status} ${response.statusText}`;
+        let errorCode = null;
         
         try {
           const errorJson = JSON.parse(errorData);
           if (errorJson.error_description) {
             errorMessage = `Token refresh failed: ${errorJson.error_description}`;
+            errorCode = errorJson.error;
           } else if (errorJson.error) {
             errorMessage = `Token refresh failed: ${errorJson.error}`;
+            errorCode = errorJson.error;
           }
         } catch (parseError) {
           // Use the default error message
         }
         
-        throw new Error(errorMessage);
+        // Add specific error codes for better error handling
+        const error = new Error(errorMessage);
+        error.code = errorCode;
+        error.status = response.status;
+        throw error;
       }
 
       const tokens = await response.json();
@@ -232,6 +239,14 @@ class GoogleOAuth extends baseOAuth {
       // Validate response contains required fields
       if (!tokens.access_token) {
         throw new Error('Invalid token response: missing access_token');
+      }
+
+      // Validate token scope for Gmail
+      if (tokens.scope) {
+        const scopeValidation = await this.validateTokenScopes(tokens);
+        if (!scopeValidation.valid) {
+          console.warn(`⚠️  Token scope validation warning: ${scopeValidation.error}`);
+        }
       }
 
       console.log(`✅ Google access token refreshed successfully (expires in ${tokens.expires_in} seconds)`);
@@ -246,6 +261,16 @@ class GoogleOAuth extends baseOAuth {
 
     } catch (error) {
       console.error('Google token refresh failed:', error);
+      
+      // Add specific error handling for Google OAuth errors
+      if (error.code === 'invalid_grant') {
+        throw new Error('invalid_grant: The provided authorization grant is invalid, expired, revoked, or does not match the redirection URI');
+      } else if (error.code === 'invalid_client') {
+        throw new Error('invalid_client: Client authentication failed');
+      } else if (error.code === 'invalid_request') {
+        throw new Error('invalid_request: The request is missing a required parameter or is otherwise malformed');
+      }
+      
       throw new Error(`Google token refresh failed: ${error.message}`);
     }
   }

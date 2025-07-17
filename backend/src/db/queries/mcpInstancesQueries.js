@@ -561,3 +561,297 @@ export async function updateMCPServiceStats(serviceId, updates) {
 	const result = await pool.query(query, params);
 	return result.rows[0] || null;
 }
+
+/**
+ * Create audit log entry for token operations
+ * @param {Object} auditData - Audit data
+ * @param {string} auditData.instanceId - Instance ID
+ * @param {string} auditData.operation - Operation type (refresh, revoke, validate, etc.)
+ * @param {string} auditData.status - Operation status (success, failure, pending)
+ * @param {string} [auditData.method] - Method used (oauth_service, direct_oauth)
+ * @param {string} [auditData.errorType] - Error type if failed
+ * @param {string} [auditData.errorMessage] - Error message if failed
+ * @param {Object} [auditData.metadata] - Additional metadata
+ * @param {string} [auditData.userId] - User ID (optional)
+ * @returns {Promise<Object>} Created audit log entry
+ */
+export async function createTokenAuditLog(auditData) {
+	const {
+		instanceId,
+		operation,
+		status,
+		method,
+		errorType,
+		errorMessage,
+		metadata,
+		userId
+	} = auditData;
+
+	// Validate required fields
+	if (!instanceId || !operation || !status) {
+		throw new Error('Instance ID, operation, and status are required for audit log');
+	}
+
+	const query = `
+		INSERT INTO token_audit_log (
+			instance_id,
+			user_id,
+			operation,
+			status,
+			method,
+			error_type,
+			error_message,
+			metadata,
+			created_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+		RETURNING *
+	`;
+
+	const params = [
+		instanceId,
+		userId || null,
+		operation,
+		status,
+		method || null,
+		errorType || null,
+		errorMessage || null,
+		metadata ? JSON.stringify(metadata) : null
+	];
+
+	try {
+		const result = await pool.query(query, params);
+		return result.rows[0];
+	} catch (error) {
+		// If audit table doesn't exist, log error but don't fail the operation
+		if (error.code === '42P01') { // relation does not exist
+			console.warn('⚠️  Token audit table does not exist. Skipping audit log.');
+			return null;
+		}
+		throw error;
+	}
+}
+
+/**
+ * Get audit logs for an instance
+ * @param {string} instanceId - Instance ID
+ * @param {Object} options - Query options
+ * @param {number} [options.limit] - Limit number of results (default: 50)
+ * @param {number} [options.offset] - Offset for pagination (default: 0)
+ * @param {string} [options.operation] - Filter by operation type
+ * @param {string} [options.status] - Filter by status
+ * @param {Date} [options.since] - Get logs since this date
+ * @returns {Promise<Array>} Array of audit log entries
+ */
+export async function getTokenAuditLogs(instanceId, options = {}) {
+	const {
+		limit = 50,
+		offset = 0,
+		operation,
+		status,
+		since
+	} = options;
+
+	let query = `
+		SELECT 
+			audit_id,
+			instance_id,
+			user_id,
+			operation,
+			status,
+			method,
+			error_type,
+			error_message,
+			metadata,
+			created_at
+		FROM token_audit_log
+		WHERE instance_id = $1
+	`;
+
+	const params = [instanceId];
+	let paramIndex = 2;
+
+	// Add filters
+	if (operation) {
+		query += ` AND operation = $${paramIndex}`;
+		params.push(operation);
+		paramIndex++;
+	}
+
+	if (status) {
+		query += ` AND status = $${paramIndex}`;
+		params.push(status);
+		paramIndex++;
+	}
+
+	if (since) {
+		query += ` AND created_at >= $${paramIndex}`;
+		params.push(since);
+		paramIndex++;
+	}
+
+	// Order and pagination
+	query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+	params.push(limit, offset);
+
+	try {
+		const result = await pool.query(query, params);
+		
+		// Parse metadata JSON
+		return result.rows.map(row => ({
+			...row,
+			metadata: row.metadata ? JSON.parse(row.metadata) : null
+		}));
+	} catch (error) {
+		// If audit table doesn't exist, return empty array
+		if (error.code === '42P01') {
+			console.warn('⚠️  Token audit table does not exist. Returning empty audit log.');
+			return [];
+		}
+		throw error;
+	}
+}
+
+/**
+ * Get audit log statistics
+ * @param {string} [instanceId] - Instance ID (optional, for all instances if not provided)
+ * @param {number} [days] - Number of days to include (default: 30)
+ * @returns {Promise<Object>} Audit statistics
+ */
+export async function getTokenAuditStats(instanceId, days = 30) {
+	const cutoffDate = new Date();
+	cutoffDate.setDate(cutoffDate.getDate() - days);
+
+	let query = `
+		SELECT 
+			operation,
+			status,
+			method,
+			error_type,
+			COUNT(*) as count,
+			DATE(created_at) as date
+		FROM token_audit_log
+		WHERE created_at >= $1
+	`;
+
+	const params = [cutoffDate];
+	let paramIndex = 2;
+
+	if (instanceId) {
+		query += ` AND instance_id = $${paramIndex}`;
+		params.push(instanceId);
+		paramIndex++;
+	}
+
+	query += `
+		GROUP BY operation, status, method, error_type, DATE(created_at)
+		ORDER BY date DESC, operation, status
+	`;
+
+	try {
+		const result = await pool.query(query, params);
+		
+		// Aggregate statistics
+		const stats = {
+			totalOperations: 0,
+			operationsByType: {},
+			operationsByStatus: {},
+			operationsByMethod: {},
+			errorsByType: {},
+			dailyBreakdown: {}
+		};
+
+		result.rows.forEach(row => {
+			const count = parseInt(row.count);
+			stats.totalOperations += count;
+
+			// By operation type
+			if (!stats.operationsByType[row.operation]) {
+				stats.operationsByType[row.operation] = 0;
+			}
+			stats.operationsByType[row.operation] += count;
+
+			// By status
+			if (!stats.operationsByStatus[row.status]) {
+				stats.operationsByStatus[row.status] = 0;
+			}
+			stats.operationsByStatus[row.status] += count;
+
+			// By method
+			if (row.method) {
+				if (!stats.operationsByMethod[row.method]) {
+					stats.operationsByMethod[row.method] = 0;
+				}
+				stats.operationsByMethod[row.method] += count;
+			}
+
+			// By error type
+			if (row.error_type) {
+				if (!stats.errorsByType[row.error_type]) {
+					stats.errorsByType[row.error_type] = 0;
+				}
+				stats.errorsByType[row.error_type] += count;
+			}
+
+			// Daily breakdown
+			const dateStr = row.date;
+			if (!stats.dailyBreakdown[dateStr]) {
+				stats.dailyBreakdown[dateStr] = {
+					total: 0,
+					success: 0,
+					failure: 0
+				};
+			}
+			stats.dailyBreakdown[dateStr].total += count;
+			
+			if (row.status === 'success') {
+				stats.dailyBreakdown[dateStr].success += count;
+			} else if (row.status === 'failure') {
+				stats.dailyBreakdown[dateStr].failure += count;
+			}
+		});
+
+		return stats;
+	} catch (error) {
+		// If audit table doesn't exist, return empty stats
+		if (error.code === '42P01') {
+			console.warn('⚠️  Token audit table does not exist. Returning empty stats.');
+			return {
+				totalOperations: 0,
+				operationsByType: {},
+				operationsByStatus: {},
+				operationsByMethod: {},
+				errorsByType: {},
+				dailyBreakdown: {}
+			};
+		}
+		throw error;
+	}
+}
+
+/**
+ * Clean up old audit logs
+ * @param {number} daysToKeep - Number of days to keep (default: 90)
+ * @returns {Promise<number>} Number of deleted records
+ */
+export async function cleanupTokenAuditLogs(daysToKeep = 90) {
+	const cutoffDate = new Date();
+	cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+	const query = `
+		DELETE FROM token_audit_log
+		WHERE created_at < $1
+	`;
+
+	try {
+		const result = await pool.query(query, [cutoffDate]);
+		console.log(`🗑️  Cleaned up ${result.rowCount} old audit log entries`);
+		return result.rowCount;
+	} catch (error) {
+		// If audit table doesn't exist, return 0
+		if (error.code === '42P01') {
+			console.warn('⚠️  Token audit table does not exist. Nothing to clean up.');
+			return 0;
+		}
+		throw error;
+	}
+}

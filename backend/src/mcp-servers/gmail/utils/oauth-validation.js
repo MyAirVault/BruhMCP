@@ -275,6 +275,100 @@ export async function getUserInfoFromToken(bearerToken) {
 }
 
 /**
+ * Direct Google OAuth token refresh (bypass OAuth service)
+ * @param {Object} refreshData - Refresh token data
+ * @param {string} refreshData.refreshToken - OAuth refresh token
+ * @param {string} refreshData.clientId - OAuth Client ID
+ * @param {string} refreshData.clientSecret - OAuth Client Secret
+ * @returns {Object} New token response
+ */
+export async function refreshBearerTokenDirect(refreshData) {
+  const { refreshToken, clientId, clientSecret } = refreshData;
+
+  // Validate required data
+  if (!refreshToken) {
+    throw new Error('Refresh token is required');
+  }
+
+  if (!clientId || !clientSecret) {
+    throw new Error('OAuth Client ID and Client Secret are required');
+  }
+
+  console.log(`🔄 Direct Google OAuth token refresh (bypassing OAuth service)`);
+
+  try {
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      let errorMessage = `Direct token refresh failed: ${response.status} ${response.statusText}`;
+      let errorCode = null;
+      
+      try {
+        const errorJson = JSON.parse(errorData);
+        if (errorJson.error_description) {
+          errorMessage = `Direct token refresh failed: ${errorJson.error_description}`;
+          errorCode = errorJson.error;
+        } else if (errorJson.error) {
+          errorMessage = `Direct token refresh failed: ${errorJson.error}`;
+          errorCode = errorJson.error;
+        }
+      } catch (parseError) {
+        // Use the default error message
+      }
+      
+      const error = new Error(errorMessage);
+      error.code = errorCode;
+      error.status = response.status;
+      throw error;
+    }
+
+    const tokens = await response.json();
+    
+    // Validate response contains required fields
+    if (!tokens.access_token) {
+      throw new Error('Invalid token response: missing access_token');
+    }
+
+    console.log(`✅ Direct Google OAuth token refresh successful (expires in ${tokens.expires_in} seconds)`);
+
+    return {
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token || refreshToken, // Google may not return new refresh token
+      expires_in: tokens.expires_in || 3600,
+      token_type: tokens.token_type || 'Bearer',
+      scope: tokens.scope
+    };
+
+  } catch (error) {
+    console.error('Direct Google OAuth token refresh failed:', error);
+    
+    // Enhanced error handling for common OAuth errors
+    if (error.code === 'invalid_grant') {
+      throw new Error('invalid_grant: Invalid refresh token - user may need to re-authorize');
+    } else if (error.code === 'invalid_client') {
+      throw new Error('invalid_client: Invalid OAuth client credentials');
+    } else if (error.code === 'invalid_request') {
+      throw new Error('invalid_request: Invalid token refresh request format');
+    }
+    
+    throw error;
+  }
+}
+
+/**
  * Revoke OAuth token
  * @param {string} token - Token to revoke (access or refresh token)
  * @returns {boolean} True if revocation was successful
