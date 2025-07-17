@@ -35,6 +35,8 @@ import logMaintenanceService from './services/logging/logMaintenanceService.js';
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Trust proxy for Nginx
+app.set('trust proxy', true);
 
 // Security middleware
 app.use(helmet());

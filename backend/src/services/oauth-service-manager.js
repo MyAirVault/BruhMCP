@@ -194,9 +194,7 @@ class OAuthServiceManager {
 
     const serviceUrl = this.getServiceUrl();
     const endpoints = {
-      health: `${serviceUrl}/health`,
-      status: `${serviceUrl}/status`,
-      config: `${serviceUrl}/config`
+      health: `${serviceUrl}/health`
     };
 
     const endpointResults = {};

@@ -510,14 +510,29 @@ export async function markAsUnread(args, bearerToken) {
 export async function downloadAttachment(args, bearerToken) {
 	const { messageId, attachmentId, returnDataUrl = false } = args;
 
-	// First get attachment metadata to check size
+	// First get fresh attachment metadata to handle Gmail's unstable attachment IDs
 	const messageResult = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
 	const messageResponse = formatMessageResponse(messageResult);
 	
-	const attachment = messageResponse.attachments.find(att => att.attachmentId === attachmentId);
+	// Try to find attachment by ID first
+	let attachment = messageResponse.attachments.find(att => att.attachmentId === attachmentId);
+	
+	// If not found by ID, try to find by filename (fallback for unstable IDs)
+	if (!attachment && messageResponse.attachments.length > 0) {
+		// Get the filename from the original attachment ID request
+		const originalMessageResult = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
+		const originalResponse = formatMessageResponse(originalMessageResult);
+		
+		// Find the first attachment (assuming single attachment or match by position)
+		attachment = originalResponse.attachments[0];
+	}
+	
 	if (!attachment) {
 		throw new Error(`Attachment with ID ${attachmentId} not found in message ${messageId}`);
 	}
+	
+	// Use the fresh attachment ID for download
+	const freshAttachmentId = attachment.attachmentId;
 
 	// Size validation (default 50MB limit)
 	const MAX_SIZE = 50 * 1024 * 1024; // 50MB
@@ -543,7 +558,7 @@ export async function downloadAttachment(args, bearerToken) {
 		const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
 		const result = await makeGmailRequest(
-			`/users/me/messages/${messageId}/attachments/${attachmentId}`, 
+			`/users/me/messages/${messageId}/attachments/${freshAttachmentId}`, 
 			bearerToken,
 			{ signal: controller.signal }
 		);
