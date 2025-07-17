@@ -431,3 +431,92 @@ export function withTimeout(promise, timeout, message = 'Operation timed out') {
         })
     ]);
 }
+
+/**
+ * Create a simple cache with TTL
+ * @param {number} ttl - Time to live in milliseconds
+ * @returns {Object} Cache object
+ */
+export function createCache(ttl = 300000) {
+    const cache = new Map();
+    
+    return {
+        get(key) {
+            const item = cache.get(key);
+            if (!item) return null;
+            
+            if (Date.now() > item.expires) {
+                cache.delete(key);
+                return null;
+            }
+            
+            return item.value;
+        },
+        
+        set(key, value) {
+            cache.set(key, {
+                value,
+                expires: Date.now() + ttl
+            });
+        },
+        
+        delete(key) {
+            cache.delete(key);
+        },
+        
+        clear() {
+            cache.clear();
+        },
+        
+        size() {
+            return cache.size;
+        },
+        
+        keys() {
+            return Array.from(cache.keys());
+        },
+        
+        has(key) {
+            const item = cache.get(key);
+            if (!item) return false;
+            
+            if (Date.now() > item.expires) {
+                cache.delete(key);
+                return false;
+            }
+            
+            return true;
+        }
+    };
+}
+
+/**
+ * Measure performance of a function with logging
+ * @param {Function} fn - Function to measure
+ * @param {string} operationName - Name of the operation for logging
+ * @returns {Function} Wrapped function with performance measurement
+ */
+export function measurePerformance(fn, operationName = 'operation') {
+    return async (...args) => {
+        const start = process.hrtime.bigint();
+        
+        try {
+            const result = await fn(...args);
+            const end = process.hrtime.bigint();
+            const duration = Number(end - start) / 1000000; // Convert to milliseconds
+            
+            // Log performance metrics
+            console.log(`⏱️ ${operationName} completed in ${duration.toFixed(2)}ms`);
+            
+            return result;
+        } catch (error) {
+            const end = process.hrtime.bigint();
+            const duration = Number(end - start) / 1000000; // Convert to milliseconds
+            
+            // Log performance metrics even on error
+            console.log(`⏱️ ${operationName} failed after ${duration.toFixed(2)}ms`);
+            
+            throw error;
+        }
+    };
+}

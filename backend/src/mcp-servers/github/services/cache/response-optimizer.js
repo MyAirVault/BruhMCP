@@ -335,6 +335,168 @@ export class ResponseOptimizer {
 	}
 
 	/**
+	 * Optimize user response
+	 * @param {Object} response - Original response
+	 * @returns {Object} Optimized response
+	 */
+	optimizeUserResponse(response) {
+		const originalSize = this.calculateResponseSize(response);
+		const optimized = this.optimizeUser(response);
+
+		this.updateCompressionStats(originalSize, this.calculateResponseSize(optimized));
+
+		logger.debug('User response optimized', {
+			originalSize: formatBytes(originalSize),
+			optimizedSize: formatBytes(this.calculateResponseSize(optimized))
+		});
+
+		return optimized;
+	}
+
+	/**
+	 * Optimize issue response
+	 * @param {Object} response - Original response
+	 * @returns {Object} Optimized response
+	 */
+	optimizeIssueResponse(response) {
+		const originalSize = this.calculateResponseSize(response);
+		const optimized = this.optimizeIssue(response);
+
+		this.updateCompressionStats(originalSize, this.calculateResponseSize(optimized));
+
+		logger.debug('Issue response optimized', {
+			originalSize: formatBytes(originalSize),
+			optimizedSize: formatBytes(this.calculateResponseSize(optimized))
+		});
+
+		return optimized;
+	}
+
+	/**
+	 * Optimize pull request response
+	 * @param {Object} response - Original response
+	 * @returns {Object} Optimized response
+	 */
+	optimizePullRequestResponse(response) {
+		const originalSize = this.calculateResponseSize(response);
+		const optimized = this.optimizePullRequest(response);
+
+		this.updateCompressionStats(originalSize, this.calculateResponseSize(optimized));
+
+		logger.debug('Pull request response optimized', {
+			originalSize: formatBytes(originalSize),
+			optimizedSize: formatBytes(this.calculateResponseSize(optimized))
+		});
+
+		return optimized;
+	}
+
+	/**
+	 * Optimize search response
+	 * @param {Object} response - Original response
+	 * @returns {Object} Optimized response
+	 */
+	optimizeSearchResponse(response) {
+		const originalSize = this.calculateResponseSize(response);
+		
+		const optimized = {
+			...response,
+			items: response.items ? response.items.map(item => this.optimizeRepositoryResponse(item)) : []
+		};
+
+		this.updateCompressionStats(originalSize, this.calculateResponseSize(optimized));
+
+		logger.debug('Search response optimized', {
+			originalSize: formatBytes(originalSize),
+			optimizedSize: formatBytes(this.calculateResponseSize(optimized)),
+			itemCount: optimized.items.length
+		});
+
+		return optimized;
+	}
+
+	/**
+	 * Optimize contents response
+	 * @param {Object} response - Original response
+	 * @returns {Object} Optimized response
+	 */
+	optimizeContentsResponse(response) {
+		const originalSize = this.calculateResponseSize(response);
+		
+		const optimized = Array.isArray(response) 
+			? response.map(item => this.optimizeContentItem(item))
+			: this.optimizeContentItem(response);
+
+		this.updateCompressionStats(originalSize, this.calculateResponseSize(optimized));
+
+		logger.debug('Contents response optimized', {
+			originalSize: formatBytes(originalSize),
+			optimizedSize: formatBytes(this.calculateResponseSize(optimized)),
+			itemCount: Array.isArray(optimized) ? optimized.length : 1
+		});
+
+		return optimized;
+	}
+
+	/**
+	 * Optimize content item
+	 * @param {Object} item - Content item
+	 * @returns {Object} Optimized content item
+	 */
+	optimizeContentItem(item) {
+		if (!item) return item;
+
+		return {
+			type: item.type,
+			name: item.name,
+			path: item.path,
+			sha: item.sha,
+			size: item.size,
+			url: item.url,
+			html_url: item.html_url,
+			git_url: item.git_url,
+			download_url: item.download_url,
+			content: item.content,
+			encoding: item.encoding,
+			_links: item._links
+		};
+	}
+
+	/**
+	 * Generic optimize method that routes to specific optimizers
+	 * @param {Object} response - Response to optimize
+	 * @param {string} type - Response type
+	 * @param {Object} options - Optimization options
+	 * @returns {Object} Optimized response
+	 */
+	optimize(response, type, options = {}) {
+		switch (type) {
+			case 'user':
+				return this.optimizeUserResponse(response);
+			case 'repositories':
+				return this.optimizeRepositoriesResponse(response);
+			case 'repository':
+				return this.optimizeRepositoryResponse(response);
+			case 'issues':
+				return this.optimizeIssuesResponse(response);
+			case 'issue':
+				return this.optimizeIssueResponse(response);
+			case 'pull_request':
+				return this.optimizePullRequestResponse(response);
+			case 'pull_requests':
+				return this.optimizePullRequestsResponse(response);
+			case 'commits':
+				return this.optimizeCommitsResponse(response);
+			case 'search':
+				return this.optimizeSearchResponse(response);
+			case 'contents':
+				return this.optimizeContentsResponse(response);
+			default:
+				return this.optimizeResponse(response, options);
+		}
+	}
+
+	/**
 	 * Optimize single commit
 	 * @param {Object} commit - Commit object
 	 * @returns {Object} Optimized commit

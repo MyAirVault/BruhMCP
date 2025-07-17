@@ -153,6 +153,7 @@ export class GitHubAPI {
 		const result = await this.makeRequest(`/user/repos?${params}`);
 		return result.map(repo => formatRepositoryResponse(repo));
 	}
+}
 
 /**
  * Get repository information

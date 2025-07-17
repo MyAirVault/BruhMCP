@@ -1,9 +1,3 @@
-declare namespace SERVICE_CONFIG {
-    let name: string;
-    let displayName: string;
-    let port: number;
-    let authType: string;
-    let description: string;
-    let version: string;
-}
+export default app;
+declare const app: import("express-serve-static-core").Express;
 //# sourceMappingURL=index.d.ts.map

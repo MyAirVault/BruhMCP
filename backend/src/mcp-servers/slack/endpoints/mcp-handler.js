@@ -69,7 +69,7 @@ export class SlackMCPHandler {
 			{
 				channel: z.string().describe("Channel ID or user ID to send message to"),
 				text: z.string().describe("Message text content"),
-				thread_ts: z.string().optional().describe("Timestamp of parent message to reply in thread"),
+				thread_ts: z.string().optional().default("").describe("Timestamp of parent message to reply in thread (optional)"),
 				reply_broadcast: z.boolean().optional().default(false).describe("Whether to broadcast thread reply to channel")
 			},
 			async ({ channel, text, thread_ts, reply_broadcast }) => {
@@ -96,8 +96,8 @@ export class SlackMCPHandler {
 			{
 				channel: z.string().describe("Channel ID to get messages from"),
 				count: z.number().min(1).max(1000).optional().default(100).describe("Number of messages to return"),
-				latest: z.string().optional().describe("Latest message timestamp to include"),
-				oldest: z.string().optional().describe("Oldest message timestamp to include"),
+				latest: z.string().optional().default("").describe("Latest message timestamp to include (optional)"),
+				oldest: z.string().optional().default("").describe("Oldest message timestamp to include (optional)"),
 				inclusive: z.boolean().optional().default(false).describe("Include messages with latest and oldest timestamps")
 			},
 			async ({ channel, count, latest, oldest, inclusive }) => {
@@ -125,7 +125,7 @@ export class SlackMCPHandler {
 				channel: z.string().describe("Channel ID where the thread is located"),
 				ts: z.string().describe("Timestamp of the parent message"),
 				limit: z.number().min(1).max(1000).optional().default(200).describe("Maximum number of messages to return"),
-				cursor: z.string().optional().describe("Cursor for pagination")
+				cursor: z.string().optional().default("").describe("Cursor for pagination (optional)")
 			},
 			async ({ channel, ts, limit, cursor }) => {
 				console.log(`🔧 Tool call: get_thread_messages for ${this.serviceConfig.name}`);
@@ -202,7 +202,7 @@ export class SlackMCPHandler {
 			{
 				types: z.string().optional().default("public_channel,private_channel").describe("Channel types to include (comma separated)"),
 				limit: z.number().min(1).max(1000).optional().default(100).describe("Maximum number of channels to return"),
-				cursor: z.string().optional().describe("Cursor for pagination")
+				cursor: z.string().optional().default("").describe("Cursor for pagination (optional)")
 			},
 			async ({ types, limit, cursor }) => {
 				console.log(`🔧 Tool call: list_channels for ${this.serviceConfig.name}`);
@@ -323,7 +323,7 @@ export class SlackMCPHandler {
 			"List Slack users in the workspace",
 			{
 				limit: z.number().min(1).max(1000).optional().default(100).describe("Maximum number of users to return"),
-				cursor: z.string().optional().describe("Cursor for pagination")
+				cursor: z.string().optional().default("").describe("Cursor for pagination (optional)")
 			},
 			async ({ limit, cursor }) => {
 				console.log(`🔧 Tool call: list_users for ${this.serviceConfig.name}`);
@@ -427,9 +427,9 @@ export class SlackMCPHandler {
 				channels: z.string().describe("Channel ID to upload file to"),
 				content: z.string().describe("File content as a string"),
 				filename: z.string().describe("Name of the file"),
-				title: z.string().optional().describe("Title for the file"),
-				filetype: z.string().optional().describe("File type (e.g., 'text', 'javascript')"),
-				initial_comment: z.string().optional().describe("Initial comment to add with the file")
+				title: z.string().optional().default("").describe("Title for the file (optional)"),
+				filetype: z.string().optional().default("").describe("File type (e.g., \"text\", \"javascript\") (optional)"),
+				initial_comment: z.string().optional().default("").describe("Initial comment to add with the file (optional)")
 			},
 			async ({ channels, content, filename, title, filetype, initial_comment }) => {
 				console.log(`🔧 Tool call: upload_file for ${this.serviceConfig.name}`);
@@ -478,8 +478,8 @@ export class SlackMCPHandler {
 			"Create a reminder in Slack",
 			{
 				text: z.string().describe("Reminder text"),
-				time: z.string().describe("When to remind (e.g., 'in 20 minutes', 'tomorrow at 9am')"),
-				user: z.string().optional().describe("User ID to remind (optional, defaults to current user)")
+				time: z.string().describe("When to remind (e.g., \"in 20 minutes\", \"tomorrow at 9am\")"),
+				user: z.string().optional().default("").describe("User ID to remind (optional, defaults to current user)")
 			},
 			async ({ text, time, user }) => {
 				console.log(`🔧 Tool call: create_reminder for ${this.serviceConfig.name}`);
@@ -542,7 +542,6 @@ export class SlackMCPHandler {
 			}
 		);
 	}
-
 
 	/**
 	 * Handle incoming MCP request using session-based transport
@@ -620,27 +619,5 @@ export class SlackMCPHandler {
 				},
 			});
 		}
-	}
-
-	/**
-	 * Close transport for session
-	 * @param {string} sessionId
-	 */
-	closeTransport(sessionId) {
-		if (this.transports[sessionId]) {
-			this.transports[sessionId].close();
-			delete this.transports[sessionId];
-			console.log(`🔌 Closed transport for session: ${sessionId}`);
-		}
-	}
-
-	/**
-	 * Close all transports
-	 */
-	closeAllTransports() {
-		Object.keys(this.transports).forEach(sessionId => {
-			this.closeTransport(sessionId);
-		});
-		console.log(`🔌 Closed all transports for ${this.serviceConfig.name}`);
 	}
 }

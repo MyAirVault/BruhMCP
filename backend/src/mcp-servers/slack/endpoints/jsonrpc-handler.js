@@ -1,16 +1,15 @@
-import { handleToolExecution, generateTools } from './tool-handlers.js';
-import { handleResourceContent, generateResources } from './resource-handlers.js';
-
 /**
- * MCP JSON-RPC protocol handler
- * Implements proper JSON-RPC 2.0 message handling for MCP servers
+ * Slack MCP JSON-RPC protocol handler
+ * Implements proper JSON-RPC 2.0 message handling for Slack MCP server
  */
-export class MCPJsonRpcHandler {
-	constructor(serviceConfig, mcpType, apiKey, port) {
+
+import { executeToolCall } from './call.js';
+import { getTools } from './tools.js';
+
+export class SlackMCPJsonRpcHandler {
+	constructor(serviceConfig, bearerToken) {
 		this.serviceConfig = serviceConfig;
-		this.mcpType = mcpType;
-		this.apiKey = apiKey;
-		this.port = port;
+		this.bearerToken = bearerToken;
 		this.initialized = false;
 	}
 
@@ -34,13 +33,13 @@ export class MCPJsonRpcHandler {
 					return await this.handleInitialize(params, id);
 
 				case 'tools/list':
-					return await this.handleToolsList(id);
+					return await this.handleToolsList(params, id);
 
 				case 'tools/call':
 					return await this.handleToolsCall(params, id);
 
 				case 'resources/list':
-					return await this.handleResourcesList(id);
+					return await this.handleResourcesList(params, id);
 
 				case 'resources/read':
 					return await this.handleResourcesRead(params, id);
@@ -70,46 +69,58 @@ export class MCPJsonRpcHandler {
 	 * Handle initialize method
 	 */
 	async handleInitialize(params, id) {
-		console.log(`🚀 Initialize request for ${this.serviceConfig.name} MCP Server (Port: ${this.port})`);
+		console.log(`🚀 Initialize request for ${this.serviceConfig.name} MCP Server`);
+		console.log('Initialize params:', JSON.stringify(params));
+
+		if (!params || !params.protocolVersion) {
+			return this.createErrorResponse(id, -32602, 'Invalid params: missing protocolVersion');
+		}
+
+		// Validate protocol version - accept common versions
+		const supportedVersions = ['2024-11-05', '2025-06-18', '1.0', '0.1.0'];
+		if (!supportedVersions.includes(params.protocolVersion)) {
+			console.log(`Unsupported protocol version: ${params.protocolVersion}`);
+			return this.createErrorResponse(id, -32602, `Unsupported protocol version: ${params.protocolVersion}. Supported: ${supportedVersions.join(', ')}`);
+		}
 
 		this.initialized = true;
 
 		return this.createSuccessResponse(id, {
-			protocolVersion: '2024-11-05',
+			protocolVersion: params.protocolVersion, // Echo back the requested version
 			capabilities: {
 				tools: {},
-				resources: {},
 			},
 			serverInfo: {
-				name: `${this.serviceConfig.name} MCP Server`,
-				version: '1.0.0',
+				name: `${this.serviceConfig.displayName} MCP Server`,
+				version: this.serviceConfig.version,
 			},
-			instructions: `This is a ${this.serviceConfig.name} MCP server providing tools and resources for ${this.serviceConfig.name} API integration.`,
+			instructions: `This is a ${this.serviceConfig.displayName} MCP server providing tools for Slack API integration. Available tools include: send_message, get_messages, list_channels, get_user_info, and more. Authentication uses OAuth 2.0 Bearer tokens with scopes: ${this.serviceConfig.scopes.join(', ')}`,
 		});
 	}
 
 	/**
 	 * Handle tools/list method
 	 */
-	async handleToolsList(id) {
+	async handleToolsList(params, id) {
 		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
+			return this.createErrorResponse(id, -31000, 'Server not initialized');
 		}
 
-		console.log(`🔧 Tools list request for ${this.serviceConfig.name} MCP Server (Port: ${this.port})`);
+		console.log(`🔧 Tools list request for ${this.serviceConfig.name} MCP Server`);
 
-		const tools = generateTools(this.serviceConfig, this.mcpType);
+		const toolsData = getTools();
 
+		// Handle pagination cursor (optional)
+		const cursor = params?.cursor;
+		
 		return this.createSuccessResponse(id, {
-			tools: tools.map(tool => ({
+			tools: toolsData.tools.map(tool => ({
 				name: tool.name,
 				description: tool.description,
-				inputSchema: tool.inputSchema || {
-					type: 'object',
-					properties: {},
-					required: [],
-				},
+				inputSchema: tool.inputSchema,
 			})),
+			// No pagination needed for Slack tools, but include nextCursor if provided
+			...(cursor && { nextCursor: null })
 		});
 	}
 
@@ -118,7 +129,7 @@ export class MCPJsonRpcHandler {
 	 */
 	async handleToolsCall(params, id) {
 		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
+			return this.createErrorResponse(id, -31000, 'Server not initialized');
 		}
 
 		if (!params || !params.name) {
@@ -127,19 +138,13 @@ export class MCPJsonRpcHandler {
 
 		const { name: toolName, arguments: args = {} } = params;
 
-		console.log(`🔧 Tool call: ${toolName} for ${this.serviceConfig.name} (Port: ${this.port})`);
+		console.log(`🔧 Tool call: ${toolName} for ${this.serviceConfig.name}`);
 
 		try {
-			const result = await handleToolExecution({
-				toolName,
-				args,
-				mcpType: this.mcpType,
-				serviceConfig: this.serviceConfig,
-				apiKey: this.apiKey,
-			});
+			const result = await executeToolCall(toolName, args, this.bearerToken);
 
 			return this.createSuccessResponse(id, {
-				content: [
+				content: result.content || [
 					{
 						type: 'text',
 						text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
@@ -147,71 +152,15 @@ export class MCPJsonRpcHandler {
 				],
 			});
 		} catch (error) {
-			return this.createErrorResponse(id, -32603, `Tool execution failed: ${error.message}`, {
-				toolName,
-				details: error.message,
-			});
-		}
-	}
-
-	/**
-	 * Handle resources/list method
-	 */
-	async handleResourcesList(id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
-		}
-
-		console.log(`📋 Resources list request for ${this.serviceConfig.name} MCP Server (Port: ${this.port})`);
-
-		const resources = generateResources(this.serviceConfig, this.mcpType);
-
-		return this.createSuccessResponse(id, {
-			resources: resources.map(resource => ({
-				uri: resource.uri,
-				name: resource.name,
-				description: resource.description,
-				mimeType: resource.mimeType || 'application/json',
-			})),
-		});
-	}
-
-	/**
-	 * Handle resources/read method
-	 */
-	async handleResourcesRead(params, id) {
-		if (!this.initialized) {
-			return this.createErrorResponse(id, -32002, 'Server not initialized');
-		}
-
-		if (!params || !params.uri) {
-			return this.createErrorResponse(id, -32602, 'Invalid params: missing resource URI');
-		}
-
-		try {
-			// Extract resource path from URI
-			const resourcePath = params.uri.replace(/^.*\/resources\//, '');
-
-			const result = await handleResourceContent({
-				resourcePath,
-				mcpType: this.mcpType,
-				serviceConfig: this.serviceConfig,
-				apiKey: this.apiKey,
-			});
-
+			// Return success response with isError flag as per MCP spec
 			return this.createSuccessResponse(id, {
-				contents: [
+				content: [
 					{
-						uri: params.uri,
-						mimeType: 'application/json',
-						text: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+						type: 'text',
+						text: `Error executing ${toolName}: ${error.message}`,
 					},
 				],
-			});
-		} catch (error) {
-			return this.createErrorResponse(id, -32603, `Resource read failed: ${error.message}`, {
-				uri: params.uri,
-				details: error.message,
+				isError: true,
 			});
 		}
 	}
@@ -245,5 +194,39 @@ export class MCPJsonRpcHandler {
 		}
 
 		return response;
+	}
+
+	/**
+	 * Handle resources/list method
+	 */
+	async handleResourcesList(params, id) {
+		if (!this.initialized) {
+			return this.createErrorResponse(id, -31000, 'Server not initialized');
+		}
+
+		console.log(`📋 Resources list request for ${this.serviceConfig.name} MCP Server`);
+
+		// Slack server doesn't provide resources, return empty list
+		return this.createSuccessResponse(id, {
+			resources: [],
+		});
+	}
+
+	/**
+	 * Handle resources/read method
+	 */
+	async handleResourcesRead(params, id) {
+		if (!this.initialized) {
+			return this.createErrorResponse(id, -31000, 'Server not initialized');
+		}
+
+		if (!params || !params.uri) {
+			return this.createErrorResponse(id, -32602, 'Invalid params: missing resource URI');
+		}
+
+		console.log(`📄 Resource read request for ${params.uri}`);
+
+		// Slack server doesn't provide resources
+		return this.createErrorResponse(id, -31001, 'Resource not found');
 	}
 }

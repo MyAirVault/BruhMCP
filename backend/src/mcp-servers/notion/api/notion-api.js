@@ -1,363 +1,406 @@
 /**
- * Notion API Integration Layer
- * Handles authentication, API calls, and data processing for Notion
+ * Notion API Integration
+ * Core Notion API operations using OAuth Bearer tokens
  */
 
-import { fetchWithRetry } from '../utils/fetch-with-retry.js';
-import { Logger } from '../utils/logger.js';
+import { formatNotionResponse } from '../utils/notion-formatting.js';
 
 const NOTION_BASE_URL = 'https://api.notion.com/v1';
 const NOTION_API_VERSION = '2022-06-28';
 
 /**
- * @typedef {Object} NotionAuthOptions
- * @property {string} bearerToken - OAuth Bearer token
+ * Make authenticated request to Notion API
+ * @param {string} endpoint - API endpoint
+ * @param {string} bearerToken - OAuth Bearer token
+ * @param {Object} options - Request options
+ * @returns {Object} API response
  */
+async function makeNotionRequest(endpoint, bearerToken, options = {}) {
+	const url = `${NOTION_BASE_URL}${endpoint}`;
 
-export class NotionService {
-	/**
-	 * @param {NotionAuthOptions} authOptions
-	 */
-	constructor(authOptions) {
-		// Use OAuth Bearer token
-		this.apiKey = authOptions.bearerToken || '';
+	const requestOptions = {
+		method: options.method || 'GET',
+		headers: {
+			Authorization: `Bearer ${bearerToken}`,
+			'Notion-Version': NOTION_API_VERSION,
+			'Content-Type': 'application/json',
+			...options.headers,
+		},
+		...options,
+	};
+
+	if (options.body && typeof options.body === 'object') {
+		requestOptions.body = JSON.stringify(options.body);
 	}
 
-	/**
-	 * Make authenticated request to Notion API
-	 * @param {string} endpoint - API endpoint
-	 * @param {Object} options - Request options
-	 * @returns {Promise<any>}
-	 */
-	async request(endpoint, options = {}) {
+	console.log(`📡 Notion API Request: ${requestOptions.method} ${url}`);
+
+	const response = await fetch(url, requestOptions);
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		let errorMessage = `Notion API error: ${response.status} ${response.statusText}`;
+
 		try {
-			Logger.log(`Calling ${NOTION_BASE_URL}${endpoint}`);
-
-			const headers = {
-				Authorization: `Bearer ${this.apiKey}`,
-				'Notion-Version': NOTION_API_VERSION,
-				'Content-Type': 'application/json',
-				...options.headers,
-			};
-
-			const requestOptions = {
-				...options,
-				headers,
-			};
-
-			const data = await fetchWithRetry(`${NOTION_BASE_URL}${endpoint}`, requestOptions);
-			return data;
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(`Failed to make request to Notion API: ${error.message}`);
+			const errorData = JSON.parse(errorText);
+			if (errorData.message) {
+				errorMessage = `Notion API error: ${errorData.message}`;
 			}
-			throw new Error(`Failed to make request to Notion API: ${error}`);
+		} catch (parseError) {
+			// Use the default error message if JSON parsing fails
 		}
+
+		throw new Error(errorMessage);
 	}
 
-	/**
-	 * Search for pages and databases
-	 * @param {string} query - Search query
-	 * @param {Object} options - Search options
-	 * @returns {Promise<any>} Search results
-	 */
-	async search(query, options = {}) {
-		try {
-			Logger.log(`Searching Notion: ${query}`);
+	const data = await response.json();
+	console.log(`✅ Notion API Response: ${response.status}`);
 
-			const requestBody = {
-				query,
-				...options,
-			};
+	return data;
+}
 
-			const response = await this.request('/search', {
-				method: 'POST',
-				body: JSON.stringify(requestBody),
-			});
+/**
+ * Search for pages and databases
+ * @param {Object} args - Search arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Search results
+ */
+export async function searchNotion(args, bearerToken) {
+	const { query, filter = {}, sort = {}, page_size = 100, start_cursor = null } = args;
 
-			return response;
-		} catch (error) {
-			Logger.error('Failed to search:', error);
-			throw error;
-		}
+	const requestBody = {
+		query,
+		filter,
+		sort,
+		page_size: Math.min(page_size, 100),
+		...(start_cursor && { start_cursor }),
+	};
+
+	const result = await makeNotionRequest('/search', bearerToken, {
+		method: 'POST',
+		body: requestBody,
+	});
+
+	return formatNotionResponse({
+		action: 'search',
+		query,
+		results: result.results || [],
+		hasMore: result.has_more || false,
+		nextCursor: result.next_cursor || null,
+	});
+}
+
+/**
+ * Get page content
+ * @param {Object} args - Page arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Page data
+ */
+export async function getPage(args, bearerToken) {
+	const { pageId } = args;
+
+	const result = await makeNotionRequest(`/pages/${pageId}`, bearerToken);
+
+	return formatNotionResponse({
+		action: 'get_page',
+		page: result,
+	});
+}
+
+/**
+ * Get page blocks/content
+ * @param {Object} args - Page blocks arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Page blocks
+ */
+export async function getPageBlocks(args, bearerToken) {
+	const { pageId, start_cursor = null, page_size = 100 } = args;
+
+	let endpoint = `/blocks/${pageId}/children`;
+	const params = new URLSearchParams({
+		page_size: Math.min(page_size, 100).toString(),
+	});
+
+	if (start_cursor) {
+		params.append('start_cursor', start_cursor);
 	}
 
-	/**
-	 * Get page content
-	 * @param {string} pageId - Page ID
-	 * @returns {Promise<any>} Page data
-	 */
-	async getPage(pageId) {
-		try {
-			Logger.log(`Retrieving Notion page: ${pageId}`);
+	const result = await makeNotionRequest(`${endpoint}?${params}`, bearerToken);
 
-			const response = await this.request(`/pages/${pageId}`);
-			return response;
-		} catch (error) {
-			Logger.error('Failed to get page:', error);
-			throw error;
-		}
+	return formatNotionResponse({
+		action: 'get_page_blocks',
+		pageId,
+		blocks: result.results || [],
+		hasMore: result.has_more || false,
+		nextCursor: result.next_cursor || null,
+	});
+}
+
+/**
+ * Create a new page
+ * @param {Object} args - Page creation arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Created page
+ */
+export async function createPage(args, bearerToken) {
+	const { parent, properties, children = [] } = args;
+
+	const pageData = {
+		parent,
+		properties,
+		...(children.length > 0 && { children }),
+	};
+
+	const result = await makeNotionRequest('/pages', bearerToken, {
+		method: 'POST',
+		body: pageData,
+	});
+
+	return formatNotionResponse({
+		action: 'create_page',
+		page: result,
+	});
+}
+
+/**
+ * Update page properties
+ * @param {Object} args - Page update arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Updated page
+ */
+export async function updatePage(args, bearerToken) {
+	const { pageId, properties = {}, archived = false } = args;
+
+	const updateData = {
+		properties,
+		archived,
+	};
+
+	const result = await makeNotionRequest(`/pages/${pageId}`, bearerToken, {
+		method: 'PATCH',
+		body: updateData,
+	});
+
+	return formatNotionResponse({
+		action: 'update_page',
+		page: result,
+	});
+}
+
+/**
+ * Get database
+ * @param {Object} args - Database arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Database data
+ */
+export async function getDatabase(args, bearerToken) {
+	const { databaseId } = args;
+
+	const result = await makeNotionRequest(`/databases/${databaseId}`, bearerToken);
+
+	return formatNotionResponse({
+		action: 'get_database',
+		database: result,
+	});
+}
+
+/**
+ * Query database
+ * @param {Object} args - Database query arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Query results
+ */
+export async function queryDatabase(args, bearerToken) {
+	const { databaseId, filter = {}, sorts = [], page_size = 100, start_cursor = null } = args;
+
+	const queryOptions = {
+		filter,
+		sorts,
+		page_size: Math.min(page_size, 100),
+		...(start_cursor && { start_cursor }),
+	};
+
+	const result = await makeNotionRequest(`/databases/${databaseId}/query`, bearerToken, {
+		method: 'POST',
+		body: queryOptions,
+	});
+
+	return formatNotionResponse({
+		action: 'query_database',
+		databaseId,
+		results: result.results || [],
+		hasMore: result.has_more || false,
+		nextCursor: result.next_cursor || null,
+	});
+}
+
+/**
+ * Create database
+ * @param {Object} args - Database creation arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Created database
+ */
+export async function createDatabase(args, bearerToken) {
+	const { parent, title, properties, is_inline = false } = args;
+
+	const databaseData = {
+		parent,
+		title,
+		properties,
+		is_inline,
+	};
+
+	const result = await makeNotionRequest('/databases', bearerToken, {
+		method: 'POST',
+		body: databaseData,
+	});
+
+	return formatNotionResponse({
+		action: 'create_database',
+		database: result,
+	});
+}
+
+/**
+ * Update database
+ * @param {Object} args - Database update arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Updated database
+ */
+export async function updateDatabase(args, bearerToken) {
+	const { databaseId, title = [], properties = {}, is_inline = false } = args;
+
+	const updateData = {
+		title,
+		properties,
+		is_inline,
+	};
+
+	const result = await makeNotionRequest(`/databases/${databaseId}`, bearerToken, {
+		method: 'PATCH',
+		body: updateData,
+	});
+
+	return formatNotionResponse({
+		action: 'update_database',
+		database: result,
+	});
+}
+
+/**
+ * Append blocks to a page
+ * @param {Object} args - Append blocks arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Response
+ */
+export async function appendBlocks(args, bearerToken) {
+	const { pageId, children } = args;
+
+	const result = await makeNotionRequest(`/blocks/${pageId}/children`, bearerToken, {
+		method: 'PATCH',
+		body: { children },
+	});
+
+	return formatNotionResponse({
+		action: 'append_blocks',
+		pageId,
+		blocks: result.results || [],
+	});
+}
+
+/**
+ * Delete block
+ * @param {Object} args - Delete block arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Response
+ */
+export async function deleteBlock(args, bearerToken) {
+	const { blockId } = args;
+
+	const result = await makeNotionRequest(`/blocks/${blockId}`, bearerToken, {
+		method: 'DELETE',
+	});
+
+	return formatNotionResponse({
+		action: 'delete_block',
+		blockId,
+		deleted: result.archived || false,
+	});
+}
+
+/**
+ * Get current user
+ * @param {Object} args - User arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} User data
+ */
+export async function getCurrentUser(args, bearerToken) {
+	const result = await makeNotionRequest('/users/me', bearerToken);
+
+	return formatNotionResponse({
+		action: 'get_current_user',
+		user: result,
+	});
+}
+
+/**
+ * List users
+ * @param {Object} args - List users arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Users list
+ */
+export async function listUsers(args, bearerToken) {
+	const { start_cursor = null, page_size = 100 } = args;
+
+	let endpoint = '/users';
+	const params = new URLSearchParams({
+		page_size: Math.min(page_size, 100).toString(),
+	});
+
+	if (start_cursor) {
+		params.append('start_cursor', start_cursor);
 	}
 
-	/**
-	 * Get page blocks/content
-	 * @param {string} pageId - Page ID
-	 * @param {string} startCursor - Pagination cursor
-	 * @returns {Promise<any>} Page blocks
-	 */
-	async getPageBlocks(pageId, startCursor = null) {
-		try {
-			Logger.log(`Retrieving blocks for page: ${pageId}`);
+	const result = await makeNotionRequest(`${endpoint}?${params}`, bearerToken);
 
-			let endpoint = `/blocks/${pageId}/children`;
-			if (startCursor) {
-				endpoint += `?start_cursor=${startCursor}`;
-			}
+	return formatNotionResponse({
+		action: 'list_users',
+		users: result.results || [],
+		hasMore: result.has_more || false,
+		nextCursor: result.next_cursor || null,
+	});
+}
 
-			const response = await this.request(endpoint);
-			return response;
-		} catch (error) {
-			Logger.error('Failed to get page blocks:', error);
-			throw error;
+/**
+ * Make raw API call to Notion
+ * @param {Object} args - Raw API call arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} API response
+ */
+export async function makeRawApiCall(args, bearerToken) {
+	const { method, path, params = {} } = args;
+
+	const options = {
+		method: method.toUpperCase(),
+	};
+
+	if (method.toUpperCase() === 'GET') {
+		// For GET requests, add params as query parameters
+		if (Object.keys(params).length > 0) {
+			const queryString = new URLSearchParams(params).toString();
+			path += `?${queryString}`;
 		}
+	} else {
+		// For other methods, add params as request body
+		options.body = params;
 	}
 
-	/**
-	 * Create a new page
-	 * @param {Object} pageData - Page creation data
-	 * @returns {Promise<any>} Created page
-	 */
-	async createPage(pageData) {
-		try {
-			Logger.log('Creating new Notion page');
+	const result = await makeNotionRequest(path, bearerToken, options);
 
-			const response = await this.request('/pages', {
-				method: 'POST',
-				body: JSON.stringify(pageData),
-			});
-
-			return response;
-		} catch (error) {
-			Logger.error('Failed to create page:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Update page properties
-	 * @param {string} pageId - Page ID
-	 * @param {Object} updateData - Update data
-	 * @returns {Promise<any>} Updated page
-	 */
-	async updatePage(pageId, updateData) {
-		try {
-			Logger.log(`Updating Notion page: ${pageId}`);
-
-			const response = await this.request(`/pages/${pageId}`, {
-				method: 'PATCH',
-				body: JSON.stringify(updateData),
-			});
-
-			return response;
-		} catch (error) {
-			Logger.error('Failed to update page:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Get database
-	 * @param {string} databaseId - Database ID
-	 * @returns {Promise<any>} Database data
-	 */
-	async getDatabase(databaseId) {
-		try {
-			Logger.log(`Retrieving Notion database: ${databaseId}`);
-
-			const response = await this.request(`/databases/${databaseId}`);
-			return response;
-		} catch (error) {
-			Logger.error('Failed to get database:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Query database
-	 * @param {string} databaseId - Database ID
-	 * @param {Object} queryOptions - Query options
-	 * @returns {Promise<any>} Query results
-	 */
-	async queryDatabase(databaseId, queryOptions = {}) {
-		try {
-			Logger.log(`Querying Notion database: ${databaseId}`);
-
-			const response = await this.request(`/databases/${databaseId}/query`, {
-				method: 'POST',
-				body: JSON.stringify(queryOptions),
-			});
-
-			return response;
-		} catch (error) {
-			Logger.error('Failed to query database:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Create database
-	 * @param {Object} databaseData - Database creation data
-	 * @returns {Promise<any>} Created database
-	 */
-	async createDatabase(databaseData) {
-		try {
-			Logger.log('Creating new Notion database');
-
-			const response = await this.request('/databases', {
-				method: 'POST',
-				body: JSON.stringify(databaseData),
-			});
-
-			return response;
-		} catch (error) {
-			Logger.error('Failed to create database:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Update database
-	 * @param {string} databaseId - Database ID
-	 * @param {Object} updateData - Update data
-	 * @returns {Promise<any>} Updated database
-	 */
-	async updateDatabase(databaseId, updateData) {
-		try {
-			Logger.log(`Updating Notion database: ${databaseId}`);
-
-			const response = await this.request(`/databases/${databaseId}`, {
-				method: 'PATCH',
-				body: JSON.stringify(updateData),
-			});
-
-			return response;
-		} catch (error) {
-			Logger.error('Failed to update database:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Append blocks to a page
-	 * @param {string} pageId - Page ID
-	 * @param {Array} blocks - Blocks to append
-	 * @returns {Promise<any>} Response
-	 */
-	async appendBlocks(pageId, blocks) {
-		try {
-			Logger.log(`Appending blocks to page: ${pageId}`);
-
-			const response = await this.request(`/blocks/${pageId}/children`, {
-				method: 'PATCH',
-				body: JSON.stringify({ children: blocks }),
-			});
-
-			return response;
-		} catch (error) {
-			Logger.error('Failed to append blocks:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Delete block
-	 * @param {string} blockId - Block ID
-	 * @returns {Promise<any>} Response
-	 */
-	async deleteBlock(blockId) {
-		try {
-			Logger.log(`Deleting block: ${blockId}`);
-
-			const response = await this.request(`/blocks/${blockId}`, {
-				method: 'DELETE',
-			});
-
-			return response;
-		} catch (error) {
-			Logger.error('Failed to delete block:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Get current user
-	 * @returns {Promise<any>} User data
-	 */
-	async getCurrentUser() {
-		try {
-			Logger.log('Getting current user');
-
-			const response = await this.request('/users/me');
-			return response;
-		} catch (error) {
-			Logger.error('Failed to get current user:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * List users
-	 * @param {string} startCursor - Pagination cursor
-	 * @returns {Promise<any>} Users list
-	 */
-	async listUsers(startCursor = null) {
-		try {
-			Logger.log('Listing users');
-
-			let endpoint = '/users';
-			if (startCursor) {
-				endpoint += `?start_cursor=${startCursor}`;
-			}
-
-			const response = await this.request(endpoint);
-			return response;
-		} catch (error) {
-			Logger.error('Failed to list users:', error);
-			throw error;
-		}
-	}
-
-	/**
-	 * Make raw API call to Notion
-	 * @param {string} method - HTTP method
-	 * @param {string} path - API path
-	 * @param {Object} params - Request parameters
-	 * @returns {Promise<any>} API response
-	 */
-	async makeRawApiCall(method, path, params = {}) {
-		try {
-			Logger.log(`Making raw API call: ${method} ${path}`);
-
-			const options = {
-				method: method.toUpperCase(),
-			};
-
-			if (method.toUpperCase() === 'GET') {
-				// For GET requests, add params as query parameters
-				if (Object.keys(params).length > 0) {
-					const queryString = new URLSearchParams(params).toString();
-					path += `?${queryString}`;
-				}
-			} else {
-				// For other methods, add params as request body
-				options.body = JSON.stringify(params);
-			}
-
-			const response = await this.request(path, options);
-			return response;
-		} catch (error) {
-			Logger.error(`Failed to make raw API call: ${method} ${path}`, error);
-			throw error;
-		}
-	}
+	return formatNotionResponse({
+		action: 'raw_api_call',
+		method,
+		path,
+		result,
+	});
 }

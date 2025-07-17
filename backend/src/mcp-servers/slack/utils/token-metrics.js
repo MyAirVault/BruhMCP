@@ -1,24 +1,347 @@
 /**
- * Token refresh metrics tracking for Slack MCP service
- * Provides monitoring and analytics for OAuth token operations
+ * Token Refresh Metrics System for Slack MCP
+ * Tracks performance and reliability metrics for OAuth token operations
  */
-
-// In-memory metrics storage
-const tokenMetrics = new Map();
 
 /**
- * Initialize token metrics system
+ * Metrics storage and management
  */
-export function initializeTokenMetrics() {
-  console.log('=€ Initializing Slack token metrics system');
-  tokenMetrics.clear();
-  console.log(' Slack token metrics system initialized');
+class TokenMetrics {
+  constructor() {
+    this.metrics = {
+      refreshAttempts: 0,
+      refreshSuccesses: 0,
+      refreshFailures: 0,
+      directOAuthFallbacks: 0,
+      serviceUnavailableErrors: 0,
+      invalidTokenErrors: 0,
+      networkErrors: 0,
+      totalLatency: 0,
+      maxLatency: 0,
+      minLatency: Infinity,
+      lastReset: Date.now(),
+      errorsByType: {},
+      dailyStats: {},
+      instanceMetrics: {}
+    };
+  }
+
+  /**
+   * Record a token refresh attempt
+   * @param {string} instanceId - Instance ID
+   * @param {string} method - Method used ('oauth_service' | 'direct_oauth')
+   * @param {number} startTime - Start timestamp
+   */
+  recordRefreshAttempt(instanceId, method, startTime) {
+    this.metrics.refreshAttempts++;
+    
+    // Initialize instance metrics if needed
+    if (!this.metrics.instanceMetrics[instanceId]) {
+      this.metrics.instanceMetrics[instanceId] = {
+        attempts: 0,
+        successes: 0,
+        failures: 0,
+        lastAttempt: null,
+        averageLatency: 0
+      };
+    }
+    
+    this.metrics.instanceMetrics[instanceId].attempts++;
+    this.metrics.instanceMetrics[instanceId].lastAttempt = {
+      timestamp: startTime,
+      method
+    };
+
+    // Track daily stats
+    const today = new Date().toISOString().split('T')[0];
+    if (!this.metrics.dailyStats[today]) {
+      this.metrics.dailyStats[today] = {
+        attempts: 0,
+        successes: 0,
+        failures: 0,
+        directFallbacks: 0
+      };
+    }
+    this.metrics.dailyStats[today].attempts++;
+
+    if (method === 'direct_oauth') {
+      this.metrics.directOAuthFallbacks++;
+      this.metrics.dailyStats[today].directFallbacks++;
+    }
+  }
+
+  /**
+   * Record a successful token refresh
+   * @param {string} instanceId - Instance ID
+   * @param {string} method - Method used
+   * @param {number} startTime - Start timestamp
+   * @param {number} endTime - End timestamp
+   */
+  recordRefreshSuccess(instanceId, method, startTime, endTime) {
+    const latency = endTime - startTime;
+    
+    this.metrics.refreshSuccesses++;
+    this.metrics.totalLatency += latency;
+    this.metrics.maxLatency = Math.max(this.metrics.maxLatency, latency);
+    this.metrics.minLatency = Math.min(this.metrics.minLatency, latency);
+
+    // Update instance metrics
+    if (this.metrics.instanceMetrics[instanceId]) {
+      const instanceMetric = this.metrics.instanceMetrics[instanceId];
+      instanceMetric.successes++;
+      
+      // Calculate rolling average latency
+      const totalAttempts = instanceMetric.successes;
+      instanceMetric.averageLatency = (
+        (instanceMetric.averageLatency * (totalAttempts - 1) + latency) / totalAttempts
+      );
+    }
+
+    // Update daily stats
+    const today = new Date().toISOString().split('T')[0];
+    if (this.metrics.dailyStats[today]) {
+      this.metrics.dailyStats[today].successes++;
+    }
+
+    console.log(`ðŸ“Š Slack token refresh success: ${instanceId} via ${method} (${latency}ms)`);
+  }
+
+  /**
+   * Record a failed token refresh
+   * @param {string} instanceId - Instance ID
+   * @param {string} method - Method used
+   * @param {string} errorType - Type of error
+   * @param {string} errorMessage - Error message
+   * @param {number} startTime - Start timestamp
+   * @param {number} endTime - End timestamp
+   */
+  recordRefreshFailure(instanceId, method, errorType, errorMessage, startTime, endTime) {
+    const latency = endTime - startTime;
+    
+    this.metrics.refreshFailures++;
+
+    // Categorize errors
+    if (!this.metrics.errorsByType[errorType]) {
+      this.metrics.errorsByType[errorType] = 0;
+    }
+    this.metrics.errorsByType[errorType]++;
+
+    // Track specific error types for Slack
+    if (errorType === 'INVALID_REFRESH_TOKEN' || errorMessage.includes('invalid_grant')) {
+      this.metrics.invalidTokenErrors++;
+    } else if (errorType === 'SERVICE_UNAVAILABLE' || errorMessage.includes('service')) {
+      this.metrics.serviceUnavailableErrors++;
+    } else if (errorType === 'NETWORK_ERROR' || errorMessage.includes('ECONNRESET')) {
+      this.metrics.networkErrors++;
+    }
+
+    // Update instance metrics
+    if (this.metrics.instanceMetrics[instanceId]) {
+      this.metrics.instanceMetrics[instanceId].failures++;
+    }
+
+    // Update daily stats
+    const today = new Date().toISOString().split('T')[0];
+    if (this.metrics.dailyStats[today]) {
+      this.metrics.dailyStats[today].failures++;
+    }
+
+    console.log(`ðŸ“Š Slack token refresh failure: ${instanceId} via ${method} - ${errorType} (${latency}ms)`);
+  }
+
+  /**
+   * Get current metrics summary
+   * @returns {Object} Metrics summary
+   */
+  getMetricsSummary() {
+    const successRate = this.metrics.refreshAttempts > 0 
+      ? (this.metrics.refreshSuccesses / this.metrics.refreshAttempts * 100).toFixed(2)
+      : 0;
+
+    const averageLatency = this.metrics.refreshSuccesses > 0
+      ? Math.round(this.metrics.totalLatency / this.metrics.refreshSuccesses)
+      : 0;
+
+    const directFallbackRate = this.metrics.refreshAttempts > 0
+      ? (this.metrics.directOAuthFallbacks / this.metrics.refreshAttempts * 100).toFixed(2)
+      : 0;
+
+    return {
+      overview: {
+        totalAttempts: this.metrics.refreshAttempts,
+        totalSuccesses: this.metrics.refreshSuccesses,
+        totalFailures: this.metrics.refreshFailures,
+        successRate: `${successRate}%`,
+        directFallbackRate: `${directFallbackRate}%`
+      },
+      performance: {
+        averageLatency: `${averageLatency}ms`,
+        maxLatency: `${this.metrics.maxLatency}ms`,
+        minLatency: this.metrics.minLatency === Infinity ? '0ms' : `${this.metrics.minLatency}ms`
+      },
+      errors: {
+        invalidTokenErrors: this.metrics.invalidTokenErrors,
+        serviceUnavailableErrors: this.metrics.serviceUnavailableErrors,
+        networkErrors: this.metrics.networkErrors,
+        errorsByType: this.metrics.errorsByType
+      },
+      uptime: {
+        metricsStarted: new Date(this.metrics.lastReset).toISOString(),
+        uptimeHours: ((Date.now() - this.metrics.lastReset) / (1000 * 60 * 60)).toFixed(2)
+      }
+    };
+  }
+
+  /**
+   * Get metrics for a specific instance
+   * @param {string} instanceId - Instance ID
+   * @returns {Object} Instance-specific metrics
+   */
+  getInstanceMetrics(instanceId) {
+    const instanceMetric = this.metrics.instanceMetrics[instanceId];
+    
+    if (!instanceMetric) {
+      return null;
+    }
+
+    const successRate = instanceMetric.attempts > 0
+      ? (instanceMetric.successes / instanceMetric.attempts * 100).toFixed(2)
+      : 0;
+
+    return {
+      instanceId,
+      totalAttempts: instanceMetric.attempts,
+      totalSuccesses: instanceMetric.successes,
+      totalFailures: instanceMetric.failures,
+      successRate: `${successRate}%`,
+      averageLatency: `${Math.round(instanceMetric.averageLatency)}ms`,
+      lastAttempt: instanceMetric.lastAttempt
+    };
+  }
+
+  /**
+   * Get daily statistics
+   * @param {number} days - Number of days to include (default: 7)
+   * @returns {Object} Daily statistics
+   */
+  getDailyStats(days = 7) {
+    const today = new Date();
+    const stats = {};
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      stats[dateStr] = this.metrics.dailyStats[dateStr] || {
+        attempts: 0,
+        successes: 0,
+        failures: 0,
+        directFallbacks: 0
+      };
+    }
+
+    return stats;
+  }
+
+  /**
+   * Reset metrics (for testing or periodic reset)
+   */
+  reset() {
+    this.metrics = {
+      refreshAttempts: 0,
+      refreshSuccesses: 0,
+      refreshFailures: 0,
+      directOAuthFallbacks: 0,
+      serviceUnavailableErrors: 0,
+      invalidTokenErrors: 0,
+      networkErrors: 0,
+      totalLatency: 0,
+      maxLatency: 0,
+      minLatency: Infinity,
+      lastReset: Date.now(),
+      errorsByType: {},
+      dailyStats: {},
+      instanceMetrics: {}
+    };
+    
+    console.log('ðŸ“Š Slack token metrics reset');
+  }
+
+  /**
+   * Export metrics for external monitoring systems
+   * @returns {Object} Exportable metrics
+   */
+  exportMetrics() {
+    return {
+      timestamp: Date.now(),
+      summary: this.getMetricsSummary(),
+      dailyStats: this.getDailyStats(),
+      allInstanceMetrics: Object.keys(this.metrics.instanceMetrics).map(
+        instanceId => this.getInstanceMetrics(instanceId)
+      ),
+      rawMetrics: { ...this.metrics }
+    };
+  }
+
+  /**
+   * Check if metrics indicate system health issues
+   * @returns {Object} Health assessment
+   */
+  getHealthAssessment() {
+    const summary = this.getMetricsSummary();
+    const issues = [];
+    const warnings = [];
+
+    // Check success rate
+    const successRate = parseFloat(summary.overview.successRate);
+    if (successRate < 95) {
+      issues.push(`Low success rate: ${summary.overview.successRate}`);
+    } else if (successRate < 98) {
+      warnings.push(`Success rate below target: ${summary.overview.successRate}`);
+    }
+
+    // Check direct fallback rate
+    const fallbackRate = parseFloat(summary.overview.directFallbackRate);
+    if (fallbackRate > 20) {
+      issues.push(`High fallback rate: ${summary.overview.directFallbackRate}`);
+    } else if (fallbackRate > 10) {
+      warnings.push(`Elevated fallback rate: ${summary.overview.directFallbackRate}`);
+    }
+
+    // Check latency
+    const avgLatency = parseInt(summary.performance.averageLatency);
+    if (avgLatency > 5000) {
+      issues.push(`High average latency: ${summary.performance.averageLatency}`);
+    } else if (avgLatency > 2000) {
+      warnings.push(`Elevated latency: ${summary.performance.averageLatency}`);
+    }
+
+    // Check error patterns
+    if (this.metrics.serviceUnavailableErrors > this.metrics.refreshAttempts * 0.1) {
+      issues.push('High service unavailable error rate');
+    }
+
+    if (this.metrics.networkErrors > this.metrics.refreshAttempts * 0.05) {
+      warnings.push('Elevated network error rate');
+    }
+
+    return {
+      status: issues.length > 0 ? 'unhealthy' : warnings.length > 0 ? 'degraded' : 'healthy',
+      issues,
+      warnings,
+      summary
+    };
+  }
 }
+
+// Create singleton instance
+const tokenMetrics = new TokenMetrics();
 
 /**
  * Record token refresh metrics
  * @param {string} instanceId - Instance ID
- * @param {string} method - Refresh method used (oauth_service, direct_oauth)
+ * @param {string} method - Method used
  * @param {boolean} success - Whether refresh was successful
  * @param {string} errorType - Error type if failed
  * @param {string} errorMessage - Error message if failed
@@ -26,336 +349,57 @@ export function initializeTokenMetrics() {
  * @param {number} endTime - End timestamp
  */
 export function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
-  const responseTime = endTime - startTime;
-  const timestamp = new Date().toISOString();
-  
-  if (!tokenMetrics.has(instanceId)) {
-    tokenMetrics.set(instanceId, {
-      instanceId,
-      totalRefreshes: 0,
-      successfulRefreshes: 0,
-      failedRefreshes: 0,
-      averageResponseTime: 0,
-      lastRefreshTime: null,
-      lastSuccessTime: null,
-      lastFailureTime: null,
-      methodStats: {
-        oauth_service: { attempts: 0, successes: 0, failures: 0 },
-        direct_oauth: { attempts: 0, successes: 0, failures: 0 }
-      },
-      errorStats: new Map(),
-      recentRefreshes: []
-    });
-  }
-  
-  const metrics = tokenMetrics.get(instanceId);
-  
-  // Update counters
-  metrics.totalRefreshes++;
-  metrics.methodStats[method].attempts++;
-  
+  // Record the attempt
+  tokenMetrics.recordRefreshAttempt(instanceId, method, startTime);
+
+  // Record success or failure
   if (success) {
-    metrics.successfulRefreshes++;
-    metrics.methodStats[method].successes++;
-    metrics.lastSuccessTime = timestamp;
+    tokenMetrics.recordRefreshSuccess(instanceId, method, startTime, endTime);
   } else {
-    metrics.failedRefreshes++;
-    metrics.methodStats[method].failures++;
-    metrics.lastFailureTime = timestamp;
-    
-    // Track error statistics
-    const errorKey = errorType || 'UNKNOWN_ERROR';
-    const errorStats = metrics.errorStats.get(errorKey) || { count: 0, lastOccurrence: null };
-    errorStats.count++;
-    errorStats.lastOccurrence = timestamp;
-    metrics.errorStats.set(errorKey, errorStats);
+    tokenMetrics.recordRefreshFailure(instanceId, method, errorType, errorMessage, startTime, endTime);
   }
-  
-  // Update average response time
-  const totalResponseTime = (metrics.averageResponseTime * (metrics.totalRefreshes - 1)) + responseTime;
-  metrics.averageResponseTime = totalResponseTime / metrics.totalRefreshes;
-  
-  // Update last refresh time
-  metrics.lastRefreshTime = timestamp;
-  
-  // Add to recent refreshes (keep last 10)
-  metrics.recentRefreshes.push({
-    timestamp,
-    method,
-    success,
-    errorType,
-    errorMessage,
-    responseTime
-  });
-  
-  if (metrics.recentRefreshes.length > 10) {
-    metrics.recentRefreshes.shift();
-  }
-  
-  console.log(`=Ê Recorded Slack token refresh metrics for instance ${instanceId}: ${success ? 'SUCCESS' : 'FAILURE'} (${method}, ${responseTime}ms)`);
 }
 
 /**
- * Get token metrics for a specific instance
- * @param {string} instanceId - Instance ID
- * @returns {Object|null} Token metrics or null if not found
+ * Get metrics summary
  */
-export function getTokenMetrics(instanceId) {
-  const metrics = tokenMetrics.get(instanceId);
-  if (!metrics) return null;
-  
-  return {
-    ...metrics,
-    errorStats: Object.fromEntries(metrics.errorStats),
-    successRate: metrics.totalRefreshes > 0 
-      ? (metrics.successfulRefreshes / metrics.totalRefreshes * 100).toFixed(2) 
-      : 0
-  };
+export function getTokenMetricsSummary() {
+  return tokenMetrics.getMetricsSummary();
 }
 
 /**
- * Get aggregated token metrics across all instances
- * @returns {Object} Aggregated metrics
+ * Get instance-specific metrics
  */
-export function getAggregatedTokenMetrics() {
-  const allMetrics = Array.from(tokenMetrics.values());
-  
-  if (allMetrics.length === 0) {
-    return {
-      totalInstances: 0,
-      totalRefreshes: 0,
-      successfulRefreshes: 0,
-      failedRefreshes: 0,
-      averageResponseTime: 0,
-      successRate: 0,
-      methodStats: {
-        oauth_service: { attempts: 0, successes: 0, failures: 0 },
-        direct_oauth: { attempts: 0, successes: 0, failures: 0 }
-      },
-      topErrors: [],
-      recentActivity: []
-    };
-  }
-  
-  const totals = allMetrics.reduce((acc, metrics) => {
-    acc.totalRefreshes += metrics.totalRefreshes;
-    acc.successfulRefreshes += metrics.successfulRefreshes;
-    acc.failedRefreshes += metrics.failedRefreshes;
-    acc.totalResponseTime += metrics.averageResponseTime * metrics.totalRefreshes;
-    
-    // Aggregate method stats
-    Object.keys(metrics.methodStats).forEach(method => {
-      acc.methodStats[method].attempts += metrics.methodStats[method].attempts;
-      acc.methodStats[method].successes += metrics.methodStats[method].successes;
-      acc.methodStats[method].failures += metrics.methodStats[method].failures;
-    });
-    
-    // Aggregate error stats
-    metrics.errorStats.forEach((errorStats, errorType) => {
-      if (!acc.errorStats.has(errorType)) {
-        acc.errorStats.set(errorType, { count: 0, instances: [] });
-      }
-      const aggErrorStats = acc.errorStats.get(errorType);
-      aggErrorStats.count += errorStats.count;
-      aggErrorStats.instances.push(metrics.instanceId);
-    });
-    
-    // Collect recent activity
-    metrics.recentRefreshes.forEach(refresh => {
-      acc.recentActivity.push({
-        instanceId: metrics.instanceId,
-        ...refresh
-      });
-    });
-    
-    return acc;
-  }, {
-    totalRefreshes: 0,
-    successfulRefreshes: 0,
-    failedRefreshes: 0,
-    totalResponseTime: 0,
-    methodStats: {
-      oauth_service: { attempts: 0, successes: 0, failures: 0 },
-      direct_oauth: { attempts: 0, successes: 0, failures: 0 }
-    },
-    errorStats: new Map(),
-    recentActivity: []
-  });
-  
-  // Sort recent activity by timestamp
-  totals.recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  totals.recentActivity = totals.recentActivity.slice(0, 20); // Keep last 20
-  
-  // Get top errors
-  const topErrors = Array.from(totals.errorStats.entries())
-    .map(([errorType, stats]) => ({
-      errorType,
-      count: stats.count,
-      affectedInstances: stats.instances.length
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-  
-  return {
-    totalInstances: allMetrics.length,
-    totalRefreshes: totals.totalRefreshes,
-    successfulRefreshes: totals.successfulRefreshes,
-    failedRefreshes: totals.failedRefreshes,
-    averageResponseTime: totals.totalRefreshes > 0 
-      ? Math.round(totals.totalResponseTime / totals.totalRefreshes) 
-      : 0,
-    successRate: totals.totalRefreshes > 0 
-      ? (totals.successfulRefreshes / totals.totalRefreshes * 100).toFixed(2) 
-      : 0,
-    methodStats: totals.methodStats,
-    topErrors,
-    recentActivity: totals.recentActivity
-  };
+export function getInstanceTokenMetrics(instanceId) {
+  return tokenMetrics.getInstanceMetrics(instanceId);
 }
 
 /**
- * Get token metrics for instances with recent failures
- * @param {number} hoursBack - Hours to look back for failures
- * @returns {Array} Array of instances with recent failures
+ * Get daily statistics
  */
-export function getInstancesWithRecentFailures(hoursBack = 24) {
-  const cutoffTime = new Date(Date.now() - (hoursBack * 60 * 60 * 1000));
-  const instancesWithFailures = [];
-  
-  for (const [instanceId, metrics] of tokenMetrics.entries()) {
-    const recentFailures = metrics.recentRefreshes.filter(refresh => {
-      return !refresh.success && new Date(refresh.timestamp) > cutoffTime;
-    });
-    
-    if (recentFailures.length > 0) {
-      instancesWithFailures.push({
-        instanceId,
-        recentFailures: recentFailures.length,
-        lastFailureTime: metrics.lastFailureTime,
-        mostRecentError: recentFailures[recentFailures.length - 1]?.errorType,
-        successRate: metrics.totalRefreshes > 0 
-          ? (metrics.successfulRefreshes / metrics.totalRefreshes * 100).toFixed(2) 
-          : 0
-      });
-    }
-  }
-  
-  return instancesWithFailures.sort((a, b) => b.recentFailures - a.recentFailures);
+export function getDailyTokenStats(days) {
+  return tokenMetrics.getDailyStats(days);
 }
 
 /**
- * Reset metrics for a specific instance
- * @param {string} instanceId - Instance ID
+ * Export all metrics
  */
-export function resetInstanceMetrics(instanceId) {
-  tokenMetrics.delete(instanceId);
-  console.log(`>ù Reset token metrics for Slack instance: ${instanceId}`);
+export function exportTokenMetrics() {
+  return tokenMetrics.exportMetrics();
 }
 
 /**
- * Clear all token metrics
+ * Get health assessment
  */
-export function clearAllTokenMetrics() {
-  const count = tokenMetrics.size;
-  tokenMetrics.clear();
-  console.log(`>ù Cleared all Slack token metrics (${count} instances)`);
+export function getTokenSystemHealth() {
+  return tokenMetrics.getHealthAssessment();
 }
 
 /**
- * Get performance insights based on metrics
- * @returns {Object} Performance insights
+ * Reset metrics (for testing)
  */
-export function getPerformanceInsights() {
-  const aggregated = getAggregatedTokenMetrics();
-  const insights = [];
-  
-  // Success rate insights
-  if (aggregated.successRate < 90) {
-    insights.push({
-      type: 'warning',
-      category: 'reliability',
-      message: `Low success rate: ${aggregated.successRate}% (target: >90%)`,
-      recommendation: 'Investigate common failure patterns and improve error handling'
-    });
-  } else if (aggregated.successRate >= 95) {
-    insights.push({
-      type: 'success',
-      category: 'reliability',
-      message: `Excellent success rate: ${aggregated.successRate}%`,
-      recommendation: 'Current reliability is performing well'
-    });
-  }
-  
-  // Response time insights
-  if (aggregated.averageResponseTime > 5000) {
-    insights.push({
-      type: 'warning',
-      category: 'performance',
-      message: `High average response time: ${aggregated.averageResponseTime}ms`,
-      recommendation: 'Consider optimizing token refresh process or checking network conditions'
-    });
-  } else if (aggregated.averageResponseTime < 1000) {
-    insights.push({
-      type: 'success',
-      category: 'performance',
-      message: `Fast response time: ${aggregated.averageResponseTime}ms`,
-      recommendation: 'Response time is performing well'
-    });
-  }
-  
-  // Method performance insights
-  const oauthServiceStats = aggregated.methodStats.oauth_service;
-  const directOauthStats = aggregated.methodStats.direct_oauth;
-  
-  if (oauthServiceStats.attempts > 0 && directOauthStats.attempts > 0) {
-    const oauthServiceRate = (oauthServiceStats.successes / oauthServiceStats.attempts * 100).toFixed(2);
-    const directOauthRate = (directOauthStats.successes / directOauthStats.attempts * 100).toFixed(2);
-    
-    if (oauthServiceRate < directOauthRate) {
-      insights.push({
-        type: 'info',
-        category: 'methods',
-        message: `Direct OAuth performing better than OAuth service (${directOauthRate}% vs ${oauthServiceRate}%)`,
-        recommendation: 'Consider investigating OAuth service reliability'
-      });
-    }
-  }
-  
-  // Error pattern insights
-  if (aggregated.topErrors.length > 0) {
-    const topError = aggregated.topErrors[0];
-    insights.push({
-      type: 'warning',
-      category: 'errors',
-      message: `Most common error: ${topError.errorType} (${topError.count} occurrences)`,
-      recommendation: 'Focus on resolving this error pattern to improve overall reliability'
-    });
-  }
-  
-  return {
-    insights,
-    summary: {
-      totalInstances: aggregated.totalInstances,
-      healthScore: Math.round(aggregated.successRate),
-      performanceScore: aggregated.averageResponseTime < 2000 ? 'Good' : 
-                       aggregated.averageResponseTime < 5000 ? 'Fair' : 'Poor'
-    }
-  };
+export function resetTokenMetrics() {
+  tokenMetrics.reset();
 }
 
-/**
- * Export metrics data for external monitoring
- * @returns {Object} Exportable metrics data
- */
-export function exportMetricsData() {
-  return {
-    timestamp: new Date().toISOString(),
-    service: 'slack',
-    aggregated: getAggregatedTokenMetrics(),
-    instances: Array.from(tokenMetrics.entries()).map(([instanceId, metrics]) => ({
-      instanceId,
-      ...getTokenMetrics(instanceId)
-    })),
-    insights: getPerformanceInsights()
-  };
-}
+export default tokenMetrics;

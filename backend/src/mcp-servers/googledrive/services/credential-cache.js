@@ -7,10 +7,7 @@
  */
 
 // Global credential cache for Google Drive service instances
-const googledriveCredentialCache = new Map();
-
-// Lock management for race condition prevention
-const activeLocks = new Set();
+const googleDriveCredentialCache = new Map();
 
 /**
  * Initialize the credential cache system
@@ -18,7 +15,7 @@ const activeLocks = new Set();
  */
 export function initializeCredentialCache() {
 	console.log('🚀 Initializing Google Drive OAuth credential cache system');
-	googledriveCredentialCache.clear();
+	googleDriveCredentialCache.clear();
 	console.log('✅ Google Drive OAuth credential cache initialized');
 }
 
@@ -28,52 +25,24 @@ export function initializeCredentialCache() {
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
 export function getCachedCredential(instanceId) {
-	// Use a lock to prevent race conditions
-	const lockKey = `${instanceId}_lock`;
-	if (activeLocks.has(lockKey)) {
-		// If already locked, wait briefly and retry
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				resolve(getCachedCredential(instanceId));
-			}, 10);
-		});
+	const cached = googleDriveCredentialCache.get(instanceId);
+	
+	if (!cached) {
+		return null;
 	}
 	
-	activeLocks.add(lockKey);
-	
-	try {
-		const cached = googledriveCredentialCache.get(instanceId);
-		
-		if (!cached) {
-			return null;
-		}
-		
-		// Check if Bearer token has expired
-		if (cached.expiresAt && cached.expiresAt < Date.now()) {
-			console.log(`🗑️ Removing expired Bearer token from cache: ${instanceId}`);
-			googledriveCredentialCache.delete(instanceId);
-			return null;
-		}
-		
-		// Create a copy to avoid mutation issues
-		const cachedCopy = {
-			bearerToken: cached.bearerToken,
-			refreshToken: cached.refreshToken,
-			expiresAt: cached.expiresAt,
-			user_id: cached.user_id,
-			last_used: new Date().toISOString(),
-			refresh_attempts: cached.refresh_attempts || 0,
-			cached_at: cached.cached_at
-		};
-		
-		// Update last used timestamp safely
-		cached.last_used = cachedCopy.last_used;
-		
-		console.log(`✅ Cache hit for instance: ${instanceId}`);
-		return cachedCopy;
-	} finally {
-		activeLocks.delete(lockKey);
+	// Check if Bearer token has expired
+	if (cached.expiresAt && cached.expiresAt < Date.now()) {
+		console.log(`🗑️ Removing expired Bearer token from cache: ${instanceId}`);
+		googleDriveCredentialCache.delete(instanceId);
+		return null;
 	}
+	
+	// Update last used timestamp
+	cached.last_used = new Date().toISOString();
+	
+	console.log(`✅ Cache hit for instance: ${instanceId}`);
+	return cached;
 }
 
 /**
@@ -96,7 +65,7 @@ export function setCachedCredential(instanceId, tokenData) {
 		cached_at: new Date().toISOString()
 	};
 	
-	googledriveCredentialCache.set(instanceId, cacheEntry);
+	googleDriveCredentialCache.set(instanceId, cacheEntry);
 	const expiresInMinutes = Math.floor((tokenData.expiresAt - Date.now()) / 60000);
 	console.log(`💾 Cached OAuth tokens for instance: ${instanceId} (expires in ${expiresInMinutes} minutes)`);
 }
@@ -106,7 +75,7 @@ export function setCachedCredential(instanceId, tokenData) {
  * @param {string} instanceId - UUID of the service instance
  */
 export function removeCachedCredential(instanceId) {
-	const removed = googledriveCredentialCache.delete(instanceId);
+	const removed = googleDriveCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed OAuth tokens from cache: ${instanceId}`);
 	}
@@ -118,8 +87,8 @@ export function removeCachedCredential(instanceId) {
  * @returns {Object} Cache statistics
  */
 export function getCacheStatistics() {
-	const totalEntries = googledriveCredentialCache.size;
-	const entries = Array.from(googledriveCredentialCache.values());
+	const totalEntries = googleDriveCredentialCache.size;
+	const entries = Array.from(googleDriveCredentialCache.values());
 	
 	const now = Date.now();
 	const expiredCount = entries.filter(entry => {
@@ -145,7 +114,7 @@ export function getCacheStatistics() {
 		recently_used: recentlyUsed,
 		cache_hit_rate_last_hour: recentlyUsed > 0 ? (recentlyUsed / totalEntries * 100).toFixed(2) : 0,
 		average_expiry_minutes: Math.floor(averageExpiryMinutes),
-		memory_usage_mb: (JSON.stringify(Array.from(googledriveCredentialCache.entries())).length / 1024 / 1024).toFixed(2)
+		memory_usage_mb: (JSON.stringify(Array.from(googleDriveCredentialCache.entries())).length / 1024 / 1024).toFixed(2)
 	};
 }
 
@@ -154,7 +123,7 @@ export function getCacheStatistics() {
  * @returns {string[]} Array of cached instance IDs
  */
 export function getCachedInstanceIds() {
-	return Array.from(googledriveCredentialCache.keys());
+	return Array.from(googleDriveCredentialCache.keys());
 }
 
 /**
@@ -163,7 +132,7 @@ export function getCachedInstanceIds() {
  * @returns {boolean} True if instance is cached and token is valid
  */
 export function isInstanceCached(instanceId) {
-	const cached = googledriveCredentialCache.get(instanceId);
+	const cached = googleDriveCredentialCache.get(instanceId);
 	if (!cached) return false;
 	
 	// Check Bearer token expiration
@@ -178,8 +147,8 @@ export function isInstanceCached(instanceId) {
  * Clear all cached credentials (for testing/restart)
  */
 export function clearCredentialCache() {
-	const count = googledriveCredentialCache.size;
-	googledriveCredentialCache.clear();
+	const count = googleDriveCredentialCache.size;
+	googleDriveCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} entries from OAuth credential cache`);
 }
 
@@ -189,7 +158,7 @@ export function clearCredentialCache() {
  * @returns {Object|null} Cache entry or null
  */
 export function peekCachedCredential(instanceId) {
-	return googledriveCredentialCache.get(instanceId) || null;
+	return googleDriveCredentialCache.get(instanceId) || null;
 }
 
 /**
@@ -204,7 +173,7 @@ export function peekCachedCredential(instanceId) {
  * @returns {boolean} True if cache entry was updated, false if not found
  */
 export function updateCachedCredentialMetadata(instanceId, updates) {
-	const cached = googledriveCredentialCache.get(instanceId);
+	const cached = googleDriveCredentialCache.get(instanceId);
 	if (!cached) {
 		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
 		return false;
@@ -235,7 +204,7 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
 	// Update last modified timestamp
 	cached.last_modified = new Date().toISOString();
 
-	googledriveCredentialCache.set(instanceId, cached);
+	googleDriveCredentialCache.set(instanceId, cached);
 	return true;
 }
 
@@ -249,7 +218,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = Date.now();
 
-	for (const [instanceId, cached] of googledriveCredentialCache.entries()) {
+	for (const [instanceId, cached] of googleDriveCredentialCache.entries()) {
 		let shouldRemove = false;
 		let removeReason = '';
 
@@ -266,7 +235,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 		}
 
 		if (shouldRemove) {
-			googledriveCredentialCache.delete(instanceId);
+			googleDriveCredentialCache.delete(instanceId);
 			removedCount++;
 			console.log(`🗑️ Removed ${removeReason} cache entry for instance: ${instanceId}`);
 		}
@@ -285,7 +254,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
  * @returns {number} Current refresh attempt count
  */
 export function incrementRefreshAttempts(instanceId) {
-	const cached = googledriveCredentialCache.get(instanceId);
+	const cached = googleDriveCredentialCache.get(instanceId);
 	if (!cached) {
 		return 0;
 	}
@@ -293,7 +262,7 @@ export function incrementRefreshAttempts(instanceId) {
 	cached.refresh_attempts = (cached.refresh_attempts || 0) + 1;
 	cached.last_refresh_attempt = new Date().toISOString();
 	
-	googledriveCredentialCache.set(instanceId, cached);
+	googleDriveCredentialCache.set(instanceId, cached);
 	
 	console.log(`🔄 Refresh attempt ${cached.refresh_attempts} for instance: ${instanceId}`);
 	return cached.refresh_attempts;
@@ -304,7 +273,7 @@ export function incrementRefreshAttempts(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  */
 export function resetRefreshAttempts(instanceId) {
-	const cached = googledriveCredentialCache.get(instanceId);
+	const cached = googleDriveCredentialCache.get(instanceId);
 	if (!cached) {
 		return;
 	}
@@ -312,7 +281,7 @@ export function resetRefreshAttempts(instanceId) {
 	cached.refresh_attempts = 0;
 	cached.last_successful_refresh = new Date().toISOString();
 	
-	googledriveCredentialCache.set(instanceId, cached);
+	googleDriveCredentialCache.set(instanceId, cached);
 	
 	console.log(`✅ Reset refresh attempts for instance: ${instanceId}`);
 }
@@ -338,7 +307,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		const cachedCredential = peekCachedCredential(instanceId);
 		
 		// Get database state
-		const dbInstance = await lookupInstanceCredentials(instanceId, 'googledrive');
+		const dbInstance = await lookupInstanceCredentials(instanceId, 'gmail');
 		
 		if (!dbInstance) {
 			// Instance doesn't exist in database, remove from cache

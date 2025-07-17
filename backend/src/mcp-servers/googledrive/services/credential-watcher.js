@@ -151,7 +151,7 @@ async function checkAndRefreshToken(instanceId) {
     incrementRefreshAttempts(instanceId);
 
     // Get instance credentials from database
-    const instance = await lookupInstanceCredentials(instanceId, 'googledrive');
+    const instance = await lookupInstanceCredentials(instanceId, 'gmail');
     
     if (!instance || !instance.client_id || !instance.client_secret) {
       console.log(`❌ Invalid instance credentials for ${instanceId}, removing from cache`);

@@ -61,7 +61,7 @@ export function getCachedCredential(instanceId) {
 	}
 
 	// Check if instance has expired
-	if (cached.expires_at && new Date(cached.expires_at) < new Date()) {
+	if (cached.expiresAt && new Date(cached.expiresAt) < new Date()) {
 		console.log(`🗑️ Removing expired instance from cache: ${instanceId}`);
 		notionCredentialCache.delete(instanceId);
 		return null;
@@ -76,7 +76,7 @@ export function getCachedCredential(instanceId) {
 	return {
 		bearerToken: cached.credential,
 		refreshToken: cached.refreshToken,
-		expiresAt: cached.expires_at,
+		expiresAt: cached.expiresAt,
 		user_id: cached.user_id,
 		last_used: cached.last_used,
 		refresh_attempts: cached.refresh_attempts,
@@ -90,7 +90,7 @@ export function getCachedCredential(instanceId) {
  * @param {Object} credentialData - Credential data to cache
  * @param {string} credentialData.bearerToken - OAuth Bearer token
  * @param {string} credentialData.refreshToken - OAuth refresh token
- * @param {string} credentialData.expires_at - Instance expiration timestamp
+ * @param {string} credentialData.expiresAt - Instance expiration timestamp
  * @param {string} credentialData.user_id - User ID who owns this instance
  */
 export async function setCachedCredential(instanceId, credentialData) {
@@ -100,7 +100,7 @@ export async function setCachedCredential(instanceId, credentialData) {
 		const cacheEntry = {
 			credential: credentialData.bearerToken,
 			refreshToken: credentialData.refreshToken,
-			expires_at: credentialData.expires_at,
+			expiresAt: credentialData.expiresAt,
 			user_id: credentialData.user_id,
 			last_used: new Date().toISOString(),
 			refresh_attempts: 0,
@@ -108,7 +108,7 @@ export async function setCachedCredential(instanceId, credentialData) {
 		};
 
 		notionCredentialCache.set(instanceId, cacheEntry);
-		console.log(`💾 Cached credential for instance: ${instanceId} (expires: ${credentialData.expires_at})`);
+		console.log(`💾 Cached credential for instance: ${instanceId} (expires: ${credentialData.expiresAt})`);
 	} finally {
 		releaseLock();
 	}

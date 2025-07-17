@@ -1,128 +1,333 @@
 /**
- * Notion MCP Tools Endpoint
- * Handles tool discovery and execution for MCP clients
+ * Notion MCP Tools Definition
+ * Defines all available tools for Notion API integration
  */
-
-import { NotionMCPHandler } from './mcp-handler.js';
-import { handleNotionError } from '../utils/error-handler.js';
-import { Logger } from '../utils/logger.js';
 
 /**
- * Handle tools endpoint - provides tool discovery and execution
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Get available Notion tools for MCP protocol
+ * @returns {Object} Tools data with MCP-compliant schemas
  */
-export async function handleToolsEndpoint(req, res) {
-	try {
-		const { bearerToken, instanceId, userId } = req;
-
-		if (!bearerToken) {
-			return res.status(401).json({
-				error: 'Unauthorized',
-				message: 'Bearer token required for tools endpoint',
-			});
-		}
-
-		// Create MCP handler instance
-		const serviceConfig = {
-			name: 'notion',
-			version: '1.0.0',
-		};
-
-		const mcpHandler = new NotionMCPHandler(serviceConfig, bearerToken);
-
-		// Handle different HTTP methods
-		switch (req.method) {
-			case 'GET':
-				// Return available tools
-				const tools = await getAvailableTools(mcpHandler);
-				res.json(tools);
-				break;
-
-			case 'POST':
-				// Execute tool
-				const result = await executeToolRequest(mcpHandler, req, res);
-				if (result) {
-					res.json(result);
-				}
-				break;
-
-			default:
-				res.status(405).json({
-					error: 'Method not allowed',
-					allowedMethods: ['GET', 'POST'],
-				});
-		}
-	} catch (error) {
-		Logger.error('Tools endpoint error:', error);
-		const errorInfo = handleNotionError(error);
-		res.status(500).json({
-			error: 'Internal server error',
-			message: errorInfo.message,
-			instanceId: req.instanceId,
-		});
-	}
-}
-
-/**
- * Get available tools from MCP handler
- * @param {NotionMCPHandler} mcpHandler - MCP handler instance
- * @returns {Promise<Object>} Available tools
- */
-async function getAvailableTools(mcpHandler) {
-	// Mock list tools request
-	const listToolsRequest = {
-		method: 'tools/list',
-		params: {},
-		id: 'list-tools',
-	};
-
-	try {
-		const response = await mcpHandler.server.processRequest(listToolsRequest);
-		return response.result || { tools: [] };
-	} catch (error) {
-		Logger.error('Failed to get available tools:', error);
-		return { tools: [] };
-	}
-}
-
-/**
- * Execute tool request
- * @param {NotionMCPHandler} mcpHandler - MCP handler instance
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<Object>} Tool execution result
- */
-async function executeToolRequest(mcpHandler, req, res) {
-	const { tool, arguments: args } = req.body;
-
-	if (!tool) {
-		return res.status(400).json({
-			error: 'Bad request',
-			message: 'Tool name is required',
-		});
-	}
-
-	// Create tool call request
-	const toolCallRequest = {
-		method: 'tools/call',
-		params: {
-			name: tool,
-			arguments: args || {},
-		},
-		id: `tool-call-${Date.now()}`,
-	};
-
-	try {
-		const response = await mcpHandler.server.processRequest(toolCallRequest);
-		return response.result;
-	} catch (error) {
-		Logger.error(`Tool execution error for ${tool}:`, error);
-		const errorInfo = handleNotionError(error);
-		return res.status(500).json({
-			error: 'Tool execution failed',
-			message: errorInfo.message,
-			tool: tool,
-		});
-	}
+export function getTools() {
+  return {
+    tools: [
+      {
+        name: 'search',
+        description: 'Search for pages and databases in Notion',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search query'
+            },
+            page_size: {
+              type: 'number',
+              description: 'Number of results to return (1-100)',
+              minimum: 1,
+              maximum: 100,
+              default: 10
+            },
+            start_cursor: {
+              type: 'string',
+              description: 'Pagination cursor'
+            },
+            sort: {
+              type: 'object',
+              properties: {
+                direction: {
+                  type: 'string',
+                  enum: ['ascending', 'descending'],
+                  description: 'Sort direction'
+                },
+                timestamp: {
+                  type: 'string',
+                  enum: ['created_time', 'last_edited_time'],
+                  description: 'Sort timestamp'
+                }
+              },
+              description: 'Sort options'
+            },
+            filter: {
+              type: 'object',
+              properties: {
+                value: {
+                  type: 'string',
+                  enum: ['page', 'database'],
+                  description: 'Filter by type'
+                },
+                property: {
+                  type: 'string',
+                  description: 'Filter property'
+                }
+              },
+              description: 'Filter options'
+            }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_page',
+        description: 'Get a specific page by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            page_id: {
+              type: 'string',
+              description: 'Page ID'
+            }
+          },
+          required: ['page_id']
+        }
+      },
+      {
+        name: 'get_page_blocks',
+        description: 'Get blocks/content of a page',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            page_id: {
+              type: 'string',
+              description: 'Page ID'
+            },
+            start_cursor: {
+              type: 'string',
+              description: 'Pagination cursor'
+            },
+            page_size: {
+              type: 'number',
+              description: 'Number of blocks to return',
+              minimum: 1,
+              maximum: 100,
+              default: 100
+            }
+          },
+          required: ['page_id']
+        }
+      },
+      {
+        name: 'create_page',
+        description: 'Create a new page',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            parent: {
+              type: 'object',
+              properties: {
+                type: {
+                  type: 'string',
+                  enum: ['page_id', 'database_id'],
+                  description: 'Parent type'
+                },
+                page_id: {
+                  type: 'string',
+                  description: 'Parent page ID'
+                },
+                database_id: {
+                  type: 'string',
+                  description: 'Parent database ID'
+                }
+              },
+              description: 'Parent page or database'
+            },
+            properties: {
+              type: 'object',
+              description: 'Page properties'
+            },
+            children: {
+              type: 'array',
+              description: 'Page content blocks'
+            }
+          },
+          required: ['parent']
+        }
+      },
+      {
+        name: 'update_page',
+        description: 'Update page properties',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            page_id: {
+              type: 'string',
+              description: 'Page ID'
+            },
+            properties: {
+              type: 'object',
+              description: 'Properties to update'
+            },
+            archived: {
+              type: 'boolean',
+              description: 'Archive status'
+            }
+          },
+          required: ['page_id']
+        }
+      },
+      {
+        name: 'get_database',
+        description: 'Get database information',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            database_id: {
+              type: 'string',
+              description: 'Database ID'
+            }
+          },
+          required: ['database_id']
+        }
+      },
+      {
+        name: 'query_database',
+        description: 'Query database entries',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            database_id: {
+              type: 'string',
+              description: 'Database ID'
+            },
+            filter: {
+              type: 'object',
+              description: 'Filter criteria'
+            },
+            sorts: {
+              type: 'array',
+              description: 'Sort criteria'
+            },
+            start_cursor: {
+              type: 'string',
+              description: 'Pagination cursor'
+            },
+            page_size: {
+              type: 'number',
+              description: 'Number of results',
+              minimum: 1,
+              maximum: 100,
+              default: 100
+            }
+          },
+          required: ['database_id']
+        }
+      },
+      {
+        name: 'create_database',
+        description: 'Create a new database',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            parent: {
+              type: 'object',
+              properties: {
+                type: {
+                  type: 'string',
+                  enum: ['page_id'],
+                  description: 'Parent type (must be page_id)'
+                },
+                page_id: {
+                  type: 'string',
+                  description: 'Parent page ID'
+                }
+              },
+              description: 'Parent page'
+            },
+            title: {
+              type: 'array',
+              description: 'Database title'
+            },
+            properties: {
+              type: 'object',
+              description: 'Database properties schema'
+            }
+          },
+          required: ['parent', 'title', 'properties']
+        }
+      },
+      {
+        name: 'update_database',
+        description: 'Update database properties',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            database_id: {
+              type: 'string',
+              description: 'Database ID'
+            },
+            title: {
+              type: 'array',
+              description: 'Database title'
+            },
+            properties: {
+              type: 'object',
+              description: 'Database properties schema'
+            }
+          },
+          required: ['database_id']
+        }
+      },
+      {
+        name: 'append_blocks',
+        description: 'Append blocks to a page',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            page_id: {
+              type: 'string',
+              description: 'Page ID'
+            },
+            children: {
+              type: 'array',
+              description: 'Blocks to append'
+            }
+          },
+          required: ['page_id', 'children']
+        }
+      },
+      {
+        name: 'delete_block',
+        description: 'Delete a block',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            block_id: {
+              type: 'string',
+              description: 'Block ID'
+            }
+          },
+          required: ['block_id']
+        }
+      },
+      {
+        name: 'get_current_user',
+        description: 'Get current user information',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'list_users',
+        description: 'List all users',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            start_cursor: {
+              type: 'string',
+              description: 'Pagination cursor'
+            },
+            page_size: {
+              type: 'number',
+              description: 'Number of users to return',
+              minimum: 1,
+              maximum: 100,
+              default: 100
+            }
+          },
+          required: []
+        }
+      }
+    ]
+  };
 }
