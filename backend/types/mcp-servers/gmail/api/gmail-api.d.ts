@@ -89,4 +89,25 @@ export function markAsRead(args: Object, bearerToken: string): Object;
  * @returns {Object} Mark unread result
  */
 export function markAsUnread(args: Object, bearerToken: string): Object;
+/**
+ * Download an attachment from a Gmail message
+ * @param {Object} args - Download arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Attachment data
+ */
+export function downloadAttachment(args: Object, bearerToken: string): Object;
+/**
+ * List attachments for a specific message
+ * @param {Object} args - List attachments arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Attachments list
+ */
+export function listAttachments(args: Object, bearerToken: string): Object;
+/**
+ * Send an email with attachments
+ * @param {Object} args - Email with attachments arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Object} Send result
+ */
+export function sendEmailWithAttachments(args: Object, bearerToken: string): Object;
 //# sourceMappingURL=gmail-api.d.ts.map

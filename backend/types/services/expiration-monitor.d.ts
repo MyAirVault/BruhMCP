@@ -24,6 +24,15 @@ declare class ExpirationMonitor {
      */
     handleExpiredMCP(instance: Object): Promise<void>;
     /**
+     * Clean up failed OAuth instances
+     */
+    cleanupFailedOAuthInstances(): Promise<void>;
+    /**
+     * Handle a failed OAuth instance by deleting it
+     * @param {Object} instance - MCP instance object with failed OAuth
+     */
+    handleFailedOAuthInstance(instance: Object): Promise<void>;
+    /**
      * Manually check a specific MCP instance for expiration
      * @param {string} instanceId - MCP instance ID
      * @param {string} userId - User ID (for authorization)

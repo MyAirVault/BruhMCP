@@ -411,6 +411,11 @@ export function getTools() {
             attachmentId: {
               type: 'string',
               description: 'Attachment ID to download'
+            },
+            returnDataUrl: {
+              type: 'boolean',
+              description: 'Return full data for large attachments (default: false)',
+              default: false
             }
           },
           required: ['messageId', 'attachmentId']

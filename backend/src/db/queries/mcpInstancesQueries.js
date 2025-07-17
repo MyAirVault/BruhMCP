@@ -318,6 +318,29 @@ export async function getExpiredInstances() {
 }
 
 /**
+ * Get failed OAuth instances (for background cleanup)
+ * @returns {Promise<Array>} Array of instances with failed OAuth status
+ */
+export async function getFailedOAuthInstances() {
+	const query = `
+		SELECT 
+			ms.instance_id,
+			ms.user_id,
+			ms.status,
+			ms.oauth_status,
+			ms.updated_at,
+			m.mcp_service_name
+		FROM mcp_service_table ms
+		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+		WHERE ms.oauth_status = 'failed'
+		ORDER BY ms.updated_at ASC
+	`;
+
+	const result = await pool.query(query);
+	return result.rows;
+}
+
+/**
  * Bulk update expired instances to expired status
  * @param {Array<string>} instanceIds - Array of instance IDs to mark as expired
  * @returns {Promise<number>} Number of instances updated

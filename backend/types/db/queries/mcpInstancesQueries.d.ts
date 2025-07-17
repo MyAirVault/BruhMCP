@@ -71,6 +71,11 @@ export function getInstancesByStatus(status: string): Promise<any[]>;
  */
 export function getExpiredInstances(): Promise<any[]>;
 /**
+ * Get failed OAuth instances (for background cleanup)
+ * @returns {Promise<Array>} Array of instances with failed OAuth status
+ */
+export function getFailedOAuthInstances(): Promise<any[]>;
+/**
  * Bulk update expired instances to expired status
  * @param {Array<string>} instanceIds - Array of instance IDs to mark as expired
  * @returns {Promise<number>} Number of instances updated
@@ -103,6 +108,24 @@ export function createMCPInstance(instanceData: {
     clientId?: string | undefined;
     clientSecret?: string | undefined;
     expiresAt?: Date | undefined;
+}): Promise<Object>;
+/**
+ * Update OAuth status and tokens for an instance
+ * @param {string} instanceId - Instance ID
+ * @param {Object} oauthData - OAuth data
+ * @param {string} oauthData.status - OAuth status ('completed', 'failed', 'expired')
+ * @param {string} [oauthData.accessToken] - Access token
+ * @param {string} [oauthData.refreshToken] - Refresh token
+ * @param {Date} [oauthData.tokenExpiresAt] - Token expiration date
+ * @param {string} [oauthData.scope] - OAuth scope
+ * @returns {Promise<Object>} Updated instance record
+ */
+export function updateOAuthStatus(instanceId: string, oauthData: {
+    status: string;
+    accessToken?: string | undefined;
+    refreshToken?: string | undefined;
+    tokenExpiresAt?: Date | undefined;
+    scope?: string | undefined;
 }): Promise<Object>;
 /**
  * Update MCP service statistics (increment counters)

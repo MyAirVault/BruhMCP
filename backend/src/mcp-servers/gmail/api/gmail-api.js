@@ -508,21 +508,96 @@ export async function markAsUnread(args, bearerToken) {
  * @returns {Object} Attachment data
  */
 export async function downloadAttachment(args, bearerToken) {
-	const { messageId, attachmentId } = args;
+	const { messageId, attachmentId, returnDataUrl = false } = args;
 
-	const result = await makeGmailRequest(`/users/me/messages/${messageId}/attachments/${attachmentId}`, bearerToken);
+	// First get attachment metadata to check size
+	const messageResult = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
+	const messageResponse = formatMessageResponse(messageResult);
+	
+	const attachment = messageResponse.attachments.find(att => att.attachmentId === attachmentId);
+	if (!attachment) {
+		throw new Error(`Attachment with ID ${attachmentId} not found in message ${messageId}`);
+	}
 
-	// Decode the base64url encoded attachment data
-	const decodedData = Buffer.from(result.data, 'base64url');
+	// Size validation (default 50MB limit)
+	const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+	if (attachment.size > MAX_SIZE) {
+		return {
+			action: 'download_attachment_error',
+			messageId,
+			attachmentId,
+			filename: attachment.filename,
+			size: attachment.size,
+			readableSize: formatFileSize(attachment.size),
+			error: `Attachment too large (${formatFileSize(attachment.size)}). Maximum size is ${formatFileSize(MAX_SIZE)}.`,
+			timestamp: new Date().toISOString(),
+		};
+	}
 
-	return {
-		action: 'download_attachment',
-		messageId,
-		attachmentId,
-		size: result.size,
-		data: decodedData.toString('base64'),
-		timestamp: new Date().toISOString(),
-	};
+	// Add timeout for large files (30 seconds + 1 second per MB)
+	const timeoutMs = 30000 + (attachment.size / (1024 * 1024)) * 1000;
+	
+	try {
+		// Download with custom timeout
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+		const result = await makeGmailRequest(
+			`/users/me/messages/${messageId}/attachments/${attachmentId}`, 
+			bearerToken,
+			{ signal: controller.signal }
+		);
+
+		clearTimeout(timeoutId);
+
+		// For very large files, return metadata only if requested
+		if (returnDataUrl === false && attachment.size > 10 * 1024 * 1024) {
+			return {
+				action: 'download_attachment_metadata',
+				messageId,
+				attachmentId,
+				filename: attachment.filename,
+				mimeType: attachment.mimeType,
+				size: result.size,
+				readableSize: formatFileSize(result.size),
+				warning: 'Large attachment detected. Use returnDataUrl: true to download full content.',
+				timestamp: new Date().toISOString(),
+			};
+		}
+
+		// Optimize base64 handling - keep as base64url if possible
+		const data = returnDataUrl ? 
+			`data:${attachment.mimeType};base64,${Buffer.from(result.data, 'base64url').toString('base64')}` :
+			result.data; // Keep original base64url format
+
+		return {
+			action: 'download_attachment',
+			messageId,
+			attachmentId,
+			filename: attachment.filename,
+			mimeType: attachment.mimeType,
+			size: result.size,
+			readableSize: formatFileSize(result.size),
+			data: data,
+			format: returnDataUrl ? 'data_url' : 'base64url',
+			timestamp: new Date().toISOString(),
+		};
+
+	} catch (error) {
+		if (error.name === 'AbortError') {
+			return {
+				action: 'download_attachment_timeout',
+				messageId,
+				attachmentId,
+				filename: attachment.filename,
+				size: attachment.size,
+				readableSize: formatFileSize(attachment.size),
+				error: `Download timeout after ${Math.round(timeoutMs / 1000)} seconds. File may be too large or connection slow.`,
+				timestamp: new Date().toISOString(),
+			};
+		}
+		throw error;
+	}
 }
 
 /**
