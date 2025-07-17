@@ -342,6 +342,48 @@ app.get('/providers', (req, res) => {
         supported_services: ['outlook', 'onedrive', 'microsoftteams'],
         auth_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
         token_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+      },
+      {
+        name: 'notion',
+        display_name: 'Notion',
+        supported_services: ['notion'],
+        auth_url: 'https://api.notion.com/v1/oauth/authorize',
+        token_url: 'https://api.notion.com/v1/oauth/token'
+      },
+      {
+        name: 'slack',
+        display_name: 'Slack',
+        supported_services: ['slack'],
+        auth_url: 'https://slack.com/oauth/v2/authorize',
+        token_url: 'https://slack.com/api/oauth.v2.access'
+      },
+      {
+        name: 'discord',
+        display_name: 'Discord',
+        supported_services: ['discord'],
+        auth_url: 'https://discord.com/api/oauth2/authorize',
+        token_url: 'https://discord.com/api/oauth2/token'
+      },
+      {
+        name: 'reddit',
+        display_name: 'Reddit',
+        supported_services: ['reddit'],
+        auth_url: 'https://www.reddit.com/api/v1/authorize',
+        token_url: 'https://www.reddit.com/api/v1/access_token'
+      },
+      {
+        name: 'github',
+        display_name: 'GitHub',
+        supported_services: ['github'],
+        auth_url: 'https://github.com/login/oauth/authorize',
+        token_url: 'https://github.com/login/oauth/access_token'
+      },
+      {
+        name: 'dropbox',
+        display_name: 'Dropbox',
+        supported_services: ['dropbox'],
+        auth_url: 'https://www.dropbox.com/oauth2/authorize',
+        token_url: 'https://api.dropboxapi.com/oauth2/token'
       }
     ]
   });

@@ -135,10 +135,11 @@ DATABASE_URL=postgresql://user:password@localhost:5432/database
 ```
 
 **Important:** OAuth client credentials (`client_id`, `client_secret`) are:
-- ✅ **User-provided** during MCP instance creation
-- ✅ **Stored in database** (`mcp_credentials` table)  
-- ✅ **Retrieved at runtime** via database queries
-- ❌ **NOT stored in environment variables** or `.env` files
+
+-   ✅ **User-provided** during MCP instance creation
+-   ✅ **Stored in database** (`mcp_credentials` table)
+-   ✅ **Retrieved at runtime** via database queries
+-   ❌ **NOT stored in environment variables** or `.env` files
 
 **Create port configuration**:
 
@@ -164,78 +165,85 @@ EOF
 **Choose your OAuth integration approach:**
 
 #### Option A: Use Centralized OAuth Service (Google/Microsoft)
+
 For services using Google or Microsoft OAuth:
 
 1. **Update OAuth Service Mapping** (`backend/src/oauth-service/index.js`):
-   ```javascript
-   // Add service to provider mapping (around line 177)
-   const serviceToProvider = {
-     gmail: 'google',
-     googledrive: 'google',
-     // ... existing mappings
-     '{service-name}': 'google', // or 'microsoft'
-   };
-   ```
+
+    ```javascript
+    // Add service to provider mapping (around line 177)
+    const serviceToProvider = {
+    	gmail: 'google',
+    	googledrive: 'google',
+    	// ... existing mappings
+    	'{service-name}': 'google', // or 'microsoft'
+    };
+    ```
 
 2. **Update Supported Services** (`backend/src/oauth-service/index.js`):
-   ```javascript
-   // Add to /providers endpoint (around line 331)
-   google: {
-     supported_services: [
-       'gmail',
-       'googledrive',
-       // ... existing services
-       '{service-name}'
-     ]
-   }
-   ```
+    ```javascript
+    // Add to /providers endpoint (around line 331)
+    google: {
+    	supported_services: [
+    		'gmail',
+    		'googledrive',
+    		// ... existing services
+    		'{service-name}',
+    	];
+    }
+    ```
 
 #### Option B: Implement Custom OAuth (Other Providers)
+
 For services requiring custom OAuth (Twitter, Slack, etc.):
 
 1. **Create OAuth Provider Class** (`backend/src/oauth-service/providers/{provider}.js`):
-   ```javascript
-   import BaseOAuthProvider from './base-oauth.js';
-   
-   export class {Provider}OAuthProvider extends BaseOAuthProvider {
-     constructor() {
-       super('{provider}', {
-         authUrl: 'https://api.{provider}.com/oauth/authorize',
-         tokenUrl: 'https://api.{provider}.com/oauth/token',
-         scopes: ['{default-scope}']
-       });
-     }
-   
-     // Override methods as needed
-     async getAuthorizationUrl(clientId, redirectUri, state, scopes) {
-       // Custom implementation
-     }
-   
-     async exchangeCodeForTokens(code, clientId, clientSecret, redirectUri) {
-       // Custom implementation
-     }
-   }
-   ```
+
+    ```javascript
+    import BaseOAuthProvider from './base-oauth.js';
+
+    export class {Provider}OAuthProvider extends BaseOAuthProvider {
+      constructor() {
+        super('{provider}', {
+          authUrl: 'https://api.{provider}.com/oauth/authorize',
+          tokenUrl: 'https://api.{provider}.com/oauth/token',
+          scopes: ['{default-scope}']
+        });
+      }
+
+      // Override methods as needed
+      async getAuthorizationUrl(clientId, redirectUri, state, scopes) {
+        // Custom implementation
+      }
+
+      async exchangeCodeForTokens(code, clientId, clientSecret, redirectUri) {
+        // Custom implementation
+      }
+    }
+    ```
 
 2. **Register Provider** (`backend/src/oauth-service/core/oauth-manager.js`):
-   ```javascript
-   import { {Provider}OAuthProvider } from '../providers/{provider}.js';
-   
-   // Add to constructor
-   this.providers.set('{provider}', new {Provider}OAuthProvider());
-   ```
+
+    ```javascript
+    import { {Provider}OAuthProvider } from '../providers/{provider}.js';
+
+    // Add to constructor
+    this.providers.set('{provider}', new {Provider}OAuthProvider());
+    ```
 
 3. **Update token exchange** (`backend/src/oauth-service/core/token-exchange.js`):
-   ```javascript
-   import { {Provider}OAuthProvider } from '../providers/{provider}.js';
-   
-   // Add to constructor
-   this.providers.set('{provider}', new {Provider}OAuthProvider());
-   ```
+
+    ```javascript
+    import { {Provider}OAuthProvider } from '../providers/{provider}.js';
+
+    // Add to constructor
+    this.providers.set('{provider}', new {Provider}OAuthProvider());
+    ```
 
 4. **Update Service Mapping** and **Providers Endpoint** as in Option A
 
 #### Option C: Direct OAuth Implementation (Service-Specific)
+
 For services with unique OAuth requirements (follow Slack/GitHub pattern):
 
 1. **Implement OAuth endpoints directly in the service**
@@ -247,29 +255,33 @@ For services with unique OAuth requirements (follow Slack/GitHub pattern):
 **Update** `backend/scripts/start-all-services.sh`:
 
 1. **Add service to stop commands** (around line 71):
-   ```bash
-   pm2 delete mcp-{service-name} 2>/dev/null || true
-   ```
+
+    ```bash
+    pm2 delete mcp-{service-name} 2>/dev/null || true
+    ```
 
 2. **Add service startup call** (around line 87):
-   ```bash
-   start_service "{service-name}" "$MCP_SERVERS_ROOT/{service-name}" "{port-number}"
-   ```
+
+    ```bash
+    start_service "{service-name}" "$MCP_SERVERS_ROOT/{service-name}" "{port-number}"
+    ```
 
 3. **Add health check** (around line 136):
-   ```bash
-   check_service_health "{service-name}" "{port-number}"
-   ```
+
+    ```bash
+    check_service_health "{service-name}" "{port-number}"
+    ```
 
 4. **Add service to status display** (around line 153):
-   ```bash
-   echo "  📋 {Service Display Name}: http://localhost:{port-number}/health"
-   ```
+
+    ```bash
+    echo "  📋 {Service Display Name}: http://localhost:{port-number}/health"
+    ```
 
 5. **Add to logs display** (around line 166):
-   ```bash
-   echo "  Individual logs: pm2 logs mcp-{service-name} | pm2 logs mcp-gmail | ..."
-   ```
+    ```bash
+    echo "  Individual logs: pm2 logs mcp-{service-name} | pm2 logs mcp-gmail | ..."
+    ```
 
 ### 6. Dependencies
 
@@ -298,11 +310,11 @@ For services with unique OAuth requirements (follow Slack/GitHub pattern):
 ```sql
 -- Register {Service Name} in MCP service table
 INSERT INTO mcp_table (
-    mcp_service_name, 
-    display_name, 
-    description, 
-    icon_url_path, 
-    port, 
+    mcp_service_name,
+    display_name,
+    description,
+    icon_url_path,
+    port,
     type,
     created_at,
     updated_at
@@ -454,7 +466,7 @@ function checkOAuthConfiguration(serviceConfig) {
 			scopes: serviceConfig.scopes,
 			configured: true,
 			credentialStorage: 'database',
-			note: 'OAuth credentials are user-provided and stored in database'
+			note: 'OAuth credentials are user-provided and stored in database',
 		};
 	} catch (error) {
 		return {
@@ -1310,37 +1322,42 @@ artillery run load-test.yml
 
 **Problem**: Service not working with OAuth flow
 **Symptoms**:
-- OAuth authentication failing
-- Token caching not working
-- Service not appearing in OAuth providers
+
+-   OAuth authentication failing
+-   Token caching not working
+-   Service not appearing in OAuth providers
 
 **Solutions**:
+
 1. **Check OAuth Service Integration**:
-   ```bash
-   # Verify service is registered with OAuth service
-   curl http://localhost:8080/providers
-   ```
+
+    ```bash
+    # Verify service is registered with OAuth service
+    curl http://localhost:8080/providers
+    ```
 
 2. **Update OAuth Service Mapping**:
-   ```javascript
-   // In backend/src/oauth-service/index.js
-   const serviceToProvider = {
-     // ... existing mappings
-     'your-service': 'google' // or appropriate provider
-   };
-   ```
+
+    ```javascript
+    // In backend/src/oauth-service/index.js
+    const serviceToProvider = {
+    	// ... existing mappings
+    	'your-service': 'google', // or appropriate provider
+    };
+    ```
 
 3. **Verify startup script includes service**:
-   ```bash
-   # Check if service is in start-all-services.sh
-   grep "your-service" backend/scripts/start-all-services.sh
-   ```
+
+    ```bash
+    # Check if service is in start-all-services.sh
+    grep "your-service" backend/scripts/start-all-services.sh
+    ```
 
 4. **Check database registration**:
-   ```sql
-   -- Verify service is in database
-   SELECT * FROM mcp_table WHERE mcp_service_name = 'your-service';
-   ```
+    ```sql
+    -- Verify service is in database
+    SELECT * FROM mcp_table WHERE mcp_service_name = 'your-service';
+    ```
 
 ### 1. OAuth Authentication Issues
 
@@ -1358,7 +1375,7 @@ artillery run load-test.yml
     ```bash
     # Check OAuth service integration
     curl http://localhost:3001/providers
-    
+
     # Check database for stored credentials
     psql -d database -c "SELECT instance_id, client_id FROM mcp_credentials WHERE instance_id = 'your-instance-id';"
     ```

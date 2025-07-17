@@ -234,9 +234,12 @@ export const handleOAuthError = (
 /**
  * Start re-authentication flow for an instance
  */
-export const startReAuthentication = async (instanceId: string): Promise<ReAuthResponse> => {
+export const startReAuthentication = async (instanceId: string, provider?: string): Promise<ReAuthResponse> => {
   try {
-    const response = await fetch(`/api/gmail/${instanceId}/reauth`, {
+    // Use a generic reauth endpoint that works for all OAuth providers
+    const endpoint = provider ? `/api/${provider}/${instanceId}/reauth` : `/api/v1/mcps/${instanceId}/reauth`;
+    
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -11,6 +11,7 @@ interface ReAuthModalProps {
   instanceId: string;
   instanceName?: string;
   serviceName?: string;
+  provider?: string;
   onSuccess: () => void;
   onClose: () => void;
   onError?: (error: string) => void;
@@ -25,7 +26,8 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
   isOpen,
   instanceId,
   instanceName,
-  serviceName = 'Gmail',
+  serviceName = 'OAuth Service',
+  provider,
   onSuccess,
   onClose,
   onError
@@ -99,8 +101,10 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
     setAuthStatus({ status: 'loading', message: 'Starting re-authentication...' });
 
     try {
-      // Call re-authentication endpoint
-      const response = await fetch(`/api/gmail/${instanceId}/reauth`, {
+      // Call re-authentication endpoint - use generic endpoint for all OAuth providers
+      const endpoint = provider ? `/api/${provider}/${instanceId}/reauth` : `/api/v1/mcps/${instanceId}/reauth`;
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

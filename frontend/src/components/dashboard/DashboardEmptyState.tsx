@@ -17,7 +17,7 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({ onCreateMCP }
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to MiniMCP!</h1>
           <p className="text-lg text-gray-600 mb-8">
             Get started by creating your first Model Context Protocol instance.
-            Connect to services like Gmail, Figma, GitHub, and more.
+            Connect to services like Gmail, GitHub, Slack, Discord, Dropbox, and more.
           </p>
         </div>
 
@@ -37,9 +37,11 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({ onCreateMCP }
             <p className="mb-2">Popular integrations:</p>
             <div className="flex flex-wrap justify-center gap-2">
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Gmail</span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Figma</span>
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">GitHub</span>
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Slack</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Discord</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-900">Dropbox</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Notion</span>
             </div>
           </div>
         </div>

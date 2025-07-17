@@ -42,6 +42,24 @@ export async function validateCredentialFormat(provider, clientId, clientSecret)
     case 'microsoft':
       return validateMicrosoftCredentials(clientId, clientSecret);
     
+    case 'notion':
+      return validateNotionCredentials(clientId, clientSecret);
+    
+    case 'slack':
+      return validateSlackCredentials(clientId, clientSecret);
+    
+    case 'discord':
+      return validateDiscordCredentials(clientId, clientSecret);
+    
+    case 'reddit':
+      return validateRedditCredentials(clientId, clientSecret);
+    
+    case 'github':
+      return validateGitHubCredentials(clientId, clientSecret);
+    
+    case 'dropbox':
+      return validateDropboxCredentials(clientId, clientSecret);
+    
     default:
       validation.valid = false;
       validation.errors.push(`Unsupported OAuth provider: ${provider}`);
@@ -332,6 +350,222 @@ export function sanitizeOAuthParams(params) {
   }
 
   return sanitized;
+}
+
+/**
+ * Validate Notion OAuth credentials format
+ * @param {string} clientId - Notion OAuth Client ID
+ * @param {string} clientSecret - Notion OAuth Client Secret
+ * @returns {Object} Validation result
+ */
+function validateNotionCredentials(clientId, clientSecret) {
+  const validation = {
+    valid: true,
+    errors: []
+  };
+
+  // Validate Notion Client ID format (UUID)
+  if (clientId) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(clientId)) {
+      validation.valid = false;
+      validation.errors.push('Notion Client ID must be a valid UUID');
+    }
+  }
+
+  // Validate Notion Client Secret format
+  if (clientSecret) {
+    if (clientSecret.length < 30 || clientSecret.length > 100) {
+      validation.valid = false;
+      validation.errors.push('Notion Client Secret length appears invalid');
+    }
+  }
+
+  return {
+    valid: validation.valid,
+    error: validation.errors.join(', '),
+    field: validation.valid ? null : 'credentials'
+  };
+}
+
+/**
+ * Validate Slack OAuth credentials format
+ * @param {string} clientId - Slack OAuth Client ID
+ * @param {string} clientSecret - Slack OAuth Client Secret
+ * @returns {Object} Validation result
+ */
+function validateSlackCredentials(clientId, clientSecret) {
+  const validation = {
+    valid: true,
+    errors: []
+  };
+
+  // Validate Slack Client ID format (number.number)
+  if (clientId) {
+    const slackIdRegex = /^\d+\.\d+$/;
+    if (!slackIdRegex.test(clientId)) {
+      validation.valid = false;
+      validation.errors.push('Slack Client ID must be in format "number.number"');
+    }
+  }
+
+  // Validate Slack Client Secret format
+  if (clientSecret) {
+    if (clientSecret.length < 30 || clientSecret.length > 40) {
+      validation.valid = false;
+      validation.errors.push('Slack Client Secret length appears invalid');
+    }
+  }
+
+  return {
+    valid: validation.valid,
+    error: validation.errors.join(', '),
+    field: validation.valid ? null : 'credentials'
+  };
+}
+
+/**
+ * Validate Discord OAuth credentials format
+ * @param {string} clientId - Discord OAuth Client ID
+ * @param {string} clientSecret - Discord OAuth Client Secret
+ * @returns {Object} Validation result
+ */
+function validateDiscordCredentials(clientId, clientSecret) {
+  const validation = {
+    valid: true,
+    errors: []
+  };
+
+  // Validate Discord Client ID format (18-19 digit snowflake)
+  if (clientId) {
+    const discordIdRegex = /^\d{18,19}$/;
+    if (!discordIdRegex.test(clientId)) {
+      validation.valid = false;
+      validation.errors.push('Discord Client ID must be 18-19 digits');
+    }
+  }
+
+  // Validate Discord Client Secret format
+  if (clientSecret) {
+    if (clientSecret.length < 30 || clientSecret.length > 40) {
+      validation.valid = false;
+      validation.errors.push('Discord Client Secret length appears invalid');
+    }
+  }
+
+  return {
+    valid: validation.valid,
+    error: validation.errors.join(', '),
+    field: validation.valid ? null : 'credentials'
+  };
+}
+
+/**
+ * Validate Reddit OAuth credentials format
+ * @param {string} clientId - Reddit OAuth Client ID
+ * @param {string} clientSecret - Reddit OAuth Client Secret
+ * @returns {Object} Validation result
+ */
+function validateRedditCredentials(clientId, clientSecret) {
+  const validation = {
+    valid: true,
+    errors: []
+  };
+
+  // Validate Reddit Client ID format (14-22 alphanumeric with hyphens/underscores)
+  if (clientId) {
+    const redditIdRegex = /^[a-zA-Z0-9_-]{14,22}$/;
+    if (!redditIdRegex.test(clientId)) {
+      validation.valid = false;
+      validation.errors.push('Reddit Client ID must be 14-22 alphanumeric characters with hyphens/underscores');
+    }
+  }
+
+  // Validate Reddit Client Secret format
+  if (clientSecret) {
+    if (clientSecret.length < 20 || clientSecret.length > 40) {
+      validation.valid = false;
+      validation.errors.push('Reddit Client Secret length appears invalid');
+    }
+  }
+
+  return {
+    valid: validation.valid,
+    error: validation.errors.join(', '),
+    field: validation.valid ? null : 'credentials'
+  };
+}
+
+/**
+ * Validate GitHub OAuth credentials format
+ * @param {string} clientId - GitHub OAuth Client ID
+ * @param {string} clientSecret - GitHub OAuth Client Secret
+ * @returns {Object} Validation result
+ */
+function validateGitHubCredentials(clientId, clientSecret) {
+  const validation = {
+    valid: true,
+    errors: []
+  };
+
+  // Validate GitHub Client ID format (20 alphanumeric characters)
+  if (clientId) {
+    const githubIdRegex = /^[a-zA-Z0-9]{20}$/;
+    if (!githubIdRegex.test(clientId)) {
+      validation.valid = false;
+      validation.errors.push('GitHub Client ID must be exactly 20 alphanumeric characters');
+    }
+  }
+
+  // Validate GitHub Client Secret format (exactly 40 characters)
+  if (clientSecret) {
+    if (clientSecret.length !== 40) {
+      validation.valid = false;
+      validation.errors.push('GitHub Client Secret must be exactly 40 characters');
+    }
+  }
+
+  return {
+    valid: validation.valid,
+    error: validation.errors.join(', '),
+    field: validation.valid ? null : 'credentials'
+  };
+}
+
+/**
+ * Validate Dropbox OAuth credentials format
+ * @param {string} clientId - Dropbox OAuth Client ID
+ * @param {string} clientSecret - Dropbox OAuth Client Secret
+ * @returns {Object} Validation result
+ */
+function validateDropboxCredentials(clientId, clientSecret) {
+  const validation = {
+    valid: true,
+    errors: []
+  };
+
+  // Validate Dropbox Client ID format (10-20 alphanumeric characters)
+  if (clientId) {
+    const dropboxIdRegex = /^[a-zA-Z0-9]{10,20}$/;
+    if (!dropboxIdRegex.test(clientId)) {
+      validation.valid = false;
+      validation.errors.push('Dropbox Client ID must be 10-20 alphanumeric characters');
+    }
+  }
+
+  // Validate Dropbox Client Secret format
+  if (clientSecret) {
+    if (clientSecret.length < 15 || clientSecret.length > 20) {
+      validation.valid = false;
+      validation.errors.push('Dropbox Client Secret length appears invalid');
+    }
+  }
+
+  return {
+    valid: validation.valid,
+    error: validation.errors.join(', '),
+    field: validation.valid ? null : 'credentials'
+  };
 }
 
 /**
