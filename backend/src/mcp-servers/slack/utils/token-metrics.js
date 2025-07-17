@@ -20,9 +20,9 @@ class TokenMetrics {
       maxLatency: 0,
       minLatency: Infinity,
       lastReset: Date.now(),
-      errorsByType: {},
-      dailyStats: {},
-      instanceMetrics: {}
+      errorsByType: /** @type {Record<string, number>} */ ({}),
+      dailyStats: /** @type {Record<string, any>} */ ({}),
+      instanceMetrics: /** @type {Record<string, any>} */ ({})
     };
   }
 
@@ -195,7 +195,7 @@ class TokenMetrics {
   /**
    * Get metrics for a specific instance
    * @param {string} instanceId - Instance ID
-   * @returns {Object} Instance-specific metrics
+   * @returns {Object|null} Instance-specific metrics
    */
   getInstanceMetrics(instanceId) {
     const instanceMetric = this.metrics.instanceMetrics[instanceId];
@@ -226,7 +226,7 @@ class TokenMetrics {
    */
   getDailyStats(days = 7) {
     const today = new Date();
-    const stats = {};
+    const stats = /** @type {Record<string, any>} */ ({});
 
     for (let i = 0; i < days; i++) {
       const date = new Date(today);
@@ -260,9 +260,9 @@ class TokenMetrics {
       maxLatency: 0,
       minLatency: Infinity,
       lastReset: Date.now(),
-      errorsByType: {},
-      dailyStats: {},
-      instanceMetrics: {}
+      errorsByType: /** @type {Record<string, number>} */ ({}),
+      dailyStats: /** @type {Record<string, any>} */ ({}),
+      instanceMetrics: /** @type {Record<string, any>} */ ({})
     };
     
     console.log('📊 Slack token metrics reset');
@@ -289,7 +289,7 @@ class TokenMetrics {
    * @returns {Object} Health assessment
    */
   getHealthAssessment() {
-    const summary = this.getMetricsSummary();
+    const summary = /** @type {any} */ (this.getMetricsSummary());
     const issues = [];
     const warnings = [];
 
@@ -330,7 +330,7 @@ class TokenMetrics {
       status: issues.length > 0 ? 'unhealthy' : warnings.length > 0 ? 'degraded' : 'healthy',
       issues,
       warnings,
-      summary
+      summary: /** @type {any} */ (summary)
     };
   }
 }
@@ -369,6 +369,7 @@ export function getTokenMetricsSummary() {
 
 /**
  * Get instance-specific metrics
+ * @param {string} instanceId - Instance ID
  */
 export function getInstanceTokenMetrics(instanceId) {
   return tokenMetrics.getInstanceMetrics(instanceId);
@@ -376,6 +377,7 @@ export function getInstanceTokenMetrics(instanceId) {
 
 /**
  * Get daily statistics
+ * @param {number} days - Number of days
  */
 export function getDailyTokenStats(days) {
   return tokenMetrics.getDailyStats(days);
@@ -400,6 +402,14 @@ export function getTokenSystemHealth() {
  */
 export function resetTokenMetrics() {
   tokenMetrics.reset();
+}
+
+/**
+ * Get aggregated token metrics (alias for exportTokenMetrics)
+ * @returns {Object} Aggregated metrics data
+ */
+export function getAggregatedTokenMetrics() {
+  return tokenMetrics.exportMetrics();
 }
 
 export default tokenMetrics;

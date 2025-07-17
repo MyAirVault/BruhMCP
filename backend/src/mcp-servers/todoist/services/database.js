@@ -1,18 +1,18 @@
 /**
  * Database Service
- * Database operations for Airtable MCP service
+ * Database operations for Todoist MCP service
  */
 
-import { createLogger } from '../utils/logger.js';
-import { pool } from '../../../db/config.js';
-import { AirtableErrorHandler } from '../utils/error-handler.js';
+import { createLogger } from '../../../utils/mcpInstanceLogger.js';
+import { createConnection } from '../../../utils/connection-pool.js';
 
-const logger = createLogger('DatabaseService');
+const logger = createLogger('TodoistDatabaseService');
 
-// Global database configuration
+// Global database connection and config
+let connection = null;
 let isConnected = false;
 const config = {
-	tableName: 'airtable_instances'
+	tableName: 'todoist_instances'
 };
 
 /**
@@ -21,9 +21,7 @@ const config = {
  */
 export async function initialize() {
 	try {
-		// Test the pool connection
-		const client = await pool.connect();
-		client.release();
+		connection = await createConnection();
 		isConnected = true;
 		
 		// Ensure table exists
@@ -31,10 +29,8 @@ export async function initialize() {
 		
 		logger.info('Database service initialized');
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'initializeDatabase'
-		});
-		throw dbError;
+		logger.error('Failed to initialize database', { error: error.message });
+		throw error;
 	}
 }
 
@@ -62,8 +58,8 @@ async function createTableIfNotExists() {
 		ON ${config.tableName} (instance_id);
 	`;
 
-	await pool.query(createTableQuery);
-	await pool.query(createIndexQuery);
+	await connection.query(createTableQuery);
+	await connection.query(createIndexQuery);
 	
 	logger.debug('Database table ensured', { tableName: config.tableName });
 }
@@ -84,7 +80,7 @@ export async function getInstanceCredentials(instanceId) {
 			WHERE instance_id = $1 AND status = 'active';
 		`;
 
-		const result = await pool.query(query, [instanceId]);
+		const result = await connection.query(query, [instanceId]);
 		
 		if (result.rows.length === 0) {
 			return null;
@@ -96,11 +92,8 @@ export async function getInstanceCredentials(instanceId) {
 		
 		return instance;
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'getInstanceCredentials',
-			instanceId
-		});
-		throw dbError;
+		logger.error('Failed to get instance credentials', { instanceId, error: error.message });
+		throw error;
 	}
 }
 
@@ -151,15 +144,12 @@ export async function updateUsageTracking(instanceId) {
 			WHERE instance_id = $1 AND status = 'active';
 		`;
 
-		await pool.query(query, [instanceId]);
+		await connection.query(query, [instanceId]);
 		
 		logger.debug('Usage tracking updated', { instanceId });
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'updateUsageTracking',
-			instanceId
-		});
-		throw dbError;
+		logger.error('Failed to update usage tracking', { instanceId, error: error.message });
+		throw error;
 	}
 }
 
@@ -202,7 +192,7 @@ export async function storeInstance(instanceId, apiKeyHash, metadata = {}) {
 			RETURNING *;
 		`;
 
-		const result = await pool.query(query, [
+		const result = await connection.query(query, [
 			instanceId,
 			apiKeyHash,
 			JSON.stringify(metadata)
@@ -217,11 +207,8 @@ export async function storeInstance(instanceId, apiKeyHash, metadata = {}) {
 
 		return formatInstanceRecord(instance);
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'storeInstance',
-			instanceId
-		});
-		throw dbError;
+		logger.error('Failed to store instance', { instanceId, error: error.message });
+		throw error;
 	}
 }
 
@@ -263,7 +250,7 @@ export async function getInstance(instanceId) {
 			WHERE instance_id = $1 AND status = 'active';
 		`;
 
-		const result = await pool.query(query, [instanceId]);
+		const result = await connection.query(query, [instanceId]);
 		
 		if (result.rows.length === 0) {
 			return null;
@@ -275,11 +262,8 @@ export async function getInstance(instanceId) {
 		
 		return instance;
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'getInstance',
-			instanceId
-		});
-		throw dbError;
+		logger.error('Failed to get instance', { instanceId, error: error.message });
+		throw error;
 	}
 }
 
@@ -304,7 +288,7 @@ export async function updateInstanceMetadata(instanceId, metadata) {
 			RETURNING *;
 		`;
 
-		const result = await pool.query(query, [
+		const result = await connection.query(query, [
 			instanceId,
 			JSON.stringify(metadata)
 		]);
@@ -319,11 +303,8 @@ export async function updateInstanceMetadata(instanceId, metadata) {
 		
 		return instance;
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'updateInstanceMetadata',
-			instanceId
-		});
-		throw dbError;
+		logger.error('Failed to update instance metadata', { instanceId, error: error.message });
+		throw error;
 	}
 }
 
@@ -346,7 +327,7 @@ export async function deleteInstance(instanceId) {
 			WHERE instance_id = $1 AND status = 'active';
 		`;
 
-		const result = await pool.query(query, [instanceId]);
+		const result = await connection.query(query, [instanceId]);
 		const deleted = result.rowCount > 0;
 		
 		if (deleted) {
@@ -355,11 +336,8 @@ export async function deleteInstance(instanceId) {
 		
 		return deleted;
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'deleteInstance',
-			instanceId
-		});
-		throw dbError;
+		logger.error('Failed to delete instance', { instanceId, error: error.message });
+		throw error;
 	}
 }
 
@@ -388,7 +366,7 @@ export async function listInstances(options = {}) {
 			LIMIT $1 OFFSET $2;
 		`;
 
-		const result = await pool.query(query, [limit, offset]);
+		const result = await connection.query(query, [limit, offset]);
 		
 		const instances = result.rows.map(row => formatInstanceRecord(row));
 		
@@ -396,11 +374,8 @@ export async function listInstances(options = {}) {
 		
 		return instances;
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'listInstances',
-			options
-		});
-		throw dbError;
+		logger.error('Failed to list instances', { error: error.message });
+		throw error;
 	}
 }
 
@@ -426,7 +401,7 @@ export async function getStatistics() {
 			FROM ${config.tableName};
 		`;
 
-		const result = await pool.query(query);
+		const result = await connection.query(query);
 		const stats = result.rows[0];
 		
 		logger.debug('Statistics retrieved');
@@ -441,46 +416,8 @@ export async function getStatistics() {
 			oldestInstance: stats.oldest_instance
 		};
 	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'getStatistics'
-		});
-		throw dbError;
-	}
-}
-
-/**
- * Clean up old instances
- * @param {number} olderThanDays - Delete instances older than this many days
- * @returns {Promise<number>} Number of instances cleaned up
- */
-export async function cleanupOldInstances(olderThanDays = 30) {
-	if (!isConnected) {
-		throw new Error('Database not initialized');
-	}
-
-	try {
-		const query = `
-			UPDATE ${config.tableName} 
-			SET 
-				status = 'deleted',
-				updated_at = CURRENT_TIMESTAMP
-			WHERE 
-				status = 'active' 
-				AND last_used < CURRENT_TIMESTAMP - INTERVAL '${olderThanDays} days';
-		`;
-
-		const result = await pool.query(query);
-		const cleanedCount = result.rowCount;
-		
-		logger.info('Old instances cleaned up', { cleanedCount, olderThanDays });
-		
-		return cleanedCount;
-	} catch (error) {
-		const dbError = AirtableErrorHandler.handle(error, {
-			operation: 'cleanupOldInstances',
-			olderThanDays
-		});
-		throw dbError;
+		logger.error('Failed to get statistics', { error: error.message });
+		throw error;
 	}
 }
 
@@ -498,7 +435,7 @@ export async function healthCheck() {
 	}
 
 	try {
-		await pool.query('SELECT 1');
+		await connection.query('SELECT 1');
 		
 		return {
 			status: 'healthy',
@@ -519,11 +456,11 @@ export async function healthCheck() {
  * @returns {Promise<void>}
  */
 export async function close() {
-	if (isConnected) {
-		// Pool will be closed automatically on process exit
+	if (connection) {
+		await connection.end();
+		connection = null;
 		isConnected = false;
 		
 		logger.info('Database connection closed');
 	}
 }
-

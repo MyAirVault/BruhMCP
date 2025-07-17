@@ -6,7 +6,7 @@
  * required by the MCP protocol specification.
  */
 
-import { AirtableMCPHandler } from '../endpoints/mcp-handler.js';
+import { AirtableMCPHandler } from '../../endpoints/mcp-handler.js';
 
 
 // Global handler session cache for Airtable service instances

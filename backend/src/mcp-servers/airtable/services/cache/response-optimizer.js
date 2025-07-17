@@ -3,8 +3,8 @@
  * Optimizes Airtable API responses for better performance and reduced payload size
  */
 
-import { createLogger } from '../utils/logger.js';
-import { deepClone, formatBytes } from '../utils/common.js';
+import { createLogger } from '../../utils/logger.js';
+import { deepClone, formatBytes } from '../../utils/common.js';
 
 const logger = createLogger('ResponseOptimizer');
 

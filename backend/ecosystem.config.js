@@ -105,6 +105,32 @@ module.exports = {
       max_restarts: 10
     },
     {
+      name: 'mcp-reddit',
+      script: './src/mcp-servers/reddit/index.js',
+      cwd: __dirname,
+      instances: 1,
+      autorestart: true,
+      watch: './src/mcp-servers/reddit',
+      ignore_watch: ['node_modules', 'logs', '*.log'],
+      max_memory_restart: '200M',
+      env: {
+        NODE_ENV: 'production',
+        SERVICE_NAME: 'reddit',
+        SERVICE_PORT: '49425'
+      },
+      env_development: {
+        NODE_ENV: 'development',
+        SERVICE_NAME: 'reddit',
+        SERVICE_PORT: '49425'
+      },
+      error_file: './logs/mcp-reddit-error.log',
+      out_file: './logs/mcp-reddit-out.log',
+      log_file: './logs/mcp-reddit.log',
+      time: true,
+      merge_logs: true,
+      max_restarts: 10
+    },
+    {
       name: 'mcp-discord',
       script: './src/mcp-servers/discord/index.js',
       cwd: __dirname,

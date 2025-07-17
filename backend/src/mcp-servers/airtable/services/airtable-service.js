@@ -9,9 +9,9 @@ import { AirtableErrorHandler } from '../utils/error-handler.js';
 import { validateAirtableId, validateRecordFields, validateQueryParams, validateBatchRecords } from '../utils/validation.js';
 import { sanitizeRecordFields, sanitizeQueryParams } from '../utils/sanitization.js';
 import { deepClone, chunkArray, measureExecutionTime, withTimeout } from '../utils/common.js';
-import { ResponseOptimizer } from './response-optimizer.js';
-import { ResponseSimplifier } from './response-simplifier.js';
-import { GlobalVariableManager } from './global-variable-manager.js';
+import { ResponseOptimizer } from './cache/response-optimizer.js';
+import { ResponseSimplifier } from './cache/response-simplifier.js';
+import { GlobalVariableManager } from './session/global-variable-manager.js';
 
 const logger = createLogger('AirtableService');
 

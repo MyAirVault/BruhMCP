@@ -3,8 +3,8 @@
  * Simplifies Airtable API responses for better readability and usability
  */
 
-import { createLogger } from '../utils/logger.js';
-import { deepClone } from '../utils/common.js';
+import { createLogger } from '../../utils/logger.js';
+import { deepClone } from '../../utils/common.js';
 
 const logger = createLogger('ResponseSimplifier');
 

@@ -3,8 +3,8 @@
  * Manages global variables and configuration for Airtable operations
  */
 
-import { createLogger } from '../utils/logger.js';
-import { deepClone } from '../utils/common.js';
+import { createLogger } from '../../utils/logger.js';
+import { deepClone } from '../../utils/common.js';
 
 const logger = createLogger('GlobalVariableManager');
 

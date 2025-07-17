@@ -5,6 +5,12 @@
 
 import { googleOAuth } from '../providers/google.js';
 import { microsoftOAuth } from '../providers/microsoft.js';
+import { notionOAuth } from '../providers/notion.js';
+import { slackOAuth } from '../providers/slack.js';
+import { discordOAuth } from '../providers/discord.js';
+import { redditOAuth } from '../providers/reddit.js';
+import { githubOAuth } from '../providers/github.js';
+import { dropboxOAuth } from '../providers/dropbox.js';
 
 /**
  * Token Exchange class for handling token operations
@@ -14,6 +20,12 @@ class TokenExchange {
 		this.providers = {
 			google: googleOAuth,
 			microsoft: microsoftOAuth,
+			notion: notionOAuth,
+			slack: slackOAuth,
+			discord: discordOAuth,
+			reddit: redditOAuth,
+			github: githubOAuth,
+			dropbox: dropboxOAuth
 		};
 	}
 
