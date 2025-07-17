@@ -46,9 +46,9 @@ CREATE TRIGGER update_mcp_service_version
 -- Insert a test entry to verify the versioning works
 DO $$
 DECLARE
-    test_instance_id VARCHAR(255) := 'test-version-' || gen_random_uuid();
-    test_user_id VARCHAR(255) := 'test-user-' || gen_random_uuid();
-    test_service_id VARCHAR(255);
+    test_instance_id UUID := gen_random_uuid();
+    test_user_id UUID := gen_random_uuid();
+    test_service_id UUID;
     initial_version INTEGER;
     updated_version INTEGER;
 BEGIN
@@ -61,6 +61,9 @@ BEGIN
         VALUES ('test-service', 'Test Service', 'oauth', 3000)
         RETURNING mcp_service_id INTO test_service_id;
     END IF;
+    
+    -- Create test users table entry if needed
+    INSERT INTO users (id, email, name) VALUES (test_user_id, 'test@example.com', 'Test User');
     
     -- Create test instance
     INSERT INTO mcp_service_table (
@@ -97,7 +100,7 @@ BEGIN
     
     -- Update credentials to test version increment
     UPDATE mcp_credentials 
-    SET access_token = 'test-token', oauth_status = 'completed'
+    SET access_token = 'test-token', oauth_status = 'completed', oauth_completed_at = NOW()
     WHERE instance_id = test_instance_id;
     
     -- Get updated version
@@ -111,6 +114,7 @@ BEGIN
     -- Clean up test data
     DELETE FROM mcp_credentials WHERE instance_id = test_instance_id;
     DELETE FROM mcp_service_table WHERE instance_id = test_instance_id;
+    DELETE FROM users WHERE id = test_user_id;
     
     -- Clean up test service if we created it
     IF test_service_id IS NOT NULL THEN

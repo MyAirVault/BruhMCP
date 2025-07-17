@@ -3,23 +3,23 @@
 
 CREATE TABLE IF NOT EXISTS token_audit_log (
     audit_id SERIAL PRIMARY KEY,
-    instance_id VARCHAR(255) NOT NULL,
-    user_id VARCHAR(255),
+    instance_id UUID NOT NULL,
+    user_id UUID,
     operation VARCHAR(50) NOT NULL, -- refresh, revoke, validate, etc.
     status VARCHAR(20) NOT NULL, -- success, failure, pending
     method VARCHAR(50), -- oauth_service, direct_oauth, etc.
     error_type VARCHAR(100), -- INVALID_REFRESH_TOKEN, NETWORK_ERROR, etc.
     error_message TEXT,
     metadata JSONB, -- Additional operation metadata
-    created_at TIMESTAMP DEFAULT NOW(),
-    
-    -- Indexes for common queries
-    INDEX idx_token_audit_instance (instance_id),
-    INDEX idx_token_audit_operation (operation),
-    INDEX idx_token_audit_status (status),
-    INDEX idx_token_audit_created (created_at),
-    INDEX idx_token_audit_instance_created (instance_id, created_at)
+    created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Create indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_token_audit_instance ON token_audit_log (instance_id);
+CREATE INDEX IF NOT EXISTS idx_token_audit_operation ON token_audit_log (operation);
+CREATE INDEX IF NOT EXISTS idx_token_audit_status ON token_audit_log (status);
+CREATE INDEX IF NOT EXISTS idx_token_audit_created ON token_audit_log (created_at);
+CREATE INDEX IF NOT EXISTS idx_token_audit_instance_created ON token_audit_log (instance_id, created_at);
 
 -- Add foreign key constraint if mcp_service_table exists
 DO $$
@@ -90,22 +90,6 @@ BEGIN
     END IF;
 END $$;
 
--- Insert a test entry to verify the table works
-INSERT INTO token_audit_log (
-    instance_id, 
-    operation, 
-    status, 
-    method, 
-    metadata
-) VALUES (
-    'migration-test', 
-    'table_creation', 
-    'success', 
-    'migration', 
-    '{"migration": "003_token_audit_log", "timestamp": "' || NOW() || '"}'
-);
-
--- Clean up the test entry
-DELETE FROM token_audit_log WHERE instance_id = 'migration-test';
+-- Table created successfully - no test entry needed due to foreign key constraint
 
 COMMIT;
