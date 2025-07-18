@@ -25,7 +25,7 @@ const ID_PATTERNS = {
  * API token patterns
  */
 const TOKEN_PATTERNS = {
-	personalAccessToken: /^pat[a-zA-Z0-9]{14}\.[a-zA-Z0-9]{32}$/,
+	personalAccessToken: /^pat[a-zA-Z0-9]{14}\.[a-zA-Z0-9]{32,64}$/,
 	legacyApiKey: /^key[a-zA-Z0-9]{14}$/
 };
 
@@ -105,7 +105,7 @@ export function validateApiToken(token) {
 	const isLegacyApiKey = TOKEN_PATTERNS.legacyApiKey.test(token);
 
 	if (!isPersonalAccessToken && !isLegacyApiKey) {
-		throw new Error('Invalid API token format. Must be either Personal Access Token (pat...) or Legacy API Key (key...)');
+		throw new Error('Invalid API token format. Must be either Personal Access Token (pat + 14 chars + . + 32-64 chars) or Legacy API Key (key + 14 chars)');
 	}
 
 	return true;

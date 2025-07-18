@@ -70,7 +70,7 @@ export async function validateCredentials(req, res) {
 		}
 
 		// Test credentials with actual API using the service name
-		const testResult = /** @type {any} */ (await testAPICredentials(serviceName, credentials));
+		const testResult = /** @type {any} */ (await testAPICredentials(serviceName, credentials, true));
 
 		if (testResult.valid) {
 			return res.status(200).json({

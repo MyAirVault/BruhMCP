@@ -43,7 +43,7 @@ export class AirtableMCPHandler {
 
 		// Initialize Airtable service with enhanced configuration
 		this.airtableService = new AirtableService({
-			airtableApiKey: apiKey,
+			apiKey: apiKey,  // Fixed: was 'airtableApiKey' but AirtableService expects 'apiKey'
 			useOptimization: true,
 			useSimplification: true,
 			timeout: 30000,
