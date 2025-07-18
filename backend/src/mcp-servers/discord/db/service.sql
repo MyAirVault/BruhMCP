@@ -12,5 +12,5 @@ INSERT INTO mcp_table (
     'Communication platform for communities and gaming',
     '/mcp-logos/discord.svg',
     49260,
-    'api_key'
+    'oauth'
 );

@@ -12,5 +12,5 @@ INSERT INTO mcp_table (
     'All-in-one workspace for notes, tasks, and collaboration',
     '/mcp-logos/notion.svg',
     49391,
-    'api_key'
+    'oauth'
 );

@@ -85,9 +85,16 @@ export function getOAuthProvider(serviceName) {
   const providerMap = {
     'gmail': 'google',
     'googledrive': 'google',
-    'googlecalendar': 'google',
     'googlesheets': 'google',
+    'googlecalendar': 'google',
+    'googlemeet': 'google',
     'googledocs': 'google',
+    'googletasks': 'google',
+    'googlebigquery': 'google',
+    'googleanalytics': 'google',
+    'googlemaps': 'google',
+    'googlephotos': 'google',
+    'googlesuper': 'google',
     'outlook': 'microsoft',
     'onedrive': 'microsoft',
     'microsoftteams': 'microsoft'
@@ -113,8 +120,55 @@ export function getOAuthScopes(serviceName) {
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'
     ],
+    'googlesheets': [
+      'https://www.googleapis.com/auth/spreadsheets',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
     'googlecalendar': [
       'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googlemeet': [
+      'https://www.googleapis.com/auth/meetings',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googledocs': [
+      'https://www.googleapis.com/auth/documents',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googletasks': [
+      'https://www.googleapis.com/auth/tasks',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googlebigquery': [
+      'https://www.googleapis.com/auth/bigquery',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googleanalytics': [
+      'https://www.googleapis.com/auth/analytics.readonly',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googlemaps': [
+      'https://www.googleapis.com/auth/maps-platform.read',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googlephotos': [
+      'https://www.googleapis.com/auth/photoslibrary',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    'googlesuper': [
+      'https://www.googleapis.com/auth/admin.directory.user',
+      'https://www.googleapis.com/auth/admin.directory.group',
+      'https://www.googleapis.com/auth/admin.directory.domain',
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'
     ],

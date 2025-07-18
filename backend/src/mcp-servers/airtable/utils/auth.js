@@ -149,7 +149,7 @@ async function extractUserId(response) {
 export async function hasScope(token, scope) {
 	try {
 		const validation = await validateToken(token);
-		return validation.scopes.includes(scope);
+		return Array.isArray(validation.scopes) && validation.scopes.includes(scope);
 	} catch (error) {
 		logger.error('Scope check failed', { scope, error: error.message });
 		return false;
