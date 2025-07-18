@@ -172,9 +172,9 @@ app.get('/oauth/callback/:provider', async (req, res) => {
     // Cache tokens in the appropriate service
     const { instance_id } = tokens;
     
-    // TODO: Determine service name from provider or state
-    // For now, assume Gmail for Google provider
-    const serviceName = provider === 'google' ? 'gmail' : provider;
+    // Determine service name from instance in database
+    const serviceName = await getServiceNameFromInstance(instance_id);
+    console.log(`📡 Caching tokens for instance ${instance_id} in service: ${serviceName}`);
     
     // Cache tokens in the service
     await cacheTokensInService(instance_id, tokens, serviceName);
@@ -435,6 +435,34 @@ async function cacheTokensInService(instanceId, tokens, serviceName) {
     console.log(`✅ Tokens cached in ${serviceName} service for instance ${instanceId}`);
   } catch (error) {
     console.error(`❌ Failed to cache tokens in ${serviceName} service:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get service name from instance ID
+ * @param {string} instanceId - Instance ID
+ * @returns {Promise<string>} Service name
+ */
+async function getServiceNameFromInstance(instanceId) {
+  try {
+    const query = `
+      SELECT s.mcp_service_name 
+      FROM mcp_service_table mst
+      JOIN mcp_table s ON mst.mcp_service_id = s.mcp_service_id
+      WHERE mst.instance_id = $1
+    `;
+    
+    const result = await pool.query(query, [instanceId]);
+    
+    if (result.rows.length === 0) {
+      console.error(`Instance ${instanceId} not found in database`);
+      throw new Error(`Instance ${instanceId} not found`);
+    }
+    
+    return result.rows[0].mcp_service_name;
+  } catch (error) {
+    console.error(`Error getting service name for instance ${instanceId}:`, error);
     throw error;
   }
 }

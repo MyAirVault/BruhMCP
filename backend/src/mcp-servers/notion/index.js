@@ -107,6 +107,13 @@ app.post('/cache-tokens', async (req, res) => {
 		// Cache tokens using existing credential cache
 		const { setCachedCredential } = await import('./services/credential-cache.js');
 
+		console.log(`🔐 Caching OAuth tokens for instance ${instance_id}:`, {
+			hasAccessToken: !!tokens.access_token,
+			hasRefreshToken: !!tokens.refresh_token,
+			expiresIn: tokens.expires_in,
+			expiresAt: tokens.expires_at
+		});
+
 		await setCachedCredential(instance_id, {
 			bearerToken: tokens.access_token,
 			refreshToken: tokens.refresh_token,

@@ -431,8 +431,9 @@ export async function createMCPInstance(instanceData) {
 	try {
 		await client.query('BEGIN');
 
-		// Set oauth_status based on service type
-		const oauthStatus = serviceType === 'oauth' ? 'pending' : 'completed';
+		// Set oauth_status based on service type and credentials
+		// For API key services, only mark as completed if we have an API key
+		const oauthStatus = serviceType === 'oauth' ? 'pending' : (apiKey ? 'completed' : 'pending');
 
 		// Create MCP instance
 		const instanceQuery = `
@@ -465,7 +466,8 @@ export async function createMCPInstance(instanceData) {
 			RETURNING *
 		`;
 
-		const oauthCompletedAt = serviceType === 'api_key' ? new Date() : null;
+		// Only set oauth_completed_at for API key services when we actually have an API key
+		const oauthCompletedAt = (serviceType === 'api_key' && apiKey) ? new Date() : null;
 		const credentialsParams = [
 			createdInstance.instance_id,
 			apiKey,
@@ -519,10 +521,18 @@ export async function updateOAuthStatus(instanceId, oauthData) {
 			RETURNING *
 		`;
 
-		const completedAt = status === 'completed' ? new Date() : null;
+		const completedAt = ['completed', 'failed', 'expired'].includes(status) ? new Date() : null;
 		const credentialsParams = [status, completedAt, accessToken, refreshToken, tokenExpiresAt, scope, instanceId];
 
-		await client.query(credentialsQuery, credentialsParams);
+		const updateResult = await client.query(credentialsQuery, credentialsParams);
+		
+		// If no rows were updated, the credentials record doesn't exist
+		// This should not happen for properly created OAuth instances
+		if (updateResult.rowCount === 0) {
+			await client.query('ROLLBACK');
+			console.error(`Credentials record not found for instance ${instanceId}. This indicates a data integrity issue.`);
+			throw new Error(`Authentication failed: Missing credentials for instance ${instanceId}`);
+		}
 
 		// Update mcp_service_table oauth_status for quick filtering
 		const instanceQuery = `
@@ -596,7 +606,7 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
 				RETURNING *
 			`;
 
-			const completedAt = status === 'completed' ? new Date() : null;
+			const completedAt = ['completed', 'failed', 'expired'].includes(status) ? new Date() : null;
 			const credentialsParams = [status, completedAt, accessToken, refreshToken, tokenExpiresAt, scope, instanceId, currentVersion];
 
 			const credentialsResult = await client.query(credentialsQuery, credentialsParams);

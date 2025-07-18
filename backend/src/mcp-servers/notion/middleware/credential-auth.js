@@ -45,7 +45,12 @@ export function createCredentialAuthMiddleware() {
 			let cachedCredential = getCachedCredential(instanceId);
 
 			if (cachedCredential && cachedCredential.bearerToken) {
-				console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`);
+				console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`, {
+					tokenLength: cachedCredential.bearerToken.length,
+					tokenPrefix: cachedCredential.bearerToken.substring(0, 10) + '...',
+					hasRefreshToken: !!cachedCredential.refreshToken,
+					expiresAt: cachedCredential.expiresAt
+				});
 				req.bearerToken = cachedCredential.bearerToken;
 				req.instanceId = instanceId;
 				req.userId = cachedCredential.user_id;
@@ -116,8 +121,12 @@ export function createCredentialAuthMiddleware() {
 				cachedCredential?.expiresAt ||
 				(instance.token_expires_at ? new Date(instance.token_expires_at).getTime() : null);
 
-			// If we have an access token that's still valid, use it
-			if (accessToken && tokenExpiresAt && tokenExpiresAt > Date.now()) {
+			// For Notion, tokens don't expire, so if we have an access token, use it
+			// For other services, check if token is still valid
+			const isNotionTokenValid = instance.mcp_service_name === 'notion' && accessToken;
+			const isOtherTokenValid = accessToken && tokenExpiresAt && tokenExpiresAt > Date.now();
+			
+			if (isNotionTokenValid || isOtherTokenValid) {
 				console.log(`✅ Using valid access token for instance: ${instanceId}`);
 
 				// Cache the token if it wasn't cached before
@@ -140,7 +149,8 @@ export function createCredentialAuthMiddleware() {
 			}
 
 			// If we have a refresh token, try to refresh the access token
-			if (refreshToken) {
+			// Skip refresh for Notion since tokens don't expire
+			if (refreshToken && instance.mcp_service_name !== 'notion') {
 				console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
 
 				const refreshStartTime = Date.now();
@@ -299,7 +309,12 @@ export function createCredentialAuthMiddleware() {
 			}
 
 			// Need to perform full OAuth exchange - this indicates user needs to re-authenticate
-			console.log(`🔐 Full OAuth exchange required for instance: ${instanceId}`);
+			// For Notion, this should only happen if there's no access token at all
+			if (instance.mcp_service_name === 'notion' && !accessToken) {
+				console.log(`🔐 Notion OAuth required - no access token found for instance: ${instanceId}`);
+			} else {
+				console.log(`🔐 Full OAuth exchange required for instance: ${instanceId}`);
+			}
 
 			// Create audit log entry for re-auth requirement
 			createTokenAuditLog({
@@ -308,9 +323,10 @@ export function createCredentialAuthMiddleware() {
 				status: 'failure',
 				method: 'middleware_check',
 				errorType: 'OAUTH_FLOW_REQUIRED',
-				errorMessage: 'No valid access token and refresh token failed',
+				errorMessage: instance.mcp_service_name === 'notion' ? 'No valid Notion access token' : 'No valid access token and refresh token failed',
 				userId: instance.user_id,
 				metadata: {
+					serviceType: instance.mcp_service_name,
 					hasRefreshToken: !!refreshToken,
 					hasAccessToken: !!accessToken,
 					tokenExpired: tokenExpiresAt ? tokenExpiresAt <= Date.now() : 'unknown',
@@ -329,12 +345,17 @@ export function createCredentialAuthMiddleware() {
 			});
 
 			// Return specific error requiring re-authentication
-			return ErrorResponses.unauthorized(res, 'OAuth authentication required - please re-authenticate', {
-				instanceId,
-				error: 'No valid access token and refresh token failed',
-				requiresReauth: true,
-				errorCode: 'OAUTH_FLOW_REQUIRED',
-			});
+			return ErrorResponses.unauthorized(res, 
+				instance.mcp_service_name === 'notion' 
+					? 'Notion authentication required - please re-authenticate' 
+					: 'OAuth authentication required - please re-authenticate', 
+				{
+					instanceId,
+					error: instance.mcp_service_name === 'notion' ? 'No valid Notion access token' : 'No valid access token and refresh token failed',
+					requiresReauth: true,
+					errorCode: 'OAUTH_FLOW_REQUIRED',
+				}
+			);
 		} catch (error) {
 			console.error('Credential authentication middleware error:', error);
 			const errorMessage = error instanceof Error ? error.message : String(error);

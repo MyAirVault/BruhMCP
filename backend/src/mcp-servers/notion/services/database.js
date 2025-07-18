@@ -29,10 +29,10 @@ export async function lookupInstanceCredentials(instanceId, serviceName = 'notio
       m.is_active as service_active,
       c.client_id,
       c.client_secret,
-      ms.access_token,
-      ms.refresh_token,
-      ms.token_expires_at,
-      ms.scope,
+      c.access_token,
+      c.refresh_token,
+      c.token_expires_at,
+      c.token_scope as scope,
       c.oauth_completed_at
     FROM mcp_service_table ms
     JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
@@ -43,6 +43,27 @@ export async function lookupInstanceCredentials(instanceId, serviceName = 'notio
 
 	try {
 		const result = await pool.query(query, [instanceId, serviceName]);
+		
+		if (result.rows.length === 0) {
+			console.log(`Instance lookup failed - no results for instanceId: ${instanceId}, serviceName: ${serviceName}`);
+			
+			// Try to see if the instance exists at all
+			const checkQuery = `
+				SELECT ms.instance_id, m.mcp_service_name, ms.oauth_status, ms.status
+				FROM mcp_service_table ms
+				JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+				WHERE ms.instance_id = $1
+			`;
+			const checkResult = await pool.query(checkQuery, [instanceId]);
+			
+			if (checkResult.rows.length > 0) {
+				const instance = checkResult.rows[0];
+				console.log(`Instance ${instanceId} exists but for service: ${instance.mcp_service_name}, status: ${instance.status}, oauth_status: ${instance.oauth_status}`);
+			} else {
+				console.log(`Instance ${instanceId} does not exist in database at all`);
+			}
+		}
+		
 		return result.rows[0] || null;
 	} catch (error) {
 		console.error('Database error getting instance credentials:', error);

@@ -46,7 +46,23 @@ async function makeNotionRequest(endpoint, bearerToken, options = {}) {
 			if (errorData.message) {
 				errorMessage = `Notion API error: ${errorData.message}`;
 			}
+			if (errorData.code) {
+				errorMessage += ` (${errorData.code})`;
+			}
+			console.error(`❌ Notion API Error Response:`, {
+				status: response.status,
+				statusText: response.statusText,
+				errorData,
+				endpoint,
+				hasToken: !!bearerToken
+			});
 		} catch (parseError) {
+			console.error(`❌ Notion API Error (non-JSON):`, {
+				status: response.status,
+				statusText: response.statusText,
+				errorText,
+				endpoint
+			});
 			// Use the default error message if JSON parsing fails
 		}
 

@@ -97,7 +97,13 @@ export function getOAuthProvider(serviceName) {
     'googlesuper': 'google',
     'outlook': 'microsoft',
     'onedrive': 'microsoft',
-    'microsoftteams': 'microsoft'
+    'microsoftteams': 'microsoft',
+    'notion': 'notion',
+    'discord': 'discord',
+    'github': 'github',
+    'dropbox': 'dropbox',
+    'slack': 'slack',
+    'reddit': 'reddit'
   };
 
   return providerMap[serviceName] || 'unknown';
