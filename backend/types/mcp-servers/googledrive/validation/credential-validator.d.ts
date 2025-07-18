@@ -37,4 +37,10 @@ export function validateScopes(scopes: any[]): Object;
  * @returns {Object} Validation result
  */
 export function validateInstanceConfig(config: Object): Object;
+/**
+ * Create a validator instance for the validation registry
+ * @param {Object} credentials - Credentials to validate
+ * @returns {Object} Validator instance with validateFormat and testCredentials methods
+ */
+export default function createGoogleDriveValidator(credentials: Object): Object;
 //# sourceMappingURL=credential-validator.d.ts.map

@@ -1,5 +1,5 @@
 export const credentialValidationSchema: z.ZodObject<{
-    mcp_type_id: z.ZodString;
+    mcp_type_id: z.ZodEffects<z.ZodString, string, string>;
     credentials: z.ZodEffects<z.ZodRecord<z.ZodString, z.ZodString>, Record<string, string>, Record<string, string>>;
 }, "strip", z.ZodTypeAny, {
     credentials: Record<string, string>;

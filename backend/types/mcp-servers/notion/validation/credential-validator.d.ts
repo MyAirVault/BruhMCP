@@ -30,4 +30,10 @@ export function validateAndExtractCredentials(credentials: Object): Promise<{
     oauthCredentials?: Object;
     error?: string;
 }>;
+/**
+ * Create a validator instance for the validation registry
+ * @param {Object} credentials - Credentials to validate
+ * @returns {Object} Validator instance with validateFormat and testCredentials methods
+ */
+export default function createNotionValidator(credentials: Object): Object;
 //# sourceMappingURL=credential-validator.d.ts.map
