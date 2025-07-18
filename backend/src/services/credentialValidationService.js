@@ -24,23 +24,35 @@ export async function testAPICredentials(serviceName, credentials, performApiTes
 
 		// Check if credentials object has required fields
 		if (!credentials || typeof credentials !== 'object') {
+			console.log('❌ Invalid credentials object:', credentials);
 			result.error_code = 'INVALID_CREDENTIALS';
 			result.error_message = 'Credentials must be a valid object';
 			return result;
 		}
+		
+		console.log(`📋 Validating credentials for ${serviceName}:`, {
+			serviceName,
+			credentialKeys: Object.keys(credentials),
+			performApiTest
+		});
 
 		// Try to get service-specific validator
+		console.log(`🔍 Looking for validator for service: ${serviceName}`);
 		const validatorFactory = validationRegistry.getValidator(serviceName);
 		
 		if (validatorFactory) {
+			console.log(`✅ Found validator for ${serviceName}`);
 			try {
 				// Create validator instance based on credentials
 				const validator = validatorFactory(credentials);
+				console.log(`📝 Created validator instance for ${serviceName}`);
 				
 				// Use API test if requested and available, otherwise use format validation
 				const validation = performApiTest && typeof validator.testCredentials === 'function'
 					? await validator.testCredentials(credentials)
 					: await validator.validateFormat(credentials);
+
+				console.log(`📊 Validation result for ${serviceName}:`, validation);
 
 				if (validation.valid) {
 					result.valid = true;
@@ -56,11 +68,14 @@ export async function testAPICredentials(serviceName, credentials, performApiTes
 					return result;
 				}
 			} catch (/** @type {any} */ error) {
+				console.error(`❌ Error in validator for ${serviceName}:`, error);
 				result.error_code = 'API_ERROR';
 				result.error_message = `Failed to validate ${serviceName} credentials: ${error.message}`;
 				result.details = { error: error.message };
 				return result;
 			}
+		} else {
+			console.log(`⚠️  No validator found for ${serviceName}`);
 		}
 
 		// Fallback to legacy hardcoded validation for unsupported services

@@ -327,3 +327,113 @@ export function validateInstanceConfig(config) {
     }
   };
 }
+
+/**
+ * Create a validator instance for the validation registry
+ * @param {Object} credentials - Credentials to validate
+ * @returns {Object} Validator instance with validateFormat and testCredentials methods
+ */
+export default function createGoogleDriveValidator(credentials) {
+  return {
+    /**
+     * Validate credential format
+     * @param {Object} creds - Credentials to validate
+     * @returns {Promise<{valid: boolean, error?: string, field?: string, service_info?: Object}>}
+     */
+    async validateFormat(creds) {
+      // Check if credentials is a valid object
+      if (!creds || typeof creds !== 'object') {
+        return {
+          valid: false,
+          error: 'Credentials must be a valid object',
+          field: 'credentials'
+        };
+      }
+
+      // Check for OAuth credentials
+      if (!creds.clientId && !creds.client_id) {
+        return {
+          valid: false,
+          error: 'Client ID is required',
+          field: 'clientId'
+        };
+      }
+
+      if (!creds.clientSecret && !creds.client_secret) {
+        return {
+          valid: false,
+          error: 'Client Secret is required',
+          field: 'clientSecret'
+        };
+      }
+
+      // Support both camelCase and snake_case
+      const clientId = creds.clientId || creds.client_id;
+      const clientSecret = creds.clientSecret || creds.client_secret;
+
+      // Validate Client ID format
+      const clientIdRegex = /^[0-9]+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/;
+      if (!clientIdRegex.test(clientId)) {
+        return {
+          valid: false,
+          error: 'Invalid Client ID format. Expected Google OAuth Client ID format: {numbers}-{string}.apps.googleusercontent.com',
+          field: 'clientId'
+        };
+      }
+
+      // Validate Client Secret format
+      if (clientSecret.length < 24) {
+        return {
+          valid: false,
+          error: 'Client Secret appears to be too short. Google OAuth Client Secret should be at least 24 characters',
+          field: 'clientSecret'
+        };
+      }
+
+      return {
+        valid: true,
+        service_info: {
+          service: 'googledrive',
+          auth_type: 'oauth',
+          requires_oauth_flow: true
+        }
+      };
+    },
+
+    /**
+     * Test credentials with actual API
+     * @param {Object} creds - Credentials to test
+     * @returns {Promise<{valid: boolean, error?: string, field?: string, service_info?: Object}>}
+     */
+    async testCredentials(creds) {
+      // Convert to expected format for validateCredentials function
+      const credentials = {
+        clientId: creds.clientId || creds.client_id,
+        clientSecret: creds.clientSecret || creds.client_secret,
+        refreshToken: creds.refreshToken || creds.refresh_token,
+        accessToken: creds.accessToken || creds.access_token
+      };
+
+      const validation = await validateCredentials(credentials);
+      
+      if (validation.valid) {
+        return {
+          valid: true,
+          service_info: {
+            service: 'googledrive',
+            auth_type: 'oauth',
+            details: validation.details
+          }
+        };
+      } else {
+        return {
+          valid: false,
+          error: validation.error,
+          field: validation.details?.missingFields ? 
+            (validation.details.missingFields.clientId ? 'clientId' : 'clientSecret') : 
+            'credentials'
+        };
+      }
+    }
+  };
+}

@@ -59,9 +59,10 @@ class ValidationRegistry {
       
       if (validatorModule.default) {
         this.validators.set(serviceName, validatorModule.default);
-        console.log(`📝 Loaded validator for ${serviceName}`);
+        console.log(`📝 Loaded validator for ${serviceName} from ${validatorPath}`);
+        console.log(`   Validator type: ${typeof validatorModule.default}`);
       } else {
-        console.warn(`⚠️  No default export found in validator for ${serviceName}`);
+        console.warn(`⚠️  No default export found in validator for ${serviceName} at ${validatorPath}`);
       }
     } catch (/** @type {any} */ error) {
       // If validator doesn't exist, that's okay - not all services need custom validation

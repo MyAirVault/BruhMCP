@@ -9,10 +9,17 @@ import { getMCPTypeById, getMCPTypeByName } from '../../db/queries/mcpTypesQueri
  */
 export async function validateCredentials(req, res) {
 	try {
+		console.log('🔐 Validate credentials request:', {
+			body: req.body,
+			mcp_type_id: req.body.mcp_type_id,
+			credentials: req.body.credentials ? Object.keys(req.body.credentials) : 'none'
+		});
+
 		// Validate request body using Zod
 		const validationResult = credentialValidationSchema.safeParse(req.body);
 
 		if (!validationResult.success) {
+			console.error('❌ Zod validation failed:', validationResult.error.errors);
 			return res.status(400).json({
 				error: {
 					code: 'VALIDATION_ERROR',
@@ -26,6 +33,7 @@ export async function validateCredentials(req, res) {
 		}
 
 		const { mcp_type_id, credentials } = validationResult.data;
+		console.log('✅ Zod validation passed, mcp_type_id:', mcp_type_id);
 
 		// Look up the MCP type to get the service name
 		// First try by ID (UUID), then by name (string)
@@ -51,6 +59,7 @@ export async function validateCredentials(req, res) {
 		}
 
 		const serviceName = mcpType.mcp_service_name;
+		console.log(`🏷️  Service name from MCP type: ${serviceName}`);
 
 		// Additional credential-specific validation based on MCP type
 		const credentialSchema = /** @type {any} */ (getCredentialSchemaByType(mcp_type_id));
