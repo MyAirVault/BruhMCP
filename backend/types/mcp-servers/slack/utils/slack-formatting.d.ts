@@ -1,8 +1,4 @@
 /**
- * Slack response formatting utilities
- * Formats Slack API responses for consistent output
- */
-/**
  * Format a Slack message response
  * @param {Object} message - Raw Slack message object
  * @returns {Object} Formatted message
@@ -76,4 +72,85 @@ export function createFormattedResponse(blocks: any[]): Object;
  * @returns {Object} MCP error response
  */
 export function formatErrorResponse(error: Error): Object;
+/**
+ * Format search results for better readability
+ * @param {Object} results - Search results from Slack API
+ * @param {string} query - Original search query
+ * @returns {Object} Formatted search results
+ */
+export function formatSearchResults(results: Object, query: string): Object;
+/**
+ * Format team information response
+ * @param {Object} team - Team information from Slack API
+ * @returns {Object} Formatted team information
+ */
+export function formatTeamResponse(team: Object): Object;
+/**
+ * Format conversation history with enhanced metadata
+ * @param {Object} history - Conversation history from Slack API
+ * @param {Array} users - User data for mention resolution
+ * @param {Array} channels - Channel data for mention resolution
+ * @returns {Object} Formatted conversation history
+ */
+export function formatConversationHistory(history: Object, users?: any[], channels?: any[]): Object;
+/**
+ * Format bulk operation results
+ * @param {Array} results - Array of operation results
+ * @param {string} operation - Operation type
+ * @returns {Object} Formatted bulk operation results
+ */
+export function formatBulkOperationResults(results: any[], operation: string): Object;
+/**
+ * Format channel analytics data
+ * @param {Object} analytics - Channel analytics data
+ * @returns {Object} Formatted analytics
+ */
+export function formatChannelAnalytics(analytics: Object): Object;
+/**
+ * Format user activity summary
+ * @param {Object} activity - User activity data
+ * @returns {Object} Formatted activity summary
+ */
+export function formatUserActivity(activity: Object): Object;
+/**
+ * Format workspace statistics
+ * @param {Object} stats - Workspace statistics
+ * @returns {Object} Formatted workspace stats
+ */
+export function formatWorkspaceStats(stats: Object): Object;
+/**
+ * Format file upload progress
+ * @param {Object} uploadResult - File upload result
+ * @returns {Object} Formatted upload result
+ */
+export function formatFileUploadResult(uploadResult: Object): Object;
+/**
+ * Create a rich text response with formatting
+ * @param {string} title - Response title
+ * @param {string} content - Response content
+ * @param {Object} metadata - Additional metadata
+ * @returns {Object} Rich MCP response object
+ */
+export function createRichTextResponse(title: string, content: string, metadata?: Object): Object;
+/**
+ * Create a table response for structured data
+ * @param {Array} headers - Table headers
+ * @param {Array} rows - Table rows
+ * @param {string} title - Table title
+ * @returns {Object} Table MCP response object
+ */
+export function createTableResponse(headers: any[], rows: any[], title?: string): Object;
+/**
+ * Sanitize content for safe display
+ * @param {string} content - Content to sanitize
+ * @returns {string} Sanitized content
+ */
+export function sanitizeContent(content: string): string;
+/**
+ * Truncate long text with ellipsis
+ * @param {string} text - Text to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} Truncated text
+ */
+export function truncateText(text: string, maxLength?: number): string;
 //# sourceMappingURL=slack-formatting.d.ts.map

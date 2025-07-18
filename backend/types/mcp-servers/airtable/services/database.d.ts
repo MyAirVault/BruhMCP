@@ -1,84 +1,41 @@
 /**
- * Initialize database connection
- * @returns {Promise<void>}
- */
-export function initialize(): Promise<void>;
-/**
- * Get instance credentials (required by middleware)
- * @param {string} instanceId - Instance ID
- * @returns {Promise<Object|null>} Instance record or null
+ * Get instance credentials and validate access
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Promise<Object|null>} Instance data with credentials or null if not found
  */
 export function getInstanceCredentials(instanceId: string): Promise<Object | null>;
 /**
- * Validate instance access (required by middleware)
- * @param {Object} instance - Instance record
- * @returns {Object} Validation result
+ * Validate if instance is accessible
+ * @param {{ service_active?: boolean, status?: string, expires_at?: string, auth_type?: string, api_key?: string }|null} instance - Instance data from database
+ * @returns {{ isValid: boolean, error?: string, statusCode?: number }} Validation result with isValid boolean and error message
  */
-export function validateInstanceAccess(instance: Object): Object;
+export function validateInstanceAccess(instance: {
+    service_active?: boolean;
+    status?: string;
+    expires_at?: string;
+    auth_type?: string;
+    api_key?: string;
+} | null): {
+    isValid: boolean;
+    error?: string;
+    statusCode?: number;
+};
 /**
- * Update usage tracking (required by middleware)
+ * Update instance usage tracking
  * @param {string} instanceId - Instance ID
- * @returns {Promise<void>}
  */
 export function updateUsageTracking(instanceId: string): Promise<void>;
 /**
- * Get API key for instance (required by middleware)
- * @param {Object} instance - Instance record
- * @returns {string} API key
+ * Get API key for Airtable service instance
+ * @param {{ api_key?: string }} instance - Instance data from database
  */
-export function getApiKeyForInstance(instance: Object): string;
+export function getApiKeyForInstance(instance: {
+    api_key?: string;
+}): string | undefined;
 /**
- * Store instance credentials
- * @param {string} instanceId - Instance ID
- * @param {string} apiKeyHash - Hashed API key
- * @param {Object} metadata - Instance metadata
- * @returns {Promise<Object>} Created instance record
- */
-export function storeInstance(instanceId: string, apiKeyHash: string, metadata?: Object): Promise<Object>;
-/**
- * Get instance by ID
- * @param {string} instanceId - Instance ID
- * @returns {Promise<Object|null>} Instance record or null
- */
-export function getInstance(instanceId: string): Promise<Object | null>;
-/**
- * Update instance metadata
- * @param {string} instanceId - Instance ID
- * @param {Object} metadata - Metadata to update
- * @returns {Promise<Object>} Updated instance record
- */
-export function updateInstanceMetadata(instanceId: string, metadata: Object): Promise<Object>;
-/**
- * Delete instance
- * @param {string} instanceId - Instance ID
- * @returns {Promise<boolean>} True if deleted
- */
-export function deleteInstance(instanceId: string): Promise<boolean>;
-/**
- * List all instances
- * @param {Object} options - List options
- * @returns {Promise<Array>} Array of instance records
- */
-export function listInstances(options?: Object): Promise<any[]>;
-/**
- * Get instance statistics
- * @returns {Promise<Object>} Statistics
- */
-export function getStatistics(): Promise<Object>;
-/**
- * Clean up old instances
- * @param {number} olderThanDays - Delete instances older than this many days
- * @returns {Promise<number>} Number of instances cleaned up
- */
-export function cleanupOldInstances(olderThanDays?: number): Promise<number>;
-/**
- * Health check
- * @returns {Promise<Object>} Health status
- */
-export function healthCheck(): Promise<Object>;
-/**
- * Close database connection
+ * Initialize database connection
+ * This is a no-op since we're using the main system's pool
  * @returns {Promise<void>}
  */
-export function close(): Promise<void>;
+export function initialize(): Promise<void>;
 //# sourceMappingURL=database.d.ts.map

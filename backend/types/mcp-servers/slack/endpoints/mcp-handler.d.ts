@@ -29,15 +29,6 @@ export class SlackMCPHandler {
      * @returns {Promise<void>}
      */
     handleMCPRequest(req: any, res: any, message: any): Promise<void>;
-    /**
-     * Close transport for session
-     * @param {string} sessionId
-     */
-    closeTransport(sessionId: string): void;
-    /**
-     * Close all transports
-     */
-    closeAllTransports(): void;
 }
 export type ServiceConfig = {
     name: string;

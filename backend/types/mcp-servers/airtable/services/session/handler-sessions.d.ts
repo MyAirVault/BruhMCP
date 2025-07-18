@@ -33,4 +33,5 @@ export function stopSessionCleanup(): void;
  * @param {string} instanceId - UUID of the service instance
  */
 export function invalidateHandlerSession(instanceId: string): void;
+import { AirtableMCPHandler } from '../../endpoints/mcp-handler.js';
 //# sourceMappingURL=handler-sessions.d.ts.map
