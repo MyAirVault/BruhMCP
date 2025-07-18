@@ -9,3 +9,7 @@ npm-debug.log*
 coverage/
 .vscode/
 .idea/
+
+# Test files
+test-validator-registry.js
+test-modal-validation.js

@@ -3,6 +3,7 @@
  * Validates OAuth credentials and token formats
  */
 
+import { BaseValidator, createValidationResult } from '../../../services/validation/base-validator.js';
 import { validateOAuthCredentials } from '../utils/oauth-integration.js';
 
 /**
@@ -329,111 +330,115 @@ export function validateInstanceConfig(config) {
 }
 
 /**
- * Create a validator instance for the validation registry
- * @param {Object} credentials - Credentials to validate
- * @returns {Object} Validator instance with validateFormat and testCredentials methods
+ * Google Drive OAuth validator
  */
-export default function createGoogleDriveValidator(credentials) {
-  return {
-    /**
-     * Validate credential format
-     * @param {Object} creds - Credentials to validate
-     * @returns {Promise<{valid: boolean, error?: string, field?: string, service_info?: Object}>}
-     */
-    async validateFormat(creds) {
-      // Check if credentials is a valid object
-      if (!creds || typeof creds !== 'object') {
-        return {
-          valid: false,
-          error: 'Credentials must be a valid object',
-          field: 'credentials'
-        };
-      }
+class GoogleDriveOAuthValidator extends BaseValidator {
+  constructor() {
+    super('googledrive', 'oauth');
+  }
 
-      // Check for OAuth credentials
-      if (!creds.clientId && !creds.client_id) {
-        return {
-          valid: false,
-          error: 'Client ID is required',
-          field: 'clientId'
-        };
-      }
+  /**
+   * Validate Google Drive OAuth credentials format
+   * @param {any} credentials - Credentials to validate
+   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   */
+  async validateFormat(credentials) {
+    if (!credentials || typeof credentials !== 'object') {
+      return createValidationResult(false, 'Credentials must be a valid object', 'credentials');
+    }
 
-      if (!creds.clientSecret && !creds.client_secret) {
-        return {
-          valid: false,
-          error: 'Client Secret is required',
-          field: 'clientSecret'
-        };
-      }
+    // Check for OAuth credentials (support both camelCase and snake_case)
+    const clientId = credentials.clientId || credentials.client_id;
+    const clientSecret = credentials.clientSecret || credentials.client_secret;
 
-      // Support both camelCase and snake_case
-      const clientId = creds.clientId || creds.client_id;
-      const clientSecret = creds.clientSecret || creds.client_secret;
+    if (!clientId) {
+      return createValidationResult(false, 'Client ID is required', 'clientId');
+    }
 
-      // Validate Client ID format
-      const clientIdRegex = /^[0-9]+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/;
-      if (!clientIdRegex.test(clientId)) {
-        return {
-          valid: false,
-          error: 'Invalid Client ID format. Expected Google OAuth Client ID format: {numbers}-{string}.apps.googleusercontent.com',
-          field: 'clientId'
-        };
-      }
+    if (!clientSecret) {
+      return createValidationResult(false, 'Client Secret is required', 'clientSecret');
+    }
 
-      // Validate Client Secret format
-      if (clientSecret.length < 24) {
-        return {
-          valid: false,
-          error: 'Client Secret appears to be too short. Google OAuth Client Secret should be at least 24 characters',
-          field: 'clientSecret'
-        };
-      }
+    // Validate Client ID format (Google OAuth Client ID format)
+    const clientIdRegex = /^[0-9]+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/;
+    if (!clientIdRegex.test(clientId)) {
+      return createValidationResult(false, 'Invalid Client ID format. Expected Google OAuth Client ID format: {numbers}-{string}.apps.googleusercontent.com', 'clientId');
+    }
 
-      return {
-        valid: true,
-        service_info: {
-          service: 'googledrive',
-          auth_type: 'oauth',
-          requires_oauth_flow: true
-        }
-      };
-    },
+    // Validate Client Secret format
+    if (clientSecret.length < 24) {
+      return createValidationResult(false, 'Client Secret appears to be too short. Google OAuth Client Secret should be at least 24 characters', 'clientSecret');
+    }
 
-    /**
-     * Test credentials with actual API
-     * @param {Object} creds - Credentials to test
-     * @returns {Promise<{valid: boolean, error?: string, field?: string, service_info?: Object}>}
-     */
-    async testCredentials(creds) {
-      // Convert to expected format for validateCredentials function
-      const credentials = {
-        clientId: creds.clientId || creds.client_id,
-        clientSecret: creds.clientSecret || creds.client_secret,
-        refreshToken: creds.refreshToken || creds.refresh_token,
-        accessToken: creds.accessToken || creds.access_token
-      };
+    return createValidationResult(true, null, null, this.getServiceInfo(credentials));
+  }
 
-      const validation = await validateCredentials(credentials);
+  /**
+   * Test Google Drive OAuth credentials against actual API
+   * @param {any} credentials - Credentials to test
+   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   */
+  async testCredentials(credentials) {
+    // First validate basic format
+    const formatResult = await this.validateFormat(credentials);
+    if (!formatResult.valid) {
+      return formatResult;
+    }
+
+    // Convert to expected format for validateCredentials function
+    const creds = {
+      clientId: credentials.clientId || credentials.client_id,
+      clientSecret: credentials.clientSecret || credentials.client_secret,
+      refreshToken: credentials.refreshToken || credentials.refresh_token,
+      accessToken: credentials.accessToken || credentials.access_token
+    };
+
+    try {
+      const validation = await validateCredentials(creds);
       
       if (validation.valid) {
-        return {
-          valid: true,
-          service_info: {
-            service: 'googledrive',
-            auth_type: 'oauth',
-            details: validation.details
-          }
-        };
+        return createValidationResult(true, null, null, {
+          service: 'Google Drive API',
+          auth_type: 'oauth',
+          validation_type: 'api_test',
+          requires_oauth_flow: true,
+          details: validation.details,
+        });
       } else {
-        return {
-          valid: false,
-          error: validation.error,
-          field: validation.details?.missingFields ? 
-            (validation.details.missingFields.clientId ? 'clientId' : 'clientSecret') : 
-            'credentials'
-        };
+        return createValidationResult(false, validation.error, 'credentials');
       }
+    } catch (/** @type {any} */ error) {
+      return createValidationResult(false, `Failed to test Google Drive OAuth credentials: ${error.message}`, 'credentials');
     }
-  };
+  }
+
+  /**
+   * Get Google Drive service information
+   * @param {any} _credentials - Validated credentials
+   * @returns {Object} Service information
+   */
+  getServiceInfo(_credentials) {
+    return {
+      service: 'Google Drive API',
+      auth_type: 'oauth',
+      validation_type: 'format_validation',
+      requires_oauth_flow: true,
+      permissions: ['read', 'write', 'manage'],
+    };
+  }
 }
+
+/**
+ * Google Drive validator factory
+ * @param {any} credentials - Credentials to validate
+ * @returns {BaseValidator} Validator instance
+ */
+function createGoogleDriveValidator(credentials) {
+  if (credentials && (credentials.clientId || credentials.client_id)) {
+    return new GoogleDriveOAuthValidator();
+  } else {
+    throw new Error('Invalid Google Drive credentials format - must provide clientId or client_id');
+  }
+}
+
+export default createGoogleDriveValidator;

@@ -3,6 +3,7 @@
  * Updated to support OAuth Bearer token authentication
  */
 
+import { BaseValidator, createValidationResult } from '../../../services/validation/base-validator.js';
 import { validateBearerToken } from '../utils/oauth-validation.js';
 import { NotionService } from '../api/notion-api.js';
 import { Logger } from '../utils/logger.js';
@@ -182,115 +183,157 @@ export async function validateAndExtractCredentials(credentials) {
 }
 
 /**
- * Create a validator instance for the validation registry
- * @param {Object} credentials - Credentials to validate
- * @returns {Object} Validator instance with validateFormat and testCredentials methods
+ * Notion OAuth validator
  */
-export default function createNotionValidator(credentials) {
-	return {
-		/**
-		 * Validate credential format
-		 * @param {Object} creds - Credentials to validate
-		 * @returns {Promise<{valid: boolean, error?: string, field?: string, service_info?: Object}>}
-		 */
-		async validateFormat(creds) {
-			// Check if credentials is a valid object
-			if (!creds || typeof creds !== 'object') {
-				return {
-					valid: false,
-					error: 'Credentials must be a valid object',
-					field: 'credentials'
-				};
-			}
+class NotionOAuthValidator extends BaseValidator {
+  constructor() {
+    super('notion', 'oauth');
+  }
 
-			// Check for OAuth credentials
-			if (creds.client_id && creds.client_secret) {
-				return {
-					valid: true,
-					service_info: {
-						service: 'notion',
-						auth_type: 'oauth',
-						requires_oauth_flow: true
-					}
-				};
-			}
+  /**
+   * Validate Notion OAuth credentials format
+   * @param {any} credentials - Credentials to validate
+   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   */
+  async validateFormat(credentials) {
+    if (!credentials || typeof credentials !== 'object') {
+      return createValidationResult(false, 'Credentials must be a valid object', 'credentials');
+    }
 
-			// Check for API key (legacy)
-			if (creds.api_key) {
-				return {
-					valid: true,
-					service_info: {
-						service: 'notion',
-						auth_type: 'api_key',
-						deprecated: true
-					}
-				};
-			}
+    // Check for OAuth credentials
+    if (credentials.client_id && credentials.client_secret) {
+      return createValidationResult(true, null, null, this.getServiceInfo(credentials));
+    }
 
-			// Check for Bearer token
-			if (creds.bearer_token || creds.access_token) {
-				return {
-					valid: true,
-					service_info: {
-						service: 'notion',
-						auth_type: 'bearer_token'
-					}
-				};
-			}
+    return createValidationResult(false, 'OAuth credentials require client_id and client_secret', 'credentials');
+  }
 
-			return {
-				valid: false,
-				error: 'Invalid credentials format. Expected client_id and client_secret for OAuth, or api_key/bearer_token',
-				field: 'credentials'
-			};
-		},
+  /**
+   * Test Notion OAuth credentials
+   * @param {any} credentials - Credentials to test
+   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   */
+  async testCredentials(credentials) {
+    const formatResult = await this.validateFormat(credentials);
+    if (!formatResult.valid) {
+      return formatResult;
+    }
 
-		/**
-		 * Test credentials with actual API
-		 * @param {Object} creds - Credentials to test
-		 * @returns {Promise<{valid: boolean, error?: string, field?: string, service_info?: Object}>}
-		 */
-		async testCredentials(creds) {
-			// For OAuth credentials, we can't test without the full OAuth flow
-			if (creds.client_id && creds.client_secret && !creds.access_token) {
-				return {
-					valid: true,
-					service_info: {
-						service: 'notion',
-						auth_type: 'oauth',
-						requires_oauth_flow: true,
-						message: 'OAuth credentials validated. User needs to complete OAuth flow to obtain access token.'
-					}
-				};
-			}
+    // OAuth credentials cannot be tested without the full OAuth flow
+    return createValidationResult(true, null, null, {
+      service: 'Notion API',
+      auth_type: 'oauth',
+      validation_type: 'format_validation',
+      requires_oauth_flow: true,
+      message: 'OAuth credentials validated. User needs to complete OAuth flow to obtain access token.',
+    });
+  }
 
-			// Test Bearer token or access token
-			const token = creds.bearer_token || creds.access_token || creds.api_key;
-			if (token) {
-				const validation = await validateNotionBearerToken(token);
-				if (validation.valid) {
-					return {
-						valid: true,
-						service_info: {
-							service: 'notion',
-							auth_type: creds.api_key ? 'api_key' : 'bearer_token',
-							user: validation.user
-						}
-					};
-				} else {
-					return {
-						valid: false,
-						error: validation.error || 'Invalid token',
-						field: creds.api_key ? 'api_key' : (creds.bearer_token ? 'bearer_token' : 'access_token')
-					};
-				}
-			}
-
-			return {
-				valid: false,
-				error: 'No valid credentials provided for testing',
-				field: 'credentials'
-			};
-		}
-	};
+  /**
+   * Get Notion service information
+   * @param {any} _credentials - Validated credentials
+   * @returns {Object} Service information
+   */
+  getServiceInfo(_credentials) {
+    return {
+      service: 'Notion API',
+      auth_type: 'oauth',
+      validation_type: 'format_validation',
+      requires_oauth_flow: true,
+      permissions: ['read', 'write', 'manage'],
+    };
+  }
 }
+
+/**
+ * Notion Bearer Token validator
+ */
+class NotionBearerTokenValidator extends BaseValidator {
+  constructor() {
+    super('notion', 'bearer_token');
+  }
+
+  /**
+   * Validate Notion Bearer token format
+   * @param {any} credentials - Credentials to validate
+   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   */
+  async validateFormat(credentials) {
+    if (!credentials || typeof credentials !== 'object') {
+      return createValidationResult(false, 'Credentials must be a valid object', 'credentials');
+    }
+
+    const token = credentials.bearer_token || credentials.access_token || credentials.api_key;
+    if (!token) {
+      return createValidationResult(false, 'Bearer token, access token, or API key is required', 'token');
+    }
+
+    if (typeof token !== 'string' || token.trim() === '') {
+      return createValidationResult(false, 'Token must be a non-empty string', 'token');
+    }
+
+    return createValidationResult(true, null, null, this.getServiceInfo(credentials));
+  }
+
+  /**
+   * Test Notion Bearer token against actual API
+   * @param {any} credentials - Credentials to test
+   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   */
+  async testCredentials(credentials) {
+    const formatResult = await this.validateFormat(credentials);
+    if (!formatResult.valid) {
+      return formatResult;
+    }
+
+    const token = credentials.bearer_token || credentials.access_token || credentials.api_key;
+    
+    try {
+      const validation = await validateNotionBearerToken(token);
+      if (validation.valid) {
+        return createValidationResult(true, null, null, {
+          service: 'Notion API',
+          auth_type: credentials.api_key ? 'api_key' : 'bearer_token',
+          validation_type: 'api_test',
+          user: validation.user,
+          permissions: ['read', 'write'],
+        });
+      } else {
+        return createValidationResult(false, validation.error || 'Invalid token', 'token');
+      }
+    } catch (/** @type {any} */ error) {
+      return createValidationResult(false, `Failed to test Notion token: ${error.message}`, 'token');
+    }
+  }
+
+  /**
+   * Get Notion service information
+   * @param {any} _credentials - Validated credentials
+   * @returns {Object} Service information
+   */
+  getServiceInfo(_credentials) {
+    return {
+      service: 'Notion API',
+      auth_type: 'bearer_token',
+      validation_type: 'format_validation',
+      permissions: ['read', 'write'],
+    };
+  }
+}
+
+/**
+ * Notion validator factory
+ * @param {any} credentials - Credentials to validate
+ * @returns {BaseValidator} Validator instance
+ */
+function createNotionValidator(credentials) {
+  if (credentials && credentials.client_id && credentials.client_secret) {
+    return new NotionOAuthValidator();
+  } else if (credentials && (credentials.bearer_token || credentials.access_token || credentials.api_key)) {
+    return new NotionBearerTokenValidator();
+  } else {
+    throw new Error('Invalid Notion credentials format - must provide OAuth credentials or bearer token');
+  }
+}
+
+export default createNotionValidator;
