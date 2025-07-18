@@ -19,11 +19,7 @@ const execAsync = promisify(exec);
 export async function fetchWithRetry(url, options = {}) {
 	try {
 		const response = await fetch(url, options);
-
-		if (!response.ok) {
-			throw new Error(`Fetch failed with status ${response.status}: ${response.statusText}`);
-		}
-		return await response.json();
+		return response;
 	} catch (fetchError) {
 		logger.warn(
 			`Initial fetch failed for ${url}: ${fetchError.message}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
@@ -60,7 +56,15 @@ export async function fetchWithRetry(url, options = {}) {
 				throw new Error("Curl command returned empty stdout.");
 			}
 
-			return JSON.parse(stdout);
+			// Create a mock Response object for curl fallback
+			const jsonData = JSON.parse(stdout);
+			return {
+				ok: true,
+				status: 200,
+				statusText: 'OK',
+				headers: new Map(),
+				json: () => Promise.resolve(jsonData)
+			};
 		} catch (curlError) {
 			logger.error(`Curl fallback also failed for ${url}: ${curlError.message}`);
 			// Re-throw the original fetch error to give context about the initial failure
