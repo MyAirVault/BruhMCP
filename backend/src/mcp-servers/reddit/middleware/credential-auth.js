@@ -135,7 +135,7 @@ export function createCredentialAuthMiddleware() {
         try {
           let newTokens;
           
-          // Try OAuth service first, then fallback to direct Google OAuth
+          // Try to refresh the token using available method
           try {
             newTokens = await refreshBearerToken({
               refreshToken: refreshToken,
@@ -143,14 +143,17 @@ export function createCredentialAuthMiddleware() {
               clientSecret: instance.client_secret
             });
             usedMethod = 'oauth_service';
-          } catch (oauthServiceError) {
-            console.log(`⚠️  OAuth service failed, trying direct Google OAuth: ${oauthServiceError.message}`);
+          } catch (refreshError) {
+            console.log(`⚠️  Primary OAuth refresh failed: ${refreshError.message}`);
             
-            // Check if error indicates OAuth service unavailable
-            if (oauthServiceError.message.includes('OAuth service error') || 
-                oauthServiceError.message.includes('Failed to start OAuth service')) {
-              
-              // Fallback to direct Google OAuth
+            // Try direct OAuth as fallback only for specific error types
+            const isServiceUnavailable = refreshError.message.includes('OAuth service error') || 
+                                       refreshError.message.includes('Failed to start OAuth service') ||
+                                       refreshError.message.includes('ECONNREFUSED') ||
+                                       refreshError.message.includes('timeout');
+            
+            if (isServiceUnavailable) {
+              console.log(`🔄 Attempting direct OAuth fallback for instance: ${instanceId}`);
               newTokens = await refreshBearerTokenDirect({
                 refreshToken: refreshToken,
                 clientId: instance.client_id,
@@ -158,8 +161,8 @@ export function createCredentialAuthMiddleware() {
               });
               usedMethod = 'direct_oauth';
             } else {
-              // Re-throw if it's not a service availability issue
-              throw oauthServiceError;
+              // Re-throw for non-service-availability errors
+              throw refreshError;
             }
           }
 
@@ -200,6 +203,10 @@ export function createCredentialAuthMiddleware() {
             expiresAt: newExpiresAt.getTime(),
             user_id: instance.user_id
           });
+
+          // Update session bearer token immediately
+          const { updateSessionBearerToken } = await import('../services/handler-sessions.js');
+          updateSessionBearerToken(instanceId, newTokens.access_token);
 
           // Update database with new tokens using optimistic locking
           try {

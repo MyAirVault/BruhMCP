@@ -33,7 +33,7 @@ import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperatio
 const SERVICE_CONFIG = {
   name: 'reddit',
   displayName: 'Reddit',
-  port: 49425,
+  port: 49297,
   authType: 'oauth',
   description: 'Reddit is a social news platform with user-driven communities (subreddits), offering content sharing, discussions, and viral marketing opportunities',
   version: '1.0.0',
@@ -241,8 +241,8 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
       req.bearerToken || ''
     );
     
-    // Process the MCP message with persistent handler (using new SDK signature)
-    await mcpHandler.handleMCPRequest(req, res, req.body);
+    // Process the MCP message with persistent handler
+    await mcpHandler.handleMCPRequest(req, res);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -271,8 +271,8 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
       req.bearerToken || ''
     );
     
-    // Process the MCP message with persistent handler (using new SDK signature)
-    await mcpHandler.handleMCPRequest(req, res, req.body);
+    // Process the MCP message with persistent handler
+    await mcpHandler.handleMCPRequest(req, res);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

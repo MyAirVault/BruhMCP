@@ -34,7 +34,8 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 			handler,
 			lastAccessed: Date.now(),
 			instanceId,
-			createdAt: Date.now()
+			createdAt: Date.now(),
+			bearerToken: bearerToken
 		};
 		
 		handlerSessions.set(instanceId, session);
@@ -42,9 +43,10 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	} else {
 		console.log(`♻️  Reusing existing Reddit handler session for instance: ${instanceId}`);
 		
-		// Update bearer token in case it was refreshed
-		if (bearerToken && session.handler.bearerToken !== bearerToken) {
-			session.handler.bearerToken = bearerToken;
+		// Always update bearer token to ensure consistency
+		if (bearerToken) {
+			session.handler.updateBearerToken(bearerToken);
+			session.bearerToken = bearerToken;
 			console.log(`🔄 Updated bearer token in existing session for instance: ${instanceId}`);
 		}
 	}
@@ -85,7 +87,8 @@ export function getSessionStatistics() {
 			age_minutes: Math.floor((now - session.createdAt) / 60000),
 			idle_minutes: Math.floor((now - session.lastAccessed) / 60000),
 			is_initialized: session.handler.initialized,
-			has_bearer_token: !!session.handler.bearerToken
+			has_bearer_token: !!session.handler.bearerToken,
+			bearer_token_synced: session.bearerToken === session.handler.bearerToken
 		}))
 	};
 }
@@ -167,7 +170,8 @@ export function invalidateHandlerSession(instanceId) {
 export function updateSessionBearerToken(instanceId, newBearerToken) {
 	const session = handlerSessions.get(instanceId);
 	if (session && session.handler) {
-		session.handler.bearerToken = newBearerToken;
+		session.handler.updateBearerToken(newBearerToken);
+		session.bearerToken = newBearerToken;
 		session.lastAccessed = Date.now();
 		console.log(`🔄 Updated bearer token in Reddit session: ${instanceId}`);
 		return true;

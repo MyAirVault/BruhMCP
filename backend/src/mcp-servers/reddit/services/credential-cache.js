@@ -9,6 +9,35 @@
 // Global credential cache for Reddit service instances
 const redditCredentialCache = new Map();
 
+// Synchronization locks to prevent race conditions
+const syncLocks = new Map();
+
+/**
+ * Acquire synchronization lock for an instance
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Promise<Function>} Release function
+ */
+async function acquireSyncLock(instanceId) {
+	while (syncLocks.has(instanceId)) {
+		// Wait for existing lock to be released
+		await new Promise(resolve => setTimeout(resolve, 10));
+	}
+	
+	const lockPromise = new Promise(resolve => {
+		syncLocks.set(instanceId, resolve);
+	});
+	
+	const releaseLock = () => {
+		const resolve = syncLocks.get(instanceId);
+		if (resolve) {
+			syncLocks.delete(instanceId);
+			resolve();
+		}
+	};
+	
+	return releaseLock;
+}
+
 /**
  * Initialize the credential cache system
  * Called on service startup
@@ -16,6 +45,7 @@ const redditCredentialCache = new Map();
 export function initializeCredentialCache() {
 	console.log('🚀 Initializing Reddit OAuth credential cache system');
 	redditCredentialCache.clear();
+	syncLocks.clear();
 	console.log('✅ Reddit OAuth credential cache initialized');
 }
 
@@ -298,6 +328,9 @@ export function resetRefreshAttempts(instanceId) {
 export async function syncCacheWithDatabase(instanceId, options = {}) {
 	const { forceRefresh = false, updateDatabase = false } = options;
 	
+	// Acquire synchronization lock to prevent race conditions
+	const releaseLock = await acquireSyncLock(instanceId);
+	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
 		const { getMCPInstanceById } = await import('../../../db/queries/mcpInstancesQueries.js');
@@ -344,6 +377,10 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 					user_id: dbInstance.user_id
 				});
 				
+				// Update session bearer token if session exists
+				const { updateSessionBearerToken } = await import('./handler-sessions.js');
+				updateSessionBearerToken(instanceId, dbInstance.access_token);
+				
 				console.log(`✅ Updated cache from database for instance: ${instanceId}`);
 			} else {
 				// No valid tokens in database, remove from cache
@@ -382,6 +419,9 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 	} catch (error) {
 		console.error(`❌ Failed to sync cache with database for instance ${instanceId}:`, error);
 		return false;
+	} finally {
+		// Always release the lock
+		releaseLock();
 	}
 }
 
