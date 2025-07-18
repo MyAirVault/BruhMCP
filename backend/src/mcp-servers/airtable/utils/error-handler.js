@@ -171,11 +171,11 @@ export class AirtableErrorHandler {
 		};
 
 		// Handle specific error types
-		if (error.name === 'AbortError' || error.message.includes('timeout')) {
+		if (error.name === 'AbortError' || (error.message && error.message.includes('timeout'))) {
 			return new TimeoutError(error.message, details);
 		}
 
-		if (error.name === 'TypeError' && error.message.includes('fetch')) {
+		if (error.name === 'TypeError' && error.message && error.message.includes('fetch')) {
 			return new NetworkError(error.message, details);
 		}
 
