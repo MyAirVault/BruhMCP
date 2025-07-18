@@ -44,4 +44,10 @@ export function formatUserData(user: Object): Object;
  * @returns {Object} Formatted error response
  */
 export function formatErrorResponse(error: Error): Object;
+/**
+ * Format Notion API response
+ * @param {Object} responseData - Response data with action and results
+ * @returns {Object} Formatted Notion response
+ */
+export function formatNotionResponse(responseData: Object): Object;
 //# sourceMappingURL=notion-formatting.d.ts.map

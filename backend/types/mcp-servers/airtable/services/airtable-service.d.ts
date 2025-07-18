@@ -18,9 +18,9 @@ export class AirtableService {
         useSimplification: boolean;
     };
     api: AirtableAPI;
-    responseOptimizer: any;
-    responseSimplifier: any;
-    globalVariableManager: any;
+    responseOptimizer: ResponseOptimizer;
+    responseSimplifier: ResponseSimplifier;
+    globalVariableManager: GlobalVariableManager;
     schemaCache: Map<any, any>;
     schemaCacheTimeout: number;
     /**
@@ -132,4 +132,7 @@ export class AirtableService {
     healthCheck(): Promise<Object>;
 }
 import { AirtableAPI } from '../api/airtable-api.js';
+import { ResponseOptimizer } from './cache/response-optimizer.js';
+import { ResponseSimplifier } from './cache/response-simplifier.js';
+import { GlobalVariableManager } from './session/global-variable-manager.js';
 //# sourceMappingURL=airtable-service.d.ts.map

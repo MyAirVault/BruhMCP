@@ -71,6 +71,196 @@ declare class TokenExchange {
             getProviderName(): string;
             getProviderUrls(): Object;
         };
+        notion: {
+            authUrl: string;
+            tokenUrl: string;
+            userInfoUrl: string;
+            revokeUrl: any;
+            validateCredentials(clientId: string, clientSecret: string): Object;
+            generateAuthorizationUrl(params: {
+                client_id: string;
+                scopes: any[];
+                state: string;
+                redirect_uri: string;
+            }): string;
+            exchangeAuthorizationCode(params: {
+                code: string;
+                client_id: string;
+                client_secret: string;
+                redirect_uri: string;
+            }): Object;
+            refreshAccessToken(params: Object): Object;
+            validateTokenScopes(tokens: Object): Object;
+            getUserInfo(accessToken: string): Object;
+            revokeToken(token: string): boolean;
+            providerName: any;
+            handleApiResponse(response: Response, operation: string): Object;
+            validateRequiredParams(params: Object, required: any[]): void;
+            validateTokenResponse(tokens: Object): Object;
+            getProviderName(): string;
+            getProviderUrls(): Object;
+        };
+        slack: {
+            authUrl: string;
+            tokenUrl: string;
+            userInfoUrl: string;
+            revokeUrl: string;
+            validateCredentials(clientId: string, clientSecret: string): Object;
+            generateAuthorizationUrl(params: {
+                client_id: string;
+                scopes: any[];
+                state: string;
+                redirect_uri: string;
+            }): string;
+            exchangeAuthorizationCode(params: {
+                code: string;
+                client_id: string;
+                client_secret: string;
+                redirect_uri: string;
+            }): Object;
+            refreshAccessToken(params: {
+                refresh_token: string;
+                client_id: string;
+                client_secret: string;
+            }): Object;
+            validateTokenScopes(tokens: Object): Object;
+            getUserInfo(accessToken: string, userId?: string): Object;
+            revokeToken(token: string): boolean;
+            providerName: any;
+            handleApiResponse(response: Response, operation: string): Object;
+            validateRequiredParams(params: Object, required: any[]): void;
+            validateTokenResponse(tokens: Object): Object;
+            getProviderName(): string;
+            getProviderUrls(): Object;
+        };
+        discord: {
+            authUrl: string;
+            tokenUrl: string;
+            userInfoUrl: string;
+            revokeUrl: string;
+            validateCredentials(clientId: string, clientSecret: string): Object;
+            generateAuthorizationUrl(params: {
+                client_id: string;
+                scopes: any[];
+                state: string;
+                redirect_uri: string;
+            }): string;
+            exchangeAuthorizationCode(params: {
+                code: string;
+                client_id: string;
+                client_secret: string;
+                redirect_uri: string;
+            }): Object;
+            refreshAccessToken(params: {
+                refresh_token: string;
+                client_id: string;
+                client_secret: string;
+            }): Object;
+            validateTokenScopes(tokens: Object): Object;
+            getUserInfo(accessToken: string): Object;
+            revokeToken(token: string): boolean;
+            providerName: any;
+            handleApiResponse(response: Response, operation: string): Object;
+            validateRequiredParams(params: Object, required: any[]): void;
+            validateTokenResponse(tokens: Object): Object;
+            getProviderName(): string;
+            getProviderUrls(): Object;
+        };
+        reddit: {
+            authUrl: string;
+            tokenUrl: string;
+            userInfoUrl: string;
+            revokeUrl: string;
+            validateCredentials(clientId: string, clientSecret: string): Object;
+            generateAuthorizationUrl(params: {
+                client_id: string;
+                scopes: any[];
+                state: string;
+                redirect_uri: string;
+            }): string;
+            exchangeAuthorizationCode(params: {
+                code: string;
+                client_id: string;
+                client_secret: string;
+                redirect_uri: string;
+            }): Object;
+            refreshAccessToken(params: {
+                refresh_token: string;
+                client_id: string;
+                client_secret: string;
+            }): Object;
+            validateTokenScopes(tokens: Object): Object;
+            getUserInfo(accessToken: string): Object;
+            revokeToken(token: string): boolean;
+            providerName: any;
+            handleApiResponse(response: Response, operation: string): Object;
+            validateRequiredParams(params: Object, required: any[]): void;
+            validateTokenResponse(tokens: Object): Object;
+            getProviderName(): string;
+            getProviderUrls(): Object;
+        };
+        github: {
+            authUrl: string;
+            tokenUrl: string;
+            userInfoUrl: string;
+            revokeUrl: string;
+            validateCredentials(clientId: string, clientSecret: string): Object;
+            generateAuthorizationUrl(params: {
+                client_id: string;
+                scopes: any[];
+                state: string;
+                redirect_uri: string;
+            }): string;
+            exchangeAuthorizationCode(params: {
+                code: string;
+                client_id: string;
+                client_secret: string;
+                redirect_uri: string;
+            }): Object;
+            refreshAccessToken(params: Object): Object;
+            validateTokenScopes(tokens: Object): Object;
+            getUserInfo(accessToken: string): Object;
+            revokeToken(token: string): boolean;
+            providerName: any;
+            handleApiResponse(response: Response, operation: string): Object;
+            validateRequiredParams(params: Object, required: any[]): void;
+            validateTokenResponse(tokens: Object): Object;
+            getProviderName(): string;
+            getProviderUrls(): Object;
+        };
+        dropbox: {
+            authUrl: string;
+            tokenUrl: string;
+            userInfoUrl: string;
+            revokeUrl: string;
+            validateCredentials(clientId: string, clientSecret: string): Object;
+            generateAuthorizationUrl(params: {
+                client_id: string;
+                scopes: any[];
+                state: string;
+                redirect_uri: string;
+            }): string;
+            exchangeAuthorizationCode(params: {
+                code: string;
+                client_id: string;
+                client_secret: string;
+                redirect_uri: string;
+            }): Object;
+            refreshAccessToken(params: {
+                refresh_token: string;
+                client_id: string;
+                client_secret: string;
+            }): Object;
+            validateTokenScopes(tokens: Object): Object;
+            getUserInfo(accessToken: string): Object;
+            revokeToken(token: string): boolean;
+            providerName: any;
+            handleApiResponse(response: Response, operation: string): Object;
+            validateRequiredParams(params: Object, required: any[]): void;
+            validateTokenResponse(tokens: Object): Object;
+            getProviderName(): string;
+            getProviderUrls(): Object;
+        };
     };
     /**
      * Exchange refresh token for new access token

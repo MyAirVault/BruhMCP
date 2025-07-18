@@ -1,11 +1,7 @@
 /**
- * Execute a Notion tool call
- * @param {string} toolName - Name of the tool to execute
- * @param {Object} args - Tool arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Tool execution result
+ * Notion MCP Tools Definition
+ * Defines all available tools for Notion API integration
  */
-export function executeToolCall(toolName: string, args: Object, bearerToken: string): Object;
 /**
  * Get available Notion tools for MCP protocol
  * @returns {Object} Tools data with MCP-compliant schemas

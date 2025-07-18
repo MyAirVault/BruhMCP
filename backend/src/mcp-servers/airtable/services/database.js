@@ -15,7 +15,6 @@ export async function getInstanceCredentials(instanceId) {
     SELECT 
       ms.instance_id,
       ms.user_id,
-      ms.oauth_status,
       ms.status,
       ms.expires_at,
       ms.last_used_at,
@@ -25,19 +24,14 @@ export async function getInstanceCredentials(instanceId) {
       m.display_name,
       m.type as auth_type,
       m.is_active as service_active,
-      c.api_key,
-      c.client_id,
-      c.client_secret,
-      c.access_token,
-      c.refresh_token,
-      c.token_expires_at,
-      c.oauth_completed_at
+      c.api_key
     FROM mcp_service_table ms
     JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
     LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
     WHERE ms.instance_id = $1
       AND m.mcp_service_name = 'airtable'
-      AND ms.oauth_status = 'completed'
+      AND m.type = 'api_key'
+      AND c.api_key IS NOT NULL
   `;
 
 	try {
@@ -51,7 +45,7 @@ export async function getInstanceCredentials(instanceId) {
 
 /**
  * Validate if instance is accessible
- * @param {{ service_active?: boolean, status?: string, oauth_status?: string, expires_at?: string, auth_type?: string, api_key?: string, client_id?: string, client_secret?: string, access_token?: string, refresh_token?: string, token_expires_at?: string }|null} instance - Instance data from database
+ * @param {{ service_active?: boolean, status?: string, expires_at?: string, auth_type?: string, api_key?: string }|null} instance - Instance data from database
  * @returns {{ isValid: boolean, error?: string, statusCode?: number }} Validation result with isValid boolean and error message
  */
 export function validateInstanceAccess(instance) {
@@ -69,23 +63,6 @@ export function validateInstanceAccess(instance) {
 			isValid: false,
 			error: 'Service is currently disabled',
 			statusCode: 503,
-		};
-	}
-
-	// Check OAuth status
-	if (instance.oauth_status === 'pending') {
-		return {
-			isValid: false,
-			error: 'Instance OAuth authorization is still pending',
-			statusCode: 403,
-		};
-	}
-
-	if (instance.oauth_status === 'failed') {
-		return {
-			isValid: false,
-			error: 'Instance OAuth authorization failed',
-			statusCode: 403,
 		};
 	}
 
@@ -115,8 +92,8 @@ export function validateInstanceAccess(instance) {
 		};
 	}
 
-	// Check if credentials are available (Airtable uses API key)
-	if (instance.auth_type === 'api_key' && !instance.api_key) {
+	// Airtable only supports API key authentication (PAT tokens)
+	if (!instance.api_key) {
 		return {
 			isValid: false,
 			error: 'No API key configured for this instance',
@@ -126,6 +103,7 @@ export function validateInstanceAccess(instance) {
 
 	return {
 		isValid: true,
+		statusCode: 200,
 	};
 }
 
@@ -151,14 +129,11 @@ export async function updateUsageTracking(instanceId) {
 
 /**
  * Get API key for Airtable service instance
- * @param {{ auth_type?: string, api_key?: string }} instance - Instance data from database
+ * @param {{ api_key?: string }} instance - Instance data from database
  */
 export function getApiKeyForInstance(instance) {
-	if (instance.auth_type === 'api_key') {
-		return instance.api_key;
-	}
-	// Airtable only supports API key authentication
-	throw new Error('Invalid authentication type for Airtable');
+	// Airtable only supports API key authentication (PAT tokens)
+	return instance.api_key;
 }
 
 /**

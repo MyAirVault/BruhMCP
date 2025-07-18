@@ -6,15 +6,15 @@ export function validateMessageContent(content: any): {
         timestamp?: string | undefined;
         description?: string | undefined;
         url?: string | undefined;
+        image?: {
+            url: string;
+        } | undefined;
         fields?: {
             name: string;
             value: string;
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -40,15 +40,15 @@ export function validateEmbed(embed: any): {
     timestamp?: string | undefined;
     description?: string | undefined;
     url?: string | undefined;
+    image?: {
+        url: string;
+    } | undefined;
     fields?: {
         name: string;
         value: string;
         inline: boolean;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -177,15 +177,15 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     timestamp?: string | undefined;
     description?: string | undefined;
     url?: string | undefined;
+    image?: {
+        url: string;
+    } | undefined;
     fields?: {
         name: string;
         value: string;
         inline: boolean;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -203,15 +203,15 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     timestamp?: string | undefined;
     description?: string | undefined;
     url?: string | undefined;
+    image?: {
+        url: string;
+    } | undefined;
     fields?: {
         name: string;
         value: string;
         inline?: boolean | undefined;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -229,15 +229,15 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     timestamp?: string | undefined;
     description?: string | undefined;
     url?: string | undefined;
+    image?: {
+        url: string;
+    } | undefined;
     fields?: {
         name: string;
         value: string;
         inline: boolean;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -255,15 +255,15 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     timestamp?: string | undefined;
     description?: string | undefined;
     url?: string | undefined;
+    image?: {
+        url: string;
+    } | undefined;
     fields?: {
         name: string;
         value: string;
         inline?: boolean | undefined;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -356,15 +356,15 @@ export const messageContentSchema: z.ZodObject<{
         timestamp?: string | undefined;
         description?: string | undefined;
         url?: string | undefined;
+        image?: {
+            url: string;
+        } | undefined;
         fields?: {
             name: string;
             value: string;
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -382,15 +382,15 @@ export const messageContentSchema: z.ZodObject<{
         timestamp?: string | undefined;
         description?: string | undefined;
         url?: string | undefined;
+        image?: {
+            url: string;
+        } | undefined;
         fields?: {
             name: string;
             value: string;
             inline?: boolean | undefined;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -408,15 +408,15 @@ export const messageContentSchema: z.ZodObject<{
         timestamp?: string | undefined;
         description?: string | undefined;
         url?: string | undefined;
+        image?: {
+            url: string;
+        } | undefined;
         fields?: {
             name: string;
             value: string;
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -434,15 +434,15 @@ export const messageContentSchema: z.ZodObject<{
         timestamp?: string | undefined;
         description?: string | undefined;
         url?: string | undefined;
+        image?: {
+            url: string;
+        } | undefined;
         fields?: {
             name: string;
             value: string;
             inline?: boolean | undefined;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -481,15 +481,15 @@ export const messageContentSchema: z.ZodObject<{
         timestamp?: string | undefined;
         description?: string | undefined;
         url?: string | undefined;
+        image?: {
+            url: string;
+        } | undefined;
         fields?: {
             name: string;
             value: string;
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -517,15 +517,15 @@ export const messageContentSchema: z.ZodObject<{
         timestamp?: string | undefined;
         description?: string | undefined;
         url?: string | undefined;
+        image?: {
+            url: string;
+        } | undefined;
         fields?: {
             name: string;
             value: string;
             inline?: boolean | undefined;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
