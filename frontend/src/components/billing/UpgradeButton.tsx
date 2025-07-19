@@ -33,18 +33,52 @@ export const UpgradeButton: React.FC<UpgradeButtonProps> = ({
       setIsLoading(true);
       
       // Create checkout session
-      const response = await apiService.post('/billing/checkout');
-      const { checkoutUrl } = response.data;
+      const checkoutData = await apiService.createCheckoutSession();
       
-      // Redirect to Stripe checkout
-      window.location.href = checkoutUrl;
+      // Initialize Razorpay checkout
+      const options = {
+        key: checkoutData.razorpayKeyId,
+        amount: checkoutData.amount,
+        currency: checkoutData.currency,
+        name: 'MCP Platform',
+        description: 'Pro Plan Subscription',
+        order_id: checkoutData.orderId,
+        prefill: {
+          name: checkoutData.customerName,
+          email: checkoutData.customerEmail,
+        },
+        handler: async (paymentResponse: any) => {
+          try {
+            // Handle successful payment
+            console.log('Payment successful:', paymentResponse);
+            await apiService.handleCheckoutSuccess(checkoutData.subscriptionId);
+            onSuccess?.();
+            
+            // Reload page to refresh user plan
+            window.location.reload();
+          } catch (error: any) {
+            console.error('Error handling payment success:', error);
+            onError?.('Payment successful but failed to activate plan. Please contact support.');
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsLoading(false);
+          }
+        },
+        theme: {
+          color: '#4F46E5'
+        }
+      };
+
+      // Open Razorpay checkout
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
       
-      onSuccess?.();
     } catch (error: any) {
       console.error('Error creating checkout session:', error);
       const errorMessage = error.response?.data?.error?.message || 'Failed to start checkout';
       onError?.(errorMessage);
-    } finally {
       setIsLoading(false);
     }
   };

@@ -469,9 +469,14 @@ export const apiService = {
   },
 
   createCheckoutSession: async (): Promise<{
-    sessionId: string;
-    checkoutUrl: string;
+    orderId: string;
+    subscriptionId: string;
+    amount: number;
+    currency: string;
     customerId: string;
+    razorpayKeyId: string;
+    customerEmail: string;
+    customerName: string;
   }> => {
     return makeRequest('/billing/checkout', {
       method: 'POST'
