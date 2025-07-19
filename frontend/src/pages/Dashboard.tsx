@@ -1,9 +1,11 @@
 import React, { useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import CreateMCPModal from '../components/modals/CreateMCPModal';
 import EditMCPModal from '../components/modals/EditMCPModal';
 import CopyURLModal from '../components/modals/CopyURLModal';
 import ConfirmationModal from '../components/modals/ConfirmationModal';
+import PlanLimitModal from '../components/modals/PlanLimitModal';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardEmptyState from '../components/dashboard/DashboardEmptyState';
 import DashboardContent, { type DashboardContentRef } from '../components/dashboard/DashboardContent';
@@ -16,6 +18,7 @@ import { useDropdown } from '../hooks/useDropdown';
 const Dashboard: React.FC = () => {
   const { userName, isLoading } = useAuth();
   const { openDropdown, handleDropdownToggle, closeDropdowns } = useDropdown();
+  const navigate = useNavigate();
   
   // Dashboard state management
   const {
@@ -27,6 +30,8 @@ const Dashboard: React.FC = () => {
     setCopyURLModalData,
     confirmationModal,
     setConfirmationModal,
+    planLimitModal,
+    setPlanLimitModal,
     currentSection,
     setCurrentSection,
     selectedMCPIndex,
@@ -47,6 +52,7 @@ const Dashboard: React.FC = () => {
     setEditModalData,
     setCopyURLModalData,
     setConfirmationModal,
+    setPlanLimitModal,
     setIsCreateModalOpen,
     refreshMCPList,
     editModalData,
@@ -164,6 +170,14 @@ const Dashboard: React.FC = () => {
         confirmText={confirmationModal.confirmText}
         type={confirmationModal.type}
         mcpName={confirmationModal.mcp?.name}
+      />
+
+      <PlanLimitModal
+        isOpen={planLimitModal.isOpen}
+        onClose={() => setPlanLimitModal({ isOpen: false, title: '', message: '' })}
+        onUpgrade={() => navigate('/billing/checkout')}
+        title={planLimitModal.title}
+        message={planLimitModal.message}
       />
 
     </Layout>

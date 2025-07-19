@@ -36,6 +36,12 @@ export interface ModalState {
   mcp: MCPItem | null;
 }
 
+export interface PlanLimitModalState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+}
+
 export interface DashboardCallbacks {
   onEdit: (mcp: MCPItem) => void;
   onToggleActive: (mcp: MCPItem) => void;

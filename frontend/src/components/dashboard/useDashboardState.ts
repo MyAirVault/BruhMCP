@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { type MCPItem, type MCPInstance } from '../../types';
-import { type ConfirmationModalState, type ModalState, type SectionType } from './types';
+import { type ConfirmationModalState, type ModalState, type PlanLimitModalState, type SectionType } from './types';
 import { apiService } from '../../services/apiService';
 
 export const useDashboardState = () => {
@@ -32,6 +32,13 @@ export const useDashboardState = () => {
     confirmText: '',
     mcp: null,
     onConfirm: () => { }
+  });
+
+  // Plan limit modal state
+  const [planLimitModal, setPlanLimitModal] = useState<PlanLimitModalState>({
+    isOpen: false,
+    title: '',
+    message: ''
   });
 
   // Load MCP instances on component mount
@@ -115,6 +122,8 @@ export const useDashboardState = () => {
     setCopyURLModalData,
     confirmationModal,
     setConfirmationModal,
+    planLimitModal,
+    setPlanLimitModal,
 
     // Navigation states
     currentSection,

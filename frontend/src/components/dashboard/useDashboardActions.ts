@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { type MCPItem, type MCPInstanceCreationResponse } from '../../types';
-import { type CreateMCPFormData, type EditMCPFormData, type ConfirmationModalState, type ModalState, type DashboardCallbacks } from './types';
+import { type CreateMCPFormData, type EditMCPFormData, type ConfirmationModalState, type ModalState, type PlanLimitModalState, type DashboardCallbacks } from './types';
 import { apiService } from '../../services/apiService';
 import { convertExpirationToISODate } from '../../utils/dateHelpers';
 import { broadcastInstanceStatusUpdate } from '../../hooks/useInstanceStatus';
@@ -9,6 +9,7 @@ interface DashboardActionsProps {
   setEditModalData: (data: ModalState) => void;
   setCopyURLModalData: (data: ModalState) => void;
   setConfirmationModal: (data: ConfirmationModalState) => void;
+  setPlanLimitModal: (data: PlanLimitModalState) => void;
   setIsCreateModalOpen: (isOpen: boolean) => void;
   refreshMCPList: () => Promise<void>;
   editModalData: ModalState;
@@ -18,6 +19,7 @@ export const useDashboardActions = ({
   setEditModalData,
   setCopyURLModalData,
   setConfirmationModal,
+  setPlanLimitModal,
   setIsCreateModalOpen,
   refreshMCPList,
   editModalData,
@@ -205,19 +207,17 @@ export const useDashboardActions = ({
           await apiService.toggleMCP(mcp.id, { status: 'active' });
           broadcastInstanceStatusUpdate(mcp.id);
           await refreshMCPList();
-        } catch (error: any) {
+        } catch (error) {
           console.error('Failed to toggle MCP to active:', error);
           
           // Check if it's a plan limit error
-          if (error.message?.includes('ACTIVE_LIMIT_REACHED')) {
-            // Show upgrade modal instead of just logging
-            const shouldUpgrade = window.confirm(
-              'You have reached your plan limit. Upgrade to Pro for unlimited instances. Would you like to upgrade now?'
-            );
-            
-            if (shouldUpgrade) {
-              navigate('/billing/checkout');
-            }
+          if (error instanceof Error && error.message?.includes('ACTIVE_LIMIT_REACHED')) {
+            // Show plan limit modal instead of browser alert
+            setPlanLimitModal({
+              isOpen: true,
+              title: 'Plan Limit Reached',
+              message: 'You already have 1 active instance and your free plan only supports 1 active instance at a time.'
+            });
           }
         }
       });
@@ -250,22 +250,32 @@ export const useDashboardActions = ({
         } catch (error) {
           console.error('Failed to renew MCP:', error);
           
-          // Extract meaningful error message for user display
-          let errorMessage = 'Failed to renew MCP. Please try again.';
-          if (error instanceof Error) {
-            // Check if it's an API error with a specific message
-            if (error.message.includes('INSTANCE_NOT_EXPIRED')) {
-              errorMessage = 'This MCP instance is not expired and cannot be renewed.';
-            } else if (error.message.includes('INVALID_DATE')) {
-              errorMessage = 'Invalid expiration date selected. Please try again.';
-            } else if (error.message.includes('NOT_FOUND')) {
-              errorMessage = 'MCP instance not found. It may have been deleted.';
+          // Check if it's a plan limit error
+          if (error instanceof Error && (error.message?.includes('RENEWAL_BLOCKED') || error.message?.includes('ACTIVE_LIMIT_REACHED'))) {
+            // Show plan limit modal for renewal blocked due to active instance limit
+            setPlanLimitModal({
+              isOpen: true,
+              title: 'Cannot Renew Instance',
+              message: 'You already have 1 active instance and your free plan only supports 1 active instance at a time. Please deactivate your current instance before renewing another one.'
+            });
+          } else {
+            // Extract meaningful error message for other errors
+            let errorMessage = 'Failed to renew MCP. Please try again.';
+            if (error instanceof Error) {
+              // Check if it's an API error with a specific message
+              if (error.message.includes('INSTANCE_NOT_EXPIRED')) {
+                errorMessage = 'This MCP instance is not expired and cannot be renewed.';
+              } else if (error.message.includes('INVALID_DATE')) {
+                errorMessage = 'Invalid expiration date selected. Please try again.';
+              } else if (error.message.includes('NOT_FOUND')) {
+                errorMessage = 'MCP instance not found. It may have been deleted.';
+              }
             }
+            
+            // TODO: Show error message to user via toast or modal
+            // For now, we'll log it and the console error above will help debug
+            console.error('User-friendly error:', errorMessage);
           }
-          
-          // TODO: Show error message to user via toast or modal
-          // For now, we'll log it and the console error above will help debug
-          console.error('User-friendly error:', errorMessage);
         }
       });
     },
