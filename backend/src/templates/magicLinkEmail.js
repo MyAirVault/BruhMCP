@@ -31,7 +31,7 @@ export function magicLinkEmailTemplate(magicLink, email) {
         }
         
         .email-card {
-            background: white;
+            background: #f8fafc;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -48,15 +48,7 @@ export function magicLinkEmailTemplate(magicLink, email) {
             margin: 0;
             font-size: 28px;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-        
-        .logo {
-            width: 32px;
-            height: 28px;
+            text-align: center;
         }
         
         .header p {
@@ -86,7 +78,7 @@ export function magicLinkEmailTemplate(magicLink, email) {
         
         .magic-link-button {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: black;
             color: white;
             text-decoration: none;
             padding: 16px 32px;
@@ -102,11 +94,12 @@ export function magicLinkEmailTemplate(magicLink, email) {
         }
         
         .security-notice {
-            background: #f7fafc;
+            background: white;
             border-left: 4px solid #667eea;
             padding: 16px 20px;
             margin: 30px 0;
             border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
         .security-notice p {
@@ -150,9 +143,11 @@ export function magicLinkEmailTemplate(magicLink, email) {
         .link-fallback {
             margin-top: 20px;
             padding: 16px;
-            background: #f8fafc;
+            background: white;
             border-radius: 8px;
             word-break: break-all;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
         }
         
         .link-fallback p {
@@ -195,12 +190,7 @@ export function magicLinkEmailTemplate(magicLink, email) {
     <div class="container">
         <div class="email-card">
             <div class="header">
-                <h1>
-                    <svg class="logo" viewBox="0 0 32 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16.6314 8.96042L26.7571 26.5033C27.0085 26.949 27.6485 26.9604 27.9342 26.5376L31.6828 20.7433C31.8199 20.5261 31.8314 20.2519 31.7056 20.0233L20.4828 0.62899C20.2199 0.171847 19.5571 0.171847 19.2942 0.62899L15.9914 6.32042C15.8656 6.53756 15.6371 6.66328 15.3971 6.66328H8.49421C8.24279 6.66328 8.02564 6.78899 7.89993 7.00613L0.37993 20.0576C0.254216 20.2747 0.254216 20.5261 0.37993 20.7433L4.05993 27.1433C4.18564 27.3604 4.41422 27.4861 4.65422 27.4861H19.4199C19.9456 27.4861 20.2771 26.9147 20.0142 26.4576L16.6199 20.5947C16.3571 20.1376 15.6942 20.1376 15.4314 20.5947L12.7914 25.189C12.5285 25.6461 11.8656 25.6461 11.6028 25.189L9.04279 20.7433C8.91707 20.5261 8.91707 20.2747 9.04279 20.0576L15.4314 8.97185C15.6942 8.51471 16.3571 8.51471 16.6199 8.97185L16.6314 8.96042Z" fill="#FF802C"/>
-                    </svg>
-                    bruhMCP
-                </h1>
+                <h1>😎 bruhMCP</h1>
                 <p>Your secure sign-in link is ready</p>
             </div>
             
