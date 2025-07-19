@@ -34,7 +34,7 @@ export async function getAllMCPInstances(userId, filters = {}) {
 		FROM mcp_service_table ms
 		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
 		LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
-		WHERE ms.user_id = $1 AND ms.oauth_status = 'completed' AND ms.status = 'active'
+		WHERE ms.user_id = $1 AND ms.oauth_status = 'completed'
 	`;
 
 	const params = [userId];

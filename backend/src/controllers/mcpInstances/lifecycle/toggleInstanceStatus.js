@@ -145,7 +145,19 @@ export async function toggleInstanceStatus(req, res) {
 					});
 				}
 
-				// Count current active instances with locking (excluding the instance being activated)
+				// First, lock the relevant rows to prevent race conditions
+				const lockQuery = `
+					SELECT ms.instance_id
+					FROM mcp_service_table ms
+					WHERE ms.user_id = $1 
+					  AND ms.status = 'active' 
+					  AND ms.oauth_status = 'completed'
+					  AND ms.instance_id != $2
+					FOR UPDATE
+				`;
+				await client.query(lockQuery, [userId, id]);
+				
+				// Then count the instances (without FOR UPDATE since we already have the lock)
 				const countQuery = `
 					SELECT COUNT(*) as count 
 					FROM mcp_service_table ms
@@ -153,7 +165,6 @@ export async function toggleInstanceStatus(req, res) {
 					  AND ms.status = 'active' 
 					  AND ms.oauth_status = 'completed'
 					  AND ms.instance_id != $2
-					FOR UPDATE
 				`;
 				const countResult = await client.query(countQuery, [userId, id]);
 				const currentActiveInstances = parseInt(countResult.rows[0].count);

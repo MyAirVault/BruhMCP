@@ -3,6 +3,7 @@ import { type MCPItem, type MCPInstanceCreationResponse } from '../../types';
 import { type CreateMCPFormData, type EditMCPFormData, type ConfirmationModalState, type ModalState, type DashboardCallbacks } from './types';
 import { apiService } from '../../services/apiService';
 import { convertExpirationToISODate } from '../../utils/dateHelpers';
+import { broadcastInstanceStatusUpdate } from '../../hooks/useInstanceStatus';
 
 interface DashboardActionsProps {
   setEditModalData: (data: ModalState) => void;
@@ -202,6 +203,7 @@ export const useDashboardActions = ({
       openConfirmationModal('toggle-active', mcp, async () => {
         try {
           await apiService.toggleMCP(mcp.id, { status: 'active' });
+          broadcastInstanceStatusUpdate(mcp.id);
           await refreshMCPList();
         } catch (error: any) {
           console.error('Failed to toggle MCP to active:', error);
@@ -224,6 +226,7 @@ export const useDashboardActions = ({
       openConfirmationModal('toggle-inactive', mcp, async () => {
         try {
           await apiService.toggleMCP(mcp.id, { status: 'inactive' });
+          broadcastInstanceStatusUpdate(mcp.id);
           await refreshMCPList();
         } catch (error) {
           console.error('Failed to toggle MCP to inactive:', error);

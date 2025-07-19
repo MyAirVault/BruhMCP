@@ -52,6 +52,31 @@ export const useDashboardState = () => {
     loadMCPInstances();
   }, []);
 
+  // Helper function to refresh MCP list
+  const refreshMCPList = async () => {
+    try {
+      const instances = await apiService.getMCPInstances();
+      setMCPInstances(instances);
+    } catch (error) {
+      console.error('Failed to refresh MCP list:', error);
+    }
+  };
+
+  // Listen for instance status updates
+  useEffect(() => {
+    const handleInstanceStatusUpdate = () => {
+      // Refresh the MCP list when any instance status is updated
+      refreshMCPList();
+    };
+
+    // Listen for custom events (within same tab)
+    window.addEventListener('instanceStatusUpdate', handleInstanceStatusUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('instanceStatusUpdate', handleInstanceStatusUpdate as EventListener);
+    };
+  }, []);
+
   // Convert MCPInstance to MCPItem format (for backward compatibility)
   const convertToMCPItem = (instance: MCPInstance): MCPItem => ({
     id: instance.id,
@@ -76,16 +101,6 @@ export const useDashboardState = () => {
   const expiredMCPs = mcpInstances
     .filter(instance => instance.status === 'expired')
     .map(convertToMCPItem);
-
-  // Helper function to refresh MCP list
-  const refreshMCPList = async () => {
-    try {
-      const instances = await apiService.getMCPInstances();
-      setMCPInstances(instances);
-    } catch (error) {
-      console.error('Failed to refresh MCP list:', error);
-    }
-  };
 
   // Check if user has any MCPs
   const hasAnyMCPs = mcpInstances.length > 0;

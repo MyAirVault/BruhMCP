@@ -8,7 +8,7 @@ import { config } from 'dotenv';
 
 config();
 
-const MCP_URL = 'https://mcpglobal.duckdns.org/airtable/6459926c-86e0-4bba-a506-e6f347361b09';
+const MCP_URL = 'https://app.bruhmcp.com/airtable/6459926c-86e0-4bba-a506-e6f347361b09';
 const SESSION_ID = 'test-session-' + Date.now();
 
 // Test configuration - you'll need to update these with actual IDs from your Airtable
