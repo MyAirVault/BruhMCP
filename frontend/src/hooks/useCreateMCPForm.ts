@@ -8,13 +8,14 @@ interface UseCreateMCPFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateMCPFormData) => Promise<MCPInstanceCreationResponse>;
+  onPlanLimitReached?: (title: string, message: string) => void;
 }
 
 /**
  * Custom hook to manage CreateMCP form state and validation
  * Handles form data, validation state, and submission logic
  */
-export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPFormProps) => {
+export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached }: UseCreateMCPFormProps) => {
   const [formData, setFormData] = useState<CreateMCPFormData>({
     name: '',
     type: '',
@@ -88,6 +89,13 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
             planType: planData.plan.type,
             message: planData.message
           });
+
+          // If user cannot create instances due to plan limits, trigger the plan limit modal
+          if (!planData.canCreate && onPlanLimitReached) {
+            onPlanLimitReached('Plan Limit Reached', planData.message);
+            // Close the create modal since we're showing the plan limit modal
+            onClose();
+          }
         } catch (error) {
           console.error('Failed to load plan limits:', error);
           // Set conservative limits if failed to load
@@ -98,12 +106,18 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
             planType: 'free',
             message: 'Unable to verify plan limits'
           });
+
+          // Also trigger plan limit modal for failed plan verification
+          if (onPlanLimitReached) {
+            onPlanLimitReached('Plan Verification Failed', 'Unable to verify plan limits. Please try again or contact support.');
+            onClose();
+          }
         }
       };
 
       loadPlanLimits();
     }
-  }, [isOpen]);
+  }, [isOpen, onPlanLimitReached, onClose]);
 
   // Reset form state when modal opens
   useEffect(() => {

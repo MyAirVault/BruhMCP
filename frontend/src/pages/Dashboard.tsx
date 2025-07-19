@@ -146,6 +146,13 @@ const Dashboard: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateMCP}
+        onPlanLimitReached={(title, message) => {
+          setPlanLimitModal({
+            isOpen: true,
+            title,
+            message
+          });
+        }}
       />
 
       <EditMCPModal

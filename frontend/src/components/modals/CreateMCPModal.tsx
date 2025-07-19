@@ -7,9 +7,8 @@ import FormField from '../ui/form/FormField';
 import TypeDropdown from '../ui/form/TypeDropdown';
 import ExpirationDropdown from '../ui/form/ExpirationDropdown';
 import CredentialFields from '../ui/form/CredentialFields';
-import { UpgradeCTA } from '../billing/UpgradeButton';
 
-const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit }) => {
+const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit, onPlanLimitReached }) => {
   const {
     formData,
     mcpTypes,
@@ -26,7 +25,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     isFormValid,
     retryValidation,
     isOAuthService
-  } = useCreateMCPForm({ isOpen, onClose, onSubmit });
+  } = useCreateMCPForm({ isOpen, onClose, onSubmit, onPlanLimitReached });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [typeSearchQuery, setTypeSearchQuery] = useState('');
@@ -163,22 +162,6 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               onRetryValidation={retryValidation}
             />
 
-            {/* Plan Limit Error - Show upgrade CTA */}
-            {planLimits && !planLimits.canCreate && (
-              <UpgradeCTA
-                title="Plan Limit Reached"
-                description={planLimits.message}
-                showFeatures={false}
-                onSuccess={() => {
-                  // Close modal after successful upgrade
-                  onClose();
-                }}
-                onError={(error) => {
-                  console.error('Upgrade error:', error);
-                }}
-                className="mt-4"
-              />
-            )}
 
             {oAuthError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
