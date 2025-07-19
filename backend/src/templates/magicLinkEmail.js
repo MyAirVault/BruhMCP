@@ -78,15 +78,16 @@ export function magicLinkEmailTemplate(magicLink, email) {
         
         .magic-link-button {
             display: inline-block;
-            background: black;
-            color: white;
-            text-decoration: none;
+            background: black !important;
+            color: white !important;
+            text-decoration: none !important;
             padding: 16px 32px;
             border-radius: 8px;
             font-weight: 600;
             font-size: 16px;
             margin: 20px 0;
             transition: transform 0.2s ease;
+            border: none;
         }
         
         .magic-link-button:hover {
@@ -199,7 +200,7 @@ export function magicLinkEmailTemplate(magicLink, email) {
                 <p>Click the button below to securely sign in to your BruhMCP account:</p>
                 
                 <a href="${magicLink}" class="magic-link-button">
-                    Sign In to BruhMCP
+                    Sign In to bruhMCP
                 </a>
                 
                 <div class="security-notice">
