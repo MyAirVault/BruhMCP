@@ -69,6 +69,15 @@ function getHandlerSession(instanceId) {
  * @returns {Promise<Object>} Handler session object
  */
 async function getOrCreateHandlerSession(instanceId, oauth) {
+	// Validate oauth object before creating session
+	if (!oauth || typeof oauth !== 'object') {
+		throw new Error(`Invalid OAuth configuration for instance ${instanceId}: oauth object is required`);
+	}
+	
+	if (!oauth.bearerToken) {
+		throw new Error(`Invalid OAuth configuration for instance ${instanceId}: bearerToken is required`);
+	}
+	
 	let session = getHandlerSession(instanceId);
 	
 	if (!session) {

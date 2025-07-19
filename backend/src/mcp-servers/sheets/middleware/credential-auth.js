@@ -103,10 +103,23 @@ function createCredentialAuthMiddleware() {
         });
       }
 
+      // Re-check cache after database lookup in case it was populated during lookup
+      cachedCredential = getCachedCredential(instanceId);
+      
       // Check if we have cached tokens or database tokens that need refreshing
       const refreshToken = cachedCredential?.refreshToken || instance.refresh_token;
       const accessToken = cachedCredential?.bearerToken || instance.access_token;
       const tokenExpiresAt = cachedCredential?.expiresAt || (instance.token_expires_at ? new Date(instance.token_expires_at).getTime() : null);
+
+      // Add null check for token expiration calculations
+      if (tokenExpiresAt === null || isNaN(tokenExpiresAt)) {
+        console.warn(`⚠️ Invalid token expiration for instance ${instanceId}, requiring re-authentication`);
+        return res.status(401).json({
+          error: 'INVALID_TOKEN_EXPIRATION',
+          message: 'Token expiration data is invalid, please re-authenticate',
+          instanceId
+        });
+      }
 
       // If we have an access token that's still valid, use it
       if (accessToken && tokenExpiresAt && tokenExpiresAt > Date.now()) {

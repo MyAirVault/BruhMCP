@@ -301,7 +301,6 @@ async function syncCacheWithDatabase(instanceId, options = {}) {
 	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
-		const { getMCPInstanceById } = require('../../../db/queries/mcpInstancesQueries');
 		const { lookupInstanceCredentials } = require('./database');
 		
 		// Get current cache state
@@ -334,9 +333,15 @@ async function syncCacheWithDatabase(instanceId, options = {}) {
 			
 			// Update cache with database data
 			if (dbInstance.access_token && dbInstance.refresh_token) {
-				const tokenExpiresAt = dbInstance.token_expires_at ? 
-					new Date(dbInstance.token_expires_at).getTime() : 
-					Date.now() + (3600 * 1000); // Default 1 hour
+				let tokenExpiresAt;
+				if (dbInstance.token_expires_at) {
+					const expirationDate = new Date(dbInstance.token_expires_at);
+					tokenExpiresAt = isNaN(expirationDate.getTime()) ? 
+						Date.now() + (3600 * 1000) : // Default 1 hour if invalid date
+						expirationDate.getTime();
+				} else {
+					tokenExpiresAt = Date.now() + (3600 * 1000); // Default 1 hour
+				}
 				
 				setCachedCredential(instanceId, {
 					bearerToken: dbInstance.access_token,

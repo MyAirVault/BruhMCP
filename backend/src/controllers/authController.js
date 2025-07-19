@@ -1,6 +1,7 @@
 // @ts-check
 import { z } from 'zod';
 import { authService } from '../services/authService.js';
+import { emailService } from '../services/emailService.js';
 import { ErrorResponses, formatZodErrors } from '../utils/errorResponse.js';
 
 /**
@@ -51,16 +52,27 @@ export async function requestToken(req, res) {
 			return ErrorResponses.internal(res, 'Failed to generate authentication token');
 		}
 
-		// Log magic link to console
-		const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-		const magicLink = `${frontendUrl}/verify?token=${result.token}`;
-		console.log(`\n🔗 Magic link for ${email}: ${magicLink}\n`);
+		// Send magic link via email
+		const emailResult = await emailService.sendMagicLink(email, result.token);
+
+		// Log magic link to console in development mode
+		if (process.env.NODE_ENV !== 'production') {
+			const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+			const magicLink = `${frontendUrl}/verify?token=${result.token}`;
+			console.log(`\n🔗 Magic link for ${email}: ${magicLink}\n`);
+		}
+
+		// Check if email was sent successfully
+		if (!emailResult.success) {
+			console.error('Failed to send magic link email:', emailResult.error);
+			return ErrorResponses.internal(res, 'Failed to send magic link email');
+		}
 
 		// Return success response
 		/** @type {any} */
 		const response = {
 			success: true,
-			message: 'Magic link generated. Check console for link.',
+			message: 'Magic link sent to your email address.',
 			email: email,
 		};
 

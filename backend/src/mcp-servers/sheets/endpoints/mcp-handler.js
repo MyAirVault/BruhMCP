@@ -348,8 +348,15 @@ class SheetsMCPHandler {
       
       // Create or get transport for this session
       if (!this.transports[sessionId]) {
-        this.transports[sessionId] = new StreamableHTTPServerTransport();
-        await this.transports[sessionId].start();
+        try {
+          this.transports[sessionId] = new StreamableHTTPServerTransport();
+          await this.transports[sessionId].start();
+          console.log(`✅ Created new MCP transport for session: ${sessionId}`);
+        } catch (transportError) {
+          console.error(`❌ Failed to create MCP transport for session ${sessionId}:`, transportError);
+          delete this.transports[sessionId];
+          throw new Error(`Transport creation failed: ${transportError.message}`);
+        }
       }
 
       const transport = this.transports[sessionId];

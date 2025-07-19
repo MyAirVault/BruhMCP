@@ -25,6 +25,7 @@ async function lookupInstanceCredentials(instanceId, serviceName) {
         ms.usage_count,
         ms.custom_name,
         ms.last_used_at,
+        ms.credentials_updated_at,
         m.mcp_service_name,
         m.display_name,
         m.type as auth_type,
