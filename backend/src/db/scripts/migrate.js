@@ -10,6 +10,8 @@ const migrations = [
 	'002_separate_credentials_table.sql',
 	'003_token_audit_log.sql',
 	'004_add_optimistic_locking.sql',
+	'005_add_user_plans.sql',
+	'006_add_total_instances_created.sql',
 ];
 
 async function loadMCPServiceRegistrations() {

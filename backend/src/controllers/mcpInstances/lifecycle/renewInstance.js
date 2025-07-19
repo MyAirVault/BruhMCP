@@ -1,4 +1,5 @@
 import { getMCPInstanceById } from '../../../db/queries/mcpInstancesQueries.js';
+import { checkInstanceLimit } from '../../../utils/planLimits.js';
 import { pool } from '../../../db/config.js';
 
 /** @typedef {import('express').Request} Request */
@@ -102,6 +103,54 @@ export async function renewInstance(req, res) {
 					expires_at: instance.expires_at,
 				},
 			});
+		}
+
+		// Check plan limits before allowing renewal (for free plan users)
+		const limitCheck = await checkInstanceLimit(userId);
+		
+		// Special case: If user is at their limit but this is a renewal of an expired instance,
+		// we need to allow it since the expired instance doesn't count toward the active limit
+		if (!limitCheck.canCreate && limitCheck.reason === 'LIMIT_REACHED') {
+			// For renewal, we temporarily don't count this expired instance toward the limit
+			// The database logic should handle this correctly since expired instances 
+			// shouldn't count toward active_instances_count
+			console.log(`ℹ️ Allowing renewal of expired instance ${id} for user ${userId} (${limitCheck.details.plan} plan)`);
+		} else if (!limitCheck.canCreate) {
+			// Other limit check failures (no plan, expired plan, etc.)
+			const errorDetails = {
+				userId,
+				instanceId: id,
+				reason: limitCheck.reason,
+				plan: limitCheck.details.plan,
+				metadata: limitCheck.details
+			};
+
+			switch (limitCheck.reason) {
+				case 'NO_PLAN':
+					return res.status(403).json({
+						error: {
+							code: 'NO_PLAN',
+							message: 'No subscription plan found. Please contact support.',
+							details: errorDetails
+						}
+					});
+				case 'PLAN_EXPIRED':
+					return res.status(403).json({
+						error: {
+							code: 'PLAN_EXPIRED',
+							message: 'Your subscription plan has expired. Please renew to continue.',
+							details: errorDetails
+						}
+					});
+				default:
+					return res.status(403).json({
+						error: {
+							code: 'RENEWAL_BLOCKED',
+							message: limitCheck.message,
+							details: errorDetails
+						}
+					});
+			}
 		}
 
 		const oldStatus = instance.status;

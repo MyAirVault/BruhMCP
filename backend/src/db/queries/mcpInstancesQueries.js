@@ -4,6 +4,7 @@
  */
 
 import { pool } from '../config.js';
+import { incrementTotalInstancesCreated } from './userPlansQueries.js';
 
 /**
  * Get all MCP instances for a user
@@ -386,17 +387,17 @@ export async function bulkMarkInstancesExpired(instanceIds) {
 }
 
 /**
- * Get user instance count by status
+ * Get user instance count by status (only counts completed OAuth instances)
  * @param {string} userId - User ID
- * @param {string} [status] - Optional status filter (if not provided, counts non-deleted instances)
- * @returns {Promise<number>} Number of instances
+ * @param {string} [status] - Optional status filter (if not provided, counts active instances only)
+ * @returns {Promise<number>} Number of instances with completed OAuth
  */
 export async function getUserInstanceCount(userId, status = null) {
 	let query = `
 		SELECT COUNT(*) as count 
 		FROM mcp_service_table ms
 		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
-		WHERE ms.user_id = $1
+		WHERE ms.user_id = $1 AND ms.oauth_status = 'completed'
 	`;
 	const params = [userId];
 
@@ -404,8 +405,9 @@ export async function getUserInstanceCount(userId, status = null) {
 		query += ' AND ms.status = $2';
 		params.push(status);
 	} else {
-		query += ' AND ms.status != $2';
-		params.push('deleted');
+		// Default: only count active instances with completed OAuth for plan limit checking
+		query += ' AND ms.status = $2';
+		params.push('active');
 	}
 
 	const result = await pool.query(query, params);
@@ -478,6 +480,17 @@ export async function createMCPInstance(instanceData) {
 		];
 
 		await client.query(credentialsQuery, credentialsParams);
+
+		// For API key services, increment total instances created immediately since OAuth is completed
+		if (serviceType === 'api_key' && apiKey) {
+			try {
+				const newTotalCount = await incrementTotalInstancesCreated(userId);
+				console.log(`📊 User ${userId} total instances created (API key): ${newTotalCount}`);
+			} catch (incrementError) {
+				console.error('❌ Failed to increment total instances created for API key service:', incrementError);
+				// Don't fail the instance creation if counter increment fails
+			}
+		}
 
 		await client.query('COMMIT');
 		return createdInstance;

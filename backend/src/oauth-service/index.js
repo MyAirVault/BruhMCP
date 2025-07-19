@@ -11,7 +11,8 @@ import { tokenExchange } from './core/token-exchange.js';
 import { validateCredentialFormat } from './utils/validation.js';
 import { ErrorResponses } from '../utils/errorResponse.js';
 import { pool } from '../db/config.js';
-import { updateOAuthStatus } from '../db/queries/mcpInstancesQueries.js';
+import { updateOAuthStatus, getMCPInstanceById } from '../db/queries/mcpInstancesQueries.js';
+import { incrementTotalInstancesCreated } from '../db/queries/userPlansQueries.js';
 
 const app = express();
 
@@ -187,6 +188,18 @@ app.get('/oauth/callback/:provider', async (req, res) => {
       tokenExpiresAt: tokens.expires_at ? new Date(tokens.expires_at) : null,
       scope: tokens.scope
     });
+
+    // Increment total instances created count for user (successful OAuth completion)
+    try {
+      const instance = await getMCPInstanceById(instance_id);
+      if (instance && instance.user_id) {
+        const newTotalCount = await incrementTotalInstancesCreated(instance.user_id);
+        console.log(`📊 User ${instance.user_id} total instances created: ${newTotalCount}`);
+      }
+    } catch (incrementError) {
+      console.error('❌ Failed to increment total instances created:', incrementError);
+      // Don't fail the OAuth flow if counter increment fails
+    }
 
     // Instead of redirecting, send HTML that communicates with parent window
     return res.send(`

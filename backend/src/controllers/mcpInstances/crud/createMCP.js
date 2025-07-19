@@ -8,6 +8,7 @@ import { createMCPSchema } from '../schemas.js';
 import { calculateExpirationDate } from '../utils.js';
 import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
 import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats, updateOAuthStatus } from '../../../db/queries/mcpInstancesQueries.js';
+import { checkInstanceLimit } from '../../../utils/planLimits.js';
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
@@ -38,18 +39,31 @@ export async function createMCP(req, res) {
 
 		const { mcp_type, custom_name, expiration_option, credentials } = validationResult.data;
 
-		// Check user instance limits
-		const currentInstances = await getUserInstanceCount(userId);
-		const maxInstances = Number(process.env.MCP_MAX_INSTANCES) || 10;
-
-		if (currentInstances >= maxInstances) {
-			return ErrorResponses.forbidden(res, `Maximum instances per user reached (${maxInstances})`, {
+		// Check user plan-based instance limits
+		const limitCheck = await checkInstanceLimit(userId);
+		
+		if (!limitCheck.canCreate) {
+			const errorDetails = {
 				userId,
-				metadata: {
-					current: currentInstances,
-					maximum: maxInstances
-				}
-			});
+				reason: limitCheck.reason,
+				plan: limitCheck.details.plan,
+				metadata: limitCheck.details
+			};
+
+			switch (limitCheck.reason) {
+				case 'NO_PLAN':
+					return ErrorResponses.forbidden(res, 'No subscription plan found. Please contact support.', errorDetails);
+				case 'PLAN_EXPIRED':
+					return ErrorResponses.forbidden(res, 'Your subscription plan has expired. Please renew to continue.', errorDetails);
+				case 'LIMIT_REACHED':
+				case 'LIFETIME_LIMIT_REACHED':
+					return ErrorResponses.forbidden(res, limitCheck.message, {
+						...errorDetails,
+						upgradeMessage: 'Upgrade to Pro plan for unlimited instances'
+					});
+				default:
+					return ErrorResponses.forbidden(res, limitCheck.message, errorDetails);
+			}
 		}
 
 		// Get MCP service definition
