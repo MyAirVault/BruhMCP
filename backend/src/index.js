@@ -47,11 +47,18 @@ app.use(helmet({
 	contentSecurityPolicy: {
 		directives: {
 			defaultSrc: ["'self'"],
-			scriptSrc: ["'self'", "https://checkout.razorpay.com"],
-			styleSrc: ["'self'", "'unsafe-inline'"],
-			imgSrc: ["'self'", "data:", "https:"],
-			connectSrc: ["'self'", "https://api.razorpay.com"],
-			frameSrc: ["'self'", "https://api.razorpay.com"],
+			scriptSrc: ["'self'", "https://checkout.razorpay.com", "'unsafe-inline'"],
+			styleSrc: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com"],
+			imgSrc: ["'self'", "data:", "https:", "https://checkout.razorpay.com"],
+			connectSrc: [
+				"'self'", 
+				"https://api.razorpay.com",
+				"https://checkout.razorpay.com",
+				"https://lumberjack.razorpay.com",
+				"https://*.razorpay.com"
+			],
+			frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
+			fontSrc: ["'self'", "https://checkout.razorpay.com"],
 		},
 	},
 }));
