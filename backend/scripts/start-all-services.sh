@@ -60,6 +60,7 @@ echo ""
 echo "🛑 Stopping existing MCP services..."
 pm2 delete mcp-figma 2>/dev/null || true
 pm2 delete mcp-gmail 2>/dev/null || true
+pm2 delete mcp-sheets 2>/dev/null || true
 pm2 delete mcp-airtable 2>/dev/null || true
 pm2 delete mcp-dropbox 2>/dev/null || true
 pm2 delete mcp-googledrive 2>/dev/null || true
@@ -76,6 +77,7 @@ echo "🏁 Starting MCP services..."
 # Start individual services with PM2
 start_service "figma" "$MCP_SERVERS_ROOT/figma" "49280"
 start_service "gmail" "$MCP_SERVERS_ROOT/gmail" "49296"
+start_service "sheets" "$MCP_SERVERS_ROOT/sheets" "49307"
 start_service "airtable" "$MCP_SERVERS_ROOT/airtable" "49171"
 start_service "dropbox" "$MCP_SERVERS_ROOT/dropbox" "49264"
 start_service "googledrive" "$MCP_SERVERS_ROOT/googledrive" "49303"
@@ -125,6 +127,7 @@ check_service_health() {
 # Check each service
 check_service_health "figma" "49280"
 check_service_health "gmail" "49296"
+check_service_health "sheets" "49307"
 check_service_health "airtable" "49171"
 check_service_health "dropbox" "49264"
 check_service_health "googledrive" "49303"
@@ -142,6 +145,7 @@ echo "📊 Service Status:"
 echo "Available services:"
 echo "  📐 Figma: http://localhost:49280/health"
 echo "  📧 Gmail: http://localhost:49296/health"
+echo "  📊 Google Sheets: http://localhost:49307/health"
 echo "  📋 Airtable: http://localhost:49171/health"
 echo "  📦 Dropbox: http://localhost:49264/health"
 echo "  🗂️ Google Drive: http://localhost:49303/health"
@@ -163,7 +167,7 @@ pm2 save
 echo ""
 echo "📝 Service Logs:"
 echo "  View all logs: pm2 logs"
-echo "  Individual logs: pm2 logs mcp-figma | pm2 logs mcp-gmail | pm2 logs mcp-airtable | pm2 logs mcp-dropbox | pm2 logs mcp-googledrive | pm2 logs mcp-reddit | pm2 logs mcp-todoist | pm2 logs mcp-github | pm2 logs mcp-notion | pm2 logs mcp-slack | pm2 logs mcp-discord"
+echo "  Individual logs: pm2 logs mcp-figma | pm2 logs mcp-gmail | pm2 logs mcp-sheets | pm2 logs mcp-airtable | pm2 logs mcp-dropbox | pm2 logs mcp-googledrive | pm2 logs mcp-reddit | pm2 logs mcp-todoist | pm2 logs mcp-github | pm2 logs mcp-notion | pm2 logs mcp-slack | pm2 logs mcp-discord"
 echo "  Real-time logs: pm2 monit"
 
 echo ""

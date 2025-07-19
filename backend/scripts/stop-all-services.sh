@@ -42,6 +42,7 @@ echo "🏁 Stopping MCP services..."
 # Stop individual services
 stop_service "figma"
 stop_service "gmail"
+stop_service "sheets"
 stop_service "airtable"
 stop_service "dropbox"
 stop_service "googledrive"
