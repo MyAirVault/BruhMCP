@@ -11,24 +11,25 @@ const migrations = [
 	'003_token_audit_log.sql',
 	'004_add_optimistic_locking.sql',
 	'005_add_user_plans_with_active_limits.sql',
+	'006_add_billing_fields.sql',
 ];
 
 async function loadMCPServiceRegistrations() {
 	const mcpServicesPath = join(__dirname, '..', '..', 'mcp-servers');
 	const services = [];
-	
+
 	try {
 		const serviceDirectories = readdirSync(mcpServicesPath);
-		
+
 		for (const serviceDir of serviceDirectories) {
 			const servicePath = join(mcpServicesPath, serviceDir);
 			const dbPath = join(servicePath, 'db', 'service.sql');
-			
+
 			try {
 				const sql = readFileSync(dbPath, 'utf8');
 				services.push({
 					name: serviceDir,
-					sql: sql
+					sql: sql,
 				});
 			} catch (error) {
 				// Skip if service.sql doesn't exist
@@ -39,7 +40,7 @@ async function loadMCPServiceRegistrations() {
 		console.error('❌ Error loading MCP services:', error);
 		throw error;
 	}
-	
+
 	return services;
 }
 
@@ -60,7 +61,7 @@ async function runMigrations() {
 		// Load and run MCP service registrations
 		console.log('🔄 Loading MCP service registrations...');
 		const services = await loadMCPServiceRegistrations();
-		
+
 		for (const service of services) {
 			console.log(`📄 Registering MCP service: ${service.name}`);
 			await pool.query(service.sql);
