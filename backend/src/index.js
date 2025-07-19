@@ -43,7 +43,18 @@ const port = process.env.PORT || 5000;
 app.set('trust proxy', true);
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+	contentSecurityPolicy: {
+		directives: {
+			defaultSrc: ["'self'"],
+			scriptSrc: ["'self'", "https://checkout.razorpay.com"],
+			styleSrc: ["'self'", "'unsafe-inline'"],
+			imgSrc: ["'self'", "data:", "https:"],
+			connectSrc: ["'self'", "https://api.razorpay.com"],
+			frameSrc: ["'self'", "https://api.razorpay.com"],
+		},
+	},
+}));
 app.use(
 	cors({
 		origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
