@@ -408,5 +408,47 @@ export const apiService = {
     return filteredLogs;
   },
 
+  // User Plan
+  getUserPlan: async (): Promise<{
+    userId: string;
+    plan: {
+      type: string;
+      maxInstances: number | null;
+      features: any;
+      expiresAt: string | null;
+      createdAt: string;
+    };
+    isActive: boolean;
+    activeInstances: number;
+    maxInstances: number | null;
+    canCreate: boolean;
+    message: string;
+    usage: {
+      used: number;
+      limit: number | string;
+      remaining: number | string;
+    };
+  }> => {
+    return makeRequest<{
+      userId: string;
+      plan: {
+        type: string;
+        maxInstances: number | null;
+        features: any;
+        expiresAt: string | null;
+        createdAt: string;
+      };
+      isActive: boolean;
+      activeInstances: number;
+      maxInstances: number | null;
+      canCreate: boolean;
+      message: string;
+      usage: {
+        used: number;
+        limit: number | string;
+        remaining: number | string;
+      };
+    }>('/auth/plan');
+  },
 
 };

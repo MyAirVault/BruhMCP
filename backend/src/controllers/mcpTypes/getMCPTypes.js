@@ -24,7 +24,6 @@ export async function getMCPTypes(req, res) {
 			port: type.port,
 			type: type.type,
 			is_active: type.is_active,
-			total_instances_created: type.total_instances_created,
 			active_instances_count: type.active_instances_count,
 			created_at: type.created_at,
 			updated_at: type.updated_at
@@ -73,7 +72,6 @@ export async function getMCPTypes(req, res) {
 				port: mcpType.port,
 				type: mcpType.type,
 				is_active: mcpType.is_active,
-				total_instances_created: mcpType.total_instances_created,
 				active_instances_count: mcpType.active_instances_count,
 				required_fields: requiredFields,
 				created_at: mcpType.created_at,

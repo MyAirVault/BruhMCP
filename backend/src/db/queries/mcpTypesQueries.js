@@ -21,7 +21,6 @@ export async function getAllMCPTypes(activeOnly = false) {
 			port,
 			type,
 			is_active,
-			total_instances_created,
 			active_instances_count,
 			created_at,
 			updated_at
@@ -57,7 +56,6 @@ export async function getMCPTypeByName(serviceName) {
 			port,
 			type,
 			is_active,
-			total_instances_created,
 			active_instances_count,
 			created_at,
 			updated_at
@@ -85,7 +83,6 @@ export async function getMCPTypeById(serviceId) {
 			port,
 			type,
 			is_active,
-			total_instances_created,
 			active_instances_count,
 			created_at,
 			updated_at
@@ -107,12 +104,6 @@ export async function updateMCPTypeStats(serviceId, stats) {
 	const setClauses = [];
 	const params = [];
 	let paramIndex = 1;
-	
-	if (stats.total_instances_created !== undefined) {
-		setClauses.push(`total_instances_created = $${paramIndex}`);
-		params.push(stats.total_instances_created);
-		paramIndex++;
-	}
 	
 	if (stats.active_instances_count !== undefined) {
 		setClauses.push(`active_instances_count = $${paramIndex}`);

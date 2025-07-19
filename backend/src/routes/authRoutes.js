@@ -1,6 +1,6 @@
 // @ts-check
 import { Router } from 'express';
-import { requestToken, verifyToken, getCurrentUser, logout } from '../controllers/authController.js';
+import { requestToken, verifyToken, getCurrentUser, getUserPlan, logout } from '../controllers/authController.js';
 import { authRateLimiter } from '../utils/rateLimiter.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 
@@ -96,6 +96,41 @@ router.post('/verify', authRateLimiter, verifyToken);
  *         description: Not authenticated
  */
 router.get('/me', authenticate, getCurrentUser);
+
+/**
+ * @swagger
+ * /auth/plan:
+ *   get:
+ *     summary: Get current user's plan information
+ *     description: Returns current authenticated user's plan details and usage
+ *     tags: [Authentication]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Plan information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     plan:
+ *                       type: object
+ *                     activeInstances:
+ *                       type: number
+ *                     maxInstances:
+ *                       type: number
+ *                     canCreate:
+ *                       type: boolean
+ *       401:
+ *         description: Not authenticated
+ */
+router.get('/plan', authenticate, getUserPlan);
 
 /**
  * @swagger

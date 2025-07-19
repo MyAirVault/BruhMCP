@@ -4,13 +4,11 @@
  */
 
 import { pool } from '../config.js';
-import { incrementTotalInstancesCreated } from './userPlansQueries.js';
 
 /**
  * Get all MCP instances for a user
  * @param {string} userId - User ID
  * @param {Object} filters - Optional filters
- * @returns {Promise<Array>} Array of MCP instance records
  */
 export async function getAllMCPInstances(userId, filters = {}) {
 	let query = `
@@ -36,7 +34,7 @@ export async function getAllMCPInstances(userId, filters = {}) {
 		FROM mcp_service_table ms
 		JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
 		LEFT JOIN mcp_credentials c ON ms.instance_id = c.instance_id
-		WHERE ms.user_id = $1 AND ms.oauth_status = 'completed'
+		WHERE ms.user_id = $1 AND ms.oauth_status = 'completed' AND ms.status = 'active'
 	`;
 
 	const params = [userId];
@@ -435,6 +433,111 @@ export async function createMCPInstance(instanceData) {
 
 		// Set oauth_status based on service type and credentials
 		// For API key services, only mark as completed if we have an API key
+		const oauthStatus = serviceType === 'oauth' ? 'pending' : apiKey ? 'completed' : 'pending';
+
+		// Create MCP instance
+		const instanceQuery = `
+			INSERT INTO mcp_service_table (
+				user_id,
+				mcp_service_id,
+				custom_name,
+				status,
+				oauth_status,
+				expires_at,
+				credentials_updated_at
+			) VALUES ($1, $2, $3, 'active', $4, $5, NOW())
+			RETURNING *
+		`;
+
+		const instanceParams = [userId, mcpServiceId, customName, oauthStatus, expiresAt];
+		const instanceResult = await client.query(instanceQuery, instanceParams);
+		const createdInstance = instanceResult.rows[0];
+
+		// Create credentials record
+		const credentialsQuery = `
+			INSERT INTO mcp_credentials (
+				instance_id,
+				api_key,
+				client_id,
+				client_secret,
+				oauth_status,
+				oauth_completed_at
+			) VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING *
+		`;
+
+		// Only set oauth_completed_at for API key services when we actually have an API key
+		const oauthCompletedAt = serviceType === 'api_key' && apiKey ? new Date() : null;
+		const credentialsParams = [
+			createdInstance.instance_id,
+			apiKey,
+			clientId,
+			clientSecret,
+			oauthStatus,
+			oauthCompletedAt,
+		];
+
+		await client.query(credentialsQuery, credentialsParams);
+
+		console.log(`✅ MCP instance created successfully: ${createdInstance.instance_id} (${serviceType})`);
+
+		await client.query('COMMIT');
+		return createdInstance;
+	} catch (error) {
+		await client.query('ROLLBACK');
+		throw error;
+	} finally {
+		client.release();
+	}
+}
+
+/**
+ * Create MCP instance with atomic plan limit checking
+ * @param {Object} instanceData - Instance data
+ * @param {string} instanceData.userId - User ID
+ * @param {string} instanceData.mcpServiceId - MCP service ID
+ * @param {string} instanceData.customName - Custom instance name
+ * @param {string} [instanceData.apiKey] - API key for api_key type services
+ * @param {string} [instanceData.clientId] - Client ID for oauth type services
+ * @param {string} [instanceData.clientSecret] - Client secret for oauth type services
+ * @param {Date} [instanceData.expiresAt] - Expiration date
+ * @param {string} instanceData.serviceType - Service type ('api_key' or 'oauth')
+ * @param {number|null} maxInstances - Maximum allowed active instances (null = unlimited)
+ * @returns {Promise<Object>} Created instance record or error
+ */
+export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances) {
+	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
+
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+
+		// Check current active instance count with row-level locking to prevent race conditions
+		// Note: We count instances that are both 'active' status AND have 'completed' oauth_status
+		// This ensures consistency with getUserInstanceCount() function
+		const countQuery = `
+			SELECT COUNT(*) as count 
+			FROM mcp_service_table ms
+			JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
+			WHERE ms.user_id = $1 AND ms.status = 'active' AND ms.oauth_status = 'completed'
+			FOR UPDATE
+		`;
+		const countResult = await client.query(countQuery, [userId]);
+		const currentActiveInstances = parseInt(countResult.rows[0].count);
+
+		// Check plan limit (null means unlimited for pro plans)
+		if (maxInstances !== null && currentActiveInstances >= maxInstances) {
+			await client.query('ROLLBACK');
+			return {
+				success: false,
+				reason: 'ACTIVE_LIMIT_REACHED',
+				message: `You have reached your plan limit of ${maxInstances} active instance${maxInstances > 1 ? 's' : ''}. Deactivate or delete an existing instance to create a new one.`,
+				currentCount: currentActiveInstances,
+				maxInstances
+			};
+		}
+
+		// Set oauth_status based on service type and credentials
 		const oauthStatus = serviceType === 'oauth' ? 'pending' : (apiKey ? 'completed' : 'pending');
 
 		// Create MCP instance
@@ -481,22 +584,22 @@ export async function createMCPInstance(instanceData) {
 
 		await client.query(credentialsQuery, credentialsParams);
 
-		// For API key services, increment total instances created immediately since OAuth is completed
-		if (serviceType === 'api_key' && apiKey) {
-			try {
-				const newTotalCount = await incrementTotalInstancesCreated(userId);
-				console.log(`📊 User ${userId} total instances created (API key): ${newTotalCount}`);
-			} catch (incrementError) {
-				console.error('❌ Failed to increment total instances created for API key service:', incrementError);
-				// Don't fail the instance creation if counter increment fails
-			}
-		}
+		console.log(`✅ MCP instance created successfully with atomic limit check: ${createdInstance.instance_id} (${serviceType})`);
 
 		await client.query('COMMIT');
-		return createdInstance;
+		return {
+			success: true,
+			instance: createdInstance
+		};
 	} catch (error) {
 		await client.query('ROLLBACK');
-		throw error;
+		console.error('❌ Atomic instance creation failed:', error);
+		return {
+			success: false,
+			reason: 'DATABASE_ERROR',
+			message: 'Failed to create instance due to database error',
+			error: error.message
+		};
 	} finally {
 		client.release();
 	}
@@ -538,12 +641,14 @@ export async function updateOAuthStatus(instanceId, oauthData) {
 		const credentialsParams = [status, completedAt, accessToken, refreshToken, tokenExpiresAt, scope, instanceId];
 
 		const updateResult = await client.query(credentialsQuery, credentialsParams);
-		
+
 		// If no rows were updated, the credentials record doesn't exist
 		// This should not happen for properly created OAuth instances
 		if (updateResult.rowCount === 0) {
 			await client.query('ROLLBACK');
-			console.error(`Credentials record not found for instance ${instanceId}. This indicates a data integrity issue.`);
+			console.error(
+				`Credentials record not found for instance ${instanceId}. This indicates a data integrity issue.`
+			);
 			throw new Error(`Authentication failed: Missing credentials for instance ${instanceId}`);
 		}
 
@@ -596,12 +701,12 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
 					SELECT version FROM mcp_credentials WHERE instance_id = $1
 				`;
 				const versionResult = await client.query(versionQuery, [instanceId]);
-				
+
 				if (versionResult.rows.length === 0) {
 					await client.query('ROLLBACK');
 					throw new Error(`Instance ${instanceId} not found`);
 				}
-				
+
 				currentVersion = versionResult.rows[0].version;
 			}
 
@@ -620,24 +725,37 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
 			`;
 
 			const completedAt = ['completed', 'failed', 'expired'].includes(status) ? new Date() : null;
-			const credentialsParams = [status, completedAt, accessToken, refreshToken, tokenExpiresAt, scope, instanceId, currentVersion];
+			const credentialsParams = [
+				status,
+				completedAt,
+				accessToken,
+				refreshToken,
+				tokenExpiresAt,
+				scope,
+				instanceId,
+				currentVersion,
+			];
 
 			const credentialsResult = await client.query(credentialsQuery, credentialsParams);
 
 			// Check if update was successful (row was found and updated)
 			if (credentialsResult.rows.length === 0) {
 				await client.query('ROLLBACK');
-				
+
 				if (attempt < maxRetries) {
-					console.log(`🔄 Optimistic locking conflict for instance ${instanceId}, retrying (attempt ${attempt}/${maxRetries})`);
+					console.log(
+						`🔄 Optimistic locking conflict for instance ${instanceId}, retrying (attempt ${attempt}/${maxRetries})`
+					);
 					client.release();
-					
+
 					// Exponential backoff
 					const delay = Math.pow(2, attempt - 1) * 100;
 					await new Promise(resolve => setTimeout(resolve, delay));
 					continue;
 				} else {
-					throw new Error(`Optimistic locking failed after ${maxRetries} attempts for instance ${instanceId}`);
+					throw new Error(
+						`Optimistic locking failed after ${maxRetries} attempts for instance ${instanceId}`
+					);
 				}
 			}
 
@@ -653,21 +771,22 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
 			const instanceResult = await client.query(instanceQuery, [status, instanceId]);
 
 			await client.query('COMMIT');
-			
+
 			const result = instanceResult.rows[0] || {};
 			result.credentialsVersion = credentialsResult.rows[0].version;
-			
-			console.log(`✅ OAuth status updated with optimistic locking for instance ${instanceId} (version: ${result.credentialsVersion})`);
+
+			console.log(
+				`✅ OAuth status updated with optimistic locking for instance ${instanceId} (version: ${result.credentialsVersion})`
+			);
 			return result;
-			
 		} catch (error) {
 			await client.query('ROLLBACK');
-			
+
 			// Don't retry on non-concurrency errors
 			if (!error.message.includes('Optimistic locking failed')) {
 				throw error;
 			}
-			
+
 			if (attempt === maxRetries) {
 				throw error;
 			}
@@ -681,7 +800,6 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
  * Update MCP service statistics (increment counters)
  * @param {string} serviceId - Service ID
  * @param {Object} updates - Statistics updates
- * @param {number} [updates.totalInstancesIncrement] - Increment total instances by this amount
  * @param {number} [updates.activeInstancesIncrement] - Increment active instances by this amount
  * @returns {Promise<Object|null>} Updated service record
  */
@@ -689,12 +807,6 @@ export async function updateMCPServiceStats(serviceId, updates) {
 	const setClauses = [];
 	const params = [];
 	let paramIndex = 1;
-
-	if (updates.totalInstancesIncrement !== undefined) {
-		setClauses.push(`total_instances_created = total_instances_created + $${paramIndex}`);
-		params.push(updates.totalInstancesIncrement);
-		paramIndex++;
-	}
 
 	if (updates.activeInstancesIncrement !== undefined) {
 		setClauses.push(`active_instances_count = active_instances_count + $${paramIndex}`);
@@ -734,16 +846,7 @@ export async function updateMCPServiceStats(serviceId, updates) {
  * @returns {Promise<Object>} Created audit log entry
  */
 export async function createTokenAuditLog(auditData) {
-	const {
-		instanceId,
-		operation,
-		status,
-		method,
-		errorType,
-		errorMessage,
-		metadata,
-		userId
-	} = auditData;
+	const { instanceId, operation, status, method, errorType, errorMessage, metadata, userId } = auditData;
 
 	// Validate required fields
 	if (!instanceId || !operation || !status) {
@@ -773,7 +876,7 @@ export async function createTokenAuditLog(auditData) {
 		method || null,
 		errorType || null,
 		errorMessage || null,
-		metadata ? JSON.stringify(metadata) : null
+		metadata ? JSON.stringify(metadata) : null,
 	];
 
 	try {
@@ -781,7 +884,8 @@ export async function createTokenAuditLog(auditData) {
 		return result.rows[0];
 	} catch (error) {
 		// If audit table doesn't exist, log error but don't fail the operation
-		if (error.code === '42P01') { // relation does not exist
+		if (error.code === '42P01') {
+			// relation does not exist
 			console.warn('⚠️  Token audit table does not exist. Skipping audit log.');
 			return null;
 		}
@@ -801,13 +905,7 @@ export async function createTokenAuditLog(auditData) {
  * @returns {Promise<Array>} Array of audit log entries
  */
 export async function getTokenAuditLogs(instanceId, options = {}) {
-	const {
-		limit = 50,
-		offset = 0,
-		operation,
-		status,
-		since
-	} = options;
+	const { limit = 50, offset = 0, operation, status, since } = options;
 
 	let query = `
 		SELECT 
@@ -853,11 +951,11 @@ export async function getTokenAuditLogs(instanceId, options = {}) {
 
 	try {
 		const result = await pool.query(query, params);
-		
+
 		// Parse metadata JSON
 		return result.rows.map(row => ({
 			...row,
-			metadata: row.metadata ? JSON.parse(row.metadata) : null
+			metadata: row.metadata ? JSON.parse(row.metadata) : null,
 		}));
 	} catch (error) {
 		// If audit table doesn't exist, return empty array
@@ -907,7 +1005,7 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 
 	try {
 		const result = await pool.query(query, params);
-		
+
 		// Aggregate statistics
 		const stats = {
 			totalOperations: 0,
@@ -915,7 +1013,7 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 			operationsByStatus: {},
 			operationsByMethod: {},
 			errorsByType: {},
-			dailyBreakdown: {}
+			dailyBreakdown: {},
 		};
 
 		result.rows.forEach(row => {
@@ -956,11 +1054,11 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 				stats.dailyBreakdown[dateStr] = {
 					total: 0,
 					success: 0,
-					failure: 0
+					failure: 0,
 				};
 			}
 			stats.dailyBreakdown[dateStr].total += count;
-			
+
 			if (row.status === 'success') {
 				stats.dailyBreakdown[dateStr].success += count;
 			} else if (row.status === 'failure') {
@@ -979,7 +1077,7 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 				operationsByStatus: {},
 				operationsByMethod: {},
 				errorsByType: {},
-				dailyBreakdown: {}
+				dailyBreakdown: {},
 			};
 		}
 		throw error;

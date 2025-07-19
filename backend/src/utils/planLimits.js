@@ -1,15 +1,15 @@
 /**
- * Utility functions for plan-based instance limits
- * @fileoverview Contains functions to check and validate user plan limits
+ * Utility functions for plan-based active instance limits
+ * @fileoverview Contains functions to check and validate user plan limits for active instances
  */
 
-import { getUserPlan, isUserPlanActive } from '../db/queries/userPlansQueries.js';
+import { getUserPlan, isUserPlanActive, deactivateAllUserInstances } from '../db/queries/userPlansQueries.js';
 import { getUserInstanceCount } from '../db/queries/mcpInstancesQueries.js';
 
 /**
  * Plan limits configuration
  * @typedef {Object} PlanConfig
- * @property {number|null} max_instances - Maximum instances (null = unlimited)
+ * @property {number|null} max_instances - Maximum active instances (null = unlimited)
  * @property {string[]} features - Plan features
  */
 
@@ -18,7 +18,7 @@ import { getUserInstanceCount } from '../db/queries/mcpInstancesQueries.js';
  */
 export const PLAN_LIMITS = {
 	free: {
-		max_instances: 3,
+		max_instances: 1,
 		features: ['basic_mcp_access']
 	},
 	pro: {
@@ -48,7 +48,7 @@ export function isPlanUnlimited(planType) {
 }
 
 /**
- * Check if user can create a new MCP instance (based on lifetime total)
+ * Check if user can create a new MCP instance (based on active instances)
  * @param {string} userId - User ID
  * @returns {Promise<Object>} Result object with canCreate flag and details
  */
@@ -65,7 +65,7 @@ export async function checkInstanceLimit(userId) {
 				details: {
 					userId,
 					plan: null,
-					totalInstancesCreated: 0,
+					activeInstances: 0,
 					maxInstances: 0
 				}
 			};
@@ -83,14 +83,14 @@ export async function checkInstanceLimit(userId) {
 					userId,
 					plan: userPlan.plan_type,
 					expiresAt: userPlan.expires_at,
-					totalInstancesCreated: userPlan.total_instances_created,
+					activeInstances: 0,
 					maxInstances: userPlan.max_instances
 				}
 			};
 		}
 
-		// Get current lifetime total
-		const totalInstancesCreated = userPlan.total_instances_created || 0;
+		// Get current active instance count (only completed OAuth instances)
+		const activeInstances = await getUserInstanceCount(userId, 'active');
 		const maxInstances = userPlan.max_instances;
 
 		// Pro plan (unlimited instances)
@@ -98,26 +98,26 @@ export async function checkInstanceLimit(userId) {
 			return {
 				canCreate: true,
 				reason: 'UNLIMITED_PLAN',
-				message: 'Pro plan allows unlimited instances',
+				message: 'Pro plan allows unlimited active instances',
 				details: {
 					userId,
 					plan: userPlan.plan_type,
-					totalInstancesCreated,
+					activeInstances,
 					maxInstances: 'unlimited'
 				}
 			};
 		}
 
-		// Free plan (lifetime limit check)
-		if (maxInstances !== null && totalInstancesCreated >= maxInstances) {
+		// Free plan (active instance limit check)
+		if (maxInstances !== null && activeInstances >= maxInstances) {
 			return {
 				canCreate: false,
-				reason: 'LIFETIME_LIMIT_REACHED',
-				message: `You have reached your free plan limit of ${maxInstances} total instances. Upgrade to Pro for unlimited instances.`,
+				reason: 'ACTIVE_LIMIT_REACHED',
+				message: `You have reached your free plan limit of ${maxInstances} active instance${maxInstances > 1 ? 's' : ''}. Deactivate or delete an existing instance to create a new one.`,
 				details: {
 					userId,
 					plan: userPlan.plan_type,
-					totalInstancesCreated,
+					activeInstances,
 					maxInstances,
 					upgradeRequired: true
 				}
@@ -128,13 +128,13 @@ export async function checkInstanceLimit(userId) {
 		return {
 			canCreate: true,
 			reason: 'WITHIN_LIMIT',
-			message: `Can create instance (${totalInstancesCreated + 1}/${maxInstances} total)`,
+			message: `Can create instance (${activeInstances + 1}/${maxInstances || 'unlimited'} active)`,
 			details: {
 				userId,
 				plan: userPlan.plan_type,
-				totalInstancesCreated,
+				activeInstances,
 				maxInstances,
-				remaining: maxInstances ? maxInstances - totalInstancesCreated : 'unlimited'
+				remaining: maxInstances ? maxInstances - activeInstances : 'unlimited'
 			}
 		};
 
@@ -154,7 +154,7 @@ export async function checkInstanceLimit(userId) {
 }
 
 /**
- * Get user's plan summary with instance usage
+ * Get user's plan summary with active instance usage
  * @param {string} userId - User ID
  * @returns {Promise<Object>} Plan summary object
  */
@@ -167,7 +167,7 @@ export async function getUserPlanSummary(userId) {
 				userId,
 				plan: null,
 				isActive: false,
-				currentInstances: 0,
+				activeInstances: 0,
 				maxInstances: 0,
 				canCreate: false,
 				message: 'No plan assigned'
@@ -175,7 +175,7 @@ export async function getUserPlanSummary(userId) {
 		}
 
 		const isPlanActive = await isUserPlanActive(userId);
-		const currentInstances = await getUserInstanceCount(userId);
+		const activeInstances = await getUserInstanceCount(userId, 'active');
 		const limitCheck = await checkInstanceLimit(userId);
 
 		return {
@@ -188,19 +188,59 @@ export async function getUserPlanSummary(userId) {
 				createdAt: userPlan.created_at
 			},
 			isActive: isPlanActive,
-			currentInstances,
+			activeInstances,
 			maxInstances: userPlan.max_instances,
 			canCreate: limitCheck.canCreate,
 			message: limitCheck.message,
 			usage: {
-				used: currentInstances,
+				used: activeInstances,
 				limit: userPlan.max_instances || 'unlimited',
-				remaining: userPlan.max_instances ? userPlan.max_instances - currentInstances : 'unlimited'
+				remaining: userPlan.max_instances ? userPlan.max_instances - activeInstances : 'unlimited'
 			}
 		};
 
 	} catch (error) {
 		console.error('Error getting user plan summary:', error);
+		throw error;
+	}
+}
+
+/**
+ * Handle plan cancellation - deactivate all instances and downgrade to free plan
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} Result of plan cancellation
+ */
+export async function handlePlanCancellation(userId) {
+	try {
+		console.log(`🚫 Processing plan cancellation for user ${userId}`);
+
+		// Deactivate all active instances
+		const deactivatedCount = await deactivateAllUserInstances(userId);
+
+		// Downgrade to free plan
+		const { updateUserPlan } = await import('../db/queries/userPlansQueries.js');
+		await updateUserPlan(userId, 'free', {
+			expiresAt: null,
+			features: { 
+				plan_name: "Free Plan", 
+				description: "1 active MCP instance maximum",
+				downgraded_from: "pro",
+				downgraded_at: new Date().toISOString()
+			}
+		});
+
+		console.log(`✅ Plan cancellation completed for user ${userId}`);
+
+		return {
+			success: true,
+			deactivatedInstances: deactivatedCount,
+			newPlan: 'free',
+			maxActiveInstances: 1,
+			message: `Plan cancelled. ${deactivatedCount} instances deactivated. You can now reactivate 1 instance.`
+		};
+
+	} catch (error) {
+		console.error('Error handling plan cancellation:', error);
 		throw error;
 	}
 }

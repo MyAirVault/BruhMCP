@@ -1,5 +1,6 @@
 import { getMCPInstanceById } from '../../../db/queries/mcpInstancesQueries.js';
 import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
+import { checkInstanceLimit } from '../../../utils/planLimits.js';
 import { pool } from '../../../db/config.js';
 
 /** @typedef {import('express').Request} Request */
@@ -78,6 +79,8 @@ export async function toggleInstanceStatus(req, res) {
 			});
 		}
 
+		// Plan limit checking will be done atomically within the transaction below
+
 		const oldStatus = instance.status;
 		const serviceName = instance.mcp_service_name;
 
@@ -95,12 +98,89 @@ export async function toggleInstanceStatus(req, res) {
 			}
 		}
 
-		// Update instance status in database
+		// Update instance status in database with atomic limit checking
 		const client = await pool.connect();
 		
 		try {
 			await client.query('BEGIN');
 
+			// CRITICAL: Atomic plan limit checking when activating inactive instances
+			if (status === 'active' && instance.status === 'inactive') {
+				// Get user plan with locking to prevent race conditions
+				const planQuery = `
+					SELECT up.plan_type, up.max_instances, up.expires_at
+					FROM user_plans up
+					WHERE up.user_id = $1
+					FOR UPDATE
+				`;
+				const planResult = await client.query(planQuery, [userId]);
+				
+				if (planResult.rows.length === 0) {
+					await client.query('ROLLBACK');
+					return res.status(403).json({
+						error: {
+							code: 'NO_PLAN',
+							message: 'No subscription plan found. Please contact support.',
+							details: { userId, instanceId: id }
+						}
+					});
+				}
+
+				const userPlan = planResult.rows[0];
+
+				// Check if plan is active (not expired)
+				if (userPlan.expires_at && new Date(userPlan.expires_at) < new Date()) {
+					await client.query('ROLLBACK');
+					return res.status(403).json({
+						error: {
+							code: 'PLAN_EXPIRED',
+							message: 'Your subscription plan has expired. Please renew to continue.',
+							details: { 
+								userId, 
+								instanceId: id, 
+								plan: userPlan.plan_type,
+								expiresAt: userPlan.expires_at 
+							}
+						}
+					});
+				}
+
+				// Count current active instances with locking (excluding the instance being activated)
+				const countQuery = `
+					SELECT COUNT(*) as count 
+					FROM mcp_service_table ms
+					WHERE ms.user_id = $1 
+					  AND ms.status = 'active' 
+					  AND ms.oauth_status = 'completed'
+					  AND ms.instance_id != $2
+					FOR UPDATE
+				`;
+				const countResult = await client.query(countQuery, [userId, id]);
+				const currentActiveInstances = parseInt(countResult.rows[0].count);
+
+				// Check plan limits (null means unlimited for pro plans)
+				if (userPlan.max_instances !== null && currentActiveInstances >= userPlan.max_instances) {
+					await client.query('ROLLBACK');
+					return res.status(403).json({
+						error: {
+							code: 'ACTIVE_LIMIT_REACHED',
+							message: `You have reached your ${userPlan.plan_type} plan limit of ${userPlan.max_instances} active instance${userPlan.max_instances > 1 ? 's' : ''}. Deactivate or delete an existing instance to activate this one.`,
+							details: {
+								userId,
+								instanceId: id,
+								plan: userPlan.plan_type,
+								currentActiveInstances,
+								maxInstances: userPlan.max_instances,
+								upgradeMessage: 'Upgrade to Pro plan for unlimited active instances'
+							}
+						}
+					});
+				}
+
+				console.log(`✅ Plan limit check passed: ${currentActiveInstances + 1}/${userPlan.max_instances || 'unlimited'} active instances for ${userPlan.plan_type} plan`);
+			}
+
+			// Perform the status update
 			const updateResult = await client.query(
 				'UPDATE mcp_service_table SET status = $1, updated_at = NOW() WHERE instance_id = $2 AND user_id = $3 RETURNING updated_at',
 				[status, id, userId]

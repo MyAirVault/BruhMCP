@@ -19,7 +19,6 @@ export interface MCPService {
   port: number;
   type: 'api_key' | 'oauth';
   is_active: boolean;
-  total_instances_created: number;
   active_instances_count: number;
   created_at: string;
   updated_at: string;

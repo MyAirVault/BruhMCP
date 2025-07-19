@@ -39,6 +39,13 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
   const [oAuthError, setOAuthError] = useState<string | null>(null);
   const [oAuthState, setOAuthState] = useState<'idle' | 'authorizing' | 'completed' | 'error'>('idle');
   const [oAuthInstanceId, setOAuthInstanceId] = useState<string | null>(null);
+  const [planLimits, setPlanLimits] = useState<{
+    canCreate: boolean;
+    activeInstances: number;
+    maxInstances: number | null;
+    planType: string;
+    message: string;
+  } | null>(null);
   
   // Use shared validation utility
   const {
@@ -67,6 +74,36 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
 
     loadMcpTypes();
   }, []);
+
+  // Load user plan limits when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const loadPlanLimits = async () => {
+        try {
+          const planData = await apiService.getUserPlan();
+          setPlanLimits({
+            canCreate: planData.canCreate,
+            activeInstances: planData.activeInstances,
+            maxInstances: planData.maxInstances,
+            planType: planData.plan.type,
+            message: planData.message
+          });
+        } catch (error) {
+          console.error('Failed to load plan limits:', error);
+          // Set conservative limits if failed to load
+          setPlanLimits({
+            canCreate: false,
+            activeInstances: 0,
+            maxInstances: 1,
+            planType: 'free',
+            message: 'Unable to verify plan limits'
+          });
+        }
+      };
+
+      loadPlanLimits();
+    }
+  }, [isOpen]);
 
   // Reset form state when modal opens
   useEffect(() => {
@@ -222,6 +259,11 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
   const isFormValid = useCallback(() => {
     if (!formData.name || !selectedMcpType || !formData.expiration) return false;
     
+    // CRITICAL: Check plan limits first - prevent form submission if user has reached their limit
+    if (planLimits && !planLimits.canCreate) {
+      return false;
+    }
+    
     // Check if credentials are required and valid
     if (requiresCredentials(selectedMcpType)) {
       const credentialData = {
@@ -236,7 +278,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     }
     
     return true;
-  }, [formData, selectedMcpType, requiresCredentials, hasAllRequiredFields, validationState]);
+  }, [formData, selectedMcpType, requiresCredentials, hasAllRequiredFields, validationState, planLimits]);
 
   // OAuth detection functions
   const isOAuthService = useCallback((mcpType: MCPType | null) => {
@@ -435,6 +477,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit }: UseCreateMCPForm
     isSubmitting,
     oAuthState,
     oAuthError,
+    planLimits,
     handleInputChange,
     handleCredentialChange,
     handleTypeSelect,

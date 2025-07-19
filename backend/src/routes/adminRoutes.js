@@ -6,6 +6,11 @@ import {
 	getLogMaintenanceStatus,
 	triggerLogMaintenance 
 } from '../controllers/admin/systemLogs.js';
+import { 
+	getPlanMonitoringStatus,
+	triggerPlanExpirationAgent,
+	updatePlanMonitoringConfig 
+} from '../services/planMonitoringService.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/adminMiddleware.js';
 
@@ -31,5 +36,16 @@ router.get('/logs/maintenance', getLogMaintenanceStatus);
 
 // POST /api/v1/admin/logs/maintenance/trigger - Trigger manual maintenance
 router.post('/logs/maintenance/trigger', triggerLogMaintenance);
+
+// === Plan Monitoring Management ===
+
+// GET /api/v1/admin/plans/monitoring/status - Get plan monitoring service status
+router.get('/plans/monitoring/status', getPlanMonitoringStatus);
+
+// POST /api/v1/admin/plans/monitoring/trigger - Manually trigger plan expiration agent
+router.post('/plans/monitoring/trigger', triggerPlanExpirationAgent);
+
+// PUT /api/v1/admin/plans/monitoring/config - Update plan monitoring configuration
+router.put('/plans/monitoring/config', updatePlanMonitoringConfig);
 
 export default router;

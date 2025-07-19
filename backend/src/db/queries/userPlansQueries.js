@@ -18,7 +18,6 @@ export async function getUserPlan(userId) {
 				user_id,
 				plan_type,
 				max_instances,
-				total_instances_created,
 				features,
 				expires_at,
 				created_at,
@@ -49,7 +48,7 @@ export async function updateUserPlan(userId, planType, options = {}) {
 		const { expiresAt = null, features = {} } = options;
 		
 		// Determine max_instances based on plan_type
-		const maxInstances = planType === 'free' ? 3 : null;
+		const maxInstances = planType === 'free' ? 1 : null;
 		
 		const query = `
 			UPDATE user_plans
@@ -91,7 +90,7 @@ export async function createUserPlan(userId, planType = 'free', options = {}) {
 		const { expiresAt = null, features = {} } = options;
 		
 		// Determine max_instances based on plan_type
-		const maxInstances = planType === 'free' ? 3 : null;
+		const maxInstances = planType === 'free' ? 1 : null;
 		
 		const query = `
 			INSERT INTO user_plans (user_id, plan_type, max_instances, expires_at, features)
@@ -228,29 +227,36 @@ export async function getPlanStatistics() {
 }
 
 /**
- * Increment total instances created count for a user
+ * Deactivate all active instances for a user (used when Pro plan is cancelled)
  * @param {string} userId - User ID
- * @returns {Promise<number>} New total instances created count
+ * @returns {Promise<number>} Number of instances deactivated
  */
-export async function incrementTotalInstancesCreated(userId) {
+export async function deactivateAllUserInstances(userId) {
 	try {
 		const query = `
-			UPDATE user_plans
-			SET total_instances_created = total_instances_created + 1,
-				updated_at = CURRENT_TIMESTAMP
-			WHERE user_id = $1
-			RETURNING total_instances_created
+			UPDATE mcp_service_table
+			SET status = CASE 
+				WHEN expires_at IS NOT NULL AND expires_at <= NOW() THEN 'expired'
+				ELSE 'inactive'
+			END,
+			updated_at = CURRENT_TIMESTAMP
+			WHERE user_id = $1 AND status = 'active'
+			RETURNING instance_id, status
 		`;
 		
 		const result = await pool.query(query, [userId]);
 		
-		if (result.rows.length === 0) {
-			throw new Error(`User plan not found for user: ${userId}`);
+		console.log(`📉 Deactivated ${result.rowCount} instances for user ${userId}`);
+		
+		// Log each deactivated instance
+		for (const row of result.rows) {
+			console.log(`  - Instance ${row.instance_id} → ${row.status}`);
 		}
 		
-		return result.rows[0].total_instances_created;
+		return result.rowCount;
 	} catch (error) {
-		console.error('Error incrementing total instances created:', error);
+		console.error('Error deactivating user instances:', error);
 		throw error;
 	}
 }
+

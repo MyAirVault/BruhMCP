@@ -11,8 +11,8 @@ import { tokenExchange } from './core/token-exchange.js';
 import { validateCredentialFormat } from './utils/validation.js';
 import { ErrorResponses } from '../utils/errorResponse.js';
 import { pool } from '../db/config.js';
-import { updateOAuthStatus, getMCPInstanceById } from '../db/queries/mcpInstancesQueries.js';
-import { incrementTotalInstancesCreated } from '../db/queries/userPlansQueries.js';
+import { updateOAuthStatus } from '../db/queries/mcpInstancesQueries.js';
+import { checkInstanceLimit } from '../utils/planLimits.js';
 
 const app = express();
 
@@ -180,7 +180,86 @@ app.get('/oauth/callback/:provider', async (req, res) => {
     // Cache tokens in the service
     await cacheTokensInService(instance_id, tokens, serviceName);
 
-    // Update OAuth status in database
+    // CRITICAL: Re-validate plan limits before completing OAuth
+    // This prevents users from bypassing plan limits through OAuth timing attacks
+    const userId = await getUserIdFromInstance(instance_id);
+    if (!userId) {
+      throw new Error('Instance not found or access denied');
+    }
+
+    const limitCheck = await checkInstanceLimit(userId);
+    
+    if (!limitCheck.canCreate && limitCheck.reason === 'ACTIVE_LIMIT_REACHED') {
+      // Plan limit exceeded - deactivate instance and show error
+      console.log(`❌ OAuth completion blocked: Plan limit exceeded for user ${userId} (${limitCheck.details.plan} plan)`);
+      
+      // Deactivate the instance
+      await updateOAuthStatus(instance_id, {
+        status: 'failed' // Mark OAuth as failed since plan limit was exceeded
+      });
+      
+      // Update instance status to inactive
+      const deactivateQuery = `
+        UPDATE mcp_service_table 
+        SET status = 'inactive', updated_at = NOW() 
+        WHERE instance_id = $1
+      `;
+      await pool.query(deactivateQuery, [instance_id]);
+      
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Plan Limit Reached</title>
+        </head>
+        <body>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'OAUTH_ERROR',
+                error: 'Plan limit reached. You already have ${limitCheck.details.activeInstances} active instance${limitCheck.details.activeInstances > 1 ? 's' : ''} (limit: ${limitCheck.details.maxInstances}). Instance has been deactivated.',
+                provider: '${provider}',
+                planLimitReached: true
+              }, '${process.env.FRONTEND_URL || 'http://localhost:3000'}');
+            }
+            window.close();
+          </script>
+          <p>Plan limit reached. Instance has been deactivated. This window will close automatically.</p>
+        </body>
+        </html>
+      `);
+    } else if (!limitCheck.canCreate) {
+      // Other limit check failures (no plan, expired plan, etc.)
+      console.log(`❌ OAuth completion blocked: ${limitCheck.reason} for user ${userId}`);
+      
+      await updateOAuthStatus(instance_id, {
+        status: 'failed'
+      });
+      
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>OAuth Error</title>
+        </head>
+        <body>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'OAUTH_ERROR',
+                error: '${limitCheck.message}',
+                provider: '${provider}'
+              }, '${process.env.FRONTEND_URL || 'http://localhost:3000'}');
+            }
+            window.close();
+          </script>
+          <p>OAuth failed: ${limitCheck.message}. This window will close automatically.</p>
+        </body>
+        </html>
+      `);
+    }
+
+    // Update OAuth status in database - only if plan limits allow it
     await updateOAuthStatus(instance_id, {
       status: 'completed',
       accessToken: tokens.access_token,
@@ -189,17 +268,7 @@ app.get('/oauth/callback/:provider', async (req, res) => {
       scope: tokens.scope
     });
 
-    // Increment total instances created count for user (successful OAuth completion)
-    try {
-      const instance = await getMCPInstanceById(instance_id);
-      if (instance && instance.user_id) {
-        const newTotalCount = await incrementTotalInstancesCreated(instance.user_id);
-        console.log(`📊 User ${instance.user_id} total instances created: ${newTotalCount}`);
-      }
-    } catch (incrementError) {
-      console.error('❌ Failed to increment total instances created:', incrementError);
-      // Don't fail the OAuth flow if counter increment fails
-    }
+    console.log(`✅ OAuth completed successfully for instance ${instance_id} with plan limit validation`);
 
     // Instead of redirecting, send HTML that communicates with parent window
     return res.send(`
@@ -449,6 +518,33 @@ async function cacheTokensInService(instanceId, tokens, serviceName) {
   } catch (error) {
     console.error(`❌ Failed to cache tokens in ${serviceName} service:`, error);
     throw error;
+  }
+}
+
+/**
+ * Get user ID from instance ID
+ * @param {string} instanceId - Instance ID
+ * @returns {Promise<string|null>} User ID or null if not found
+ */
+async function getUserIdFromInstance(instanceId) {
+  try {
+    const query = `
+      SELECT user_id 
+      FROM mcp_service_table
+      WHERE instance_id = $1
+    `;
+    
+    const result = await pool.query(query, [instanceId]);
+    
+    if (result.rows.length === 0) {
+      console.error(`Instance ${instanceId} not found in database`);
+      return null;
+    }
+    
+    return result.rows[0].user_id;
+  } catch (error) {
+    console.error(`Error getting user ID for instance ${instanceId}:`, error);
+    return null;
   }
 }
 

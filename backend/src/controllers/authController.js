@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authService } from '../services/authService.js';
 import { emailService } from '../services/emailService.js';
 import { ErrorResponses, formatZodErrors } from '../utils/errorResponse.js';
+import { getUserPlanSummary } from '../utils/planLimits.js';
 
 /**
  * @typedef {import('../types/auth.d.ts').AuthRequestTokenResult} AuthRequestTokenResult
@@ -160,6 +161,30 @@ export async function getCurrentUser(req, res) {
 	} catch (error) {
 		console.error('Error in getCurrentUser:', error);
 		return ErrorResponses.internal(res, 'An unexpected error occurred');
+	}
+}
+
+/**
+ * Get current user's plan summary with usage information
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ */
+export async function getUserPlan(req, res) {
+	try {
+		const userId = req.user?.id;
+		if (!userId) {
+			return ErrorResponses.unauthorized(res, 'User authentication required');
+		}
+
+		const planSummary = await getUserPlanSummary(userId);
+		
+		return res.status(200).json({
+			success: true,
+			data: planSummary
+		});
+	} catch (error) {
+		console.error('Error getting user plan:', error);
+		return ErrorResponses.internal(res, 'Failed to retrieve plan information');
 	}
 }
 

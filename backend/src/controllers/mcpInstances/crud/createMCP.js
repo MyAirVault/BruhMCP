@@ -7,8 +7,7 @@ import { randomUUID } from 'crypto';
 import { createMCPSchema } from '../schemas.js';
 import { calculateExpirationDate } from '../utils.js';
 import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
-import { getUserInstanceCount, createMCPInstance, updateMCPServiceStats, updateOAuthStatus } from '../../../db/queries/mcpInstancesQueries.js';
-import { checkInstanceLimit } from '../../../utils/planLimits.js';
+import { updateMCPServiceStats, createMCPInstanceWithLimitCheck } from '../../../db/queries/mcpInstancesQueries.js';
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
@@ -39,31 +38,26 @@ export async function createMCP(req, res) {
 
 		const { mcp_type, custom_name, expiration_option, credentials } = validationResult.data;
 
-		// Check user plan-based instance limits
-		const limitCheck = await checkInstanceLimit(userId);
+		// Get user plan for atomic limit checking
+		const { getUserPlan, isUserPlanActive } = await import('../../../db/queries/userPlansQueries.js');
+		const userPlan = await getUserPlan(userId);
 		
-		if (!limitCheck.canCreate) {
-			const errorDetails = {
+		if (!userPlan) {
+			return ErrorResponses.forbidden(res, 'No subscription plan found. Please contact support.', {
 				userId,
-				reason: limitCheck.reason,
-				plan: limitCheck.details.plan,
-				metadata: limitCheck.details
-			};
+				reason: 'NO_PLAN'
+			});
+		}
 
-			switch (limitCheck.reason) {
-				case 'NO_PLAN':
-					return ErrorResponses.forbidden(res, 'No subscription plan found. Please contact support.', errorDetails);
-				case 'PLAN_EXPIRED':
-					return ErrorResponses.forbidden(res, 'Your subscription plan has expired. Please renew to continue.', errorDetails);
-				case 'LIMIT_REACHED':
-				case 'LIFETIME_LIMIT_REACHED':
-					return ErrorResponses.forbidden(res, limitCheck.message, {
-						...errorDetails,
-						upgradeMessage: 'Upgrade to Pro plan for unlimited instances'
-					});
-				default:
-					return ErrorResponses.forbidden(res, limitCheck.message, errorDetails);
-			}
+		// Check if plan is active (not expired)
+		const isPlanActive = await isUserPlanActive(userId);
+		
+		if (!isPlanActive) {
+			return ErrorResponses.forbidden(res, 'Your subscription plan has expired. Please renew to continue.', {
+				userId,
+				reason: 'PLAN_EXPIRED',
+				expiresAt: userPlan.expires_at
+			});
 		}
 
 		// Get MCP service definition
@@ -116,9 +110,6 @@ export async function createMCP(req, res) {
 			}
 		}
 
-		// Generate unique instance ID
-		const instanceId = randomUUID();
-
 		// Calculate expiration date
 		const expiresAt = calculateExpirationDate(expiration_option);
 
@@ -127,8 +118,8 @@ export async function createMCP(req, res) {
 		const clientId = mcpService.type === 'oauth' ? credentials.client_id : null;
 		const clientSecret = mcpService.type === 'oauth' ? credentials.client_secret : null;
 
-		// Create MCP instance using abstracted function
-		const createdInstance = await createMCPInstance({
+		// Create MCP instance with atomic limit checking to prevent race conditions
+		const creationResult = await createMCPInstanceWithLimitCheck({
 			userId,
 			mcpServiceId: mcpService.mcp_service_id,
 			customName: custom_name || `${mcpService.display_name} Instance`,
@@ -137,7 +128,25 @@ export async function createMCP(req, res) {
 			clientSecret,
 			expiresAt,
 			serviceType: mcpService.type
-		});
+		}, userPlan.max_instances);
+
+		// Handle creation failure due to limit reached or other errors
+		if (!creationResult.success) {
+			if (creationResult.reason === 'ACTIVE_LIMIT_REACHED') {
+				return ErrorResponses.forbidden(res, creationResult.message, {
+					userId,
+					reason: creationResult.reason,
+					plan: userPlan.plan_type,
+					currentCount: creationResult.currentCount,
+					maxInstances: creationResult.maxInstances,
+					upgradeMessage: 'Upgrade to Pro plan for unlimited active instances'
+				});
+			} else {
+				return ErrorResponses.internal(res, creationResult.message || 'Failed to create instance');
+			}
+		}
+
+		const createdInstance = creationResult.instance;
 
 		// Handle OAuth flow for OAuth services
 		if (mcpService.type === 'oauth') {
@@ -226,7 +235,6 @@ export async function createMCP(req, res) {
 
 		// Update service statistics
 		await updateMCPServiceStats(mcpService.mcp_service_id, {
-			totalInstancesIncrement: 1,
 			activeInstancesIncrement: 1
 		});
 

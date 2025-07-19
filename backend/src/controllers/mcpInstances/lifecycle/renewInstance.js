@@ -105,16 +105,32 @@ export async function renewInstance(req, res) {
 			});
 		}
 
-		// Check plan limits before allowing renewal (for free plan users)
+		// Check plan limits before allowing renewal
+		// For free users: renewal activates the instance, so check total active instances limit
 		const limitCheck = await checkInstanceLimit(userId);
 		
-		// Special case: If user is at their limit but this is a renewal of an expired instance,
-		// we need to allow it since the expired instance doesn't count toward the active limit
-		if (!limitCheck.canCreate && limitCheck.reason === 'LIMIT_REACHED') {
-			// For renewal, we temporarily don't count this expired instance toward the limit
-			// The database logic should handle this correctly since expired instances 
-			// shouldn't count toward active_instances_count
-			console.log(`ℹ️ Allowing renewal of expired instance ${id} for user ${userId} (${limitCheck.details.plan} plan)`);
+		// Check if renewal would violate plan limits
+		// Renewal always makes the instance active, so we need to ensure the user can have another active instance
+		if (!limitCheck.canCreate && limitCheck.reason === 'ACTIVE_LIMIT_REACHED') {
+			// For free users: they can only have 1 active instance total
+			// Even if renewing an expired instance, it becomes active and counts toward the limit
+			const errorDetails = {
+				userId,
+				instanceId: id,
+				reason: 'ACTIVE_LIMIT_REACHED',
+				plan: limitCheck.details.plan,
+				currentActiveInstances: limitCheck.details.activeInstances,
+				maxInstances: limitCheck.details.maxInstances,
+				metadata: limitCheck.details
+			};
+			
+			return res.status(403).json({
+				error: {
+					code: 'RENEWAL_BLOCKED',
+					message: `Cannot renew instance: You already have ${limitCheck.details.activeInstances} active instance${limitCheck.details.activeInstances > 1 ? 's' : ''} (limit: ${limitCheck.details.maxInstances}). Please deactivate or delete an existing instance before renewing another one.`,
+					details: errorDetails
+				}
+			});
 		} else if (!limitCheck.canCreate) {
 			// Other limit check failures (no plan, expired plan, etc.)
 			const errorDetails = {
