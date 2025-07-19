@@ -131,7 +131,7 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 			customer_id: customer.id,
 			quantity: 1,
 			total_count: 120, // 10 years worth of monthly payments
-			start_at: Math.floor(Date.now() / 1000), // Start immediately
+			start_at: Math.floor(Date.now() / 1000) + 60, // Start 1 minute from now
 			expire_by: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Expire in 24 hours if not paid
 			notes: {
 				userId: userId,
