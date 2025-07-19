@@ -7,6 +7,7 @@ import FormField from '../ui/form/FormField';
 import TypeDropdown from '../ui/form/TypeDropdown';
 import ExpirationDropdown from '../ui/form/ExpirationDropdown';
 import CredentialFields from '../ui/form/CredentialFields';
+import { UpgradeCTA } from '../billing/UpgradeButton';
 
 const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const {
@@ -17,6 +18,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     isSubmitting,
     oAuthState,
     oAuthError,
+    planLimits,
     handleInputChange,
     handleCredentialChange,
     handleTypeSelect,
@@ -161,6 +163,23 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
               onRetryValidation={retryValidation}
             />
 
+            {/* Plan Limit Error - Show upgrade CTA */}
+            {planLimits && !planLimits.canCreate && (
+              <UpgradeCTA
+                title="Plan Limit Reached"
+                description={planLimits.message}
+                showFeatures={false}
+                onSuccess={() => {
+                  // Close modal after successful upgrade
+                  onClose();
+                }}
+                onError={(error) => {
+                  console.error('Upgrade error:', error);
+                }}
+                className="mt-4"
+              />
+            )}
+
             {oAuthError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <div className="flex items-start">
@@ -205,7 +224,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
             </button>
             <button
               type="submit"
-              disabled={!isFormValid() || isSubmitting || oAuthState === 'authorizing'}
+              disabled={!isFormValid() || isSubmitting || oAuthState === 'authorizing' || (planLimits ? !planLimits.canCreate : false)}
               className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting || oAuthState === 'authorizing' ? (

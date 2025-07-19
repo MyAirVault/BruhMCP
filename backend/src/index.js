@@ -10,6 +10,10 @@ import mcpTypesRoutes from './routes/mcpTypesRoutes.js';
 import apiKeysRoutes from './routes/apiKeysRoutes.js';
 import mcpInstancesRoutes from './routes/mcpInstancesRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import billingRoutes from './billing/routes/billingRoutes.js';
+
+// Import billing validation
+import { validateBillingConfig } from './billing/middleware/webhookValidation.js';
 
 // Import middleware
 import { apiRateLimiter } from './utils/rateLimiter.js';
@@ -110,6 +114,7 @@ app.use('/api/v1/mcp-types', mcpTypesRoutes);
 app.use('/api/v1/api-keys', apiKeysRoutes);
 app.use('/api/v1/mcps', mcpInstancesRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/billing', billingRoutes);
 
 
 // SPA fallback - serve index.html for non-API routes
@@ -163,7 +168,15 @@ const server = app.listen(port, async () => {
 	// Startup validation checks
 	console.log('🔍 Running startup validation checks...');
 
-	// Port range validation removed - no longer using dynamic port allocation
+	// Validate billing configuration
+	const billingConfig = validateBillingConfig();
+	if (!billingConfig.valid) {
+		console.warn('⚠️ Billing configuration incomplete:', billingConfig.message);
+		console.warn('💳 Payment features will not work until Razorpay is configured');
+		console.warn('🔧 Required environment variables:', billingConfig.missingVars?.join(', '));
+	} else {
+		console.log('✅ Billing configuration is valid');
+	}
 
 	// Initialize database and verify tables
 	try {

@@ -451,4 +451,80 @@ export const apiService = {
     }>('/auth/plan');
   },
 
+  // Billing & Subscription Management
+  getBillingStatus: async (): Promise<{
+    userId: string;
+    plan: {
+      type: 'free' | 'pro';
+      maxInstances: number | null;
+      paymentStatus: string;
+      features: any;
+      expiresAt: string | null;
+      subscriptionId: string | null;
+    };
+    subscription?: any;
+    canUpgrade: boolean;
+  }> => {
+    return makeRequest('/billing/status');
+  },
+
+  createCheckoutSession: async (): Promise<{
+    sessionId: string;
+    checkoutUrl: string;
+    customerId: string;
+  }> => {
+    return makeRequest('/billing/checkout', {
+      method: 'POST'
+    });
+  },
+
+  handleCheckoutSuccess: async (sessionId: string): Promise<{
+    planType: string;
+    paymentStatus: string;
+    upgradedBy?: string;
+    note?: string;
+  }> => {
+    return makeRequest('/billing/success', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId })
+    });
+  },
+
+  cancelSubscription: async (): Promise<{
+    subscriptionId: string;
+    cancelledAt: string;
+    note: string;
+  }> => {
+    return makeRequest('/billing/cancel', {
+      method: 'POST'
+    });
+  },
+
+  // Generic HTTP methods for direct API calls
+  get: async <T = any>(endpoint: string): Promise<T> => {
+    return makeRequest<T>(endpoint, {
+      method: 'GET'
+    });
+  },
+
+  post: async <T = any>(endpoint: string, data?: any): Promise<T> => {
+    return makeRequest<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined
+    });
+  },
+
+  put: async <T = any>(endpoint: string, data?: any): Promise<T> => {
+    return makeRequest<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined
+    });
+  },
+
+  delete: async <T = any>(endpoint: string): Promise<T> => {
+    return makeRequest<T>(endpoint, {
+      method: 'DELETE'
+    });
+  },
+
 };

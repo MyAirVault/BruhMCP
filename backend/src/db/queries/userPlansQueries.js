@@ -20,6 +20,8 @@ export async function getUserPlan(userId) {
 				max_instances,
 				features,
 				expires_at,
+				subscription_id,
+				payment_status,
 				created_at,
 				updated_at
 			FROM user_plans
@@ -227,6 +229,73 @@ export async function getPlanStatistics() {
 }
 
 /**
+ * Update billing-specific fields for a user plan
+ * @param {string} userId - User ID
+ * @param {Object} billingData - Billing data to update
+ * @param {string} billingData.subscriptionId - Subscription ID
+ * @param {string} billingData.paymentStatus - Payment status
+ * @returns {Promise<Object>} Updated plan object
+ */
+export async function updateUserPlanBilling(userId, billingData) {
+	try {
+		const { subscriptionId, paymentStatus } = billingData;
+		
+		const query = `
+			UPDATE user_plans
+			SET 
+				subscription_id = $2,
+				payment_status = $3,
+				updated_at = CURRENT_TIMESTAMP
+			WHERE user_id = $1
+			RETURNING *
+		`;
+		
+		const values = [userId, subscriptionId, paymentStatus];
+		const result = await pool.query(query, values);
+		
+		if (result.rows.length === 0) {
+			throw new Error(`User plan not found for user: ${userId}`);
+		}
+		
+		return result.rows[0];
+	} catch (error) {
+		console.error('Error updating user plan billing:', error);
+		throw error;
+	}
+}
+
+/**
+ * Get user plan by subscription ID
+ * @param {string} subscriptionId - Subscription ID
+ * @returns {Promise<Object|null>} User plan object or null if not found
+ */
+export async function getUserPlanBySubscriptionId(subscriptionId) {
+	try {
+		const query = `
+			SELECT 
+				plan_id,
+				user_id,
+				plan_type,
+				max_instances,
+				features,
+				expires_at,
+				subscription_id,
+				payment_status,
+				created_at,
+				updated_at
+			FROM user_plans
+			WHERE subscription_id = $1
+		`;
+		
+		const result = await pool.query(query, [subscriptionId]);
+		return result.rows[0] || null;
+	} catch (error) {
+		console.error('Error getting user plan by subscription ID:', error);
+		throw error;
+	}
+}
+
+/**
  * Deactivate all active instances for a user (used when Pro plan is cancelled)
  * @param {string} userId - User ID
  * @returns {Promise<number>} Number of instances deactivated
@@ -257,6 +326,85 @@ export async function deactivateAllUserInstances(userId) {
 	} catch (error) {
 		console.error('Error deactivating user instances:', error);
 		throw error;
+	}
+}
+
+/**
+ * Atomically activate Pro subscription (prevents race conditions between webhook and frontend)
+ * @param {string} userId - User ID
+ * @param {string} subscriptionId - Razorpay subscription ID
+ * @param {Date} expiresAt - Subscription expiration date
+ * @returns {Promise<Object>} Result object with status and plan data
+ */
+export async function atomicActivateProSubscription(userId, subscriptionId, expiresAt) {
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+
+		// Lock the user plan row to prevent concurrent updates
+		const lockQuery = `
+			SELECT plan_type, payment_status, subscription_id
+			FROM user_plans
+			WHERE user_id = $1
+			FOR UPDATE
+		`;
+		const lockResult = await client.query(lockQuery, [userId]);
+
+		if (lockResult.rows.length === 0) {
+			await client.query('ROLLBACK');
+			throw new Error(`User plan not found for user: ${userId}`);
+		}
+
+		const currentPlan = lockResult.rows[0];
+
+		// Check if already activated to prevent duplicate processing
+		if (currentPlan.plan_type === 'pro' && 
+			currentPlan.payment_status === 'active' && 
+			currentPlan.subscription_id === subscriptionId) {
+			await client.query('COMMIT');
+			return {
+				status: 'already_active',
+				message: 'Subscription already activated',
+				plan: currentPlan
+			};
+		}
+
+		// Update to Pro plan with subscription details
+		const updateQuery = `
+			UPDATE user_plans
+			SET 
+				plan_type = 'pro',
+				max_instances = 10,
+				payment_status = 'active',
+				subscription_id = $2,
+				expires_at = $3,
+				features = jsonb_build_object(
+					'maxInstances', 10,
+					'activatedAt', $4,
+					'activatedBy', 'payment_system'
+				),
+				updated_at = CURRENT_TIMESTAMP
+			WHERE user_id = $1
+			RETURNING *
+		`;
+
+		const updateValues = [userId, subscriptionId, expiresAt, new Date().toISOString()];
+		const updateResult = await client.query(updateQuery, updateValues);
+
+		await client.query('COMMIT');
+
+		return {
+			status: 'activated',
+			message: 'Pro subscription activated successfully',
+			plan: updateResult.rows[0]
+		};
+
+	} catch (error) {
+		await client.query('ROLLBACK');
+		console.error('Error in atomic subscription activation:', error);
+		throw error;
+	} finally {
+		client.release();
 	}
 }
 

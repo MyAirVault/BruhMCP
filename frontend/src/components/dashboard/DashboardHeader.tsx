@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import Tooltip from '../ui/Tooltip';
+import { PlanDisplay } from '../billing/PlanDisplay';
 
 interface DashboardHeaderProps {
   onCreateMCP: () => void;
@@ -10,18 +11,21 @@ interface DashboardHeaderProps {
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onCreateMCP }) => {
   const navigate = useNavigate();
 
+  const handleUpgradeClick = () => {
+    navigate('/billing/checkout');
+  };
+
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
-      <div>
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-8 gap-6">
+      <div className="flex-1">
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-600 mb-2">Dashboard</h1>
-        <p className="text-base lg:text-lg text-gray-600 mb-3">Manage your MCPs</p>
-        <button
-          onClick={() => navigate('/logs')}
-          className="inline-flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg px-2 py-1 transition-colors cursor-pointer"
-        >
-          <FileText className="w-4 h-4" />
-          <span>View All Logs</span>
-        </button>
+        <p className="text-base lg:text-lg text-gray-600 mb-4">Manage your MCPs</p>
+        
+        {/* Plan Display - replaces "View All Logs" */}
+        <PlanDisplay 
+          onUpgradeClick={handleUpgradeClick}
+          className="max-w-md"
+        />
       </div>
       <Tooltip content="Press Ctrl+K (Cmd+K on Mac) to quickly open this modal" position="bottom">
         <button

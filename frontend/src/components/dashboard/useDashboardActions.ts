@@ -203,8 +203,20 @@ export const useDashboardActions = ({
         try {
           await apiService.toggleMCP(mcp.id, { status: 'active' });
           await refreshMCPList();
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to toggle MCP to active:', error);
+          
+          // Check if it's a plan limit error
+          if (error.message?.includes('ACTIVE_LIMIT_REACHED')) {
+            // Show upgrade modal instead of just logging
+            const shouldUpgrade = window.confirm(
+              'You have reached your plan limit. Upgrade to Pro for unlimited instances. Would you like to upgrade now?'
+            );
+            
+            if (shouldUpgrade) {
+              navigate('/billing/checkout');
+            }
+          }
         }
       });
     },
