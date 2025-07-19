@@ -3,7 +3,7 @@
  * @fileoverview Contains functions to check and validate user plan limits for active instances
  */
 
-import { getUserPlan, isUserPlanActive, deactivateAllUserInstances } from '../db/queries/userPlansQueries.js';
+import { getUserPlan, isUserPlanActive, deactivateAllUserInstances, createUserPlan } from '../db/queries/userPlansQueries.js';
 import { getUserInstanceCount } from '../db/queries/mcpInstancesQueries.js';
 
 /**
@@ -55,20 +55,18 @@ export function isPlanUnlimited(planType) {
 export async function checkInstanceLimit(userId) {
 	try {
 		// Get user's plan
-		const userPlan = await getUserPlan(userId);
+		let userPlan = await getUserPlan(userId);
 		
+		// Create default free plan if user doesn't have one
 		if (!userPlan) {
-			return {
-				canCreate: false,
-				reason: 'NO_PLAN',
-				message: 'User has no plan assigned',
-				details: {
-					userId,
-					plan: null,
-					activeInstances: 0,
-					maxInstances: 0
+			console.log(`Creating default free plan for user ${userId} during instance limit check`);
+			userPlan = await createUserPlan(userId, 'free', {
+				expiresAt: null,
+				features: { 
+					plan_name: "Free Plan", 
+					description: "1 active MCP instance maximum"
 				}
-			};
+			});
 		}
 
 		// Check if plan is active (not expired)
@@ -160,18 +158,18 @@ export async function checkInstanceLimit(userId) {
  */
 export async function getUserPlanSummary(userId) {
 	try {
-		const userPlan = await getUserPlan(userId);
+		let userPlan = await getUserPlan(userId);
 		
+		// Create default free plan if user doesn't have one
 		if (!userPlan) {
-			return {
-				userId,
-				plan: null,
-				isActive: false,
-				activeInstances: 0,
-				maxInstances: 0,
-				canCreate: false,
-				message: 'No plan assigned'
-			};
+			console.log(`Creating default free plan for user ${userId}`);
+			userPlan = await createUserPlan(userId, 'free', {
+				expiresAt: null,
+				features: { 
+					plan_name: "Free Plan", 
+					description: "1 active MCP instance maximum"
+				}
+			});
 		}
 
 		const isPlanActive = await isUserPlanActive(userId);

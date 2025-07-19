@@ -74,18 +74,41 @@ export async function createUser(userData) {
  * @returns {Promise<Object>} User record (existing or newly created)
  */
 export async function findOrCreateUser(email, name = null) {
-	const query = `
-		INSERT INTO users (email, name)
-		VALUES ($1, $2)
-		ON CONFLICT (email) 
-		DO UPDATE SET 
-			name = COALESCE(EXCLUDED.name, users.name),
-			updated_at = NOW()
-		RETURNING id, email, name, created_at, updated_at
-	`;
-	
-	const result = await pool.query(query, [email, name]);
-	return result.rows[0];
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+
+		const userQuery = `
+			INSERT INTO users (email, name)
+			VALUES ($1, $2)
+			ON CONFLICT (email) 
+			DO UPDATE SET 
+				name = COALESCE(EXCLUDED.name, users.name),
+				updated_at = NOW()
+			RETURNING id, email, name, created_at, updated_at
+		`;
+		
+		const userResult = await client.query(userQuery, [email, name]);
+		const user = userResult.rows[0];
+
+		// Create a default free plan for new users
+		const planQuery = `
+			INSERT INTO user_plans (user_id, plan_type, max_instances, expires_at, features)
+			VALUES ($1, 'free', 1, NULL, '{"plan_name": "Free Plan", "description": "1 active MCP instance maximum"}')
+			ON CONFLICT (user_id) DO NOTHING
+		`;
+		
+		await client.query(planQuery, [user.id]);
+
+		await client.query('COMMIT');
+		return user;
+	} catch (error) {
+		await client.query('ROLLBACK');
+		console.error('Error in findOrCreateUser:', error);
+		throw error;
+	} finally {
+		client.release();
+	}
 }
 
 /**

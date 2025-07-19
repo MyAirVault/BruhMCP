@@ -98,6 +98,7 @@ app.get('/health', (_req, res) => {
 app.use('/auth', authRoutes);
 
 // API v1 routes
+app.use('/api/v1/auth', authRoutes);
 app.get('/api/v1/health', (_req, res) => {
 	res.status(200).json({
 		status: 'ok',
