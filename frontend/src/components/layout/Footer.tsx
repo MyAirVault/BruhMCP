@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center space-x-4">
               <img src="/logo.svg" alt="Logo" className="h-6 w-auto" />
-              <span className="text-sm text-gray-500">© 2024 MCP Dashboard. All rights reserved.</span>
+              <span className="text-sm text-gray-500">© 2025 bruhMCP. All rights reserved.</span>
             </div>
             <div className="mt-4 sm:mt-0 flex space-x-6">
               <a href="#" className="text-sm text-gray-500 hover:text-gray-900">Privacy</a>
