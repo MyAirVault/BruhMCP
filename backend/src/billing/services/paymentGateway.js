@@ -155,36 +155,32 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 
 		console.log(`✅ Created Razorpay subscription for user ${userId}: ${subscription.id}`);
 
-		// Create payment link for the subscription
-		const paymentLink = await razorpay.paymentLinks.create({
+		// For subscriptions, we need to handle the first payment differently
+		// Create a simple order for the first payment
+		const order = await razorpay.orders.create({
 			amount: PRO_PLAN_CONFIG.amount,
 			currency: PRO_PLAN_CONFIG.currency,
-			description: `${PRO_PLAN_CONFIG.name} - ${PRO_PLAN_CONFIG.description}`,
-			customer: {
-				name: customer.name,
-				email: customer.email,
-				contact: customer.contact || ''
-			},
-			notify: {
-				sms: false,
-				email: true
-			},
-			reminder_enable: true,
+			receipt: `sub_${subscription.id}_${Date.now()}`,
 			notes: {
 				userId: userId,
 				subscriptionId: subscription.id,
-				planType: 'pro'
-			},
-			callback_url: successUrl,
-			callback_method: 'get'
+				planType: 'pro',
+				paymentType: 'subscription_first_payment'
+			}
 		});
+
+		console.log(`✅ Created Razorpay order for subscription: ${order.id}`);
 
 		return {
 			subscriptionId: subscription.id,
-			paymentLinkId: paymentLink.id,
-			checkoutUrl: paymentLink.short_url,
+			orderId: order.id,
+			amount: PRO_PLAN_CONFIG.amount,
+			currency: PRO_PLAN_CONFIG.currency,
 			customerId: customer.id,
-			planId: plan.id
+			planId: plan.id,
+			razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+			customerEmail: email,
+			customerName: customer.name
 		};
 
 	} catch (error) {
