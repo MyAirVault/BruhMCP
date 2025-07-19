@@ -106,22 +106,30 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 			throw new Error('Failed to setup subscription plan');
 		}
 
-		// Create customer
+		// Get or create customer
 		let customer;
 		try {
-			customer = await razorpay.customers.create({
-				name: email.split('@')[0], // Use email prefix as name
-				email: email,
-				contact: '', // Optional, can be added later
-				notes: {
-					userId: userId,
-					platform: 'mcp_instances'
-				}
-			});
+			// First, try to find existing customer by email
+			customer = await getCustomerByEmail(email);
 			
-			console.log(`✅ Created Razorpay customer: ${customer.id}`);
+			if (customer) {
+				console.log(`✅ Found existing Razorpay customer: ${customer.id}`);
+			} else {
+				// Create new customer if none exists
+				customer = await razorpay.customers.create({
+					name: email.split('@')[0], // Use email prefix as name
+					email: email,
+					contact: '', // Optional, can be added later
+					notes: {
+						userId: userId,
+						platform: 'mcp_instances'
+					}
+				});
+				
+				console.log(`✅ Created Razorpay customer: ${customer.id}`);
+			}
 		} catch (error) {
-			console.error('Error creating Razorpay customer:', error);
+			console.error('Error getting/creating Razorpay customer:', error);
 			throw new Error('Failed to create customer profile');
 		}
 
