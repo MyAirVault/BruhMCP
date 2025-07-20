@@ -196,19 +196,19 @@ export const BillingPage: React.FC = () => {
     <Layout userName={userName}>
       {/* Page Header */}
       <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </button>
           </div>
-          <div className="mt-4">
-            <h1 className="text-2xl font-bold text-gray-900">Billing Details</h1>
-            <p className="text-gray-600 mt-1">Manage your billing address and payment methods</p>
+          <div className="mt-2">
+            <h1 className="text-xl font-bold text-gray-900">Billing Details</h1>
+            <p className="text-gray-600 text-sm">Manage your billing address and payment methods</p>
           </div>
         </div>
       </div>
