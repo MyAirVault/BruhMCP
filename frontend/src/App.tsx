@@ -17,6 +17,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/logs" element={<Logs />} />
         <Route path="/billing" element={<BillingPage />} />
+        <Route path="/billing/checkout" element={<CheckoutPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         {/* <Route path="/profile" element={<Profile />} /> */} {/* Commented out as profile section is not implemented yet */}
         <Route path="/" element={<Dashboard />} />

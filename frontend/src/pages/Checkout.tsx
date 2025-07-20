@@ -15,12 +15,15 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Layout from '../components/layout/Layout';
+import { useAuth } from '../hooks/useAuth';
 import type { BillingDetails, BillingDetailsInput } from '../types/billing';
 import { getBillingDetails, saveBillingDetails } from '../services/billingDetailsService';
 import { apiService } from '../services/apiService';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const { userName, isLoading: authLoading } = useAuth();
   const [billingDetails, setBillingDetails] = useState<BillingDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -158,22 +161,24 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-          <span className="text-gray-600">Loading checkout...</span>
+      <Layout userName={userName}>
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <span className="text-gray-600">Loading checkout...</span>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <Layout userName={userName}>
+      {/* Page Header */}
       <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/')}
@@ -194,8 +199,9 @@ export const CheckoutPage: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20 py-8">
+        <div className="max-w-[1280px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Billing Details */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm border">
@@ -380,6 +386,11 @@ export const CheckoutPage: React.FC = () => {
           <div className="space-y-6">
             {/* Plan Summary */}
             <div className="bg-gradient-to-br from-indigo-50 to-yellow-50 rounded-lg border border-indigo-200 p-6">
+              {/* Company branding */}
+              <div className="flex items-center justify-center mb-6">
+                <img src="/logo.svg" alt="Logo" className="h-8 w-auto opacity-80" />
+              </div>
+              
               <div className="flex items-center gap-3 mb-4">
                 <Crown className="h-8 w-8 text-yellow-500" />
                 <div>
@@ -452,9 +463,12 @@ export const CheckoutPage: React.FC = () => {
 
             {/* Security Notice */}
             <div className="bg-white rounded-lg shadow-sm border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <CreditCard className="h-4 w-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-900">Secure Payment</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-900">Secure Payment</span>
+                </div>
+                <img src="/logo.svg" alt="Logo" className="h-4 w-auto opacity-40" />
               </div>
               <p className="text-xs text-gray-600">
                 Your payment information is processed securely through Razorpay. 
@@ -462,8 +476,9 @@ export const CheckoutPage: React.FC = () => {
               </p>
             </div>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
