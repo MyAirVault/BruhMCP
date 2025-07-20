@@ -25,14 +25,15 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   
   const data = await response.json();
   
-  // Check if this is an OAuth response (has oauth field)
-  if (data.oauth && data.instance) {
+  // For MCP creation responses, return the full response structure
+  // to preserve both oauth and data fields
+  if (data.oauth || (data.data && data.data.instance_id)) {
     return data as T;
   }
   
   // Check if the response has a data field (most API responses)
   if (data.data !== undefined) {
-    return data as T;
+    return data.data as T;
   }
   
   // Otherwise, return the data directly

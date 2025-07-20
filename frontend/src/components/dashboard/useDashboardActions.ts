@@ -80,30 +80,57 @@ export const useDashboardActions = ({
       } else {
         // For API key services, handle normally
         console.log('Created MCP:', response);
+        console.log('Response type:', typeof response);
+        console.log('Response keys:', Object.keys(response));
         console.log('Response has data:', !!response.data);
-        console.log('Response structure:', Object.keys(response));
+        console.log('Response has instance:', !!response.instance);
+        console.log('Full response:', JSON.stringify(response, null, 2));
         
         // Show copy URL modal with the newly created MCP first, before closing create modal
-        if (response && response.data) {
-          console.log('Setting up copy URL modal with data:', response.data);
-          const newMCP = {
-            id: response.data.id,
-            name: response.data.custom_name,
-            email: response.data.access_url, // For backward compatibility
-            status: response.data.status as 'active' | 'inactive' | 'expired',
-            mcpType: response.data.mcp_service.name,
-            access_url: response.data.access_url,
-            icon_url: undefined // Will be fetched from MCPTypes if needed
-          };
-          console.log('New MCP object:', newMCP);
+        // Check for both response.data (API key services) and response.instance (OAuth services)
+        if (response && (response.data || response.instance)) {
+          console.log('Setting up copy URL modal with response:', response);
+          
+          let mcpData: MCPItem;
+          
+          if (response.data) {
+            // API key service response format
+            const data = response.data;
+            mcpData = {
+              id: data.id || data.instance_id,
+              name: data.custom_name || 'Unnamed Instance',
+              email: data.access_url, // For backward compatibility
+              status: data.status as 'active' | 'inactive' | 'expired',
+              mcpType: data.mcp_service?.name,
+              access_url: data.access_url,
+              icon_url: undefined // Will be fetched from MCPTypes if needed
+            };
+          } else if (response.instance) {
+            // OAuth service response format
+            const instance = response.instance;
+            mcpData = {
+              id: instance.id,
+              name: instance.custom_name || 'Unnamed Instance',
+              email: instance.access_url, // For backward compatibility
+              status: instance.status as 'active' | 'inactive' | 'expired',
+              mcpType: instance.mcp_type?.name,
+              access_url: instance.access_url,
+              icon_url: undefined // Will be fetched from MCPTypes if needed
+            };
+          } else {
+            console.log('Unexpected response format:', response);
+            return response;
+          }
+          
+          console.log('New MCP object:', mcpData);
           
           // Use setTimeout to ensure modal state is set properly
           setTimeout(() => {
-            setCopyURLModalData({ isOpen: true, mcp: newMCP });
+            setCopyURLModalData({ isOpen: true, mcp: mcpData });
             console.log('Copy URL modal data set');
           }, 100);
         } else {
-          console.log('No response.data found, response:', response);
+          console.log('No response data or instance found, response:', response);
         }
         
         // Close create modal and refresh list after setting up copy URL modal
