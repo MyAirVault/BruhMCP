@@ -194,43 +194,41 @@ export const BillingPage: React.FC = () => {
 
   return (
     <Layout userName={userName}>
-      {/* Page Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </button>
-          </div>
-          <div className="mt-2">
-            <h1 className="text-xl font-bold text-gray-900">Billing Details</h1>
-            <p className="text-gray-600 text-sm">Manage your billing address and payment methods</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Success Message */}
-      {showSuccess && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <div className="bg-green-50 border border-green-200 rounded-md p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-green-800">
-                <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">Billing details saved successfully!</span>
-              </div>
-              <img src="/logo.svg" alt="Logo" className="h-5 w-auto opacity-60" />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20 py-8">
-        <div className="max-w-[1280px] mx-auto space-y-8">
+        <div className="max-w-[1280px] mx-auto">
+          <div className="flex items-center space-x-3 mb-8">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div className="flex items-center space-x-2">
+              <CreditCard className="w-8 h-8 text-gray-700" />
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                Billing Details
+              </h1>
+            </div>
+          </div>
+
+          {/* Success Message */}
+          {showSuccess && (
+            <div className="mb-6">
+              <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-green-800">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-medium">Billing details saved successfully!</span>
+                  </div>
+                  <img src="/logo.svg" alt="Logo" className="h-5 w-auto opacity-60" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-8">
           {/* Billing Address Section */}
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="px-6 py-4 border-b">
@@ -468,6 +466,7 @@ export const BillingPage: React.FC = () => {
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </Layout>
