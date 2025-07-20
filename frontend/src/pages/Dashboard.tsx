@@ -153,6 +153,9 @@ const Dashboard: React.FC = () => {
             message
           });
         }}
+        onSuccess={(mcp) => {
+          setCopyURLModalData({ isOpen: true, mcp });
+        }}
       />
 
       <EditMCPModal

@@ -80,7 +80,7 @@ const MagicLinkPopup: React.FC<MagicLinkPopupProps> = ({ email, onClose }) => {
         </p>
 
         <p className="text-sm text-gray-600 mb-6">
-          Click the link in the email to sign in instantly. The link expires in 24 hours.
+          Click the link in the email to sign in instantly. The link expires in 15 mins.
         </p>
 
         <button

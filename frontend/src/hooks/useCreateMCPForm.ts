@@ -9,13 +9,14 @@ interface UseCreateMCPFormProps {
   onClose: () => void;
   onSubmit: (data: CreateMCPFormData) => Promise<MCPInstanceCreationResponse>;
   onPlanLimitReached?: (title: string, message: string) => void;
+  onSuccess?: (mcp: import('../types').MCPItem) => void;
 }
 
 /**
  * Custom hook to manage CreateMCP form state and validation
  * Handles form data, validation state, and submission logic
  */
-export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached }: UseCreateMCPFormProps) => {
+export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached, onSuccess }: UseCreateMCPFormProps) => {
   const [formData, setFormData] = useState<CreateMCPFormData>({
     name: '',
     type: '',
@@ -437,6 +438,20 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached
               pollIntervalRef.current = null;
             }
             
+            // Create MCP item for success callback
+            if (onSuccess) {
+              const newMCP = {
+                id: instance.id,
+                name: instance.custom_name || instance.mcp_type.display_name,
+                email: instance.access_url, // For backward compatibility
+                status: instance.status as 'active' | 'inactive' | 'expired',
+                mcpType: instance.mcp_type.name,
+                access_url: instance.access_url,
+                icon_url: instance.mcp_type.icon_url
+              };
+              onSuccess(newMCP);
+            }
+            
             // Close modal and refresh
             onClose();
             
@@ -479,7 +494,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached
         }
       };
     }
-  }, [oAuthState, oAuthInstanceId, onClose]);
+  }, [oAuthState, oAuthInstanceId, onClose, onSuccess]);
 
 
 

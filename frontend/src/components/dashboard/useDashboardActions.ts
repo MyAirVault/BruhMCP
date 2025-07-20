@@ -72,7 +72,7 @@ export const useDashboardActions = ({
       
       // Check if this is an OAuth service that requires user consent
       if (response && response.oauth && response.oauth.requires_user_consent) {
-        console.log('OAuth flow initiated for MCP:', response.instance.id);
+        console.log('OAuth flow initiated for MCP:', response.instance?.id);
         console.log('OAuth data:', response.oauth); // Debug log
         // Don't close the modal - let the OAuth popup handle it
         // Return the response for OAuth handling in the form
@@ -82,6 +82,21 @@ export const useDashboardActions = ({
         console.log('Created MCP:', response);
         await refreshMCPList();
         setIsCreateModalOpen(false);
+        
+        // Show copy URL modal with the newly created MCP
+        if (response && response.data) {
+          const newMCP = {
+            id: response.data.id,
+            name: response.data.custom_name,
+            email: response.data.access_url, // For backward compatibility
+            status: response.data.status as 'active' | 'inactive' | 'expired',
+            mcpType: response.data.mcp_service.name,
+            access_url: response.data.access_url,
+            icon_url: undefined // Will be fetched from MCPTypes if needed
+          };
+          setCopyURLModalData({ isOpen: true, mcp: newMCP });
+        }
+        
         return response;
       }
     } catch (error) {

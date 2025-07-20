@@ -77,7 +77,31 @@ export interface MCPInstance {
 }
 
 export interface MCPInstanceCreationResponse {
-  instance: MCPInstance;
+  instance?: MCPInstance; // OAuth response format
+  data?: {
+    id: string;
+    instance_id: string;
+    custom_name: string;
+    status: string;
+    expires_at: string;
+    expiration_option: string;
+    usage_count: number;
+    access_url: string;
+    instance_url: string;
+    mcp_service: {
+      name: string;
+      display_name: string;
+      type: string;
+      port: number;
+    };
+    endpoints: {
+      health: string;
+      tools: string;
+      call: string;
+    };
+    created_at: string;
+    updated_at: string;
+  }; // API key response format
   oauth?: {
     requires_user_consent: boolean;
     authorization_url: string;

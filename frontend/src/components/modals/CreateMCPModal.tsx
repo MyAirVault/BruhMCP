@@ -8,7 +8,7 @@ import TypeDropdown from '../ui/form/TypeDropdown';
 import ExpirationDropdown from '../ui/form/ExpirationDropdown';
 import CredentialFields from '../ui/form/CredentialFields';
 
-const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit, onPlanLimitReached }) => {
+const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit, onPlanLimitReached, onSuccess }) => {
   const {
     formData,
     mcpTypes,
@@ -25,7 +25,7 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
     isFormValid,
     retryValidation,
     isOAuthService
-  } = useCreateMCPForm({ isOpen, onClose, onSubmit, onPlanLimitReached });
+  } = useCreateMCPForm({ isOpen, onClose, onSubmit, onPlanLimitReached, onSuccess });
 
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [typeSearchQuery, setTypeSearchQuery] = useState('');
