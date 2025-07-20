@@ -334,7 +334,7 @@ class SheetsMCPHandler {
       }
     );
 
-    console.log(`✅ Configured ${this.server.listTools().length} Google Sheets MCP tools`);
+    console.log(`✅ Configured Google Sheets MCP tools`);
   }
 
   /**
