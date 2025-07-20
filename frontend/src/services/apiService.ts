@@ -556,6 +556,26 @@ export const apiService = {
     return makeRequest('/billing/subscription-details');
   },
 
+  getRazorpaySavedCards: async (): Promise<{
+    cards: Array<{
+      id: string;
+      last4: string;
+      network: string;
+      type: string;
+      issuer?: string;
+      expiryMonth: number;
+      expiryYear: number;
+      bank?: string;
+      wallet?: string;
+      method: string;
+      createdAt: string;
+    }>;
+    customerId: string | null;
+    count: number;
+  }> => {
+    return makeRequest('/billing/saved-cards');
+  },
+
   // Generic HTTP methods for direct API calls
   get: async <T = any>(endpoint: string): Promise<T> => {
     return makeRequest<T>(endpoint, {

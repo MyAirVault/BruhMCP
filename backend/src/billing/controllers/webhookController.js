@@ -98,7 +98,8 @@ async function processSubscriptionActivated(subscription) {
 	const result = await atomicActivateProSubscription(
 		userId,
 		subscription.id,
-		new Date(subscription.current_end * 1000)
+		new Date(subscription.current_end * 1000),
+		subscription.customer_id
 	);
 
 	if (result.status === 'already_active') {

@@ -43,6 +43,10 @@ router.get('/payment-history', requireAuth, getPaymentHistory);
 // GET /api/v1/billing/subscription-details - Get detailed subscription info from Razorpay
 router.get('/subscription-details', requireAuth, getDetailedSubscriptionInfo);
 
+// GET /api/v1/billing/saved-cards - Get saved cards from Razorpay
+import { getSavedCards } from '../controllers/savedCardsController.js';
+router.get('/saved-cards', requireAuth, getSavedCards);
+
 // === Webhooks ===
 // Webhooks don't require auth (verified by signature)
 

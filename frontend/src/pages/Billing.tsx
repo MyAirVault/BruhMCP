@@ -31,7 +31,7 @@ import {
   deleteBillingDetails
 } from '../services/billingDetailsService';
 import { apiService } from '../services/apiService';
-import { ConfirmationModal } from '../components/ui/ConfirmationModal';
+import CancelSubscriptionModal from '../components/modals/CancelSubscriptionModal';
 
 export const BillingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,6 +49,8 @@ export const BillingPage: React.FC = () => {
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [razorpaySavedCards, setRazorpaySavedCards] = useState<any[]>([]);
+  const [isLoadingSavedCards, setIsLoadingSavedCards] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<BillingDetailsInput>({
@@ -94,11 +96,29 @@ export const BillingPage: React.FC = () => {
     try {
       const details = await apiService.getSubscriptionDetails();
       setSubscriptionDetails(details);
+      
+      // If we have a customer ID, load saved cards
+      if (details?.customerId) {
+        loadRazorpaySavedCards();
+      }
     } catch (error) {
       console.error('Error loading subscription details:', error);
       // Don't show error for users without subscription
     } finally {
       setIsLoadingSubscription(false);
+    }
+  };
+
+  const loadRazorpaySavedCards = async () => {
+    setIsLoadingSavedCards(true);
+    try {
+      const response = await apiService.getRazorpaySavedCards();
+      setRazorpaySavedCards(response.cards);
+    } catch (error) {
+      console.error('Error loading Razorpay saved cards:', error);
+      setRazorpaySavedCards([]);
+    } finally {
+      setIsLoadingSavedCards(false);
     }
   };
 
@@ -542,6 +562,45 @@ export const BillingPage: React.FC = () => {
                   )}
                 </div>
 
+                {/* Razorpay Saved Cards Section */}
+                {userPlan?.plan?.type === 'pro' && subscriptionDetails?.customerId && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">Saved Payment Methods from Razorpay</h3>
+                    {isLoadingSavedCards ? (
+                      <div className="flex items-center justify-center py-4 border border-gray-200 rounded-md">
+                        <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
+                        <span className="ml-2 text-sm text-gray-600">Loading saved cards...</span>
+                      </div>
+                    ) : razorpaySavedCards.length > 0 ? (
+                      <div className="space-y-2">
+                        {razorpaySavedCards.map((card: any) => (
+                          <div
+                            key={card.id}
+                            className="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50"
+                          >
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="h-5 w-5 text-gray-400" />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  •••• •••• •••• {card.last4}
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {card.network?.toUpperCase()} • Expires {card.expiryMonth}/{card.expiryYear}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 border border-gray-200 rounded-md">
+                        <CreditCard className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm text-gray-500">No saved cards in Razorpay</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Payment Methods */}
                 {billingDetails?.cards && billingDetails.cards.length > 0 ? (
                   <div className="space-y-3">
@@ -585,13 +644,7 @@ export const BillingPage: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium">No payment methods</p>
-                    <p className="text-sm">Add a card to get started with Pro features</p>
-                  </div>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -643,12 +696,6 @@ export const BillingPage: React.FC = () => {
                           <label className="text-sm font-medium text-gray-500">Next Billing</label>
                           <p className="text-lg font-semibold text-gray-900">
                             {subscriptionDetails.cancelAtPeriodEnd ? 'Cancelled' : formatDate(subscriptionDetails.nextBilling)}
-                          </p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Payments Made</label>
-                          <p className="text-gray-900">
-                            {subscriptionDetails.paidCount} of {subscriptionDetails.totalCount}
                           </p>
                         </div>
                       </div>
@@ -750,16 +797,11 @@ export const BillingPage: React.FC = () => {
       </div>
 
       {/* Subscription Cancellation Modal */}
-      <ConfirmationModal
+      <CancelSubscriptionModal
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
         onConfirm={handleCancelSubscription}
-        title="Cancel Pro Subscription"
-        message="Are you sure you want to cancel your Pro subscription? You will continue to have access to Pro features until the end of your current billing period, after which your account will be downgraded to the free plan."
-        confirmText="Yes, Cancel Subscription"
-        cancelText="Keep Subscription"
         isLoading={isCancelling}
-        variant="danger"
       />
     </Layout>
   );

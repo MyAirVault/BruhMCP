@@ -21,6 +21,7 @@ export async function getUserPlan(userId) {
 				features,
 				expires_at,
 				subscription_id,
+				customer_id,
 				payment_status,
 				created_at,
 				updated_at
@@ -233,24 +234,26 @@ export async function getPlanStatistics() {
  * @param {string} userId - User ID
  * @param {Object} billingData - Billing data to update
  * @param {string} billingData.subscriptionId - Subscription ID
+ * @param {string} billingData.customerId - Razorpay customer ID
  * @param {string} billingData.paymentStatus - Payment status
  * @returns {Promise<Object>} Updated plan object
  */
 export async function updateUserPlanBilling(userId, billingData) {
 	try {
-		const { subscriptionId, paymentStatus } = billingData;
+		const { subscriptionId, customerId, paymentStatus } = billingData;
 		
 		const query = `
 			UPDATE user_plans
 			SET 
 				subscription_id = $2,
-				payment_status = $3,
+				customer_id = $3,
+				payment_status = $4,
 				updated_at = CURRENT_TIMESTAMP
 			WHERE user_id = $1
 			RETURNING *
 		`;
 		
-		const values = [userId, subscriptionId, paymentStatus];
+		const values = [userId, subscriptionId, customerId, paymentStatus];
 		const result = await pool.query(query, values);
 		
 		if (result.rows.length === 0) {
@@ -280,6 +283,7 @@ export async function getUserPlanBySubscriptionId(subscriptionId) {
 				features,
 				expires_at,
 				subscription_id,
+				customer_id,
 				payment_status,
 				created_at,
 				updated_at
@@ -334,9 +338,10 @@ export async function deactivateAllUserInstances(userId) {
  * @param {string} userId - User ID
  * @param {string} subscriptionId - Razorpay subscription ID
  * @param {Date} expiresAt - Subscription expiration date
+ * @param {string} customerId - Razorpay customer ID
  * @returns {Promise<Object>} Result object with status and plan data
  */
-export async function atomicActivateProSubscription(userId, subscriptionId, expiresAt) {
+export async function atomicActivateProSubscription(userId, subscriptionId, expiresAt, customerId = null) {
 	const client = await pool.connect();
 	try {
 		await client.query('BEGIN');
@@ -377,10 +382,11 @@ export async function atomicActivateProSubscription(userId, subscriptionId, expi
 				max_instances = NULL,
 				payment_status = 'active',
 				subscription_id = $2,
-				expires_at = $3,
+				customer_id = $3,
+				expires_at = $4,
 				features = jsonb_build_object(
 					'maxInstances', 'unlimited',
-					'activatedAt', to_jsonb($4::timestamptz),
+					'activatedAt', to_jsonb($5::timestamptz),
 					'activatedBy', 'payment_system'
 				),
 				updated_at = CURRENT_TIMESTAMP
@@ -388,7 +394,7 @@ export async function atomicActivateProSubscription(userId, subscriptionId, expi
 			RETURNING *
 		`;
 
-		const updateValues = [userId, subscriptionId, expiresAt, new Date()];
+		const updateValues = [userId, subscriptionId, customerId, expiresAt, new Date()];
 		const updateResult = await client.query(updateQuery, updateValues);
 
 		await client.query('COMMIT');
