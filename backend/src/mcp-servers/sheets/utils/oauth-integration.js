@@ -4,7 +4,7 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const oauthServiceManager = require('../../../services/oauth-service-manager');
+import oauthServiceManager from '../../../services/oauth-service-manager.js';
 
 /**
  * Refresh tokens using OAuth service with retry logic
@@ -245,7 +245,7 @@ async function getOAuthProviders() {
   }
 }
 
-module.exports = {
+export {
   refreshWithOAuthService,
   exchangeTokens,
   validateOAuthCredentials,
