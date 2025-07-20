@@ -1,5 +1,5 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authenticate } from '../middleware/authMiddleware.js';
 import {
 	getBillingDetailsByUserId,
 	upsertBillingDetails,
@@ -8,7 +8,6 @@ import {
 	setDefaultCard,
 	deleteBillingDetails
 } from '../db/queries/billingDetailsQueries.js';
-import { errorResponse } from '../utils/errorResponse.js';
 
 const router = express.Router();
 
@@ -17,7 +16,7 @@ const router = express.Router();
  * @desc Get billing details for authenticated user
  * @access Private
  */
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
 	try {
 		const userId = req.user.id;
 		const billingDetails = await getBillingDetailsByUserId(userId);
@@ -35,7 +34,13 @@ router.get('/', authMiddleware, async (req, res) => {
 		});
 	} catch (error) {
 		console.error('Error fetching billing details:', error);
-		res.status(500).json(errorResponse('Failed to fetch billing details'));
+		res.status(500).json({
+			success: false,
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Failed to fetch billing details'
+			}
+		});
 	}
 });
 
@@ -44,7 +49,7 @@ router.get('/', authMiddleware, async (req, res) => {
  * @desc Create or update billing details for authenticated user
  * @access Private
  */
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
 	try {
 		const userId = req.user.id;
 		const {
@@ -84,7 +89,13 @@ router.post('/', authMiddleware, async (req, res) => {
 		});
 	} catch (error) {
 		console.error('Error saving billing details:', error);
-		res.status(500).json(errorResponse('Failed to save billing details'));
+		res.status(500).json({
+			success: false,
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Failed to save billing details'
+			}
+		});
 	}
 });
 
@@ -93,7 +104,7 @@ router.post('/', authMiddleware, async (req, res) => {
  * @desc Add a card to user's billing details
  * @access Private
  */
-router.post('/cards', authMiddleware, async (req, res) => {
+router.post('/cards', authenticate, async (req, res) => {
 	try {
 		const userId = req.user.id;
 		const { cardData, setAsDefault = false } = req.body;
@@ -122,7 +133,13 @@ router.post('/cards', authMiddleware, async (req, res) => {
 			});
 		}
 
-		res.status(500).json(errorResponse('Failed to add card'));
+		res.status(500).json({
+			success: false,
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Failed to add card'
+			}
+		});
 	}
 });
 
@@ -131,7 +148,7 @@ router.post('/cards', authMiddleware, async (req, res) => {
  * @desc Remove a card from user's billing details
  * @access Private
  */
-router.delete('/cards/:cardId', authMiddleware, async (req, res) => {
+router.delete('/cards/:cardId', authenticate, async (req, res) => {
 	try {
 		const userId = req.user.id;
 		const { cardId } = req.params;
@@ -153,7 +170,13 @@ router.delete('/cards/:cardId', authMiddleware, async (req, res) => {
 			});
 		}
 
-		res.status(500).json(errorResponse('Failed to remove card'));
+		res.status(500).json({
+			success: false,
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Failed to remove card'
+			}
+		});
 	}
 });
 
@@ -162,7 +185,7 @@ router.delete('/cards/:cardId', authMiddleware, async (req, res) => {
  * @desc Set a card as default
  * @access Private
  */
-router.put('/cards/:cardId/default', authMiddleware, async (req, res) => {
+router.put('/cards/:cardId/default', authenticate, async (req, res) => {
 	try {
 		const userId = req.user.id;
 		const { cardId } = req.params;
@@ -184,7 +207,13 @@ router.put('/cards/:cardId/default', authMiddleware, async (req, res) => {
 			});
 		}
 
-		res.status(500).json(errorResponse('Failed to set default card'));
+		res.status(500).json({
+			success: false,
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Failed to set default card'
+			}
+		});
 	}
 });
 
@@ -193,7 +222,7 @@ router.put('/cards/:cardId/default', authMiddleware, async (req, res) => {
  * @desc Delete billing details for authenticated user
  * @access Private
  */
-router.delete('/', authMiddleware, async (req, res) => {
+router.delete('/', authenticate, async (req, res) => {
 	try {
 		const userId = req.user.id;
 		const deleted = await deleteBillingDetails(userId);
@@ -211,7 +240,13 @@ router.delete('/', authMiddleware, async (req, res) => {
 		});
 	} catch (error) {
 		console.error('Error deleting billing details:', error);
-		res.status(500).json(errorResponse('Failed to delete billing details'));
+		res.status(500).json({
+			success: false,
+			error: {
+				code: 'INTERNAL_ERROR',
+				message: 'Failed to delete billing details'
+			}
+		});
 	}
 });
 
