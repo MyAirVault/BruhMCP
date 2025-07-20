@@ -4,9 +4,9 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const { getSessionStatistics } = require('../services/handler-sessions');
-const { getCacheStatistics } = require('../services/credential-cache');
-const { getWatcherStatus } = require('../services/credential-watcher');
+import { getSessionStatistics } from '../services/handler-sessions.js';
+import { getCacheStatistics } from '../services/credential-cache.js';
+import { getWatcherStatus } from '../services/credential-watcher.js';
 
 /**
  * Health check endpoint handler
@@ -58,4 +58,4 @@ async function healthCheck(req, res) {
   }
 }
 
-module.exports = healthCheck;
+export default healthCheck;

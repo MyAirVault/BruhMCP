@@ -4,7 +4,7 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const { getOrCreateHandlerSession } = require('../services/handler-sessions');
+import { getOrCreateHandlerSession } from '../services/handler-sessions.js';
 
 /**
  * Handle MCP JSON-RPC calls
@@ -50,4 +50,4 @@ async function handleMCPCall(req, res) {
   }
 }
 
-module.exports = handleMCPCall;
+export default handleMCPCall;

@@ -482,7 +482,7 @@ function startBackgroundCacheSync(intervalMinutes = 5) {
 	};
 }
 
-module.exports = {
+export {
 	initializeCredentialCache,
 	getCachedCredential,
 	setCachedCredential,
