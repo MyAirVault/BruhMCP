@@ -63,14 +63,14 @@ export async function createCheckoutSession(req, res) {
 		res.json({
 			message: 'Checkout session created successfully',
 			data: {
-				orderId: checkout.orderId,
 				subscriptionId: checkout.subscriptionId,
 				amount: checkout.amount,
 				currency: checkout.currency,
 				customerId: checkout.customerId,
 				razorpayKeyId: checkout.razorpayKeyId,
 				customerEmail: checkout.customerEmail,
-				customerName: checkout.customerName
+				customerName: checkout.customerName,
+				userId: userId
 			}
 		});
 

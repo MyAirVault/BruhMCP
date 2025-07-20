@@ -53,6 +53,13 @@ router.post('/webhooks/razorpay',
 	handleRazorpayWebhook
 );
 
+// Subscription callback endpoint (for Razorpay redirect)
+router.post('/subscription-callback', (req, res) => {
+	// Just acknowledge the callback - actual processing happens via webhooks
+	console.log('Subscription callback received:', req.body);
+	res.json({ status: 'ok' });
+});
+
 // === Admin Endpoints ===
 // Require admin privileges for debugging and monitoring
 

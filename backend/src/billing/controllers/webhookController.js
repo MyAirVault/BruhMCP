@@ -127,10 +127,21 @@ async function processSubscriptionCancelled(subscription) {
  * @returns {Promise<void>}
  */
 async function processPaymentFailed(payment) {
-	const subscriptionId = payment.notes?.subscriptionId;
+	// Log the payment object to debug
+	console.log('Payment failed webhook data:', JSON.stringify(payment, null, 2));
+	
+	// Try to find subscription ID in different places
+	const subscriptionId = payment.notes?.subscriptionId || 
+						   payment.subscription_id || 
+						   payment.notes?.subscription_id;
 	
 	if (!subscriptionId) {
-		console.warn('No subscription ID found in failed payment');
+		console.warn('No subscription ID found in failed payment. Payment data:', {
+			id: payment.id,
+			notes: payment.notes,
+			subscription_id: payment.subscription_id,
+			description: payment.description
+		});
 		return;
 	}
 
@@ -156,14 +167,41 @@ async function processPaymentFailed(payment) {
 }
 
 /**
+ * Process payment authorized event
+ * @param {Object} payment - Razorpay payment object
+ * @returns {Promise<void>}
+ */
+async function processPaymentAuthorized(payment) {
+	// For subscription payments, the subscription will be activated via subscription.activated webhook
+	// This is just for logging and tracking
+	const subscriptionId = payment.subscription_id || payment.notes?.subscription_id;
+	
+	if (subscriptionId) {
+		console.log(`💳 Payment authorized for subscription ${subscriptionId}: ${payment.id}`);
+		console.log(`   Amount: ₹${payment.amount / 100}`);
+		console.log(`   Status: ${payment.status}`);
+	} else {
+		console.log(`💳 Payment authorized (non-subscription): ${payment.id}`);
+	}
+}
+
+/**
  * Main Razorpay webhook handler
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
 export async function handleRazorpayWebhook(req, res) {
 	try {
-		const signature = req.headers['x-razorpay-signature'];
-		const payload = req.body;
+		// Check both lowercase and uppercase headers
+		const signature = req.headers['x-razorpay-signature'] || req.headers['X-Razorpay-Signature'];
+		
+		if (!signature) {
+			console.error('Missing Razorpay signature header');
+			return res.status(400).json({ error: 'Missing signature header' });
+		}
+		
+		// When using express.raw(), req.body is a Buffer
+		const payload = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body);
 
 		// Parse and verify webhook event
 		const event = parseWebhookEvent(payload, signature);
@@ -204,6 +242,22 @@ export async function handleRazorpayWebhook(req, res) {
 				case 'subscription.completed':
 					// Handle subscription completion
 					console.log(`ℹ️ Subscription completed: ${event.data.subscription.entity.id}`);
+					break;
+
+				case 'payment.authorized':
+					// Payment authorized for subscription
+					console.log(`💳 Payment authorized for subscription`);
+					await processPaymentAuthorized(event.data.payment.entity);
+					break;
+
+				case 'order.paid':
+					// Order paid event
+					console.log(`💰 Order paid: ${event.data.order.entity.id}`);
+					break;
+
+				case 'invoice.paid':
+					// Invoice paid for subscription
+					console.log(`📄 Invoice paid: ${event.data.invoice.entity.id}`);
 					break;
 
 				default:

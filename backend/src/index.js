@@ -60,6 +60,7 @@ app.use(helmet({
 			],
 			frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
 			fontSrc: ["'self'", "https://checkout.razorpay.com"],
+			formAction: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
 		},
 	},
 }));

@@ -117,18 +117,22 @@ export const CheckoutPage: React.FC = () => {
       // Initialize Razorpay checkout
       const options = {
         key: checkoutData.razorpayKeyId,
-        amount: checkoutData.amount,
-        currency: checkoutData.currency,
-        name: 'MCP Platform',
-        description: 'Pro Plan Subscription',
-        order_id: checkoutData.orderId,
+        subscription_id: checkoutData.subscriptionId,
+        name: 'bruhMCP',
+        description: 'Pro Plan Subscription - ₹999/month',
+        image: '/logo.svg',
         prefill: {
           name: checkoutData.customerName,
           email: checkoutData.customerEmail,
+          contact: '', // Add if available
         },
         handler: async (paymentResponse: any) => {
           try {
             console.log('Payment successful:', paymentResponse);
+            console.log('Payment ID:', paymentResponse.razorpay_payment_id);
+            console.log('Subscription ID:', paymentResponse.razorpay_subscription_id);
+            console.log('Signature:', paymentResponse.razorpay_signature);
+            
             await apiService.handleCheckoutSuccess(checkoutData.subscriptionId);
             
             // Redirect to dashboard with success message
@@ -142,16 +146,70 @@ export const CheckoutPage: React.FC = () => {
         },
         modal: {
           ondismiss: () => {
+            console.log('Payment modal dismissed');
             setIsProcessingPayment(false);
-          }
+          },
+          confirm_close: true,
+          escape: false,
+          animation: true,
+          backdropclose: false
+        },
+        retry: {
+          enabled: true,
+          max_count: 3
         },
         theme: {
-          color: '#4F46E5'
-        }
+          color: '#4F46E5',
+          backdrop_color: 'rgba(0, 0, 0, 0.5)'
+        },
+        notes: {
+          subscription_id: checkoutData.subscriptionId,
+          user_id: checkoutData.userId || ''
+        },
+        // Add callback URL to handle redirects
+        callback_url: `${window.location.origin}/api/v1/billing/subscription-callback`,
+        redirect: false // Keep as popup, not redirect
       };
 
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
+      // Check if Razorpay is loaded
+      if (!(window as any).Razorpay) {
+        console.error('Razorpay SDK not loaded');
+        setErrors({ general: 'Payment system not available. Please refresh and try again.' });
+        setIsProcessingPayment(false);
+        return;
+      }
+      
+      console.log('Creating Razorpay instance with options:', {
+        ...options,
+        key: options.key.substring(0, 10) + '...', // Hide key in logs
+        subscription_id: options.subscription_id
+      });
+      
+      // Log subscription details
+      console.log('Subscription ID for payment:', checkoutData.subscriptionId);
+      console.log('Customer ID:', checkoutData.customerId);
+      
+      try {
+        const razorpay = new (window as any).Razorpay(options);
+        
+        // Add payment failed handler
+        razorpay.on('payment.failed', function (response: any) {
+          console.error('Payment failed event:', response.error);
+          const errorMsg = response.error?.description || response.error?.reason || 'Payment failed';
+          setErrors({ general: errorMsg });
+          setIsProcessingPayment(false);
+          
+          // Close the Razorpay modal to prevent blank window
+          razorpay.close();
+        });
+        
+        // Open the checkout
+        razorpay.open();
+      } catch (error: any) {
+        console.error('Error opening Razorpay checkout:', error);
+        setErrors({ general: 'Failed to open payment window. Please try again.' });
+        setIsProcessingPayment(false);
+      }
       
     } catch (error: any) {
       console.error('Error creating checkout session:', error);

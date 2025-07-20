@@ -25,7 +25,7 @@ const PRO_PLAN_CONFIG = {
 	description: 'Unlimited MCP instances',
 	currency: 'INR',
 	interval: 'monthly',
-	amount: process.env.PRO_PLAN_PRICE || 99900, // ₹999 in paise
+	amount: parseInt(process.env.PRO_PLAN_PRICE) || 99900, // ₹999 in paise
 };
 
 /**
@@ -139,8 +139,9 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 			customer_id: customer.id,
 			quantity: 1,
 			total_count: 120, // 10 years worth of monthly payments
-			start_at: Math.floor(Date.now() / 1000) + 60, // Start 1 minute from now
+			// Don't set start_at to let Razorpay handle it automatically
 			expire_by: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Expire in 24 hours if not paid
+			customer_notify: 1, // Send email notifications
 			notes: {
 				userId: userId,
 				planType: 'pro',
@@ -155,25 +156,8 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 
 		console.log(`✅ Created Razorpay subscription for user ${userId}: ${subscription.id}`);
 
-		// For subscriptions, we need to handle the first payment differently
-		// Create a simple order for the first payment
-		const order = await razorpay.orders.create({
-			amount: PRO_PLAN_CONFIG.amount,
-			currency: PRO_PLAN_CONFIG.currency,
-			receipt: `sub_${subscription.id}_${Date.now()}`,
-			notes: {
-				userId: userId,
-				subscriptionId: subscription.id,
-				planType: 'pro',
-				paymentType: 'subscription_first_payment'
-			}
-		});
-
-		console.log(`✅ Created Razorpay order for subscription: ${order.id}`);
-
 		return {
 			subscriptionId: subscription.id,
-			orderId: order.id,
 			amount: PRO_PLAN_CONFIG.amount,
 			currency: PRO_PLAN_CONFIG.currency,
 			customerId: customer.id,
@@ -263,18 +247,28 @@ export function verifyWebhookSignature(payload, signature) {
 			throw new Error('RAZORPAY_WEBHOOK_SECRET not configured');
 		}
 
-		const expectedSignature = crypto
-			.createHmac('sha256', webhookSecret)
-			.update(payload)
-			.digest('hex');
-		
-		return crypto.timingSafeEqual(
-			Buffer.from(signature, 'utf8'),
-			Buffer.from(expectedSignature, 'utf8')
-		);
+		// Use Razorpay's static method for webhook validation
+		try {
+			Razorpay.validateWebhookSignature(
+				payload, // raw webhook body as string
+				signature, // x-razorpay-signature header
+				webhookSecret // webhook secret from dashboard
+			);
+			// If no error thrown, signature is valid
+			console.log('✅ Webhook signature verified successfully');
+			return true;
+		} catch (validationError) {
+			console.log('Webhook verification failed:');
+			console.log('- Error:', validationError.message);
+			console.log('- Received signature:', signature);
+			console.log('- Webhook secret (first 10 chars):', webhookSecret.substring(0, 10) + '...');
+			console.log('- Payload length:', payload.length);
+			console.log('- First 100 chars of payload:', payload.substring(0, 100));
+			return false;
+		}
 
 	} catch (error) {
-		console.error('Error verifying Razorpay webhook signature:', error);
+		console.error('Error in webhook signature verification setup:', error);
 		return false;
 	}
 }
