@@ -80,11 +80,12 @@ export const useDashboardActions = ({
       } else {
         // For API key services, handle normally
         console.log('Created MCP:', response);
-        await refreshMCPList();
-        setIsCreateModalOpen(false);
+        console.log('Response has data:', !!response.data);
+        console.log('Response structure:', Object.keys(response));
         
-        // Show copy URL modal with the newly created MCP
+        // Show copy URL modal with the newly created MCP first, before closing create modal
         if (response && response.data) {
+          console.log('Setting up copy URL modal with data:', response.data);
           const newMCP = {
             id: response.data.id,
             name: response.data.custom_name,
@@ -94,8 +95,20 @@ export const useDashboardActions = ({
             access_url: response.data.access_url,
             icon_url: undefined // Will be fetched from MCPTypes if needed
           };
-          setCopyURLModalData({ isOpen: true, mcp: newMCP });
+          console.log('New MCP object:', newMCP);
+          
+          // Use setTimeout to ensure modal state is set properly
+          setTimeout(() => {
+            setCopyURLModalData({ isOpen: true, mcp: newMCP });
+            console.log('Copy URL modal data set');
+          }, 100);
+        } else {
+          console.log('No response.data found, response:', response);
         }
+        
+        // Close create modal and refresh list after setting up copy URL modal
+        await refreshMCPList();
+        setIsCreateModalOpen(false);
         
         return response;
       }

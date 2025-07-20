@@ -10,13 +10,14 @@ interface UseCreateMCPFormProps {
   onSubmit: (data: CreateMCPFormData) => Promise<MCPInstanceCreationResponse>;
   onPlanLimitReached?: (title: string, message: string) => void;
   onSuccess?: (mcp: import('../types').MCPItem) => void;
+  onRefresh?: () => Promise<void>;
 }
 
 /**
  * Custom hook to manage CreateMCP form state and validation
  * Handles form data, validation state, and submission logic
  */
-export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached, onSuccess }: UseCreateMCPFormProps) => {
+export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached, onSuccess, onRefresh }: UseCreateMCPFormProps) => {
   const [formData, setFormData] = useState<CreateMCPFormData>({
     name: '',
     type: '',
@@ -455,8 +456,10 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached
             // Close modal and refresh
             onClose();
             
-            // Optionally trigger a refresh of the MCP list
-            window.location.reload();
+            // Refresh the MCP list without reloading the page
+            if (onRefresh) {
+              await onRefresh();
+            }
           } else if (instance.oauth_status === 'failed') {
             // OAuth failed
             setOAuthState('error');
@@ -494,7 +497,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached
         }
       };
     }
-  }, [oAuthState, oAuthInstanceId, onClose, onSuccess]);
+  }, [oAuthState, oAuthInstanceId, onClose, onSuccess, onRefresh]);
 
 
 

@@ -40,4 +40,5 @@ export interface CreateMCPModalProps {
   onSubmit: (data: CreateMCPFormData) => Promise<import('../types').MCPInstanceCreationResponse>;
   onPlanLimitReached?: (title: string, message: string) => void;
   onSuccess?: (mcp: import('../types').MCPItem) => void;
+  onRefresh?: () => Promise<void>;
 }

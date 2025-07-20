@@ -156,6 +156,7 @@ const Dashboard: React.FC = () => {
         onSuccess={(mcp) => {
           setCopyURLModalData({ isOpen: true, mcp });
         }}
+        onRefresh={refreshMCPList}
       />
 
       <EditMCPModal
