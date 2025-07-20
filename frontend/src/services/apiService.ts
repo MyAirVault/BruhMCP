@@ -2,10 +2,6 @@ import type { MCPType, MCPInstance, MCPInstanceCreationResponse, APIKey, MCPLog 
 
 const API_BASE_URL = '/api/v1';
 
-interface ApiResponse<T> {
-  data: T;
-  meta?: Record<string, unknown>;
-}
 
 interface ApiError {
   error: {
@@ -34,8 +30,13 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     return data as T;
   }
   
-  // Otherwise, assume it's wrapped in a data field
-  return (data as ApiResponse<T>).data || data;
+  // Check if the response has a data field (most API responses)
+  if (data.data !== undefined) {
+    return data as T;
+  }
+  
+  // Otherwise, return the data directly
+  return data as T;
 };
 
 const makeRequest = async <T>(
