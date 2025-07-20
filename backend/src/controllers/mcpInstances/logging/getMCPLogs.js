@@ -56,14 +56,25 @@ export async function getMCPLogs(req, res) {
 		const projectRoot = path.resolve(__dirname, '../../../../../');
 		const logBasePath = path.join(projectRoot, 'logs', 'users', `user_${userId}`, `mcp_${id}`);
 
+		// Check if log directory exists
+		let logDirExists = false;
 		try {
-			// Check if log directory exists
 			await stat(logBasePath);
+			logDirExists = true;
 		} catch {
-			return res.status(404).json({
-				error: {
-					code: 'NOT_FOUND',
-					message: 'MCP instance logs not found',
+			// Log directory doesn't exist yet - this is normal for new instances
+			logDirExists = false;
+		}
+
+		// If log directory doesn't exist, return empty logs array instead of error
+		if (!logDirExists) {
+			return res.status(200).json({
+				data: [],
+				meta: {
+					total: 0,
+					limit,
+					offset,
+					message: 'No logs available yet for this instance'
 				},
 			});
 		}
