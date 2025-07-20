@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import { Crown, ExternalLink, Loader2 } from 'lucide-react';
 import { apiService } from '../../services/apiService';
+import { getBillingDetails } from '../../services/billingDetailsService';
+import { BillingInfoForm } from './BillingInfoForm';
 
 interface UpgradeButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
@@ -27,10 +29,21 @@ export const UpgradeButton: React.FC<UpgradeButtonProps> = ({
   onError
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showBillingForm, setShowBillingForm] = useState(false);
 
   const handleUpgradeClick = async () => {
     try {
       setIsLoading(true);
+      
+      // Check if billing details exist
+      const billingDetails = await getBillingDetails();
+      
+      if (!billingDetails) {
+        // Show billing form if no billing details found
+        setIsLoading(false);
+        setShowBillingForm(true);
+        return;
+      }
       
       // Create checkout session
       const checkoutData = await apiService.createCheckoutSession();
@@ -83,6 +96,61 @@ export const UpgradeButton: React.FC<UpgradeButtonProps> = ({
     }
   };
 
+  const handleBillingFormSubmit = async (_data: any) => {
+    try {
+      setIsLoading(true);
+      
+      // Billing details have been collected, now proceed with checkout
+      setShowBillingForm(false);
+      
+      // Create checkout session
+      const checkoutData = await apiService.createCheckoutSession();
+      
+      // Initialize Razorpay checkout with billing info
+      const options = {
+        key: checkoutData.razorpayKeyId,
+        amount: checkoutData.amount,
+        currency: checkoutData.currency,
+        name: 'MCP Platform',
+        description: 'Pro Plan Subscription',
+        order_id: checkoutData.orderId,
+        prefill: {
+          name: checkoutData.customerName,
+          email: checkoutData.customerEmail,
+          contact: '', // Add if available in billing details
+        },
+        handler: async (paymentResponse: any) => {
+          try {
+            console.log('Payment successful:', paymentResponse);
+            await apiService.handleCheckoutSuccess(checkoutData.subscriptionId);
+            onSuccess?.();
+            window.location.reload();
+          } catch (error: any) {
+            console.error('Error handling payment success:', error);
+            onError?.('Payment successful but failed to activate plan. Please contact support.');
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsLoading(false);
+          }
+        },
+        theme: {
+          color: '#4F46E5'
+        }
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
+      
+    } catch (error: any) {
+      console.error('Error creating checkout session:', error);
+      const errorMessage = error.response?.data?.error?.message || 'Failed to start checkout';
+      onError?.(errorMessage);
+      setIsLoading(false);
+    }
+  };
+
   // Button style variants
   const variants = {
     primary: 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent',
@@ -108,6 +176,17 @@ export const UpgradeButton: React.FC<UpgradeButtonProps> = ({
     ${fullWidth ? 'w-full' : ''}
     ${className}
   `;
+
+  // Show billing form if needed
+  if (showBillingForm) {
+    return (
+      <BillingInfoForm
+        onSubmit={handleBillingFormSubmit}
+        onCancel={() => setShowBillingForm(false)}
+        isLoading={isLoading}
+      />
+    );
+  }
 
   return (
     <button

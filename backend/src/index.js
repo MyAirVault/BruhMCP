@@ -11,6 +11,7 @@ import apiKeysRoutes from './routes/apiKeysRoutes.js';
 import mcpInstancesRoutes from './routes/mcpInstancesRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import billingRoutes from './billing/routes/billingRoutes.js';
+import billingDetailsRoutes from './routes/billingDetailsRoutes.js';
 
 // Import billing validation
 import { validateBillingConfig } from './billing/middleware/webhookValidation.js';
@@ -134,6 +135,7 @@ app.use('/api/v1/api-keys', apiKeysRoutes);
 app.use('/api/v1/mcps', mcpInstancesRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/billing', billingRoutes);
+app.use('/api/v1/billing-details', billingDetailsRoutes);
 
 
 // SPA fallback - serve index.html for non-API routes

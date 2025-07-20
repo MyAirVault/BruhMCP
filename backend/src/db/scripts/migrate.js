@@ -12,6 +12,7 @@ const migrations = [
 	'004_add_optimistic_locking.sql',
 	'005_add_user_plans_with_active_limits.sql',
 	'006_add_billing_fields.sql',
+	'007_add_user_billing_details.sql',
 ];
 
 async function loadMCPServiceRegistrations() {

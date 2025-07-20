@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDropdown } from '../../hooks/useDropdown';
 import { logout } from '../../services/authService';
 import { CreditCard, Settings, LogOut } from 'lucide-react';
+import { BillingDetailsModal } from '../billing/BillingDetailsModal';
 
 interface HeaderProps {
   userName?: string;
@@ -10,6 +11,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
   const { userDropdownOpen, handleUserDropdownToggle, setUserDropdownOpen } = useDropdown();
+  const [billingModalOpen, setBillingModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -69,7 +71,7 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                 </button> */}
                 <button
                   onClick={() => {
-                    console.log('Billings');
+                    setBillingModalOpen(true);
                     setUserDropdownOpen(false);
                   }}
                   className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"
@@ -124,6 +126,12 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
           )}
         </div>
       </div>
+      
+      {/* Billing Details Modal */}
+      <BillingDetailsModal
+        isOpen={billingModalOpen}
+        onClose={() => setBillingModalOpen(false)}
+      />
     </header>
   );
 };

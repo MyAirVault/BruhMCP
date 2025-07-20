@@ -11,6 +11,8 @@ import {
   Plus,
   AlertCircle
 } from 'lucide-react';
+import { getBillingDetails, saveBillingDetails } from '../../services/billingDetailsService';
+import type { CardInfo } from '../../types/billing';
 
 interface BillingAddress {
   line1: string;
@@ -55,42 +57,45 @@ export const BillingInfoForm: React.FC<BillingInfoFormProps> = ({
   const [selectedCardId, setSelectedCardId] = useState<string>('');
   const [errors, setErrors] = useState<Partial<BillingAddress & { general: string }>>({});
 
-  // Load saved cards on component mount
+  // Load billing details and saved cards on component mount
   useEffect(() => {
-    loadSavedCards();
+    loadBillingDetails();
   }, []);
 
-  const loadSavedCards = async () => {
+  const loadBillingDetails = async () => {
     try {
-      // Mock data for now - replace with actual API call
-      const mockCards: SavedCard[] = [
-        {
-          id: '1',
-          last4: '4242',
-          brand: 'visa',
-          expMonth: 12,
-          expYear: 2025,
-          isDefault: true
-        },
-        {
-          id: '2',
-          last4: '5555',
-          brand: 'mastercard',
-          expMonth: 8,
-          expYear: 2024,
-          isDefault: false
+      const billingDetails = await getBillingDetails();
+      
+      if (billingDetails) {
+        // Pre-fill form with existing billing details
+        setBillingAddress({
+          line1: billingDetails.address_line1,
+          line2: billingDetails.address_line2 || '',
+          city: billingDetails.city,
+          state: billingDetails.state,
+          country: billingDetails.country,
+          zipCode: billingDetails.zip_code
+        });
+
+        // Convert CardInfo to SavedCard format
+        const convertedCards: SavedCard[] = billingDetails.cards.map((card: CardInfo) => ({
+          id: card.id,
+          last4: card.last4,
+          brand: card.brand,
+          expMonth: card.exp_month,
+          expYear: card.exp_year,
+          isDefault: card.id === billingDetails.default_card_id
+        }));
+        
+        setSavedCards(convertedCards);
+        
+        // Set default card as selected
+        if (billingDetails.default_card_id) {
+          setSelectedCardId(billingDetails.default_card_id);
         }
-      ];
-      
-      setSavedCards(mockCards);
-      
-      // Set default card as selected
-      const defaultCard = mockCards.find(card => card.isDefault);
-      if (defaultCard) {
-        setSelectedCardId(defaultCard.id);
       }
     } catch (error) {
-      console.error('Error loading saved cards:', error);
+      console.error('Error loading billing details:', error);
     }
   };
 
@@ -121,17 +126,33 @@ export const BillingInfoForm: React.FC<BillingInfoFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
 
-    onSubmit({
-      billingAddress,
-      selectedCardId: selectedCardId || undefined
-    });
+    try {
+      // Save billing details to backend
+      await saveBillingDetails({
+        address_line1: billingAddress.line1,
+        address_line2: billingAddress.line2,
+        city: billingAddress.city,
+        state: billingAddress.state,
+        country: billingAddress.country,
+        zip_code: billingAddress.zipCode
+      });
+
+      // Call parent callback with form data
+      onSubmit({
+        billingAddress,
+        selectedCardId: selectedCardId || undefined
+      });
+    } catch (error) {
+      console.error('Error saving billing details:', error);
+      setErrors({ general: 'Failed to save billing details. Please try again.' });
+    }
   };
 
   const handleAddressChange = (field: keyof BillingAddress, value: string) => {
@@ -172,6 +193,16 @@ export const BillingInfoForm: React.FC<BillingInfoFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Error Message */}
+          {errors.general && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <div className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{errors.general}</span>
+              </div>
+            </div>
+          )}
+
           {/* Saved Cards Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
