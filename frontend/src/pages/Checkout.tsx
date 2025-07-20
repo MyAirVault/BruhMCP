@@ -176,31 +176,24 @@ export const CheckoutPage: React.FC = () => {
 
   return (
     <Layout userName={userName}>
-      {/* Page Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              Back to Dashboard
-            </button>
-          </div>
-          <div className="mt-4">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-              <Crown className="h-7 w-7 text-yellow-500" />
-              Upgrade to Pro Plan
-            </h1>
-            <p className="text-gray-600 mt-1">Review your billing details and start your Pro subscription</p>
-          </div>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-20 py-8">
         <div className="max-w-[1280px] mx-auto">
+          <div className="flex items-center space-x-3 mb-8">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div className="flex items-center space-x-2">
+              <Crown className="w-8 h-8 text-yellow-500" />
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                Upgrade to Pro Plan
+              </h1>
+            </div>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Billing Details */}
           <div className="space-y-6">
