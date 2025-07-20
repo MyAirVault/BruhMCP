@@ -374,13 +374,13 @@ export async function atomicActivateProSubscription(userId, subscriptionId, expi
 			UPDATE user_plans
 			SET 
 				plan_type = 'pro',
-				max_instances = 10,
+				max_instances = NULL,
 				payment_status = 'active',
 				subscription_id = $2,
 				expires_at = $3,
 				features = jsonb_build_object(
-					'maxInstances', 10,
-					'activatedAt', $4,
+					'maxInstances', 'unlimited',
+					'activatedAt', to_jsonb($4::timestamptz),
 					'activatedBy', 'payment_system'
 				),
 				updated_at = CURRENT_TIMESTAMP
@@ -388,7 +388,7 @@ export async function atomicActivateProSubscription(userId, subscriptionId, expi
 			RETURNING *
 		`;
 
-		const updateValues = [userId, subscriptionId, expiresAt, new Date().toISOString()];
+		const updateValues = [userId, subscriptionId, expiresAt, new Date()];
 		const updateResult = await client.query(updateQuery, updateValues);
 
 		await client.query('COMMIT');

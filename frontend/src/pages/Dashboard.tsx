@@ -77,12 +77,13 @@ const Dashboard: React.FC = () => {
     closeDropdowns,
   });
 
-  // Handle OAuth callback
+  // Handle OAuth callback and upgrade success
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const oauthSuccess = urlParams.get('oauth_success');
     const oauthError = urlParams.get('oauth_error');
     const instanceId = urlParams.get('instance_id');
+    const upgradeSuccess = urlParams.get('upgrade');
 
     if (oauthSuccess === 'true') {
       console.log('OAuth completed successfully for instance:', instanceId);
@@ -94,6 +95,14 @@ const Dashboard: React.FC = () => {
       console.error('OAuth error:', oauthError);
       // You could show an error notification here
       // For now, just log it and clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (upgradeSuccess === 'success') {
+      console.log('Upgrade to Pro plan successful!');
+      // Refresh MCP list to update limits
+      refreshMCPList();
+      // Show success notification (you could add a toast notification here)
+      alert('🎉 Congratulations! You have successfully upgraded to the Pro plan.');
+      // Clean up URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [refreshMCPList]);

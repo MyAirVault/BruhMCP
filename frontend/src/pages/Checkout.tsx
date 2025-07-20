@@ -126,24 +126,6 @@ export const CheckoutPage: React.FC = () => {
           email: checkoutData.customerEmail,
           contact: '', // Add if available
         },
-        handler: async (paymentResponse: any) => {
-          try {
-            console.log('Payment successful:', paymentResponse);
-            console.log('Payment ID:', paymentResponse.razorpay_payment_id);
-            console.log('Subscription ID:', paymentResponse.razorpay_subscription_id);
-            console.log('Signature:', paymentResponse.razorpay_signature);
-            
-            await apiService.handleCheckoutSuccess(checkoutData.subscriptionId);
-            
-            // Redirect to dashboard with success message
-            navigate('/?upgrade=success');
-          } catch (error: any) {
-            console.error('Error handling payment success:', error);
-            setErrors({ general: 'Payment successful but failed to activate plan. Please contact support.' });
-          } finally {
-            setIsProcessingPayment(false);
-          }
-        },
         modal: {
           ondismiss: () => {
             console.log('Payment modal dismissed');
@@ -168,7 +150,7 @@ export const CheckoutPage: React.FC = () => {
         },
         // Add callback URL to handle redirects
         callback_url: `${window.location.origin}/api/v1/billing/subscription-callback`,
-        redirect: false // Keep as popup, not redirect
+        redirect: true // Use redirect mode to show payment success page
       };
 
       // Check if Razorpay is loaded
@@ -191,6 +173,9 @@ export const CheckoutPage: React.FC = () => {
       
       try {
         const razorpay = new (window as any).Razorpay(options);
+        
+        // Store razorpay instance for use in handler
+        (window as any).__currentRazorpay = razorpay;
         
         // Add payment failed handler
         razorpay.on('payment.failed', function (response: any) {

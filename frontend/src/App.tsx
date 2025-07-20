@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
 import { BillingPage } from './pages/Billing';
 import { CheckoutPage } from './pages/Checkout';
+import PaymentSuccess from './pages/PaymentSuccess';
 // import Profile from './pages/Profile'; // Commented out as profile section is not implemented yet
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/billing" element={<BillingPage />} />
         <Route path="/billing/checkout" element={<CheckoutPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
         {/* <Route path="/profile" element={<Profile />} /> */} {/* Commented out as profile section is not implemented yet */}
         <Route path="/" element={<Dashboard />} />
       </Routes>

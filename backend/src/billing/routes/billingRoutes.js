@@ -57,11 +57,17 @@ router.post('/webhooks/razorpay',
 router.post('/subscription-callback', (req, res) => {
 	// Just acknowledge the callback - actual processing happens via webhooks
 	console.log('Subscription callback received:', req.body);
-	res.json({ status: 'ok' });
+	
+	// Redirect to the payment success page
+	res.redirect('/payment-success');
 });
 
 // === Admin Endpoints ===
 // Require admin privileges for debugging and monitoring
+
+// POST /api/v1/billing/admin/manual-upgrade - Manually upgrade a user to Pro
+import { manualUpgrade } from '../controllers/manualUpgradeController.js';
+router.post('/admin/manual-upgrade', requireAuth, requireAdmin, manualUpgrade);
 
 // GET /api/v1/billing/admin/webhook-events - Get webhook processing history
 router.get('/admin/webhook-events', requireAuth, requireAdmin, getWebhookEvents);

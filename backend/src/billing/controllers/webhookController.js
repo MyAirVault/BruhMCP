@@ -73,10 +73,23 @@ async function isEventProcessed(eventId) {
  * @returns {Promise<void>}
  */
 async function processSubscriptionActivated(subscription) {
-	const userId = subscription.notes?.userId;
+	console.log('📋 Full subscription object:', JSON.stringify(subscription, null, 2));
+	
+	// Check different possible locations for userId
+	let userId = subscription.notes?.userId || 
+				 subscription.notes?.user_id ||
+				 subscription.metadata?.userId ||
+				 subscription.metadata?.user_id;
+	
+	// Log what we found
+	console.log('🔍 Looking for userId:');
+	console.log('  - subscription.notes:', subscription.notes);
+	console.log('  - subscription.metadata:', subscription.metadata);
+	console.log('  - Found userId:', userId);
 	
 	if (!userId) {
-		throw new Error('User ID not found in subscription notes');
+		console.error('❌ User ID not found in subscription data');
+		throw new Error('User ID not found in subscription');
 	}
 
 	console.log(`🔄 Processing subscription activated for user ${userId}: ${subscription.id}`);
@@ -223,6 +236,8 @@ export async function handleRazorpayWebhook(req, res) {
 			// Process different event types
 			switch (event.type) {
 				case 'subscription.activated':
+				case 'subscription.authenticated':
+					console.log('🔍 Webhook event data:', JSON.stringify(event.data, null, 2));
 					await processSubscriptionActivated(event.data.subscription.entity);
 					break;
 
