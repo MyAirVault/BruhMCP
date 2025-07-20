@@ -5,12 +5,13 @@
  * Following Gmail MCP implementation patterns
  */
 
-const express = require('express');
-const cors = require('cors');
-const { createHandlerSession, getHandlerSession } = require('./services/handler-sessions');
-const credentialAuth = require('./middleware/credential-auth');
-const callEndpoint = require('./endpoints/call');
-const healthEndpoint = require('./endpoints/health');
+import express from 'express';
+import cors from 'cors';
+import { createHandlerSession, getHandlerSession } from './services/handler-sessions.js';
+import credentialAuth from './middleware/credential-auth.js';
+import callEndpoint from './endpoints/call.js';
+import healthEndpoint from './endpoints/health.js';
+import { setCachedCredential } from './services/credential-cache.js';
 
 const app = express();
 const PORT = 49307;
@@ -47,8 +48,6 @@ app.post('/cache-tokens', async (req, res) => {
 		}
 
 		// Cache tokens using existing credential cache
-		const { setCachedCredential } = await import('./services/credential-cache.js');
-		
 		setCachedCredential(instance_id, {
 			bearerToken: tokens.access_token,
 			refreshToken: tokens.refresh_token,

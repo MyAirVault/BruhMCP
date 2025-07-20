@@ -301,7 +301,7 @@ async function syncCacheWithDatabase(instanceId, options = {}) {
 	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
-		const { lookupInstanceCredentials } = require('./database');
+		const { lookupInstanceCredentials } = await import('./database.js');
 		
 		// Get current cache state
 		const cachedCredential = peekCachedCredential(instanceId);
@@ -364,7 +364,7 @@ async function syncCacheWithDatabase(instanceId, options = {}) {
 		if (updateDatabase && cacheIsNewer && cachedCredential) {
 			console.log(`🔄 Updating database from cache for instance: ${instanceId}`);
 			
-			const { updateOAuthStatus } = require('../../../db/queries/mcpInstancesQueries');
+			const { updateOAuthStatus } = await import('../../../db/queries/mcpInstancesQueries.js');
 			
 			const tokenExpiresAt = cachedCredential.expiresAt ? 
 				new Date(cachedCredential.expiresAt) : null;

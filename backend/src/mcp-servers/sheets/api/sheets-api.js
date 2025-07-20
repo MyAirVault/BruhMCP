@@ -4,8 +4,8 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const { formatSheetsResponse } = require('../utils/sheets-formatting');
-const { validateSheetsInput } = require('../utils/validation');
+import { formatSheetsResponse } from '../utils/sheets-formatting.js';
+import { validateSheetsInput } from '../utils/validation.js';
 
 const SHEETS_API_BASE = 'https://sheets.googleapis.com/v4';
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
@@ -552,7 +552,7 @@ async function getSheetMetadata(params, bearerToken) {
   return formatSheetsResponse('getSheetMetadata', response);
 }
 
-module.exports = {
+export {
   createSpreadsheet,
   getSpreadsheet,
   updateCells,

@@ -4,9 +4,9 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const { cleanupInvalidCacheEntries, getCachedInstanceIds, peekCachedCredential, updateCachedCredentialMetadata, incrementRefreshAttempts, resetRefreshAttempts } = require('./credential-cache');
-const { refreshBearerToken } = require('../utils/oauth-validation');
-const { lookupInstanceCredentials } = require('./database');
+import { cleanupInvalidCacheEntries, getCachedInstanceIds, peekCachedCredential, updateCachedCredentialMetadata, incrementRefreshAttempts, resetRefreshAttempts, removeCachedCredential } from './credential-cache.js';
+import { refreshBearerToken } from '../utils/oauth-validation.js';
+import { lookupInstanceCredentials } from './database.js';
 
 // Watcher configuration
 const WATCHER_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -150,7 +150,6 @@ async function checkAndRefreshToken(instanceId) {
     if (!instance) {
       console.log(`🗑️ Instance ${instanceId} no longer exists in database, removing from cache`);
       // Remove from cache since instance doesn't exist
-      const { removeCachedCredential } = require('./credential-cache');
       removeCachedCredential(instanceId);
       return;
     }
@@ -183,7 +182,7 @@ async function checkAndRefreshToken(instanceId) {
     resetRefreshAttempts(instanceId);
 
     // Update database with new tokens
-    const { updateOAuthStatus } = require('../../../db/queries/mcpInstancesQueries');
+    const { updateOAuthStatus } = await import('../../../db/queries/mcpInstancesQueries.js');
     await updateOAuthStatus(instanceId, {
       status: 'completed',
       accessToken: newTokens.access_token,
@@ -285,7 +284,7 @@ function resetWatcherStats() {
   console.log('📊 Reset credential watcher statistics');
 }
 
-module.exports = {
+export {
   startCredentialWatcher,
   stopCredentialWatcher,
   getWatcherStatus,

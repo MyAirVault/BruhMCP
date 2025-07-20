@@ -466,7 +466,7 @@ function validateEmail(email) {
   return emailPattern.test(email);
 }
 
-module.exports = {
+export {
   validateSheetsInput,
   validateSpreadsheetId,
   validateA1Range,

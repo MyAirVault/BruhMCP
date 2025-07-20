@@ -4,7 +4,7 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const oauthServiceManager = require('../../../services/oauth-service-manager');
+import oauthServiceManager from '../../../services/oauth-service-manager.js';
 
 /**
  * Exchange OAuth credentials for Bearer token via OAuth service
@@ -399,7 +399,7 @@ async function revokeToken(token) {
   }
 }
 
-module.exports = {
+export {
   exchangeOAuthForBearer,
   refreshBearerToken,
   validateBearerToken,

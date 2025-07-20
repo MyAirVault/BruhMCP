@@ -358,7 +358,7 @@ function truncateResponse(response, maxLength = 4000) {
   return `${truncated}\n\n... (Response truncated - ${response.length} total characters)`;
 }
 
-module.exports = {
+export {
   formatSheetsResponse,
   formatSheetsError,
   truncateResponse

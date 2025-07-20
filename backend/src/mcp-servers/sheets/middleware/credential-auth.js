@@ -4,13 +4,13 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const { getCachedCredential, setCachedCredential } = require('../services/credential-cache');
-const { lookupInstanceCredentials, updateInstanceUsage } = require('../services/database');
-const { refreshBearerToken, refreshBearerTokenDirect } = require('../utils/oauth-validation');
-const { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } = require('../../../db/queries/mcpInstancesQueries');
-const { ErrorResponses } = require('../../../utils/errorResponse');
-const { handleTokenRefreshFailure, logOAuthError } = require('../utils/oauth-error-handler');
-const { recordTokenRefreshMetrics } = require('../utils/token-metrics');
+import { getCachedCredential, setCachedCredential } from '../services/credential-cache.js';
+import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
+import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauth-validation.js';
+import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
+import { ErrorResponses } from '../../../utils/errorResponse.js';
+import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauth-error-handler.js';
+import { recordTokenRefreshMetrics } from '../utils/token-metrics.js';
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
@@ -410,4 +410,4 @@ function createLightweightAuthMiddleware() {
   };
 }
 
-module.exports = createCredentialAuthMiddleware();
+export default createCredentialAuthMiddleware();

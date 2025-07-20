@@ -403,7 +403,7 @@ function resetTokenMetrics() {
   tokenMetrics.reset();
 }
 
-module.exports = {
+export {
   recordTokenRefreshMetrics,
   getTokenMetricsSummary,
   getInstanceTokenMetrics,

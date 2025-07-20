@@ -23,7 +23,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 async function createHandlerSession(instanceId, oauth) {
 	try {
 		// Import handler class dynamically to avoid circular dependencies
-		const { SheetsMCPHandler } = require('../endpoints/mcp-handler');
+		const { SheetsMCPHandler } = await import('../endpoints/mcp-handler.js');
 		
 		console.log(`🔧 Creating new Google Sheets handler session for instance: ${instanceId}`);
 		const handler = new SheetsMCPHandler(oauth);
@@ -221,7 +221,7 @@ function clearAllSessions() {
 	console.log(`🗑️  Cleared ${count} Google Sheets handler sessions`);
 }
 
-module.exports = {
+export {
 	createHandlerSession,
 	getHandlerSession,
 	getOrCreateHandlerSession,

@@ -226,7 +226,7 @@ function createOAuthErrorResponse(instanceId, error, context) {
   };
 }
 
-module.exports = {
+export {
   OAUTH_ERROR_TYPES,
   parseOAuthError,
   handleTokenRefreshFailure,

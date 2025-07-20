@@ -4,13 +4,13 @@
  * Based on Gmail MCP implementation patterns
  */
 
-const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp');
-const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp');
-const { randomUUID } = require('node:crypto');
-const { z } = require('zod');
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { randomUUID } from 'node:crypto';
+import { z } from 'zod';
 
 // Import Google Sheets API functions (will be implemented next)
-const {
+import {
   createSpreadsheet,
   getSpreadsheet,
   updateCells,
@@ -26,7 +26,7 @@ const {
   clearCells,
   appendValues,
   getSheetMetadata
-} = require('../api/sheets-api');
+} from '../api/sheets-api.js';
 
 /**
  * @typedef {Object} OAuthConfig
@@ -418,4 +418,4 @@ class SheetsMCPHandler {
   }
 }
 
-module.exports = { SheetsMCPHandler };
+export { SheetsMCPHandler };
