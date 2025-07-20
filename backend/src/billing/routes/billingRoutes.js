@@ -9,7 +9,9 @@ import {
 	createCheckoutSession, 
 	handleCheckoutSuccess, 
 	getBillingStatus, 
-	cancelSubscription 
+	cancelSubscription,
+	getPaymentHistory,
+	getDetailedSubscriptionInfo
 } from '../controllers/checkoutController.js';
 import { 
 	handleRazorpayWebhook, 
@@ -34,6 +36,12 @@ router.get('/status', requireAuth, getBillingStatus);
 
 // POST /api/v1/billing/cancel - Cancel current subscription
 router.post('/cancel', requireAuth, cancelSubscription);
+
+// GET /api/v1/billing/payment-history - Get payment history from Razorpay
+router.get('/payment-history', requireAuth, getPaymentHistory);
+
+// GET /api/v1/billing/subscription-details - Get detailed subscription info from Razorpay
+router.get('/subscription-details', requireAuth, getDetailedSubscriptionInfo);
 
 // === Webhooks ===
 // Webhooks don't require auth (verified by signature)

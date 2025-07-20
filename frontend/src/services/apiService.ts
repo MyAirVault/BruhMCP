@@ -507,6 +507,55 @@ export const apiService = {
     });
   },
 
+  getPaymentHistory: async (params?: { limit?: number; offset?: number }): Promise<{
+    payments: Array<{
+      id: string;
+      amount: number;
+      currency: string;
+      status: string;
+      method: string;
+      cardLast4?: string;
+      cardBrand?: string;
+      createdAt: string;
+      description: string;
+    }>;
+    total: number;
+    hasMore: boolean;
+  }> => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    
+    const endpoint = queryParams.toString() 
+      ? `/billing/payment-history?${queryParams.toString()}`
+      : '/billing/payment-history';
+    
+    return makeRequest(endpoint);
+  },
+
+  getSubscriptionDetails: async (): Promise<{
+    subscriptionId: string;
+    planId: string;
+    planName: string;
+    amount: number;
+    currency: string;
+    interval: string;
+    status: string;
+    currentPeriodStart: string;
+    currentPeriodEnd: string;
+    nextBilling: string;
+    cancelAtPeriodEnd: boolean;
+    customerId: string;
+    totalCount: number;
+    paidCount: number;
+    remainingCount: number;
+    startedAt: string;
+    createdAt: string;
+    notes?: any;
+  }> => {
+    return makeRequest('/billing/subscription-details');
+  },
+
   // Generic HTTP methods for direct API calls
   get: async <T = any>(endpoint: string): Promise<T> => {
     return makeRequest<T>(endpoint, {

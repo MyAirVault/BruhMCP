@@ -11,6 +11,7 @@ import {
   Plus,
   AlertCircle
 } from 'lucide-react';
+import CountryDropdown from '../ui/CountryDropdown';
 import { getBillingDetails, saveBillingDetails } from '../../services/billingDetailsService';
 import type { CardInfo } from '../../types/billing';
 
@@ -393,20 +394,11 @@ export const BillingInfoForm: React.FC<BillingInfoFormProps> = ({
                   <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
                     Country *
                   </label>
-                  <select
-                    id="country"
+                  <CountryDropdown
                     value={billingAddress.country}
-                    onChange={(e) => handleAddressChange('country', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      errors.country ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="IN">India</option>
-                    <option value="US">United States</option>
-                    <option value="GB">United Kingdom</option>
-                    <option value="CA">Canada</option>
-                    <option value="AU">Australia</option>
-                  </select>
+                    onChange={(value) => handleAddressChange('country', value)}
+                    error={!!errors.country}
+                  />
                   {errors.country && (
                     <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />

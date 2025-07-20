@@ -267,3 +267,132 @@ export async function cancelSubscription(req, res) {
 		res.status(500).json(ErrorResponses.INTERNAL_SERVER_ERROR(error.message));
 	}
 }
+
+/**
+ * Get payment history from Razorpay
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+export async function getPaymentHistory(req, res) {
+	try {
+		const userId = req.user.id;
+		const { limit = 10, offset = 0 } = req.query;
+
+		const userPlan = await getUserPlan(userId);
+		
+		if (!userPlan || !userPlan.subscription_id) {
+			return res.json({
+				message: 'Payment history retrieved successfully',
+				data: {
+					payments: [],
+					total: 0,
+					hasMore: false
+				}
+			});
+		}
+
+		// Get payments from Razorpay via subscription
+		const { razorpay } = await import('../services/paymentGateway.js');
+		
+		// Get subscription details first
+		const subscription = await razorpay.subscriptions.fetch(userPlan.subscription_id);
+		
+		// Get payments for this subscription
+		const payments = await razorpay.payments.all({
+			count: parseInt(limit),
+			skip: parseInt(offset)
+		});
+
+		// Filter payments related to this subscription
+		const subscriptionPayments = payments.items.filter(payment => 
+			payment.notes && payment.notes.subscriptionId === userPlan.subscription_id
+		);
+
+		// Format payment data
+		const formattedPayments = subscriptionPayments.map(payment => ({
+			id: payment.id,
+			amount: payment.amount / 100, // Convert from paise to rupees
+			currency: payment.currency,
+			status: payment.status,
+			method: payment.method,
+			cardLast4: payment.card ? payment.card.last4 : null,
+			cardBrand: payment.card ? payment.card.network : null,
+			createdAt: new Date(payment.created_at * 1000).toISOString(),
+			description: payment.description || 'Pro Plan Subscription'
+		}));
+
+		res.json({
+			message: 'Payment history retrieved successfully',
+			data: {
+				payments: formattedPayments,
+				total: subscriptionPayments.length,
+				hasMore: subscriptionPayments.length === parseInt(limit)
+			}
+		});
+
+	} catch (error) {
+		console.error('Error getting payment history:', error);
+		ErrorResponses.internal(res, error.message);
+	}
+}
+
+/**
+ * Get detailed subscription information from Razorpay
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+export async function getDetailedSubscriptionInfo(req, res) {
+	try {
+		const userId = req.user.id;
+
+		const userPlan = await getUserPlan(userId);
+		
+		if (!userPlan || !userPlan.subscription_id) {
+			return res.status(404).json({
+				error: {
+					code: 'NO_SUBSCRIPTION',
+					message: 'No active subscription found'
+				}
+			});
+		}
+
+		// Get subscription details from Razorpay
+		const { getSubscriptionDetails } = await import('../services/paymentGateway.js');
+		const subscriptionDetails = await getSubscriptionDetails(userPlan.subscription_id);
+
+		// Get additional subscription info from Razorpay
+		const { razorpay } = await import('../services/paymentGateway.js');
+		const subscription = await razorpay.subscriptions.fetch(userPlan.subscription_id);
+		
+		// Get plan details
+		const plan = await razorpay.plans.fetch(subscription.plan_id);
+
+		res.json({
+			message: 'Subscription details retrieved successfully',
+			data: {
+				subscriptionId: subscription.id,
+				planId: subscription.plan_id,
+				planName: plan.item.name,
+				amount: plan.item.amount / 100, // Convert from paise to rupees
+				currency: plan.item.currency,
+				interval: plan.period,
+				status: subscription.status,
+				currentPeriodStart: subscriptionDetails.currentPeriodStart,
+				currentPeriodEnd: subscriptionDetails.currentPeriodEnd,
+				nextBilling: subscriptionDetails.currentPeriodEnd,
+				cancelAtPeriodEnd: subscriptionDetails.cancelAtPeriodEnd,
+				customerId: subscription.customer_id,
+				totalCount: subscription.total_count,
+				paidCount: subscription.paid_count,
+				remainingCount: subscription.remaining_count,
+				startedAt: new Date(subscription.start_at * 1000).toISOString(),
+				createdAt: new Date(subscription.created_at * 1000).toISOString(),
+				notes: subscription.notes
+			}
+		});
+
+	} catch (error) {
+		console.error('Error getting subscription details:', error);
+		ErrorResponses.internal(res, error.message);
+	}
+}

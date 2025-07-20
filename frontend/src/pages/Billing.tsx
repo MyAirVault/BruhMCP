@@ -8,13 +8,17 @@ import {
   ArrowLeft,
   MapPin,
   CreditCard,
-  Plus,
   Trash2,
   Star,
   AlertCircle,
   Loader2,
-  CheckCircle
+  CheckCircle,
+  Crown,
+  Calendar,
+  Receipt,
+  RefreshCw
 } from 'lucide-react';
+import CountryDropdown from '../components/ui/CountryDropdown';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { useAuth } from '../hooks/useAuth';
@@ -26,6 +30,7 @@ import {
   setDefaultCard,
   deleteBillingDetails
 } from '../services/billingDetailsService';
+import { apiService } from '../services/apiService';
 
 export const BillingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +40,12 @@ export const BillingPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
+  const [userPlan, setUserPlan] = useState<any>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<BillingDetailsInput>({
@@ -46,17 +57,54 @@ export const BillingPage: React.FC = () => {
     zip_code: ''
   });
 
-  // Load billing details on page load
+  // Load billing details and user plan on page load
   useEffect(() => {
     loadBillingDetails();
+    loadUserPlan();
+    loadPaymentHistory();
+    loadSubscriptionDetails();
   }, []);
+
+  const loadUserPlan = async () => {
+    try {
+      const plan = await apiService.getUserPlan();
+      setUserPlan(plan);
+    } catch (error) {
+      console.error('Error loading user plan:', error);
+    }
+  };
+
+  const loadPaymentHistory = async () => {
+    setIsLoadingPayments(true);
+    try {
+      const response = await apiService.getPaymentHistory({ limit: 10 });
+      setPaymentHistory(response.payments);
+    } catch (error) {
+      console.error('Error loading payment history:', error);
+    } finally {
+      setIsLoadingPayments(false);
+    }
+  };
+
+  const loadSubscriptionDetails = async () => {
+    setIsLoadingSubscription(true);
+    try {
+      const details = await apiService.getSubscriptionDetails();
+      setSubscriptionDetails(details);
+    } catch (error) {
+      console.error('Error loading subscription details:', error);
+      // Don't show error for users without subscription
+    } finally {
+      setIsLoadingSubscription(false);
+    }
+  };
 
   const loadBillingDetails = async () => {
     setIsLoading(true);
     try {
       const details = await getBillingDetails();
       setBillingDetails(details);
-      
+
       if (details) {
         setFormData({
           address_line1: details.address_line1,
@@ -109,7 +157,7 @@ export const BillingPage: React.FC = () => {
       });
       setBillingDetails(savedDetails);
       setShowSuccess(true);
-      
+
       // Hide success message after 3 seconds
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
@@ -164,6 +212,54 @@ export const BillingPage: React.FC = () => {
       console.error('Error deleting billing details:', error);
       setErrors({ general: 'Failed to delete billing details. Please try again.' });
     }
+  };
+
+  const handleStartProPlan = () => {
+    navigate('/checkout');
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!window.confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your current billing period.')) {
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      await apiService.cancelSubscription();
+      // Reload user plan to get updated status
+      await loadUserPlan();
+      await loadSubscriptionDetails();
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      setErrors({ general: 'Failed to cancel subscription. Please try again.' });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const handleRefreshPaymentData = async () => {
+    await Promise.all([
+      loadBillingDetails(),
+      loadPaymentHistory(),
+      loadSubscriptionDetails()
+    ]);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currency.toUpperCase()
+    }).format(amount);
   };
 
   const getCardBrandIcon = (brand: string) => {
@@ -229,243 +325,405 @@ export const BillingPage: React.FC = () => {
           )}
 
           <div className="space-y-8">
-          {/* Billing Address Section */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Billing Address
-              </h2>
+            {/* Billing Address Section */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="px-6 py-4 border-b">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Billing Address
+                </h2>
+              </div>
+
+              <div className="p-6">
+                {errors.general && (
+                  <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <div className="flex items-center gap-2 text-red-800">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">{errors.general}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address Line 1 *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.address_line1}
+                      onChange={(e) => setFormData(prev => ({ ...prev, address_line1: e.target.value }))}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.address_line1 ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                      placeholder="Street address, P.O. box, company name"
+                    />
+                    {errors.address_line1 && (
+                      <p className="mt-1 text-sm text-red-600">{errors.address_line1}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address Line 2 (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.address_line2}
+                      onChange={(e) => setFormData(prev => ({ ...prev, address_line2: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Apartment, suite, unit, building, floor, etc."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        City *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.city}
+                        onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.city ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        placeholder="City"
+                      />
+                      {errors.city && (
+                        <p className="mt-1 text-sm text-red-600">{errors.city}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        State *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.state}
+                        onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.state ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        placeholder="State"
+                      />
+                      {errors.state && (
+                        <p className="mt-1 text-sm text-red-600">{errors.state}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Country *
+                      </label>
+                      <CountryDropdown
+                        value={formData.country}
+                        onChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                        error={!!errors.country}
+                      />
+                      {errors.country && (
+                        <p className="mt-1 text-sm text-red-600">{errors.country}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ZIP Code *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.zip_code}
+                        onChange={(e) => setFormData(prev => ({ ...prev, zip_code: e.target.value }))}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.zip_code ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        placeholder="ZIP code"
+                      />
+                      {errors.zip_code && (
+                        <p className="mt-1 text-sm text-red-600">{errors.zip_code}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                      Save Billing Details
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="p-6">
-              {errors.general && (
-                <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <div className="flex items-center gap-2 text-red-800">
-                    <AlertCircle className="h-4 w-4" />
-                    <span className="text-sm">{errors.general}</span>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address Line 1 *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.address_line1}
-                    onChange={(e) => setFormData(prev => ({ ...prev, address_line1: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      errors.address_line1 ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Street address, P.O. box, company name"
-                  />
-                  {errors.address_line1 && (
-                    <p className="mt-1 text-sm text-red-600">{errors.address_line1}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address Line 2 (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.address_line2}
-                    onChange={(e) => setFormData(prev => ({ ...prev, address_line2: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Apartment, suite, unit, building, floor, etc."
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.city ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="City"
-                    />
-                    {errors.city && (
-                      <p className="mt-1 text-sm text-red-600">{errors.city}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      State *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.state}
-                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.state ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="State"
-                    />
-                    {errors.state && (
-                      <p className="mt-1 text-sm text-red-600">{errors.state}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Country *
-                    </label>
-                    <select
-                      value={formData.country}
-                      onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.country ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="IN">India</option>
-                      <option value="US">United States</option>
-                      <option value="GB">United Kingdom</option>
-                      <option value="CA">Canada</option>
-                      <option value="AU">Australia</option>
-                    </select>
-                    {errors.country && (
-                      <p className="mt-1 text-sm text-red-600">{errors.country}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ZIP Code *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.zip_code}
-                      onChange={(e) => setFormData(prev => ({ ...prev, zip_code: e.target.value }))}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.zip_code ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="ZIP code"
-                    />
-                    {errors.zip_code && (
-                      <p className="mt-1 text-sm text-red-600">{errors.zip_code}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
+            {/* Payment Methods Section */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Payments
+                  </h2>
                   <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                    onClick={handleRefreshPaymentData}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Refresh payment data"
                   >
-                    {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Save Billing Details
+                    <RefreshCw className="h-5 w-5" />
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Payment Methods Section */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Payment Methods
-                </h2>
-                <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center gap-1">
-                  <Plus className="h-4 w-4" />
-                  Add Card
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {billingDetails?.cards && billingDetails.cards.length > 0 ? (
-                <div className="space-y-3">
-                  {billingDetails.cards.map((card: CardInfo) => (
-                    <div
-                      key={card.id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-md"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{getCardBrandIcon(card.brand)}</span>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            •••• •••• •••• {card.last4}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {card.brand.toUpperCase()} • Expires {String(card.exp_month).padStart(2, '0')}/{card.exp_year}
-                            {billingDetails.default_card_id === card.id && (
-                              <span className="ml-2 text-indigo-600 font-medium">Default</span>
-                            )}
+              <div className="p-6">
+                {/* Subscription Status and Actions */}
+                <div className="mb-6">
+                  {userPlan?.plan?.type === 'pro' ? (
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Crown className="h-6 w-6 text-yellow-500" />
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Pro Plan Active</h3>
+                            <p className="text-sm text-gray-600">You have access to all Pro features</p>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {billingDetails.default_card_id !== card.id && (
-                          <button
-                            onClick={() => handleSetDefaultCard(card.id)}
-                            className="text-gray-400 hover:text-indigo-600 transition-colors"
-                            title="Set as default"
-                          >
-                            <Star className="h-4 w-4" />
-                          </button>
-                        )}
                         <button
-                          onClick={() => handleRemoveCard(card.id)}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
-                          title="Remove card"
+                          onClick={handleCancelSubscription}
+                          disabled={isCancelling}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 text-sm"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {isCancelling && <Loader2 className="h-4 w-4 animate-spin" />}
+                          {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
                         </button>
                       </div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <AlertCircle className="h-6 w-6 text-yellow-500" />
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Upgrade to Pro</h3>
+                            <p className="text-sm text-gray-600">Get unlimited instances and premium features</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleStartProPlan}
+                          className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2 text-sm font-medium"
+                        >
+                          <Crown className="h-4 w-4" />
+                          Start Pro Plan
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">No payment methods</p>
-                  <p className="text-sm">Add a card to get started with Pro features</p>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Danger Zone */}
-          {billingDetails && (
-            <div className="bg-white rounded-lg shadow-sm border border-red-200">
-              <div className="px-6 py-4 border-b border-red-200">
-                <h2 className="text-lg font-semibold text-red-600">Danger Zone</h2>
+                {/* Payment Methods */}
+                {billingDetails?.cards && billingDetails.cards.length > 0 ? (
+                  <div className="space-y-3">
+                    {billingDetails.cards.map((card: CardInfo) => (
+                      <div
+                        key={card.id}
+                        className="flex items-center justify-between p-4 border border-gray-200 rounded-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{getCardBrandIcon(card.brand)}</span>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              •••• •••• •••• {card.last4}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {card.brand.toUpperCase()} • Expires {String(card.exp_month).padStart(2, '0')}/{card.exp_year}
+                              {billingDetails.default_card_id === card.id && (
+                                <span className="ml-2 text-indigo-600 font-medium">Default</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {billingDetails.default_card_id !== card.id && (
+                            <button
+                              onClick={() => handleSetDefaultCard(card.id)}
+                              className="text-gray-400 hover:text-indigo-600 transition-colors"
+                              title="Set as default"
+                            >
+                              <Star className="h-4 w-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleRemoveCard(card.id)}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            title="Remove card"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-lg font-medium">No payment methods</p>
+                    <p className="text-sm">Add a card to get started with Pro features</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Subscription Details Section */}
+            {userPlan?.plan?.type === 'pro' && (
+              <div className="bg-white rounded-lg shadow-sm border">
+                <div className="px-6 py-4 border-b">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Subscription Details
+                  </h2>
+                </div>
+                <div className="p-6">
+                  {isLoadingSubscription ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
+                      <span className="ml-2 text-gray-600">Loading subscription details...</span>
+                    </div>
+                  ) : subscriptionDetails ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Plan</label>
+                          <p className="text-lg font-semibold text-gray-900">{subscriptionDetails.planName}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Amount</label>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {formatCurrency(subscriptionDetails.amount, subscriptionDetails.currency)} / {subscriptionDetails.interval}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Status</label>
+                          <p className={`text-lg font-semibold capitalize ${
+                            subscriptionDetails.status === 'active' ? 'text-green-600' : 'text-yellow-600'
+                          }`}>
+                            {subscriptionDetails.status}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Current Period</label>
+                          <p className="text-gray-900">
+                            {formatDate(subscriptionDetails.currentPeriodStart)} - {formatDate(subscriptionDetails.currentPeriodEnd)}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Next Billing</label>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {subscriptionDetails.cancelAtPeriodEnd ? 'Cancelled' : formatDate(subscriptionDetails.nextBilling)}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Payments Made</label>
+                          <p className="text-gray-900">
+                            {subscriptionDetails.paidCount} of {subscriptionDetails.totalCount}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">Unable to load subscription details</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Payment History Section */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="px-6 py-4 border-b">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Payment History
+                </h2>
               </div>
               <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Delete all billing details</h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      This will permanently delete your billing address and all saved payment methods.
-                    </p>
+                {isLoadingPayments ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
+                    <span className="ml-2 text-gray-600">Loading payment history...</span>
                   </div>
-                  <button
-                    onClick={handleDeleteAll}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
-                  >
-                    Delete All
-                  </button>
-                </div>
+                ) : paymentHistory.length > 0 ? (
+                  <div className="space-y-3">
+                    {paymentHistory.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="flex items-center justify-between p-4 border border-gray-200 rounded-md"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            {payment.cardBrand && (
+                              <span className="text-xl">{getCardBrandIcon(payment.cardBrand)}</span>
+                            )}
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {formatCurrency(payment.amount, payment.currency)}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {payment.description}
+                                {payment.cardLast4 && ` • •••• ${payment.cardLast4}`}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm font-medium capitalize ${
+                            payment.status === 'captured' ? 'text-green-600' : 
+                            payment.status === 'failed' ? 'text-red-600' : 'text-yellow-600'
+                          }`}>
+                            {payment.status}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {formatDate(payment.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-lg font-medium">No payment history</p>
+                    <p className="text-sm">Your payment transactions will appear here</p>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+
+            {/* Danger Zone */}
+            {billingDetails && (
+              <div className="bg-white rounded-lg shadow-sm border border-red-200">
+                <div className="px-6 py-4 border-b border-red-200">
+                  <h2 className="text-lg font-semibold text-red-600">Danger Zone</h2>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">Delete all billing details</h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        This will permanently delete your billing address and all saved payment methods.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleDeleteAll}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+                    >
+                      Delete All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

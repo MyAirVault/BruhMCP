@@ -78,6 +78,9 @@ app.use('/:instanceId', credentialAuth);
 // Instance-specific health endpoint
 app.get('/:instanceId/health', healthEndpoint);
 
+// MCP JSON-RPC endpoint at base instance URL for Claude Code compatibility
+app.post('/:instanceId', callEndpoint);
+
 // Main MCP call endpoint
 app.post('/:instanceId/call', callEndpoint);
 
