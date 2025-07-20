@@ -85,6 +85,7 @@ export function getOAuthProvider(serviceName) {
   const providerMap = {
     'gmail': 'google',
     'googledrive': 'google',
+    'sheets': 'google',
     'googlesheets': 'google',
     'googlecalendar': 'google',
     'googlemeet': 'google',
