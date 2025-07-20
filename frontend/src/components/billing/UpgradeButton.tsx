@@ -1,13 +1,12 @@
 /**
  * Upgrade Button Component - CTA button for upgrading to Pro plan
  * Used in plan limit error messages and other upgrade prompts
+ * Now navigates to checkout page instead of handling payment directly
  */
 
-import React, { useState } from 'react';
-import { Crown, ExternalLink, Loader2 } from 'lucide-react';
-import { apiService } from '../../services/apiService';
-import { getBillingDetails } from '../../services/billingDetailsService';
-import { BillingInfoForm } from './BillingInfoForm';
+import React from 'react';
+import { Crown, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface UpgradeButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
@@ -25,130 +24,14 @@ export const UpgradeButton: React.FC<UpgradeButtonProps> = ({
   fullWidth = false,
   children,
   className = '',
-  onSuccess,
-  onError
+  onSuccess: _onSuccess,
+  onError: _onError
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [showBillingForm, setShowBillingForm] = useState(false);
+  const navigate = useNavigate();
 
-  const handleUpgradeClick = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Check if billing details exist
-      const billingDetails = await getBillingDetails();
-      
-      if (!billingDetails) {
-        // Show billing form if no billing details found
-        setIsLoading(false);
-        setShowBillingForm(true);
-        return;
-      }
-      
-      // Create checkout session
-      const checkoutData = await apiService.createCheckoutSession();
-      
-      // Initialize Razorpay checkout
-      const options = {
-        key: checkoutData.razorpayKeyId,
-        amount: checkoutData.amount,
-        currency: checkoutData.currency,
-        name: 'MCP Platform',
-        description: 'Pro Plan Subscription',
-        order_id: checkoutData.orderId,
-        prefill: {
-          name: checkoutData.customerName,
-          email: checkoutData.customerEmail,
-        },
-        handler: async (paymentResponse: any) => {
-          try {
-            // Handle successful payment
-            console.log('Payment successful:', paymentResponse);
-            await apiService.handleCheckoutSuccess(checkoutData.subscriptionId);
-            onSuccess?.();
-            
-            // Reload page to refresh user plan
-            window.location.reload();
-          } catch (error: any) {
-            console.error('Error handling payment success:', error);
-            onError?.('Payment successful but failed to activate plan. Please contact support.');
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setIsLoading(false);
-          }
-        },
-        theme: {
-          color: '#4F46E5'
-        }
-      };
-
-      // Open Razorpay checkout
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
-      
-    } catch (error: any) {
-      console.error('Error creating checkout session:', error);
-      const errorMessage = error.response?.data?.error?.message || 'Failed to start checkout';
-      onError?.(errorMessage);
-      setIsLoading(false);
-    }
-  };
-
-  const handleBillingFormSubmit = async (_data: any) => {
-    try {
-      setIsLoading(true);
-      
-      // Billing details have been collected, now proceed with checkout
-      setShowBillingForm(false);
-      
-      // Create checkout session
-      const checkoutData = await apiService.createCheckoutSession();
-      
-      // Initialize Razorpay checkout with billing info
-      const options = {
-        key: checkoutData.razorpayKeyId,
-        amount: checkoutData.amount,
-        currency: checkoutData.currency,
-        name: 'MCP Platform',
-        description: 'Pro Plan Subscription',
-        order_id: checkoutData.orderId,
-        prefill: {
-          name: checkoutData.customerName,
-          email: checkoutData.customerEmail,
-          contact: '', // Add if available in billing details
-        },
-        handler: async (paymentResponse: any) => {
-          try {
-            console.log('Payment successful:', paymentResponse);
-            await apiService.handleCheckoutSuccess(checkoutData.subscriptionId);
-            onSuccess?.();
-            window.location.reload();
-          } catch (error: any) {
-            console.error('Error handling payment success:', error);
-            onError?.('Payment successful but failed to activate plan. Please contact support.');
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setIsLoading(false);
-          }
-        },
-        theme: {
-          color: '#4F46E5'
-        }
-      };
-
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
-      
-    } catch (error: any) {
-      console.error('Error creating checkout session:', error);
-      const errorMessage = error.response?.data?.error?.message || 'Failed to start checkout';
-      onError?.(errorMessage);
-      setIsLoading(false);
-    }
+  const handleUpgradeClick = () => {
+    // Navigate to checkout page
+    navigate('/checkout');
   };
 
   // Button style variants
@@ -169,7 +52,6 @@ export const UpgradeButton: React.FC<UpgradeButtonProps> = ({
     inline-flex items-center justify-center gap-2 
     border font-medium rounded-md 
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
-    disabled:opacity-50 disabled:cursor-not-allowed
     transition-colors duration-200
     ${variants[variant]}
     ${sizes[size]}
@@ -177,34 +59,14 @@ export const UpgradeButton: React.FC<UpgradeButtonProps> = ({
     ${className}
   `;
 
-  // Show billing form if needed
-  if (showBillingForm) {
-    return (
-      <BillingInfoForm
-        onSubmit={handleBillingFormSubmit}
-        onCancel={() => setShowBillingForm(false)}
-        isLoading={isLoading}
-      />
-    );
-  }
-
   return (
     <button
       onClick={handleUpgradeClick}
-      disabled={isLoading}
       className={buttonClasses}
     >
-      {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Crown className="h-4 w-4" />
-      )}
-      
+      <Crown className="h-4 w-4" />
       {children || 'Upgrade to Pro'}
-      
-      {!isLoading && (
-        <ExternalLink className="h-3 w-3 opacity-70" />
-      )}
+      <ExternalLink className="h-3 w-3 opacity-70" />
     </button>
   );
 };
