@@ -186,7 +186,7 @@ export async function cancelSubscription(subscriptionId) {
 		}
 
 		const subscription = await razorpay.subscriptions.cancel(subscriptionId, {
-			cancel_at_cycle_end: 0 // Cancel immediately
+			cancel_at_cycle_end: 1 // Cancel at the end of the current billing period
 		});
 		
 		console.log(`✅ Cancelled Razorpay subscription: ${subscriptionId}`);

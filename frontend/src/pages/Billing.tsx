@@ -31,6 +31,7 @@ import {
   deleteBillingDetails
 } from '../services/billingDetailsService';
 import { apiService } from '../services/apiService';
+import { ConfirmationModal } from '../components/ui/ConfirmationModal';
 
 export const BillingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -40,12 +41,14 @@ export const BillingPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [userPlan, setUserPlan] = useState<any>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<BillingDetailsInput>({
@@ -156,6 +159,7 @@ export const BillingPage: React.FC = () => {
         cards: billingDetails?.cards || []
       });
       setBillingDetails(savedDetails);
+      setSuccessMessage('Billing details saved successfully!');
       setShowSuccess(true);
 
       // Hide success message after 3 seconds
@@ -219,18 +223,16 @@ export const BillingPage: React.FC = () => {
   };
 
   const handleCancelSubscription = async () => {
-    if (!window.confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your current billing period.')) {
-      return;
-    }
-
     setIsCancelling(true);
     try {
       await apiService.cancelSubscription();
       // Reload user plan to get updated status
       await loadUserPlan();
       await loadSubscriptionDetails();
+      setShowCancelModal(false);
+      setSuccessMessage('Subscription cancelled successfully. You will continue to have access until the end of your billing period.');
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setShowSuccess(false), 5000);
     } catch (error) {
       console.error('Error cancelling subscription:', error);
       setErrors({ general: 'Failed to cancel subscription. Please try again.' });
@@ -316,7 +318,7 @@ export const BillingPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-green-800">
                     <CheckCircle className="h-5 w-5" />
-                    <span className="font-medium">Billing details saved successfully!</span>
+                    <span className="font-medium">{successMessage}</span>
                   </div>
                   <img src="/logo.svg" alt="Logo" className="h-5 w-auto opacity-60" />
                 </div>
@@ -479,7 +481,7 @@ export const BillingPage: React.FC = () => {
               <div className="p-6">
                 {/* Subscription Status and Actions */}
                 <div className="mb-6">
-                  {userPlan?.plan?.type === 'pro' ? (
+                  {userPlan?.plan?.type === 'pro' && subscriptionDetails?.cancelAtPeriodEnd !== true ? (
                     <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4 mb-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -490,12 +492,31 @@ export const BillingPage: React.FC = () => {
                           </div>
                         </div>
                         <button
-                          onClick={handleCancelSubscription}
-                          disabled={isCancelling}
-                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 text-sm"
+                          onClick={() => setShowCancelModal(true)}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2 text-sm"
                         >
-                          {isCancelling && <Loader2 className="h-4 w-4 animate-spin" />}
-                          {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                          Cancel Subscription
+                        </button>
+                      </div>
+                    </div>
+                  ) : userPlan?.plan?.type === 'pro' && subscriptionDetails?.cancelAtPeriodEnd === true ? (
+                    <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <AlertCircle className="h-6 w-6 text-red-500" />
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Subscription Cancelled</h3>
+                            <p className="text-sm text-gray-600">
+                              You have access until {subscriptionDetails?.currentPeriodEnd ? formatDate(subscriptionDetails.currentPeriodEnd) : 'the end of your billing period'}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleStartProPlan}
+                          className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2 text-sm font-medium"
+                        >
+                          <Crown className="h-4 w-4" />
+                          Reactivate Pro Plan
                         </button>
                       </div>
                     </div>
@@ -727,6 +748,19 @@ export const BillingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Subscription Cancellation Modal */}
+      <ConfirmationModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelSubscription}
+        title="Cancel Pro Subscription"
+        message="Are you sure you want to cancel your Pro subscription? You will continue to have access to Pro features until the end of your current billing period, after which your account will be downgraded to the free plan."
+        confirmText="Yes, Cancel Subscription"
+        cancelText="Keep Subscription"
+        isLoading={isCancelling}
+        variant="danger"
+      />
     </Layout>
   );
 };

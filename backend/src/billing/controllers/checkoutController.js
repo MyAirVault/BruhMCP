@@ -297,16 +297,25 @@ export async function getPaymentHistory(req, res) {
 		// Get subscription details first
 		const subscription = await razorpay.subscriptions.fetch(userPlan.subscription_id);
 		
-		// Get payments for this subscription
-		const payments = await razorpay.payments.all({
+		// Get invoices for this subscription instead of all payments
+		const invoices = await razorpay.invoices.all({
+			subscription_id: userPlan.subscription_id,
 			count: parseInt(limit),
 			skip: parseInt(offset)
 		});
 
-		// Filter payments related to this subscription
-		const subscriptionPayments = payments.items.filter(payment => 
-			payment.notes && payment.notes.subscriptionId === userPlan.subscription_id
-		);
+		// Get payment details for each invoice
+		const subscriptionPayments = [];
+		for (const invoice of invoices.items) {
+			if (invoice.payment_id) {
+				try {
+					const payment = await razorpay.payments.fetch(invoice.payment_id);
+					subscriptionPayments.push(payment);
+				} catch (err) {
+					console.warn(`Failed to fetch payment ${invoice.payment_id}:`, err);
+				}
+			}
+		}
 
 		// Format payment data
 		const formattedPayments = subscriptionPayments.map(payment => ({
@@ -325,8 +334,8 @@ export async function getPaymentHistory(req, res) {
 			message: 'Payment history retrieved successfully',
 			data: {
 				payments: formattedPayments,
-				total: subscriptionPayments.length,
-				hasMore: subscriptionPayments.length === parseInt(limit)
+				total: invoices.count || formattedPayments.length,
+				hasMore: invoices.items.length === parseInt(limit)
 			}
 		});
 

@@ -28,6 +28,11 @@ router.get('/', authenticate, async (req, res) => {
 			});
 		}
 
+		// Parse cards if it's a string (shouldn't be needed with JSONB, but just in case)
+		if (billingDetails.cards && typeof billingDetails.cards === 'string') {
+			billingDetails.cards = JSON.parse(billingDetails.cards);
+		}
+
 		res.json({
 			success: true,
 			data: billingDetails
