@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rocket, Zap, ArrowRight } from 'lucide-react';
+import { Zap, ArrowRight } from 'lucide-react';
 import Tooltip from '../ui/Tooltip';
 
 interface DashboardEmptyStateProps {
