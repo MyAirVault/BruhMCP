@@ -13,7 +13,7 @@ const { Pool } = pg;
 const config = {
 	host: process.env.DB_HOST || 'localhost',
 	port: parseInt(process.env.DB_PORT || '5432'),
-	database: process.env.DB_NAME || 'minimcp',
+	database: process.env.DB_NAME || 'bruhmcp',
 	user: process.env.DB_USER || 'postgres',
 	password: process.env.DB_PASSWORD || 'postgres',
 	max: 20,
@@ -44,25 +44,35 @@ export async function testConnection() {
  * Check if required database tables exist
  */
 export async function checkDatabaseTables() {
-	const requiredTables = ['users', 'mcp_table', 'mcp_service_table', 'mcp_credentials', 'token_audit_log', 'user_plans'];
-	
+	const requiredTables = [
+		'users',
+		'mcp_table',
+		'mcp_service_table',
+		'mcp_credentials',
+		'token_audit_log',
+		'user_plans',
+	];
+
 	try {
 		const client = await pool.connect();
-		
+
 		for (const table of requiredTables) {
-			const result = await client.query(`
+			const result = await client.query(
+				`
 				SELECT EXISTS (
 					SELECT FROM information_schema.tables 
 					WHERE table_schema = 'public' 
 					AND table_name = $1
 				);
-			`, [table]);
-			
+			`,
+				[table]
+			);
+
 			if (!result.rows[0].exists) {
 				throw new Error(`Required table '${table}' does not exist. Please run database migrations.`);
 			}
 		}
-		
+
 		console.log('✅ All required database tables exist');
 		client.release();
 		return true;

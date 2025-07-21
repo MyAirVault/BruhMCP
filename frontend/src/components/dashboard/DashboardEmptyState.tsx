@@ -12,9 +12,9 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({ onCreateMCP }
       <div className="max-w-md mx-auto">
         <div className="mb-8">
           <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-            <Rocket className="w-12 h-12 text-gray-400" />
+            <img src='/logo.svg' />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to MiniMCP!</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to bruhMCP!</h1>
           <p className="text-lg text-gray-600 mb-8">
             Get started by creating your first Model Context Protocol instance.
             Connect to services like Gmail, GitHub, Slack, Discord, Dropbox, and more.
