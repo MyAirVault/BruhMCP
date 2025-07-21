@@ -4,7 +4,7 @@ This folder contains comprehensive documentation for the multi-tenant MCP servic
 
 ## Core Documentation
 
-### [phase1.md](./phase1.md)
+### [phase1-spawning-service.md](./phase1-spawning-service.md)
 **Multi-Tenant MCP Service Management and Startup Flow**
 - Updated Phase 1 implementation with multi-tenant architecture
 - Service structure with instance-based routing
@@ -12,8 +12,8 @@ This folder contains comprehensive documentation for the multi-tenant MCP servic
 - Database-driven credential management
 - Step-by-step implementation process for multi-tenant services
 
-### [database-redesign-flow.md](./database-redesign-flow.md)
-**Database Redesign Flow: Static Service Architecture**
+### [database-design.md](./database-design.md)
+**Database Design: Static Service Architecture**
 - Complete database schema for multi-tenant MCP services
 - User instance management and credential storage
 - Authentication flow design (API key and OAuth)
