@@ -4,9 +4,46 @@
  */
 
 import Razorpay from 'razorpay';
-import crypto from 'crypto';
+
+/**
+ * @typedef {Object} RazorpayConfig
+ * @property {boolean} valid
+ * @property {string[]} [missingVars]
+ * @property {string} message
+ */
+
+/**
+ * @typedef {Object} CheckoutSession
+ * @property {string} subscriptionId
+ * @property {number} amount
+ * @property {string} currency
+ * @property {string} customerId
+ * @property {string} planId
+ * @property {string} razorpayKeyId
+ * @property {string} customerEmail
+ * @property {string} customerName
+ */
+
+/**
+ * @typedef {Object} CancellationResult
+ * @property {boolean} success
+ * @property {string} subscriptionId
+ * @property {string} status
+ * @property {string} cancelledAt
+ */
+
+/**
+ * @typedef {Object} SubscriptionDetails
+ * @property {string} id
+ * @property {string} customerId
+ * @property {string} status
+ * @property {string} currentPeriodStart
+ * @property {string} currentPeriodEnd
+ * @property {string} planId
+ */
 
 // Initialize Razorpay
+/** @type {any} */
 let razorpay;
 try {
 	razorpay = new Razorpay({
@@ -25,12 +62,12 @@ const PRO_PLAN_CONFIG = {
 	description: 'Unlimited MCP instances',
 	currency: 'INR',
 	interval: 'monthly',
-	amount: parseInt(process.env.PRO_PLAN_PRICE) || 99900, // ₹999 in paise
+	amount: parseInt(process.env.PRO_PLAN_PRICE || '99900') || 99900, // ₹999 in paise
 };
 
 /**
  * Validate Razorpay configuration
- * @returns {import('../../types/billing.d.ts').RazorpayConfig} Validation result
+ * @returns {RazorpayConfig} Validation result
  */
 export function validateRazorpayConfig() {
 	const requiredVars = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'];
@@ -63,7 +100,7 @@ export function validateRazorpayConfig() {
  * @param {string} email - User email
  * @param {string} successUrl - URL to redirect after successful payment
  * @param {string} cancelUrl - URL to redirect if user cancels
- * @returns {Promise<import('../../types/billing.d.ts').CheckoutSession>} Subscription and payment link details
+ * @returns {Promise<CheckoutSession>} Subscription and payment link details
  */
 export async function createProSubscriptionCheckout(userId, email, successUrl, cancelUrl) {
 	try {
@@ -80,7 +117,7 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 				count: 100
 			});
 			
-			plan = plans.items.find(p => p.item.name === PRO_PLAN_CONFIG.name);
+			plan = plans.items.find(/** @param {any} p */ p => p.item.name === PRO_PLAN_CONFIG.name);
 			
 			if (!plan) {
 				// Create new plan
@@ -113,7 +150,9 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 			customer = await getCustomerByEmail(email);
 			
 			if (customer) {
-				console.log(`✅ Found existing Razorpay customer: ${customer.id}`);
+				/** @type {any} */
+				const customerData = customer;
+				console.log(`✅ Found existing Razorpay customer: ${customerData.id}`);
 			} else {
 				// Create new customer if none exists
 				customer = await razorpay.customers.create({
@@ -162,7 +201,7 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 			currency: PRO_PLAN_CONFIG.currency,
 			customerId: customer.id,
 			planId: plan.id,
-			razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+			razorpayKeyId: process.env.RAZORPAY_KEY_ID || '',
 			customerEmail: email,
 			customerName: customer.name
 		};
@@ -176,7 +215,7 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 /**
  * Cancel a Razorpay subscription
  * @param {string} subscriptionId - Razorpay subscription ID
- * @returns {Promise<import('../../types/billing.d.ts').CancellationResult>} Cancellation result
+ * @returns {Promise<CancellationResult>} Cancellation result
  */
 export async function cancelSubscription(subscriptionId) {
 	try {
@@ -195,7 +234,7 @@ export async function cancelSubscription(subscriptionId) {
 			success: true,
 			subscriptionId: subscription.id,
 			status: subscription.status,
-			cancelledAt: new Date(subscription.ended_at * 1000)
+			cancelledAt: new Date(subscription.ended_at * 1000).toISOString()
 		};
 
 	} catch (error) {
@@ -207,7 +246,7 @@ export async function cancelSubscription(subscriptionId) {
 /**
  * Retrieve subscription details from Razorpay
  * @param {string} subscriptionId - Razorpay subscription ID
- * @returns {Promise<import('../../types/billing.d.ts').SubscriptionDetails>} Subscription details
+ * @returns {Promise<SubscriptionDetails>} Subscription details
  */
 export async function getSubscriptionDetails(subscriptionId) {
 	try {
@@ -222,10 +261,9 @@ export async function getSubscriptionDetails(subscriptionId) {
 			id: subscription.id,
 			customerId: subscription.customer_id,
 			status: subscription.status,
-			currentPeriodStart: new Date(subscription.current_start * 1000),
-			currentPeriodEnd: new Date(subscription.current_end * 1000),
-			cancelAtPeriodEnd: subscription.cancel_at_cycle_end === 1,
-			notes: subscription.notes
+			currentPeriodStart: new Date(subscription.current_start * 1000).toISOString(),
+			currentPeriodEnd: new Date(subscription.current_end * 1000).toISOString(),
+			planId: subscription.plan_id
 		};
 
 	} catch (error) {
@@ -258,8 +296,9 @@ export function verifyWebhookSignature(payload, signature) {
 			console.log('✅ Webhook signature verified successfully');
 			return true;
 		} catch (validationError) {
+			const errorMessage = validationError instanceof Error ? validationError.message : String(validationError);
 			console.log('Webhook verification failed:');
-			console.log('- Error:', validationError.message);
+			console.log('- Error:', errorMessage);
 			console.log('- Received signature:', signature);
 			console.log('- Webhook secret (first 10 chars):', webhookSecret.substring(0, 10) + '...');
 			console.log('- Payload length:', payload.length);
@@ -315,7 +354,7 @@ export async function getCustomerByEmail(email) {
 			count: 100
 		});
 		
-		const customer = customers.items.find(c => c.email === email);
+		const customer = customers.items.find(/** @param {any} c */ c => c.email === email);
 		return customer || null;
 
 	} catch (error) {

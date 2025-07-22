@@ -61,13 +61,15 @@ router.post('/subscription-callback', (req, res) => {
 });
 
 // === Admin Endpoints ===
-// Require admin privileges for debugging and monitoring
+// Require admin privileges for debugging and monitoring - if implemented in future
 
 // POST /api/v1/billing/admin/manual-upgrade - Manually upgrade a user to Pro
 import { manualUpgrade } from '../controllers/manualUpgradeController.js';
+// @ts-ignore - TypeScript type inference issue with Express middleware chain
 router.post('/admin/manual-upgrade', requireAuth, requireAdmin, manualUpgrade);
 
 // GET /api/v1/billing/admin/webhook-events - Get webhook processing history
+// @ts-ignore - TypeScript type inference issue with Express middleware chain
 router.get('/admin/webhook-events', requireAuth, requireAdmin, getWebhookEvents);
 
 export default router;
