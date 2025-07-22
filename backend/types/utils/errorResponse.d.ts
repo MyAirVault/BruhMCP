@@ -19,6 +19,11 @@
  * @property {Array<ValidationDetail>} [details] - Additional error details (for validation errors)
  * @property {string} [instanceId] - Instance ID if applicable
  * @property {string} [userId] - User ID if applicable
+ * @property {string} [reason] - Error reason if applicable
+ * @property {string} [expiresAt] - Expiration date if applicable
+ * @property {string} [plan] - Plan type if applicable
+ * @property {number} [currentCount] - Current count if applicable
+ * @property {number} [maxInstances] - Maximum instances if applicable
  * @property {Object} [metadata] - Additional metadata
  */
 /**
@@ -32,6 +37,11 @@
  * @property {Array<ValidationDetail>} [details] - Validation error details
  * @property {string} [instanceId] - Instance ID
  * @property {string} [userId] - User ID
+ * @property {string} [reason] - Error reason
+ * @property {string} [expiresAt] - Expiration date
+ * @property {string} [plan] - Plan type
+ * @property {number} [currentCount] - Current count
+ * @property {number} [maxInstances] - Maximum instances
  * @property {Object} [metadata] - Additional metadata
  */
 /**
@@ -133,6 +143,26 @@ export type ErrorObject = {
      */
     userId?: string | undefined;
     /**
+     * - Error reason if applicable
+     */
+    reason?: string | undefined;
+    /**
+     * - Expiration date if applicable
+     */
+    expiresAt?: string | undefined;
+    /**
+     * - Plan type if applicable
+     */
+    plan?: string | undefined;
+    /**
+     * - Current count if applicable
+     */
+    currentCount?: number | undefined;
+    /**
+     * - Maximum instances if applicable
+     */
+    maxInstances?: number | undefined;
+    /**
      * - Additional metadata
      */
     metadata?: Object | undefined;
@@ -162,6 +192,26 @@ export type ErrorOptions = {
      * - User ID
      */
     userId?: string | undefined;
+    /**
+     * - Error reason
+     */
+    reason?: string | undefined;
+    /**
+     * - Expiration date
+     */
+    expiresAt?: string | undefined;
+    /**
+     * - Plan type
+     */
+    plan?: string | undefined;
+    /**
+     * - Current count
+     */
+    currentCount?: number | undefined;
+    /**
+     * - Maximum instances
+     */
+    maxInstances?: number | undefined;
     /**
      * - Additional metadata
      */

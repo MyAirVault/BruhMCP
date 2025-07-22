@@ -72,6 +72,7 @@ export type SubscriptionDetails = {
     currentPeriodStart: string;
     currentPeriodEnd: string;
     planId: string;
+    cancelAtPeriodEnd: boolean;
 };
 /**
  * @typedef {Object} RazorpayConfig
@@ -105,6 +106,7 @@ export type SubscriptionDetails = {
  * @property {string} currentPeriodStart
  * @property {string} currentPeriodEnd
  * @property {string} planId
+ * @property {boolean} cancelAtPeriodEnd
  */
 /** @type {any} */
 export let razorpay: any;

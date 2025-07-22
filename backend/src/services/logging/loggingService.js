@@ -9,6 +9,8 @@ import systemLogger from './systemLogger.js';
  * @typedef {Object} ServerInfo
  * @property {string} port - Server port
  * @property {string} environment - Environment name
+ * @property {string} [nodeVersion] - Node.js version
+ * @property {string} [platform] - Platform name
  * @property {string} [version] - Application version
  * @property {string} [event] - Event type
  * @property {string} [timestamp] - Event timestamp
@@ -17,7 +19,8 @@ import systemLogger from './systemLogger.js';
 /**
  * @typedef {Object} ShutdownInfo
  * @property {string} reason - Shutdown reason
- * @property {number} uptime - Server uptime
+ * @property {boolean} [graceful] - Whether shutdown was graceful
+ * @property {number} [uptime] - Server uptime
  * @property {number} [gracefulShutdown] - Whether shutdown was graceful
  * @property {string} [event] - Event type
  * @property {string} [timestamp] - Event timestamp
@@ -30,6 +33,7 @@ import systemLogger from './systemLogger.js';
  * @property {string} [method] - Authentication method
  * @property {string} [email] - User email
  * @property {number} [sessionDuration] - Session duration in milliseconds
+ * @property {string} [endpoint] - API endpoint
  */
 
 /**
@@ -58,8 +62,19 @@ import systemLogger from './systemLogger.js';
  * @property {string} [query] - Database query
  * @property {number} [duration] - Query duration in milliseconds
  * @property {number} [affectedRows] - Number of affected rows
- * @property {string} [error] - Error message
+ * @property {Error|string} [error] - Error object or message
  * @property {string} [connectionPool] - Connection pool info
+ */
+
+/**
+ * @typedef {Object} SecurityContextExt
+ * @property {string} [ip] - Client IP address
+ * @property {string} [userAgent] - User agent string
+ * @property {string} [userId] - User identifier
+ * @property {string} [action] - Security action performed
+ * @property {string} [email] - User email address
+ * @property {string} [reason] - Failure reason
+ * @property {string} [activity] - Suspicious activity description
  */
 
 /**
@@ -98,22 +113,25 @@ import systemLogger from './systemLogger.js';
  * @property {string|number} [userId] - User ID
  * @property {string} [instanceId] - Instance ID
  * @property {string} [operation] - Operation name
+ * @property {string} [method] - HTTP method
  * @property {string} [ip] - Client IP address
  * @property {boolean} [critical] - Whether error is critical
  * @property {string} [endpoint] - API endpoint
  * @property {Object} [data] - Additional data
+ * @property {Object} [details] - Additional error details
  * @property {string} [type] - Error type
  * @property {Object} [promise] - Promise object for unhandled rejections
+ * @property {string} [email] - User email address
  */
 
 /**
  * @typedef {Object} HealthData
- * @property {Object} memoryUsage - Memory usage statistics
- * @property {number} cpuUsage - CPU usage percentage
- * @property {Object} diskUsage - Disk usage statistics
- * @property {Object} databaseHealth - Database health status
- * @property {Object} cacheHealth - Cache health status
- * @property {number} activeConnections - Number of active connections
+ * @property {{used?: number}} [memoryUsage] - Memory usage statistics
+ * @property {number} [cpuUsage] - CPU usage percentage
+ * @property {Object} [diskUsage] - Disk usage statistics
+ * @property {Object} [databaseHealth] - Database health status
+ * @property {Object} [cacheHealth] - Cache health status
+ * @property {number} [activeConnections] - Number of active connections
  */
 
 /**
@@ -154,8 +172,8 @@ import systemLogger from './systemLogger.js';
  * @typedef {Object} ExpressRequest
  * @property {string} method - HTTP method
  * @property {string} originalUrl - Original URL
- * @property {string} ip - Client IP
- * @property {Object} [user] - User object
+ * @property {string} ip - Client IP (guaranteed to be string, not undefined)
+ * @property {{id?: string|number}|null} [user] - User object (can be null)
  * @property {Function} get - Get header function
  */
 
@@ -203,12 +221,14 @@ class LoggingService {
 	 * @param {AuthContext} context - Authentication context
 	 */
 	logAuthSuccess(userId, context = {}) {
-		this.systemLogger.security('info', 'Authentication successful', {
+		/** @type {import('./systemLogger.js').SecurityContext} */
+		const securityContext = {
 			userId: String(userId),
 			action: 'login',
 			ip: context.ip,
 			userAgent: context.userAgent
-		});
+		};
+		this.systemLogger.security('info', 'Authentication successful', securityContext);
 	}
 
 	/**
@@ -216,12 +236,15 @@ class LoggingService {
 	 * @param {AuthContext} context - Authentication context
 	 */
 	logAuthFailure(reason, context = {}) {
-		this.systemLogger.security('warn', 'Authentication failed', {
+		/** @type {SecurityContextExt} */
+		const securityContext = {
 			action: 'login_failed',
 			ip: context.ip,
 			userAgent: context.userAgent,
-			email: context.email
-		});
+			email: context.email,
+			reason
+		};
+		this.systemLogger.security('warn', 'Authentication failed', securityContext);
 	}
 
 	/**
@@ -254,12 +277,15 @@ class LoggingService {
 	 * @param {SuspiciousActivityContext} context - Activity context
 	 */
 	logSuspiciousActivity(activity, context = {}) {
-		this.systemLogger.security('error', 'Suspicious activity detected', {
+		/** @type {SecurityContextExt} */
+		const securityContext = {
 			userId: context.userId ? String(context.userId) : undefined,
 			ip: context.ip,
 			userAgent: context.userAgent,
-			action: 'suspicious_activity'
-		});
+			action: 'suspicious_activity',
+			activity
+		};
+		this.systemLogger.security('error', 'Suspicious activity detected', securityContext);
 	}
 
 	/**
@@ -275,7 +301,7 @@ class LoggingService {
 			url: req.originalUrl,
 			statusCode: res.statusCode,
 			responseTime,
-			userId: req.user?.id || undefined,
+			userId: req.user?.id ? String(req.user.id) : undefined,
 			ip: req.ip,
 			userAgent: req.get('User-Agent'),
 			timestamp: new Date().toISOString()
@@ -311,7 +337,7 @@ class LoggingService {
 			query: context.query,
 			duration: context.duration,
 			affectedRows: context.affectedRows,
-			error: context.error,
+			error: context.error instanceof Error ? context.error : (typeof context.error === 'string' ? new Error(context.error) : undefined),
 			connectionPool: context.connectionPool
 		});
 
@@ -363,7 +389,7 @@ class LoggingService {
 		this.systemLogger.audit('Instance deleted', {
 			userId: String(userId),
 			instanceId,
-			result: 'success'
+			result: context.success !== false ? 'success' : 'failed'
 		});
 	}
 
@@ -422,7 +448,7 @@ class LoggingService {
 			message: error.message,
 			stack: error.stack,
 			name: error.name,
-			code: error.code || undefined,
+			code: (error instanceof Error && 'code' in error) ? (typeof error.code === 'string' || typeof error.code === 'number' ? String(error.code) : undefined) : undefined,
 			userId: context.userId,
 			instanceId: context.instanceId,
 			operation: context.operation,
@@ -577,13 +603,16 @@ class LoggingService {
 	}
 
 	/**
-	 * @param {Object[]} data - Array of data objects
-	 * @param {string} field - Field to calculate average for
+	 * @param {PerformanceData[]} data - Array of performance data objects
+	 * @param {'responseTime'|'statusCode'} field - Field to calculate average for
 	 * @returns {number} Average value
 	 */
 	calculateAverage(data, field) {
 		if (data.length === 0) return 0;
-		const sum = data.reduce((acc, item) => acc + (item[field] || 0), 0);
+		const sum = data.reduce((acc, item) => {
+			const value = item[field];
+			return acc + (typeof value === 'number' ? value : 0);
+		}, 0);
 		return Math.round(sum / data.length);
 	}
 

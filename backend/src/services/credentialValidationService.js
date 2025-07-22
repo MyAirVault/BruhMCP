@@ -53,7 +53,9 @@ export async function testAPICredentials(serviceName, credentials, performApiTes
 			console.log(`✅ Found validator for ${serviceName}`);
 			try {
 				// Create validator instance based on credentials
-				const validator = validatorFactory(credentials);
+				const validator = typeof validatorFactory === 'function' 
+					? validatorFactory(credentials)
+					: validatorFactory;
 				console.log(`📝 Created validator instance for ${serviceName}`);
 
 				// Use API test if requested and available, otherwise use format validation

@@ -21,6 +21,12 @@
  * @property {Array<ValidationDetail>} [details] - Additional error details (for validation errors)
  * @property {string} [instanceId] - Instance ID if applicable
  * @property {string} [userId] - User ID if applicable
+ * @property {string} [reason] - Error reason if applicable
+ * @property {string} [expiresAt] - Expiration date if applicable
+ * @property {string} [plan] - Plan type if applicable
+ * @property {number} [currentCount] - Current count if applicable
+ * @property {number} [maxInstances] - Maximum instances if applicable
+ * @property {string} [upgradeMessage] - Upgrade message if applicable
  * @property {Object} [metadata] - Additional metadata
  */
 
@@ -36,6 +42,12 @@
  * @property {Array<ValidationDetail>} [details] - Validation error details
  * @property {string} [instanceId] - Instance ID
  * @property {string} [userId] - User ID
+ * @property {string} [reason] - Error reason
+ * @property {string} [expiresAt] - Expiration date
+ * @property {string} [plan] - Plan type
+ * @property {number} [currentCount] - Current count
+ * @property {number} [maxInstances] - Maximum instances
+ * @property {string} [upgradeMessage] - Upgrade message
  * @property {Object} [metadata] - Additional metadata
  */
 
@@ -68,6 +80,30 @@ export function createErrorResponse(_statusCode, code, message, options = {}) {
 
 	if (options.userId) {
 		errorResponse.error.userId = options.userId;
+	}
+
+	if (options.reason) {
+		errorResponse.error.reason = options.reason;
+	}
+
+	if (options.expiresAt) {
+		errorResponse.error.expiresAt = options.expiresAt;
+	}
+
+	if (options.plan) {
+		errorResponse.error.plan = options.plan;
+	}
+
+	if (options.currentCount !== undefined) {
+		errorResponse.error.currentCount = options.currentCount;
+	}
+
+	if (options.maxInstances !== undefined) {
+		errorResponse.error.maxInstances = options.maxInstances;
+	}
+
+	if (options.upgradeMessage) {
+		errorResponse.error.upgradeMessage = options.upgradeMessage;
 	}
 
 	if (options.metadata && typeof options.metadata === 'object') {

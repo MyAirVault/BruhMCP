@@ -213,62 +213,91 @@ declare class SystemLogger {
      * @param {string} level - Log level (info, warn, error, debug)
      * @param {string} message - Log message
      * @param {Object} metadata - Additional metadata
+     * @returns {void}
      */
     application(level: string, message: string, metadata?: Object): void;
     /**
      * Log security-related events
      * @param {string} level - Log level
      * @param {string} message - Security event description
-     * @param {Object} securityContext - Security-related metadata
+     * @param {SecurityContext} securityContext - Security-related metadata
+     * @returns {void}
      */
-    security(level: string, message: string, securityContext?: Object): void;
+    security(level: string, message: string, securityContext?: SecurityContext): void;
     /**
      * Log performance metrics and monitoring data
      * @param {string} message - Performance event description
-     * @param {Object} performanceData - Performance metrics
+     * @param {PerformanceData} performanceData - Performance metrics
+     * @returns {void}
      */
-    performance(message: string, performanceData?: Object): void;
+    performance(message: string, performanceData?: PerformanceData): void;
     /**
      * Log audit trail events for compliance and tracking
      * @param {string} action - Action performed
-     * @param {Object} auditContext - Audit context and metadata
+     * @param {AuditContext} auditContext - Audit context and metadata
+     * @returns {void}
      */
-    audit(action: string, auditContext?: Object): void;
+    audit(action: string, auditContext?: AuditContext): void;
     /**
      * Log database operations and performance
      * @param {string} operation - Database operation type
-     * @param {Object} dbContext - Database context and metrics
+     * @param {DatabaseContext} dbContext - Database context and metrics
+     * @returns {void}
      */
-    database(operation: string, dbContext?: Object): void;
+    database(operation: string, dbContext?: DatabaseContext): void;
     /**
      * Log cache operations and performance
      * @param {string} operation - Cache operation type
-     * @param {Object} cacheContext - Cache context and metrics
+     * @param {CacheContext} cacheContext - Cache context and metrics
+     * @returns {void}
      */
-    cache(operation: string, cacheContext?: Object): void;
+    cache(operation: string, cacheContext?: CacheContext): void;
     /**
      * Convenience methods for common log levels
+     * @param {string} message - Log message
+     * @param {Object} metadata - Additional metadata
+     * @returns {void}
      */
-    info(message: any, metadata?: {}): void;
-    warn(message: any, metadata?: {}): void;
-    error(message: any, metadata?: {}): void;
-    debug(message: any, metadata?: {}): void;
+    info(message: string, metadata?: Object): void;
+    /**
+     * Log warning message
+     * @param {string} message - Warning message
+     * @param {Object} metadata - Additional metadata
+     * @returns {void}
+     */
+    warn(message: string, metadata?: Object): void;
+    /**
+     * Log error message
+     * @param {string} message - Error message
+     * @param {Object} metadata - Additional metadata
+     * @returns {void}
+     */
+    error(message: string, metadata?: Object): void;
+    /**
+     * Log debug message
+     * @param {string} message - Debug message
+     * @param {Object} metadata - Additional metadata
+     * @returns {void}
+     */
+    debug(message: string, metadata?: Object): void;
     /**
      * Log system startup and initialization
-     * @param {Object} startupInfo - System startup information
+     * @param {StartupInfo} startupInfo - System startup information
+     * @returns {void}
      */
-    startup(startupInfo?: Object): void;
+    startup(startupInfo?: StartupInfo): void;
     /**
      * Log system shutdown and cleanup
-     * @param {Object} shutdownInfo - System shutdown information
+     * @param {ShutdownInfo} shutdownInfo - System shutdown information
+     * @returns {void}
      */
-    shutdown(shutdownInfo?: Object): void;
+    shutdown(shutdownInfo?: ShutdownInfo): void;
     /**
      * Sanitize security data to prevent logging sensitive information
-     * @param {Object} data - Security context data
-     * @returns {Object} Sanitized data
+     * @param {SecurityContext} data - Security context data
+     * @returns {SecurityContext} Sanitized data
      */
-    sanitizeSecurityData(data: Object): Object;
+    sanitizeSecurityData(data: SecurityContext): SecurityContext;
     /**
      * Sanitize database queries to prevent logging sensitive data
      * @param {string} query - SQL query
@@ -283,21 +312,23 @@ declare class SystemLogger {
     maskEmail(email: string): string;
     /**
      * Get logger statistics and health information
-     * @returns {Object} Logger health and statistics
+     * @returns {LoggerHealth} Logger health and statistics
      */
-    getLoggerHealth(): Object;
+    getLoggerHealth(): LoggerHealth;
     /**
      * Get log directory size for monitoring
-     * @returns {Object} Directory size information
+     * @returns {DirectorySize} Directory size information
      */
-    getLogDirectorySize(): Object;
+    getLogDirectorySize(): DirectorySize;
     /**
      * Force log rotation for all daily rotate transports
+     * @returns {void}
      */
     rotateAllLogs(): void;
     /**
      * Cleanup old log files beyond retention period
      * @param {number} retentionDays - Days to retain logs
+     * @returns {number} Number of files cleaned up
      */
     cleanupOldLogs(retentionDays?: number): number;
 }

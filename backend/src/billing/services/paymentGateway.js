@@ -40,6 +40,7 @@ import Razorpay from 'razorpay';
  * @property {string} currentPeriodStart
  * @property {string} currentPeriodEnd
  * @property {string} planId
+ * @property {boolean} cancelAtPeriodEnd
  */
 
 // Initialize Razorpay
@@ -263,7 +264,8 @@ export async function getSubscriptionDetails(subscriptionId) {
 			status: subscription.status,
 			currentPeriodStart: new Date(subscription.current_start * 1000).toISOString(),
 			currentPeriodEnd: new Date(subscription.current_end * 1000).toISOString(),
-			planId: subscription.plan_id
+			planId: subscription.plan_id,
+			cancelAtPeriodEnd: subscription.cancel_at_period_end || false
 		};
 
 	} catch (error) {

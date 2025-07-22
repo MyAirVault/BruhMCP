@@ -7,7 +7,7 @@ export interface UserPlan {
   user_id: string;
   plan_type: 'free' | 'pro';
   max_instances: number | null;
-  payment_status: 'active' | 'inactive' | 'cancelled' | 'processing';
+  payment_status: 'active' | 'inactive' | 'cancelled' | 'processing' | null;
   features: Record<string, any>;
   expires_at?: string | null;
   subscription_id?: string | null;

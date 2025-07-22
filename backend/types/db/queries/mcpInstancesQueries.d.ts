@@ -1,14 +1,19 @@
 /**
  * @typedef {Object} MCPInstanceFilters
  * @property {string} [status] - Filter by instance status
+ * @property {boolean} [isActive] - Filter by active status
  * @property {string} [mcp_type] - Filter by MCP service type
+ * @property {string} [expiration_option] - Filter by expiration option
  * @property {number} [limit] - Limit number of results
+ * @property {number} [offset] - Offset for pagination
  */
 /**
  * @typedef {Object} MCPInstanceRecord
  * @property {string} instance_id - Unique instance identifier
  * @property {string} user_id - User ID who owns the instance
  * @property {string} custom_name - Custom name for the instance
+ * @property {number} [instance_number] - Instance number
+ * @property {string} [expiration_option] - Expiration option
  * @property {string} status - Instance status (active, inactive, expired)
  * @property {string} oauth_status - OAuth status (pending, completed, failed, expired)
  * @property {Date|null} expires_at - Expiration timestamp
@@ -286,13 +291,25 @@ export type MCPInstanceFilters = {
      */
     status?: string | undefined;
     /**
+     * - Filter by active status
+     */
+    isActive?: boolean | undefined;
+    /**
      * - Filter by MCP service type
      */
     mcp_type?: string | undefined;
     /**
+     * - Filter by expiration option
+     */
+    expiration_option?: string | undefined;
+    /**
      * - Limit number of results
      */
     limit?: number | undefined;
+    /**
+     * - Offset for pagination
+     */
+    offset?: number | undefined;
 };
 export type MCPInstanceRecord = {
     /**
@@ -307,6 +324,14 @@ export type MCPInstanceRecord = {
      * - Custom name for the instance
      */
     custom_name: string;
+    /**
+     * - Instance number
+     */
+    instance_number?: number | undefined;
+    /**
+     * - Expiration option
+     */
+    expiration_option?: string | undefined;
     /**
      * - Instance status (active, inactive, expired)
      */

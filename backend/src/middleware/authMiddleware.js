@@ -5,8 +5,21 @@ import loggingService from '../services/logging/loggingService.js';
 import { ErrorResponses } from '../utils/errorResponse.js';
 
 /**
+ * @typedef {Object} AuthenticatedUser
+ * @property {string|number} id - User ID
+ * @property {string|number} userId - User ID (duplicate for compatibility)
+ * @property {string} email - User email address
+ * @property {Date} sessionCreatedAt - Session creation timestamp
+ * @property {Date} sessionExpiresAt - Session expiration timestamp
+ */
+
+/**
+ * @typedef {import('express').Request & {user?: AuthenticatedUser | null}} AuthenticatedRequest
+ */
+
+/**
  * Authentication middleware that validates JWT tokens from cookies
- * @param {import('express').Request} req
+ * @param {AuthenticatedRequest} req
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
@@ -69,7 +82,8 @@ export async function authenticate(req, res, next) {
 
 		next();
 	} catch (error) {
-		loggingService.logError(error, {
+		const errorObj = error instanceof Error ? error : new Error(String(error));
+		loggingService.logError(errorObj, {
 			operation: 'authentication',
 			email: payload?.email,
 			ip: req.ip,
@@ -82,7 +96,7 @@ export async function authenticate(req, res, next) {
 
 /**
  * Optional authentication middleware - doesn't fail if no token
- * @param {import('express').Request} req
+ * @param {AuthenticatedRequest} req
  * @param {import('express').Response} _res
  * @param {import('express').NextFunction} next
  */
@@ -125,7 +139,7 @@ export async function optionalAuthenticate(req, _res, next) {
 
 /**
  * Get current user from request
- * @param {import('express').Request} req
+ * @param {AuthenticatedRequest} req
  */
 export function getCurrentUser(req) {
 	return req.user || null;
@@ -133,7 +147,7 @@ export function getCurrentUser(req) {
 
 /**
  * Check if user is authenticated
- * @param {import('express').Request} req
+ * @param {AuthenticatedRequest} req
  */
 export function isAuthenticated(req) {
 	return req.user !== null && req.user !== undefined;

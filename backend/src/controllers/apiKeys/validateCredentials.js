@@ -86,7 +86,7 @@ export async function validateCredentials(req, res) {
 		}
 
 		// Test credentials with actual API using the service name
-		/** @type {{ valid: boolean, api_info: any, error_code: string, error_message: string, details: any }} */
+		/** @type {{ valid: boolean, api_info: any, error_code: string | null, error_message: string | null, details: any }} */
 		const testResult = await testAPICredentials(serviceName, credentials, true);
 
 		if (testResult.valid) {
@@ -101,8 +101,8 @@ export async function validateCredentials(req, res) {
 		} else {
 			res.status(400).json({
 				error: {
-					code: testResult.error_code,
-					message: testResult.error_message,
+					code: testResult.error_code || 'VALIDATION_FAILED',
+					message: testResult.error_message || 'Credential validation failed',
 					details: testResult.details,
 				},
 			});

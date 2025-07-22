@@ -8,8 +8,11 @@ import { pool } from '../config.js';
 /**
  * @typedef {Object} MCPInstanceFilters
  * @property {string} [status] - Filter by instance status
+ * @property {boolean} [isActive] - Filter by active status
  * @property {string} [mcp_type] - Filter by MCP service type
+ * @property {string} [expiration_option] - Filter by expiration option
  * @property {number} [limit] - Limit number of results
+ * @property {number} [offset] - Offset for pagination
  */
 
 /**
@@ -17,6 +20,8 @@ import { pool } from '../config.js';
  * @property {string} instance_id - Unique instance identifier
  * @property {string} user_id - User ID who owns the instance
  * @property {string} custom_name - Custom name for the instance
+ * @property {number} [instance_number] - Instance number
+ * @property {string} [expiration_option] - Expiration option
  * @property {string} status - Instance status (active, inactive, expired)
  * @property {string} oauth_status - OAuth status (pending, completed, failed, expired)
  * @property {Date|null} expires_at - Expiration timestamp

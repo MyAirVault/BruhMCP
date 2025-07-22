@@ -12,8 +12,8 @@ import { ErrorResponses } from '../../utils/errorResponse.js';
  * @property {string} type
  * @property {boolean} is_active
  * @property {number} active_instances_count
- * @property {string} created_at
- * @property {string} updated_at
+ * @property {Date} created_at
+ * @property {Date} updated_at
  */
 
 /**
@@ -38,7 +38,7 @@ export async function getMCPTypes(req, res) {
 		// Get MCP types using abstracted query function
 		const mcpTypesRawResult = await getAllMCPTypes(activeOnly);
 		/** @type {MCPType[]} */
-		const mcpTypesRaw = /** @type {MCPType[]} */ (mcpTypesRawResult);
+		const mcpTypesRaw = mcpTypesRawResult;
 		
 		// Transform to match the expected format for this controller
 		const mcpTypes = mcpTypesRaw.map(type => ({
@@ -101,8 +101,8 @@ export async function getMCPTypes(req, res) {
 				is_active: mcpType.is_active,
 				active_instances_count: mcpType.active_instances_count,
 				required_fields: requiredFields,
-				created_at: mcpType.created_at,
-				updated_at: mcpType.updated_at
+				created_at: mcpType.created_at.toISOString(),
+				updated_at: mcpType.updated_at.toISOString()
 			};
 		});
 

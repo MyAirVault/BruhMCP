@@ -1,5 +1,100 @@
 export default logMaintenanceService;
+export type CleanupStats = {
+    /**
+     * - Last maintenance run timestamp
+     */
+    lastRun: string | null;
+    /**
+     * - Number of files removed
+     */
+    filesRemoved: number;
+    /**
+     * - Space freed in bytes
+     */
+    spaceFreed: number;
+    /**
+     * - Array of error messages
+     */
+    errors: string[];
+};
+export type ValidationResult = {
+    /**
+     * - Number of validated files
+     */
+    validated: number;
+    /**
+     * - Number of corrupted files
+     */
+    corrupted: number;
+};
+export type DirectoryStats = {
+    /**
+     * - Total size in bytes
+     */
+    size: number;
+    /**
+     * - Number of files
+     */
+    fileCount: number;
+};
+export type UserLogsStats = {
+    /**
+     * - Total size in bytes
+     */
+    size: number;
+    /**
+     * - Number of files
+     */
+    fileCount: number;
+    /**
+     * - Number of users
+     */
+    userCount: number;
+    /**
+     * - Number of instances
+     */
+    instanceCount: number;
+};
+export type CleanupResult = {
+    /**
+     * - Number of files removed
+     */
+    removed: number;
+    /**
+     * - Space saved in bytes
+     */
+    spaceSaved: number;
+};
 declare const logMaintenanceService: LogMaintenanceService;
+/**
+ * @typedef {Object} CleanupStats
+ * @property {string|null} lastRun - Last maintenance run timestamp
+ * @property {number} filesRemoved - Number of files removed
+ * @property {number} spaceFreed - Space freed in bytes
+ * @property {string[]} errors - Array of error messages
+ */
+/**
+ * @typedef {Object} ValidationResult
+ * @property {number} validated - Number of validated files
+ * @property {number} corrupted - Number of corrupted files
+ */
+/**
+ * @typedef {Object} DirectoryStats
+ * @property {number} size - Total size in bytes
+ * @property {number} fileCount - Number of files
+ */
+/**
+ * @typedef {Object} UserLogsStats
+ * @property {number} size - Total size in bytes
+ * @property {number} fileCount - Number of files
+ * @property {number} userCount - Number of users
+ * @property {number} instanceCount - Number of instances
+ */
+/**
+ * @typedef {Object} CleanupResult
+ * @property {number} removed - Number of files removed
+ * @property {number} spaceSaved - Space saved in bytes
+ */
 /**
  * Log maintenance service for cleanup, rotation, and monitoring
  * Handles both system logs and user instance logs
@@ -8,12 +103,8 @@ declare class LogMaintenanceService {
     systemLogsDir: string;
     userLogsDir: string;
     maintenanceInterval: NodeJS.Timeout | null;
-    cleanupStats: {
-        lastRun: null;
-        filesRemoved: number;
-        spaceFreed: number;
-        errors: never[];
-    };
+    /** @type {CleanupStats} */
+    cleanupStats: CleanupStats;
     /**
      * Start automated log maintenance
      * @param {number} intervalHours - Hours between maintenance runs
@@ -39,9 +130,9 @@ declare class LogMaintenanceService {
      * Clean up logs for a specific MCP instance
      * @param {string} mcpPath - Path to MCP instance logs
      * @param {Date} cutoffDate - Cutoff date for cleanup
-     * @returns {Object} Cleanup statistics
+     * @returns {Promise<CleanupResult>} Cleanup statistics
      */
-    cleanupUserMCPLogs(mcpPath: string, cutoffDate: Date): Object;
+    cleanupUserMCPLogs(mcpPath: string, cutoffDate: Date): Promise<CleanupResult>;
     /**
      * Compress old log files
      */
@@ -50,15 +141,15 @@ declare class LogMaintenanceService {
      * Compress logs in a specific directory
      * @param {string} directory - Directory to compress logs in
      * @param {Date} cutoffDate - Date cutoff for compression
-     * @returns {number} Number of files compressed
+     * @returns {Promise<number>} Number of files compressed
      */
-    compressLogsInDirectory(directory: string, cutoffDate: Date): number;
+    compressLogsInDirectory(directory: string, cutoffDate: Date): Promise<number>;
     /**
      * Compress user logs recursively
      * @param {Date} cutoffDate - Date cutoff for compression
-     * @returns {number} Number of files compressed
+     * @returns {Promise<number>} Number of files compressed
      */
-    compressUserLogs(cutoffDate: Date): number;
+    compressUserLogs(cutoffDate: Date): Promise<number>;
     /**
      * Validate log file integrity
      */
@@ -66,14 +157,14 @@ declare class LogMaintenanceService {
     /**
      * Validate logs in a directory
      * @param {string} directory - Directory to validate
-     * @returns {Object} Validation results
+     * @returns {Promise<ValidationResult>} Validation results
      */
-    validateLogsInDirectory(directory: string): Object;
+    validateLogsInDirectory(directory: string): Promise<ValidationResult>;
     /**
      * Validate user logs recursively
-     * @returns {Object} Validation results
+     * @returns {Promise<ValidationResult>} Validation results
      */
-    validateUserLogs(): Object;
+    validateUserLogs(): Promise<ValidationResult>;
     /**
      * Update log statistics and monitoring data
      */
@@ -81,14 +172,14 @@ declare class LogMaintenanceService {
     /**
      * Get directory statistics
      * @param {string} directory - Directory to analyze
-     * @returns {Object} Directory statistics
+     * @returns {Promise<DirectoryStats>} Directory statistics
      */
-    getDirectoryStats(directory: string): Object;
+    getDirectoryStats(directory: string): Promise<DirectoryStats>;
     /**
      * Get user logs statistics
-     * @returns {Object} User logs statistics
+     * @returns {Promise<UserLogsStats>} User logs statistics
      */
-    getUserLogsStats(): Object;
+    getUserLogsStats(): Promise<UserLogsStats>;
     /**
      * Check if directory is empty
      * @param {string} directory - Directory to check

@@ -9,8 +9,8 @@
  * @property {string} type
  * @property {boolean} is_active
  * @property {number} active_instances_count
- * @property {string} created_at
- * @property {string} updated_at
+ * @property {Date} created_at
+ * @property {Date} updated_at
  */
 /**
  * @typedef {Object} RequiredField
@@ -36,8 +36,8 @@ export type MCPType = {
     type: string;
     is_active: boolean;
     active_instances_count: number;
-    created_at: string;
-    updated_at: string;
+    created_at: Date;
+    updated_at: Date;
 };
 export type RequiredField = {
     name: string;

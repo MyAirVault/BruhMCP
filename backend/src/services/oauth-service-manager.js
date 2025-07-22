@@ -126,7 +126,7 @@ class OAuthServiceManager {
       return true;
     } catch (error) {
       console.error('❌ Failed to start OAuth service:', error);
-      loggingService.logError(error, {
+      loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
         operation: 'oauth_service_start',
         critical: false
       });
@@ -160,7 +160,7 @@ class OAuthServiceManager {
       return true;
     } catch (error) {
       console.error('❌ Failed to stop OAuth service:', error);
-      loggingService.logError(error, {
+      loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
         operation: 'oauth_service_stop',
         critical: false
       });
@@ -349,7 +349,7 @@ class OAuthServiceManager {
         await this.monitorServiceHealth();
       } catch (error) {
         console.error('❌ Health monitoring error:', error);
-        loggingService.logError(error, {
+        loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
           operation: 'oauth_service_health_monitor',
           critical: false
         });
@@ -389,8 +389,7 @@ class OAuthServiceManager {
       if (!restartSuccess) {
         loggingService.logError(new Error('OAuth service restart failed'), {
           operation: 'oauth_service_restart',
-          critical: true,
-          details: health
+          critical: true
         });
       }
     } else if (health.status === 'degraded') {

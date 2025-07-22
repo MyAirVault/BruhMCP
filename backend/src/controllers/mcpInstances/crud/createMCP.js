@@ -14,7 +14,7 @@ import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
 import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
 import { handleOAuthFlow, getOAuthProvider, /* cacheOAuthTokens, */ deleteMCPInstance } from './oauth-helpers.js';
 
-/** @typedef {import('express').Request} Request */
+/** @typedef {import('express').Request & { user?: { id: string } }} Request */
 /** @typedef {import('express').Response} Response */
 
 /**
@@ -108,7 +108,7 @@ export async function createMCP(req, res) {
 			return ErrorResponses.forbidden(res, 'Your subscription plan has expired. Please renew to continue.', {
 				userId,
 				reason: 'PLAN_EXPIRED',
-				expiresAt: userPlan.expires_at,
+				expiresAt: userPlan.expires_at || undefined,
 			});
 		}
 

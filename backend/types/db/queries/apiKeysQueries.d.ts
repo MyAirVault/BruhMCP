@@ -1,10 +1,15 @@
 /**
  * @typedef {Object} APIKeyRecord
+ * @property {string} id - Unique instance identifier (alias for instance_id)
  * @property {string} instance_id - Unique instance identifier
  * @property {string} user_id - User ID who owns the API key
+ * @property {string} mcp_type_id - MCP type identifier (alias for mcp_service_id)
  * @property {string} mcp_service_id - MCP service identifier
+ * @property {string} mcp_type_name - MCP service name
+ * @property {string} mcp_type_display_name - MCP service display name
  * @property {string} custom_name - Custom name for the API key
  * @property {string} status - Status of the API key
+ * @property {boolean} is_active - Whether the key is active
  * @property {Date|null} expires_at - Expiration date
  * @property {Date|null} last_used_at - Last usage timestamp
  * @property {number} usage_count - Number of times used
@@ -49,6 +54,10 @@ export function deleteAPIKey(instanceId: string, userId: string): Promise<boolea
 export function validateAPIKeyCredentials(_credentials: Object): Promise<ValidationResult>;
 export type APIKeyRecord = {
     /**
+     * - Unique instance identifier (alias for instance_id)
+     */
+    id: string;
+    /**
      * - Unique instance identifier
      */
     instance_id: string;
@@ -57,9 +66,21 @@ export type APIKeyRecord = {
      */
     user_id: string;
     /**
+     * - MCP type identifier (alias for mcp_service_id)
+     */
+    mcp_type_id: string;
+    /**
      * - MCP service identifier
      */
     mcp_service_id: string;
+    /**
+     * - MCP service name
+     */
+    mcp_type_name: string;
+    /**
+     * - MCP service display name
+     */
+    mcp_type_display_name: string;
     /**
      * - Custom name for the API key
      */
@@ -68,6 +89,10 @@ export type APIKeyRecord = {
      * - Status of the API key
      */
     status: string;
+    /**
+     * - Whether the key is active
+     */
+    is_active: boolean;
     /**
      * - Expiration date
      */

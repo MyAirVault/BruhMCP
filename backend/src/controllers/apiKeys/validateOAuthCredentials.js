@@ -34,15 +34,15 @@ export async function validateOAuthCredentials(req, res) {
 
 		// Use modular validation system
 		try {
-			/** @type {{ valid: boolean, api_info: any, error_code: string, error_message: string, details: any }} */
+			/** @type {{ valid: boolean, api_info: any, error_code: string | null, error_message: string | null, details: any }} */
 			const testResult = await testAPICredentials(service, credentials, false);
 			
 			if (testResult.valid) {
 				result.valid = true;
 				result.api_info = testResult.api_info;
 			} else {
-				result.error_code = testResult.error_code;
-				result.error_message = testResult.error_message;
+				result.error_code = testResult.error_code || 'VALIDATION_FAILED';
+				result.error_message = testResult.error_message || 'OAuth validation failed';
 				result.details = testResult.details;
 			}
 		} catch (/** @type {unknown} */ error) {

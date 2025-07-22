@@ -2,13 +2,13 @@
  * @typedef {Object} UserPlan
  * @property {string} plan_id - Plan ID
  * @property {string} user_id - User ID
- * @property {string} plan_type - Plan type (free/pro)
+ * @property {'free'|'pro'} plan_type - Plan type (free/pro)
  * @property {number|null} max_instances - Maximum instances allowed
  * @property {Object} features - Plan features
  * @property {string|null} expires_at - Plan expiration date
  * @property {string|null} subscription_id - Payment subscription ID
  * @property {string|null} customer_id - Payment customer ID
- * @property {string|null} payment_status - Payment status
+ * @property {'active'|'inactive'|'cancelled'|'processing'|null} payment_status - Payment status
  * @property {string} created_at - Creation timestamp
  * @property {string} updated_at - Last update timestamp
  */
@@ -114,7 +114,7 @@ export type UserPlan = {
     /**
      * - Plan type (free/pro)
      */
-    plan_type: string;
+    plan_type: "free" | "pro";
     /**
      * - Maximum instances allowed
      */
@@ -138,7 +138,7 @@ export type UserPlan = {
     /**
      * - Payment status
      */
-    payment_status: string | null;
+    payment_status: "active" | "inactive" | "cancelled" | "processing" | null;
     /**
      * - Creation timestamp
      */

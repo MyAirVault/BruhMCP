@@ -86,14 +86,17 @@ app.use((req, res, next) => {
 	
 	res.on('finish', () => {
 		const responseTime = Date.now() - startTime;
-		loggingService.logAPIRequest(req, res, responseTime);
+		loggingService.logAPIRequest({
+			...req,
+			ip: req.ip || 'unknown'
+		}, res, responseTime);
 	});
 	
 	next();
 });
 
 // OAuth well-known endpoint handler for MCP services (before static files)
-app.get('/.well-known/oauth-authorization-server/*', (req, res) => {
+app.get('/.well-known/oauth-authorization-server/*', (_req, res) => {
 	// MCP services using API keys should return 404 for OAuth endpoints
 	res.status(404).json({
 		error: 'Not Found',
@@ -163,7 +166,7 @@ app.use((err, req, res, next) => {
 		operation: 'global_error_handler',
 		endpoint: req.originalUrl,
 		method: req.method,
-		ip: req.ip,
+		ip: req.ip || 'unknown',
 		critical: true
 	});
 
@@ -175,7 +178,7 @@ app.use((err, req, res, next) => {
 const server = app.listen(port, async () => {
 	// Log server startup
 	loggingService.logServerStart({
-		port,
+		port: String(port),
 		environment: process.env.NODE_ENV || 'development',
 		nodeVersion: process.version,
 		platform: process.platform
@@ -217,7 +220,7 @@ const server = app.listen(port, async () => {
 		}
 	} catch (error) {
 		console.error('❌ Failed to start OAuth service:', error);
-		loggingService.logError(error, {
+		loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
 			operation: 'oauth_service_start',
 			critical: false
 		});
@@ -229,7 +232,7 @@ const server = app.listen(port, async () => {
 		console.log('✅ Expiration monitor started');
 	} catch (error) {
 		console.error('❌ Failed to start expiration monitor:', error);
-		loggingService.logError(error, {
+		loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
 			operation: 'expiration_monitor_start',
 			critical: true
 		});
@@ -241,7 +244,7 @@ const server = app.listen(port, async () => {
 		console.log('✅ Log maintenance service started');
 	} catch (error) {
 		console.error('❌ Failed to start log maintenance service:', error);
-		loggingService.logError(error, {
+		loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
 			operation: 'log_maintenance_start',
 			critical: false
 		});
