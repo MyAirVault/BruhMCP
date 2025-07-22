@@ -22,22 +22,35 @@ const logExportSchema = z.object({
 export async function exportMCPLogs(req, res) {
 	try {
 		const { id } = req.params;
+
+		// Check if user is authenticated
+		if (!req.user || !req.user.id) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User authentication required',
+				},
+			});
+			return;
+		}
+
 		const userId = req.user.id;
 
 		// Validate UUID format
 		if (!z.string().uuid().safeParse(id).success) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Invalid MCP instance ID format',
 				},
 			});
+			return;
 		}
 
 		// Validate request body
 		const validationResult = logExportSchema.safeParse(req.body);
 		if (!validationResult.success) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Invalid request parameters',
@@ -47,6 +60,7 @@ export async function exportMCPLogs(req, res) {
 					})),
 				},
 			});
+			return;
 		}
 
 		const { format, start_time, end_time, level } = validationResult.data;
@@ -59,12 +73,13 @@ export async function exportMCPLogs(req, res) {
 			// Check if log directory exists
 			await stat(logBasePath);
 		} catch {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'NOT_FOUND',
 					message: 'MCP instance logs not found',
 				},
 			});
+			return;
 		}
 
 		// Read log files
@@ -153,14 +168,16 @@ export async function exportMCPLogs(req, res) {
 		res.setHeader('Content-Length', Buffer.byteLength(exportContent, 'utf8'));
 
 		// Send the file content directly
-		return res.status(200).send(exportContent);
+		res.status(200).send(exportContent);
+		return;
 	} catch (error) {
 		console.error('Error in exportMCPLogs:', error);
-		return res.status(500).json({
+		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
 				message: 'Internal server error',
 			},
 		});
+		return;
 	}
 }

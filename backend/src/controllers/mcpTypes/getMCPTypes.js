@@ -2,9 +2,33 @@ import { getAllMCPTypes } from '../../db/queries/mcpTypesQueries.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 
 /**
+ * @typedef {Object} MCPType
+ * @property {string} mcp_service_id
+ * @property {string} mcp_service_name
+ * @property {string} display_name
+ * @property {string} description
+ * @property {string} icon_url_path
+ * @property {number} port
+ * @property {string} type
+ * @property {boolean} is_active
+ * @property {number} active_instances_count
+ * @property {string} created_at
+ * @property {string} updated_at
+ */
+
+/**
+ * @typedef {Object} RequiredField
+ * @property {string} name
+ * @property {string} type
+ * @property {string} description
+ * @property {boolean} required
+ * @property {string} placeholder
+ */
+
+/**
  * Get all MCP services (updated for multi-tenant architecture)
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
  */
 export async function getMCPTypes(req, res) {
 	try {
@@ -12,7 +36,9 @@ export async function getMCPTypes(req, res) {
 		const activeOnly = active === 'true';
 
 		// Get MCP types using abstracted query function
-		const mcpTypesRaw = await getAllMCPTypes(activeOnly);
+		const mcpTypesRawResult = await getAllMCPTypes(activeOnly);
+		/** @type {MCPType[]} */
+		const mcpTypesRaw = /** @type {MCPType[]} */ (mcpTypesRawResult);
 		
 		// Transform to match the expected format for this controller
 		const mcpTypes = mcpTypesRaw.map(type => ({
@@ -32,6 +58,7 @@ export async function getMCPTypes(req, res) {
 		// Transform the response to match API specification
 		const formattedMcpTypes = mcpTypes.map(mcpType => {
 			// Generate required fields based on auth type
+			/** @type {RequiredField[]} */
 			let requiredFields = [];
 			
 			if (mcpType.type === 'api_key') {
@@ -79,7 +106,7 @@ export async function getMCPTypes(req, res) {
 			};
 		});
 
-		res.json({
+		return res.json({
 			data: formattedMcpTypes,
 			meta: {
 				total: formattedMcpTypes.length,

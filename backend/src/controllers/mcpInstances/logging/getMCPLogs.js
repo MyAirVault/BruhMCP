@@ -23,22 +23,35 @@ const logQuerySchema = z.object({
 export async function getMCPLogs(req, res) {
 	try {
 		const { id } = req.params;
+		
+		// Check if user is authenticated
+		if (!req.user || !req.user.id) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User authentication required',
+				},
+			});
+			return;
+		}
+		
 		const userId = req.user.id;
 
 		// Validate UUID format
 		if (!z.string().uuid().safeParse(id).success) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Invalid MCP instance ID format',
 				},
 			});
+			return;
 		}
 
 		// Validate query parameters
 		const validationResult = logQuerySchema.safeParse(req.query);
 		if (!validationResult.success) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Invalid query parameters',
@@ -48,6 +61,7 @@ export async function getMCPLogs(req, res) {
 					})),
 				},
 			});
+			return;
 		}
 
 		const { start_time, end_time, level, limit, offset } = validationResult.data;
@@ -68,15 +82,16 @@ export async function getMCPLogs(req, res) {
 
 		// If log directory doesn't exist, return empty logs array instead of error
 		if (!logDirExists) {
-			return res.status(200).json({
+			res.status(200).json({
 				data: [],
 				meta: {
 					total: 0,
 					limit,
 					offset,
-					message: 'No logs available yet for this instance'
+					message: 'No logs available yet for this instance',
 				},
 			});
+			return;
 		}
 
 		// Read log files
@@ -141,11 +156,12 @@ export async function getMCPLogs(req, res) {
 		});
 	} catch (error) {
 		console.error('Error in getMCPLogs:', error);
-		return res.status(500).json({
+		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
 				message: 'Internal server error',
 			},
 		});
+		return;
 	}
 }

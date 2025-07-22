@@ -1,24 +1,26 @@
 import { getMCPInstanceById } from '../../../db/queries/mcpInstancesQueries.js';
 import { pool } from '../../../db/config.js';
 
-/** @typedef {import('express').Request} Request */
+/** @typedef {import('express').Request & {user?: {id: string}}} Request */
 /** @typedef {import('express').Response} Response */
 
 /**
  * Update MCP instance custom name
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function updateInstanceName(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
-			return res.status(401).json({
+			res.status(401).json({
 				error: {
 					code: 'UNAUTHORIZED',
 					message: 'User authentication required',
 				},
 			});
+			return;
 		}
 
 		const { id } = req.params;
@@ -26,27 +28,30 @@ export async function updateInstanceName(req, res) {
 
 		// Validate request parameters
 		if (!id) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'MISSING_PARAMETER',
 					message: 'Instance ID is required',
 				},
 			});
+			return;
 		}
 
 		if (!custom_name) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'MISSING_PARAMETER',
 					message: 'Custom name is required',
 				},
 			});
+			return;
 		}
 
 		// Validate name format
+		/** @type {any} */
 		const nameValidation = validateCustomName(custom_name);
 		if (!nameValidation.isValid) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'INVALID_NAME',
 					message: nameValidation.error,
@@ -54,17 +59,20 @@ export async function updateInstanceName(req, res) {
 					...nameValidation.details,
 				},
 			});
+			return;
 		}
 
 		// Get current instance details
+		/** @type {any} */
 		const instance = await getMCPInstanceById(id, userId);
 		if (!instance) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'NOT_FOUND',
 					message: 'MCP instance not found',
 				},
 			});
+			return;
 		}
 
 		const oldName = instance.custom_name;
@@ -72,7 +80,7 @@ export async function updateInstanceName(req, res) {
 
 		// Check if name is actually different
 		if (oldName === cleanedName) {
-			return res.status(200).json({
+			res.status(200).json({
 				data: {
 					message: 'Instance name is already set to this value',
 					instance_id: id,
@@ -80,13 +88,14 @@ export async function updateInstanceName(req, res) {
 					updated_at: instance.updated_at,
 				},
 			});
+			return;
 		}
 
 		console.log(`📝 Updating instance ${id} name from "${oldName}" to "${cleanedName}"`);
 
 		// Update instance name in database
 		const client = await pool.connect();
-		
+
 		try {
 			await client.query('BEGIN');
 
@@ -97,12 +106,13 @@ export async function updateInstanceName(req, res) {
 
 			if (updateResult.rowCount === 0) {
 				await client.query('ROLLBACK');
-				return res.status(404).json({
+				res.status(404).json({
 					error: {
 						code: 'NOT_FOUND',
 						message: 'Instance not found or access denied',
 					},
 				});
+				return;
 			}
 
 			await client.query('COMMIT');
@@ -122,7 +132,6 @@ export async function updateInstanceName(req, res) {
 					updated_at: updatedAt.toISOString(),
 				},
 			});
-
 		} catch (dbError) {
 			await client.query('ROLLBACK');
 			console.error(`❌ Database error updating instance ${id} name:`, dbError);
@@ -130,11 +139,10 @@ export async function updateInstanceName(req, res) {
 		} finally {
 			client.release();
 		}
-
 	} catch (error) {
 		console.error('Error updating instance name:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		
+
 		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -148,14 +156,14 @@ export async function updateInstanceName(req, res) {
 /**
  * Validate custom name format and content
  * @param {string} name - Name to validate
- * @returns {Object} Validation result with cleaned name
+ * @returns {any} Validation result with cleaned name
  */
 function validateCustomName(name) {
 	if (typeof name !== 'string') {
 		return {
 			isValid: false,
 			error: 'Custom name must be a string',
-			details: { received_type: typeof name }
+			details: { received_type: typeof name },
 		};
 	}
 
@@ -167,7 +175,7 @@ function validateCustomName(name) {
 		return {
 			isValid: false,
 			error: 'Custom name cannot be empty',
-			details: { min_length: 1 }
+			details: { min_length: 1 },
 		};
 	}
 
@@ -175,10 +183,10 @@ function validateCustomName(name) {
 		return {
 			isValid: false,
 			error: 'Custom name must be 100 characters or less',
-			details: { 
-				max_length: 100, 
-				current_length: trimmed.length 
-			}
+			details: {
+				max_length: 100,
+				current_length: trimmed.length,
+			},
 		};
 	}
 
@@ -188,10 +196,10 @@ function validateCustomName(name) {
 		return {
 			isValid: false,
 			error: 'Custom name contains invalid characters',
-			details: { 
+			details: {
 				invalid_characters: ['<', '>', '"', "'", '&'],
-				suggestion: 'Use only letters, numbers, spaces, hyphens, and underscores'
-			}
+				suggestion: 'Use only letters, numbers, spaces, hyphens, and underscores',
+			},
 		};
 	}
 
@@ -201,9 +209,9 @@ function validateCustomName(name) {
 		return {
 			isValid: false,
 			error: 'Custom name contains prohibited content',
-			details: { 
-				suggestion: 'Please use a simpler name without special keywords'
-			}
+			details: {
+				suggestion: 'Please use a simpler name without special keywords',
+			},
 		};
 	}
 
@@ -215,15 +223,15 @@ function validateCustomName(name) {
 		cleanedName: normalized,
 		details: {
 			original_length: name.length,
-			cleaned_length: normalized.length
-		}
+			cleaned_length: normalized.length,
+		},
 	};
 }
 
 /**
  * Validate custom name (standalone function for reuse)
  * @param {string} name - Name to validate
- * @returns {Object} Validation result
+ * @returns {any} Validation result
  */
 export function validateInstanceCustomName(name) {
 	return validateCustomName(name);

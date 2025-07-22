@@ -28,6 +28,7 @@ export const pool = new Pool(config);
 
 /**
  * Test database connection
+ * @returns {Promise<void>}
  */
 export async function testConnection() {
 	try {
@@ -42,6 +43,7 @@ export async function testConnection() {
 
 /**
  * Check if required database tables exist
+ * @returns {Promise<boolean>}
  */
 export async function checkDatabaseTables() {
 	const requiredTables = [
@@ -77,13 +79,15 @@ export async function checkDatabaseTables() {
 		client.release();
 		return true;
 	} catch (error) {
-		console.error('❌ Database table check failed:', error.message);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('❌ Database table check failed:', errorMessage);
 		throw error;
 	}
 }
 
 /**
  * Initialize database connection and verify tables
+ * @returns {Promise<void>}
  */
 export async function initializeDatabase() {
 	try {
@@ -92,7 +96,8 @@ export async function initializeDatabase() {
 		await checkDatabaseTables();
 		console.log('✅ Database initialization complete');
 	} catch (error) {
-		console.error('❌ Database initialization failed:', error.message);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('❌ Database initialization failed:', errorMessage);
 		console.error('Please ensure PostgreSQL is running and migrations have been executed.');
 		console.error('Run: npm run db:migrate');
 		throw error;

@@ -1,15 +1,30 @@
 import { getMCPTypeByName } from '../../db/queries/mcpTypesQueries.js';
 
 /**
+ * @typedef {Object} MCPType
+ * @property {string} id
+ * @property {string} name
+ * @property {string} display_name
+ * @property {string} description
+ * @property {string} icon_url
+ * @property {Object} config_template
+ * @property {Object} resource_limits
+ * @property {boolean} is_active
+ * @property {Array<string|Object>} required_credentials
+ */
+
+/**
  * Get MCP type by name
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
  */
 export async function getMCPTypeByNameHandler(req, res) {
 	try {
 		const { name } = req.params;
 
-		const mcpType = await getMCPTypeByName(name);
+		const mcpTypeRaw = await getMCPTypeByName(name);
+		/** @type {MCPType|null} */
+		const mcpType = /** @type {MCPType|null} */ (mcpTypeRaw);
 
 		if (!mcpType) {
 			return res.status(404).json({
@@ -22,12 +37,14 @@ export async function getMCPTypeByNameHandler(req, res) {
 
 		// Transform the response to match API specification
 		// Handle both old format (string array) and new format (object array)
+		/** @type {Array<{name: string, type: string, description: string, required: boolean}>} */
 		let requiredFields = [];
 		if (mcpType.required_credentials && Array.isArray(mcpType.required_credentials)) {
 			if (mcpType.required_credentials.length > 0) {
 				if (typeof mcpType.required_credentials[0] === 'string') {
 					// Old format: string array
-					requiredFields = mcpType.required_credentials.map(field => ({
+					const stringCredentials = /** @type {string[]} */ (mcpType.required_credentials);
+					requiredFields = stringCredentials.map(field => ({
 						name: field,
 						type: 'string',
 						description: `${field.replace('_', ' ')} for ${mcpType.display_name}`,
@@ -35,7 +52,7 @@ export async function getMCPTypeByNameHandler(req, res) {
 					}));
 				} else {
 					// New format: object array
-					requiredFields = mcpType.required_credentials;
+					requiredFields = /** @type {Array<{name: string, type: string, description: string, required: boolean}>} */ (mcpType.required_credentials);
 				}
 			}
 		}
@@ -52,12 +69,12 @@ export async function getMCPTypeByNameHandler(req, res) {
 			required_fields: requiredFields,
 		};
 
-		res.json({
+		return res.json({
 			data: formattedMcpType,
 		});
 	} catch (error) {
 		console.error('Error fetching MCP type:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
 				message: 'Failed to fetch MCP type',

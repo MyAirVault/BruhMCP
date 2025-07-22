@@ -8,20 +8,48 @@ import { pool } from '../../../db/config.js';
 /** @typedef {import('express').Response} Response */
 
 /**
+ * @typedef {Object} InstanceData
+ * @property {string} mcp_service_name - MCP service name
+ * @property {string} custom_name - Custom instance name
+ * @property {string} api_key - API key for the instance
+ * @property {string} updated_at - Last updated timestamp
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} isValid - Whether validation passed
+ * @property {string} [error] - Error message if validation failed
+ * @property {string} [errorCode] - Error code if validation failed
+ * @property {Object} [details] - Additional validation details
+ * @property {string} [testEndpoint] - Test endpoint used
+ * @property {Object} [userInfo] - User information from validation
+ */
+
+/**
+ * @typedef {Object} NameValidationResult
+ * @property {boolean} isValid - Whether name validation passed
+ * @property {string} [error] - Error message if validation failed
+ * @property {string} [cleanedName] - Cleaned version of the name
+ * @property {Object} [details] - Additional validation details
+ */
+
+/**
  * Update MCP instance (combined name and credentials update)
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function updateInstance(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
-			return res.status(401).json({
+			res.status(401).json({
 				error: {
 					code: 'UNAUTHORIZED',
 					message: 'User authentication required',
 				},
 			});
+			return;
 		}
 
 		const { id } = req.params;
@@ -29,47 +57,53 @@ export async function updateInstance(req, res) {
 
 		// Validate request parameters
 		if (!id) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'MISSING_PARAMETER',
 					message: 'Instance ID is required',
 				},
 			});
+			return;
 		}
 
 		// Check if at least one update field is provided
 		if (!custom_name && !credentials) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'NO_UPDATES_PROVIDED',
 					message: 'Either custom_name or credentials must be provided for update',
 				},
 			});
+			return;
 		}
 
 		// Get current instance details
+		/** @type {any} */
 		const instance = await getMCPInstanceById(id, userId);
 		if (!instance) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'NOT_FOUND',
 					message: 'MCP instance not found',
 				},
 			});
+			return;
 		}
 
-		const serviceName = instance.mcp_service_name;
-		const updatesApplied = [];
+		const serviceName = /** @type {any} */ (instance).mcp_service_name;
+		const updatesApplied = /** @type {string[]} */ ([]);
+		/** @type {ValidationResult | null} */
 		let validationResult = null;
+		/** @type {NameValidationResult | null} */
 		let nameValidation = null;
 
 		console.log(`🔄 Processing combined update for instance ${id} (${serviceName})`);
 
 		// Validate custom name if provided
 		if (custom_name) {
-			nameValidation = validateInstanceCustomName(custom_name);
+			nameValidation = /** @type {NameValidationResult} */ (validateInstanceCustomName(custom_name));
 			if (!nameValidation.isValid) {
-				return res.status(400).json({
+				res.status(400).json({
 					error: {
 						code: 'INVALID_NAME',
 						message: nameValidation.error,
@@ -77,51 +111,57 @@ export async function updateInstance(req, res) {
 						...nameValidation.details,
 					},
 				});
+				return;
 			}
 		}
 
 		// Validate credentials if provided
 		if (credentials) {
 			if (typeof credentials !== 'object') {
-				return res.status(400).json({
+				res.status(400).json({
 					error: {
 						code: 'INVALID_CREDENTIALS',
 						message: 'Credentials must be a valid object',
 					},
 				});
+				return;
 			}
 
 			console.log(`🔐 Validating new credentials for instance ${id}`);
-			validationResult = await validateCredentialsWithFormat(serviceName, credentials);
+			validationResult = /** @type {ValidationResult} */ (
+				await validateCredentialsWithFormat(serviceName, credentials)
+			);
 
 			if (!validationResult.isValid) {
 				console.log(`❌ Credential validation failed for instance ${id}: ${validationResult.error}`);
-				
-				return res.status(400).json({
+
+				res.status(400).json({
 					error: {
 						code: validationResult.errorCode || 'CREDENTIAL_VALIDATION_FAILED',
 						message: validationResult.error,
 						service: serviceName,
 						validation_details: {
-							test_endpoint: validationResult.details?.testEndpoint,
-							suggestion: validationResult.details?.suggestion,
-							...validationResult.details,
+							test_endpoint: /** @type {any} */ (validationResult.details)?.testEndpoint,
+							suggestion: /** @type {any} */ (validationResult.details)?.suggestion,
+							.../** @type {any} */ (validationResult.details),
 						},
 					},
 				});
+				return;
 			}
 
 			console.log(`✅ Credential validation successful for instance ${id}`);
 		}
 
 		// Prepare update data
+		/** @type {any} */
 		const updateData = {};
 		let needsCacheInvalidation = false;
 
 		// Add name update if provided and different
 		if (custom_name && nameValidation) {
-			const cleanedName = nameValidation.cleanedName;
-			if (instance.custom_name !== cleanedName) {
+			const cleanedName = /** @type {any} */ (nameValidation).cleanedName;
+			if (/** @type {any} */ (instance).custom_name !== cleanedName) {
 				updateData.custom_name = cleanedName;
 				updatesApplied.push('custom_name');
 			}
@@ -129,8 +169,8 @@ export async function updateInstance(req, res) {
 
 		// Add credentials update if provided and different
 		if (credentials && validationResult) {
-			const newApiKey = credentials.api_key;
-			if (newApiKey && instance.api_key !== newApiKey) {
+			const newApiKey = /** @type {any} */ (credentials).api_key;
+			if (newApiKey && /** @type {any} */ (instance).api_key !== newApiKey) {
 				updateData.api_key = newApiKey;
 				updatesApplied.push('credentials');
 				needsCacheInvalidation = true;
@@ -139,22 +179,23 @@ export async function updateInstance(req, res) {
 
 		// Check if any updates are actually needed
 		if (updatesApplied.length === 0) {
-			return res.status(200).json({
+			res.status(200).json({
 				data: {
 					message: 'No changes detected - instance is already up to date',
 					instance_id: id,
 					service_type: serviceName,
 					updates_applied: [],
-					updated_at: instance.updated_at,
+					updated_at: /** @type {any} */ (instance).updated_at,
 				},
 			});
+			return;
 		}
 
 		console.log(`💾 Applying updates to instance ${id}: ${updatesApplied.join(', ')}`);
 
 		// Perform database update (within transaction)
 		const client = await pool.connect();
-		
+
 		try {
 			await client.query('BEGIN');
 
@@ -190,12 +231,13 @@ export async function updateInstance(req, res) {
 
 			if (updateResult.rowCount === 0) {
 				await client.query('ROLLBACK');
-				return res.status(404).json({
+				res.status(404).json({
 					error: {
 						code: 'NOT_FOUND',
 						message: 'Instance not found or access denied',
 					},
 				});
+				return;
 			}
 
 			await client.query('COMMIT');
@@ -215,6 +257,7 @@ export async function updateInstance(req, res) {
 			console.log(`📝 Instance updated: ${id} (${serviceName}) - ${updatesApplied.join(', ')} by user ${userId}`);
 
 			// Build response with update details
+			/** @type {any} */
 			const responseData = {
 				message: 'Instance updated successfully',
 				instance_id: id,
@@ -226,7 +269,7 @@ export async function updateInstance(req, res) {
 			// Add name change details if name was updated
 			if (updatesApplied.includes('custom_name')) {
 				responseData.name_change = {
-					old_name: instance.custom_name,
+					old_name: /** @type {any} */ (instance).custom_name,
 					new_name: updateData.custom_name,
 				};
 			}
@@ -236,9 +279,11 @@ export async function updateInstance(req, res) {
 				responseData.credential_validation = {
 					status: 'success',
 					service: serviceName,
-					test_endpoint: validationResult.testEndpoint,
-					validated_user: validationResult.userInfo?.email || validationResult.userInfo?.handle,
-					user_info: sanitizeUserInfo(validationResult.userInfo),
+					test_endpoint: /** @type {any} */ (validationResult).testEndpoint,
+					validated_user:
+						/** @type {any} */ (validationResult.userInfo)?.email ||
+						/** @type {any} */ (validationResult.userInfo)?.handle,
+					user_info: sanitizeUserInfo(/** @type {any} */ (validationResult.userInfo)),
 				};
 				responseData.cache_invalidated = true;
 			}
@@ -246,7 +291,6 @@ export async function updateInstance(req, res) {
 			res.status(200).json({
 				data: responseData,
 			});
-
 		} catch (dbError) {
 			await client.query('ROLLBACK');
 			console.error(`❌ Database error updating instance ${id}:`, dbError);
@@ -254,11 +298,10 @@ export async function updateInstance(req, res) {
 		} finally {
 			client.release();
 		}
-
 	} catch (error) {
 		console.error('Error updating instance:', error);
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		
+
 		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -271,24 +314,25 @@ export async function updateInstance(req, res) {
 
 /**
  * Sanitize user info for response (remove sensitive data)
- * @param {Object} userInfo - User information from API validation
- * @returns {Object} Sanitized user info
+ * @param {any} userInfo - User information from API validation
+ * @returns {any} Sanitized user info
  */
 function sanitizeUserInfo(userInfo) {
 	if (!userInfo) return null;
 
 	// Return only safe, non-sensitive user information
+	/** @type {any} */
 	const sanitized = {};
 
 	// Include safe fields
-	if (userInfo.email) sanitized.email = userInfo.email;
-	if (userInfo.handle) sanitized.handle = userInfo.handle;
-	if (userInfo.service) sanitized.service = userInfo.service;
-	if (userInfo.permissions) sanitized.permissions = userInfo.permissions;
+	if (/** @type {any} */ (userInfo).email) sanitized.email = /** @type {any} */ (userInfo).email;
+	if (/** @type {any} */ (userInfo).handle) sanitized.handle = /** @type {any} */ (userInfo).handle;
+	if (/** @type {any} */ (userInfo).service) sanitized.service = /** @type {any} */ (userInfo).service;
+	if (/** @type {any} */ (userInfo).permissions) sanitized.permissions = /** @type {any} */ (userInfo).permissions;
 
 	// Include user ID only if it's not sensitive (some services expose internal IDs)
-	if (userInfo.user_id && typeof userInfo.user_id === 'string') {
-		sanitized.user_id = userInfo.user_id;
+	if (/** @type {any} */ (userInfo).user_id && typeof (/** @type {any} */ (userInfo).user_id) === 'string') {
+		sanitized.user_id = /** @type {any} */ (userInfo).user_id;
 	}
 
 	return Object.keys(sanitized).length > 0 ? sanitized : null;
