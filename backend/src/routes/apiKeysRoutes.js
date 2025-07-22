@@ -1,3 +1,11 @@
+// @ts-check
+
+/**
+ * @typedef {import('express').Request} Request
+ * @typedef {import('express').Response} Response
+ * @typedef {import('express').NextFunction} NextFunction
+ */
+
 import { Router } from 'express';
 import { getAPIKeys } from '../controllers/apiKeys/getAPIKeys.js';
 import { storeAPIKeyHandler } from '../controllers/apiKeys/storeAPIKey.js';

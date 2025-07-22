@@ -1,1 +1,1 @@
-{"version":3,"file":"mcpTypesRoutes.d.ts","sourceRoot":"","sources":["../../src/routes/mcpTypesRoutes.js"],"names":[],"mappings":";AAIA,iEAAwB"}
+{"version":3,"file":"mcpTypesRoutes.d.ts","sourceRoot":"","sources":["../../src/routes/mcpTypesRoutes.js"],"names":[],"mappings":";sBAGa,OAAO,SAAS,EAAE,OAAO;uBACzB,OAAO,SAAS,EAAE,QAAQ;2BAC1B,OAAO,SAAS,EAAE,YAAY;AAO3C,iEAAwB"}

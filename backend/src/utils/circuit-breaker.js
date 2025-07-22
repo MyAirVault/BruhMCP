@@ -4,7 +4,12 @@
  */
 
 /**
+ * @typedef {'CLOSED' | 'OPEN' | 'HALF_OPEN'} CircuitState
+ */
+
+/**
  * Circuit Breaker States
+ * @type {Record<string, CircuitState>}
  */
 const CIRCUIT_STATES = {
   CLOSED: 'CLOSED',     // Normal operation
@@ -13,26 +18,88 @@ const CIRCUIT_STATES = {
 };
 
 /**
+ * @typedef {Object} CircuitBreakerOptions
+ * @property {string} [name] - Circuit breaker name
+ * @property {number} [failureThreshold] - Number of failures before opening circuit
+ * @property {number} [resetTimeout] - Time to wait before attempting reset
+ * @property {number} [monitoringPeriod] - Period for monitoring failures
+ * @property {number} [halfOpenMaxCalls] - Maximum calls allowed in half-open state
+ * @property {number} [successThreshold] - Successes needed to close circuit from half-open
+ * @property {(prev: CircuitState, curr: CircuitState) => void} [onStateChange] - State change callback
+ * @property {() => void} [onSuccess] - Success callback
+ * @property {(error: Error) => void} [onFailure] - Failure callback
+ */
+
+/**
+ * @typedef {Object} CircuitBreakerMetrics
+ * @property {number} totalCalls - Total number of calls made
+ * @property {number} successfulCalls - Number of successful calls
+ * @property {number} failedCalls - Number of failed calls
+ * @property {number} circuitOpenCount - Number of times circuit has opened
+ * @property {number} lastStateChange - Timestamp of last state change
+ */
+
+/**
+ * @typedef {Object} CircuitBreakerStatus
+ * @property {string} name - Circuit breaker name
+ * @property {CircuitState} state - Current state
+ * @property {number} failureCount - Current failure count
+ * @property {number} successCount - Current success count
+ * @property {number} halfOpenCalls - Current half-open calls count
+ * @property {number | null} nextAttempt - Next attempt timestamp
+ * @property {number | null} lastFailureTime - Last failure timestamp
+ * @property {CircuitBreakerMetrics} metrics - Circuit breaker metrics
+ * @property {Object} config - Circuit breaker configuration
+ */
+
+/**
+ * @typedef {Object} HealthAssessment
+ * @property {boolean} healthy - Whether circuit is healthy
+ * @property {CircuitState} state - Current state
+ * @property {string} successRate - Success rate percentage
+ * @property {number} uptime - Uptime in milliseconds
+ * @property {number} totalCalls - Total calls made
+ * @property {number} recentFailures - Recent failure count
+ * @property {string} recommendation - Recommendation text
+ */
+
+/**
  * Circuit Breaker class
  */
 class CircuitBreaker {
+  /**
+   * @param {CircuitBreakerOptions} [options={}] - Circuit breaker options
+   */
   constructor(options = {}) {
+    /** @type {string} */
     this.name = options.name || 'CircuitBreaker';
+    /** @type {number} */
     this.failureThreshold = options.failureThreshold || 5;
+    /** @type {number} */
     this.resetTimeout = options.resetTimeout || 60000; // 1 minute
+    /** @type {number} */
     this.monitoringPeriod = options.monitoringPeriod || 30000; // 30 seconds
+    /** @type {number} */
     this.halfOpenMaxCalls = options.halfOpenMaxCalls || 3;
+    /** @type {number} */
     this.successThreshold = options.successThreshold || 2;
     
     // State management
+    /** @type {CircuitState} */
     this.state = CIRCUIT_STATES.CLOSED;
+    /** @type {number} */
     this.failureCount = 0;
+    /** @type {number} */
     this.successCount = 0;
+    /** @type {number | null} */
     this.lastFailureTime = null;
+    /** @type {number | null} */
     this.nextAttempt = null;
+    /** @type {number} */
     this.halfOpenCalls = 0;
     
     // Metrics
+    /** @type {CircuitBreakerMetrics} */
     this.metrics = {
       totalCalls: 0,
       successfulCalls: 0,
@@ -42,8 +109,11 @@ class CircuitBreaker {
     };
     
     // Callbacks
+    /** @type {(prev: CircuitState, curr: CircuitState) => void} */
     this.onStateChange = options.onStateChange || (() => {});
+    /** @type {() => void} */
     this.onSuccess = options.onSuccess || (() => {});
+    /** @type {(error: Error) => void} */
     this.onFailure = options.onFailure || (() => {});
     
     console.log(`🔌 Circuit breaker initialized: ${this.name}`);
@@ -51,18 +121,19 @@ class CircuitBreaker {
   
   /**
    * Execute a function with circuit breaker protection
-   * @param {Function} fn - Function to execute
-   * @param {...any} args - Arguments to pass to function
-   * @returns {Promise} Result of function execution
+   * @template T
+   * @param {(...args: unknown[]) => Promise<T>} fn - Function to execute
+   * @param {...unknown} args - Arguments to pass to function
+   * @returns {Promise<T>} Result of function execution
    */
   async execute(fn, ...args) {
     this.metrics.totalCalls++;
     
     // Check if circuit is open
     if (this.state === CIRCUIT_STATES.OPEN) {
-      if (Date.now() < this.nextAttempt) {
+      if (Date.now() < /** @type {number} */ (this.nextAttempt)) {
         const error = new Error(`Circuit breaker is OPEN for ${this.name}`);
-        error.circuitBreakerState = this.state;
+        /** @type {Error & {circuitBreakerState: CircuitState}} */ (error).circuitBreakerState = this.state;
         throw error;
       } else {
         // Try to transition to half-open
@@ -74,7 +145,7 @@ class CircuitBreaker {
     if (this.state === CIRCUIT_STATES.HALF_OPEN) {
       if (this.halfOpenCalls >= this.halfOpenMaxCalls) {
         const error = new Error(`Circuit breaker is HALF_OPEN and call limit reached for ${this.name}`);
-        error.circuitBreakerState = this.state;
+        /** @type {Error & {circuitBreakerState: CircuitState}} */ (error).circuitBreakerState = this.state;
         throw error;
       }
       this.halfOpenCalls++;
@@ -85,7 +156,7 @@ class CircuitBreaker {
       this.onCallSuccess();
       return result;
     } catch (error) {
-      this.onCallFailure(error);
+      this.onCallFailure(/** @type {Error} */ (error));
       throw error;
     }
   }
@@ -135,7 +206,7 @@ class CircuitBreaker {
   
   /**
    * Set circuit breaker state
-   * @param {string} newState - New state to set
+   * @param {CircuitState} newState - New state to set
    */
   setState(newState) {
     const previousState = this.state;
@@ -165,7 +236,7 @@ class CircuitBreaker {
   
   /**
    * Get current circuit breaker status
-   * @returns {Object} Current status
+   * @returns {CircuitBreakerStatus} Current status
    */
   getStatus() {
     return {
@@ -189,10 +260,9 @@ class CircuitBreaker {
   
   /**
    * Get health assessment
-   * @returns {Object} Health assessment
+   * @returns {HealthAssessment} Health assessment
    */
   getHealthAssessment() {
-    const status = this.getStatus();
     const uptime = Date.now() - this.metrics.lastStateChange;
     const successRate = this.metrics.totalCalls > 0 ? 
       (this.metrics.successfulCalls / this.metrics.totalCalls) * 100 : 0;
@@ -230,7 +300,7 @@ class CircuitBreaker {
   
   /**
    * Force circuit breaker to specific state (for testing/maintenance)
-   * @param {string} state - State to force
+   * @param {CircuitState} state - State to force
    */
   forceState(state) {
     if (Object.values(CIRCUIT_STATES).includes(state)) {
@@ -262,26 +332,28 @@ class CircuitBreaker {
  */
 class CircuitBreakerManager {
   constructor() {
+    /** @type {Map<string, CircuitBreaker>} */
     this.breakers = new Map();
   }
   
   /**
    * Create or get a circuit breaker
    * @param {string} name - Circuit breaker name
-   * @param {Object} options - Circuit breaker options
+   * @param {CircuitBreakerOptions} [options={}] - Circuit breaker options
    * @returns {CircuitBreaker} Circuit breaker instance
    */
   getOrCreate(name, options = {}) {
     if (!this.breakers.has(name)) {
       this.breakers.set(name, new CircuitBreaker({ ...options, name }));
     }
-    return this.breakers.get(name);
+    // TypeScript knows this exists because we just set it above if it didn't exist
+    return /** @type {CircuitBreaker} */ (this.breakers.get(name));
   }
   
   /**
    * Get circuit breaker by name
    * @param {string} name - Circuit breaker name
-   * @returns {CircuitBreaker|null} Circuit breaker instance or null
+   * @returns {CircuitBreaker | null} Circuit breaker instance or null
    */
   get(name) {
     return this.breakers.get(name) || null;
@@ -289,7 +361,7 @@ class CircuitBreakerManager {
   
   /**
    * Get all circuit breakers
-   * @returns {Map} All circuit breakers
+   * @returns {Map<string, CircuitBreaker>} All circuit breakers
    */
   getAll() {
     return new Map(this.breakers);
@@ -297,9 +369,10 @@ class CircuitBreakerManager {
   
   /**
    * Get status of all circuit breakers
-   * @returns {Object} Status of all circuit breakers
+   * @returns {Record<string, CircuitBreakerStatus>} Status of all circuit breakers
    */
   getAllStatus() {
+    /** @type {Record<string, CircuitBreakerStatus>} */
     const status = {};
     for (const [name, breaker] of this.breakers) {
       status[name] = breaker.getStatus();
@@ -309,9 +382,10 @@ class CircuitBreakerManager {
   
   /**
    * Get health assessment of all circuit breakers
-   * @returns {Object} Health assessment of all circuit breakers
+   * @returns {Record<string, HealthAssessment>} Health assessment of all circuit breakers
    */
   getAllHealthAssessments() {
+    /** @type {Record<string, HealthAssessment>} */
     const assessments = {};
     for (const [name, breaker] of this.breakers) {
       assessments[name] = breaker.getHealthAssessment();
@@ -322,6 +396,7 @@ class CircuitBreakerManager {
   /**
    * Remove circuit breaker
    * @param {string} name - Circuit breaker name
+   * @returns {boolean} True if circuit breaker was removed
    */
   remove(name) {
     return this.breakers.delete(name);

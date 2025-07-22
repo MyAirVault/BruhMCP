@@ -63,13 +63,13 @@ class PlanMonitoringService {
 
 	/**
 	 * Restart the plan monitoring service with new interval
-	 * @param {number} intervalMinutes - New interval in minutes
+	 * @param {number} [intervalMinutes] - New interval in minutes (optional)
 	 */
-	restart(intervalMinutes = null) {
+	restart(intervalMinutes) {
 		console.log('🔄 Restarting Plan Monitoring Service...');
 
 		this.stop();
-		this.start(intervalMinutes || this.intervalMinutes);
+		this.start(intervalMinutes ?? this.intervalMinutes);
 	}
 
 	/**
@@ -122,7 +122,7 @@ const planMonitoringService = new PlanMonitoringService();
 
 // Auto-start the service when this module is imported (with environment configuration)
 const autoStartEnabled = process.env.PLAN_MONITORING_AUTO_START !== 'false';
-const checkInterval = parseInt(process.env.PLAN_MONITORING_INTERVAL_MINUTES) || 60;
+const checkInterval = parseInt(process.env.PLAN_MONITORING_INTERVAL_MINUTES || '60') || 60;
 
 if (autoStartEnabled) {
 	// Start with a small delay to ensure database connections are ready
@@ -143,10 +143,10 @@ export default planMonitoringService;
 
 /**
  * Get plan monitoring service status
- * @param {import('express').Request} req
- * @param {import('express').Response} res
+ * @param {import('express').Request} _req - Request object (unused)
+ * @param {import('express').Response} res - Response object
  */
-export async function getPlanMonitoringStatus(req, res) {
+export async function getPlanMonitoringStatus(/** @type {import('express').Request} */ _req, res) {
 	try {
 		const status = planMonitoringService.getStatus();
 		const expiredSummary = await planMonitoringService.getExpiredUsersSummary();
@@ -155,13 +155,14 @@ export async function getPlanMonitoringStatus(req, res) {
 			service: status,
 			expiredUsers: expiredSummary,
 		});
-	} catch (error) {
+	} catch (/** @type {unknown} */ error) {
 		console.error('Error getting plan monitoring status:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		res.status(500).json({
 			error: {
 				code: 'STATUS_ERROR',
 				message: 'Failed to get monitoring status',
-				details: error.message,
+				details: errorMessage,
 			},
 		});
 	}
@@ -169,10 +170,10 @@ export async function getPlanMonitoringStatus(req, res) {
 
 /**
  * Manually trigger plan expiration agent
- * @param {import('express').Request} req
- * @param {import('express').Response} res
+ * @param {import('express').Request} _req - Request object (unused)
+ * @param {import('express').Response} res - Response object
  */
-export async function triggerPlanExpirationAgent(req, res) {
+export async function triggerPlanExpirationAgent(/** @type {import('express').Request} */ _req, res) {
 	try {
 		const result = await planMonitoringService.runOnce();
 
@@ -180,13 +181,14 @@ export async function triggerPlanExpirationAgent(req, res) {
 			message: 'Plan expiration agent executed successfully',
 			result,
 		});
-	} catch (error) {
+	} catch (/** @type {unknown} */ error) {
 		console.error('Error triggering plan expiration agent:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		res.status(500).json({
 			error: {
 				code: 'TRIGGER_ERROR',
 				message: 'Failed to trigger expiration agent',
-				details: error.message,
+				details: errorMessage,
 			},
 		});
 	}
@@ -215,13 +217,14 @@ export async function updatePlanMonitoringConfig(req, res) {
 			message: 'Plan monitoring configuration updated',
 			status,
 		});
-	} catch (error) {
+	} catch (/** @type {unknown} */ error) {
 		console.error('Error updating plan monitoring config:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		res.status(500).json({
 			error: {
 				code: 'CONFIG_ERROR',
 				message: 'Failed to update monitoring configuration',
-				details: error.message,
+				details: errorMessage,
 			},
 		});
 	}

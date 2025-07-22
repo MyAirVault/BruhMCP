@@ -9,6 +9,40 @@ const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
+ * @typedef {Object} CleanupStats
+ * @property {string|null} lastRun - Last maintenance run timestamp
+ * @property {number} filesRemoved - Number of files removed
+ * @property {number} spaceFreed - Space freed in bytes
+ * @property {string[]} errors - Array of error messages
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {number} validated - Number of validated files
+ * @property {number} corrupted - Number of corrupted files
+ */
+
+/**
+ * @typedef {Object} DirectoryStats
+ * @property {number} size - Total size in bytes
+ * @property {number} fileCount - Number of files
+ */
+
+/**
+ * @typedef {Object} UserLogsStats
+ * @property {number} size - Total size in bytes
+ * @property {number} fileCount - Number of files
+ * @property {number} userCount - Number of users
+ * @property {number} instanceCount - Number of instances
+ */
+
+/**
+ * @typedef {Object} CleanupResult
+ * @property {number} removed - Number of files removed
+ * @property {number} spaceSaved - Space saved in bytes
+ */
+
+/**
  * Log maintenance service for cleanup, rotation, and monitoring
  * Handles both system logs and user instance logs
  */
@@ -20,6 +54,7 @@ class LogMaintenanceService {
 		this.systemLogsDir = path.join(projectRoot, 'logs', 'system');
 		this.userLogsDir = path.join(projectRoot, 'logs', 'users');
 		this.maintenanceInterval = null;
+		/** @type {CleanupStats} */
 		this.cleanupStats = {
 			lastRun: null,
 			filesRemoved: 0,
@@ -43,7 +78,7 @@ class LogMaintenanceService {
 			this.performCompleteMaintenance();
 		}, intervalHours * 60 * 60 * 1000);
 
-		loggingService.logSystemHealth({
+		loggingService.info('Log maintenance scheduled', {
 			event: 'maintenance_scheduled',
 			intervalHours,
 			nextRun: new Date(Date.now() + intervalHours * 60 * 60 * 1000).toISOString()
@@ -76,6 +111,7 @@ class LogMaintenanceService {
 			loggingService.info('Starting log maintenance cycle', { maintenanceId });
 
 			// Reset stats
+			/** @type {CleanupStats} */
 			this.cleanupStats = {
 				lastRun: new Date().toISOString(),
 				filesRemoved: 0,
@@ -100,11 +136,13 @@ class LogMaintenanceService {
 				stats: this.cleanupStats
 			});
 
-		} catch (error) {
+		} catch (/** @type {unknown} */ error) {
 			const duration = Date.now() - startTime;
-			this.cleanupStats.errors.push(error.message);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(errorMessage);
 			
-			loggingService.logError(error, {
+			loggingService.info('Log maintenance failed', {
+				error: errorMessage,
 				operation: 'log_maintenance',
 				maintenanceId,
 				duration,
@@ -148,8 +186,9 @@ class LogMaintenanceService {
 					spaceSaved += stats.size;
 					fs.unlinkSync(filePath);
 					removedCount++;
-				} catch (error) {
-					this.cleanupStats.errors.push(`Failed to remove ${file}: ${error.message}`);
+				} catch (/** @type {unknown} */ error) {
+					const errorMessage = error instanceof Error ? error.message : String(error);
+					this.cleanupStats.errors.push(`Failed to remove ${file}: ${errorMessage}`);
 				}
 			}
 
@@ -162,8 +201,9 @@ class LogMaintenanceService {
 				retentionDays
 			});
 
-		} catch (error) {
-			this.cleanupStats.errors.push(`System log cleanup failed: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`System log cleanup failed: ${errorMessage}`);
 		}
 	}
 
@@ -223,8 +263,9 @@ class LogMaintenanceService {
 				retentionDays
 			});
 
-		} catch (error) {
-			this.cleanupStats.errors.push(`User log cleanup failed: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`User log cleanup failed: ${errorMessage}`);
 		}
 	}
 
@@ -232,7 +273,7 @@ class LogMaintenanceService {
 	 * Clean up logs for a specific MCP instance
 	 * @param {string} mcpPath - Path to MCP instance logs
 	 * @param {Date} cutoffDate - Cutoff date for cleanup
-	 * @returns {Object} Cleanup statistics
+	 * @returns {Promise<CleanupResult>} Cleanup statistics
 	 */
 	async cleanupUserMCPLogs(mcpPath, cutoffDate) {
 		let removed = 0;
@@ -251,13 +292,15 @@ class LogMaintenanceService {
 						spaceSaved += stats.size;
 						fs.unlinkSync(logFilePath);
 						removed++;
-					} catch (error) {
-						this.cleanupStats.errors.push(`Failed to remove ${logFilePath}: ${error.message}`);
+					} catch (/** @type {unknown} */ error) {
+						const errorMessage = error instanceof Error ? error.message : String(error);
+						this.cleanupStats.errors.push(`Failed to remove ${logFilePath}: ${errorMessage}`);
 					}
 				}
 			}
-		} catch (error) {
-			this.cleanupStats.errors.push(`Failed to cleanup MCP logs at ${mcpPath}: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Failed to cleanup MCP logs at ${mcpPath}: ${errorMessage}`);
 		}
 
 		return { removed, spaceSaved };
@@ -287,8 +330,9 @@ class LogMaintenanceService {
 				compressionAge
 			});
 
-		} catch (error) {
-			this.cleanupStats.errors.push(`Log compression failed: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Log compression failed: ${errorMessage}`);
 		}
 	}
 
@@ -296,7 +340,7 @@ class LogMaintenanceService {
 	 * Compress logs in a specific directory
 	 * @param {string} directory - Directory to compress logs in
 	 * @param {Date} cutoffDate - Date cutoff for compression
-	 * @returns {number} Number of files compressed
+	 * @returns {Promise<number>} Number of files compressed
 	 */
 	async compressLogsInDirectory(directory, cutoffDate) {
 		let compressedCount = 0;
@@ -318,13 +362,15 @@ class LogMaintenanceService {
 					try {
 						await execAsync(`gzip "${filePath}"`);
 						compressedCount++;
-					} catch (error) {
-						this.cleanupStats.errors.push(`Failed to compress ${file}: ${error.message}`);
+					} catch (/** @type {unknown} */ error) {
+						const errorMessage = error instanceof Error ? error.message : String(error);
+						this.cleanupStats.errors.push(`Failed to compress ${file}: ${errorMessage}`);
 					}
 				}
 			}
-		} catch (error) {
-			this.cleanupStats.errors.push(`Failed to compress logs in ${directory}: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Failed to compress logs in ${directory}: ${errorMessage}`);
 		}
 
 		return compressedCount;
@@ -333,7 +379,7 @@ class LogMaintenanceService {
 	/**
 	 * Compress user logs recursively
 	 * @param {Date} cutoffDate - Date cutoff for compression
-	 * @returns {number} Number of files compressed
+	 * @returns {Promise<number>} Number of files compressed
 	 */
 	async compressUserLogs(cutoffDate) {
 		let totalCompressed = 0;
@@ -354,8 +400,9 @@ class LogMaintenanceService {
 					totalCompressed += await this.compressLogsInDirectory(mcpPath, cutoffDate);
 				}
 			}
-		} catch (error) {
-			this.cleanupStats.errors.push(`Failed to compress user logs: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Failed to compress user logs: ${errorMessage}`);
 		}
 
 		return totalCompressed;
@@ -387,15 +434,16 @@ class LogMaintenanceService {
 				healthStatus: corruptedFiles === 0 ? 'healthy' : 'degraded'
 			});
 
-		} catch (error) {
-			this.cleanupStats.errors.push(`Log integrity validation failed: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Log integrity validation failed: ${errorMessage}`);
 		}
 	}
 
 	/**
 	 * Validate logs in a directory
 	 * @param {string} directory - Directory to validate
-	 * @returns {Object} Validation results
+	 * @returns {Promise<ValidationResult>} Validation results
 	 */
 	async validateLogsInDirectory(directory) {
 		let validated = 0;
@@ -426,17 +474,19 @@ class LogMaintenanceService {
 					}
 					
 					validated++;
-				} catch (error) {
+				} catch (/** @type {unknown} */ error) {
 					corrupted++;
-					this.cleanupStats.errors.push(`Corrupted log file ${file}: ${error.message}`);
+					const errorMessage = error instanceof Error ? error.message : String(error);
+					this.cleanupStats.errors.push(`Corrupted log file ${file}: ${errorMessage}`);
 					
 					// Quarantine corrupted file
 					const quarantinePath = path.join(directory, `corrupted_${file}_${Date.now()}`);
 					fs.renameSync(filePath, quarantinePath);
 				}
 			}
-		} catch (error) {
-			this.cleanupStats.errors.push(`Failed to validate logs in ${directory}: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Failed to validate logs in ${directory}: ${errorMessage}`);
 		}
 
 		return { validated, corrupted };
@@ -444,7 +494,7 @@ class LogMaintenanceService {
 
 	/**
 	 * Validate user logs recursively
-	 * @returns {Object} Validation results
+	 * @returns {Promise<ValidationResult>} Validation results
 	 */
 	async validateUserLogs() {
 		let totalValidated = 0;
@@ -468,8 +518,9 @@ class LogMaintenanceService {
 					totalCorrupted += result.corrupted;
 				}
 			}
-		} catch (error) {
-			this.cleanupStats.errors.push(`Failed to validate user logs: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Failed to validate user logs: ${errorMessage}`);
 		}
 
 		return { validated: totalValidated, corrupted: totalCorrupted };
@@ -492,7 +543,7 @@ class LogMaintenanceService {
 			stats.totalDiskUsage = stats.systemLogs.size + stats.userLogs.size;
 			stats.fileCount = stats.systemLogs.fileCount + stats.userLogs.fileCount;
 
-			loggingService.logSystemHealth({
+			loggingService.info('Log storage statistics updated', {
 				component: 'log_storage',
 				diskUsage: {
 					totalBytes: stats.totalDiskUsage,
@@ -504,15 +555,16 @@ class LogMaintenanceService {
 				health: this.cleanupStats.errors.length === 0 ? 'healthy' : 'degraded'
 			});
 
-		} catch (error) {
-			this.cleanupStats.errors.push(`Failed to update log statistics: ${error.message}`);
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.cleanupStats.errors.push(`Failed to update log statistics: ${errorMessage}`);
 		}
 	}
 
 	/**
 	 * Get directory statistics
 	 * @param {string} directory - Directory to analyze
-	 * @returns {Object} Directory statistics
+	 * @returns {Promise<DirectoryStats>} Directory statistics
 	 */
 	async getDirectoryStats(directory) {
 		const stats = { size: 0, fileCount: 0 };
@@ -542,7 +594,7 @@ class LogMaintenanceService {
 
 	/**
 	 * Get user logs statistics
-	 * @returns {Object} User logs statistics
+	 * @returns {Promise<UserLogsStats>} User logs statistics
 	 */
 	async getUserLogsStats() {
 		const stats = { size: 0, fileCount: 0, userCount: 0, instanceCount: 0 };

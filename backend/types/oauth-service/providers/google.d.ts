@@ -1,6 +1,97 @@
 export const googleOAuth: GoogleOAuth;
+export type GoogleTokenResponse = {
+    /**
+     * - Access token
+     */
+    access_token: string;
+    /**
+     * - Refresh token
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Expiration time in seconds
+     */
+    expires_in?: number | undefined;
+    /**
+     * - Token type
+     */
+    token_type?: string | undefined;
+    /**
+     * - Token scope
+     */
+    scope?: string | undefined;
+};
+export type GoogleUserInfo = {
+    /**
+     * - User ID
+     */
+    id: string;
+    /**
+     * - User email
+     */
+    email: string;
+    /**
+     * - Display name
+     */
+    name?: string | undefined;
+    /**
+     * - First name
+     */
+    given_name?: string | undefined;
+    /**
+     * - Last name
+     */
+    family_name?: string | undefined;
+    /**
+     * - Profile picture URL
+     */
+    picture?: string | undefined;
+    /**
+     * - User locale
+     */
+    locale?: string | undefined;
+    /**
+     * - Whether email is verified
+     */
+    verified_email?: boolean | undefined;
+};
+export type GoogleError = {
+    /**
+     * - Error code
+     */
+    error: string;
+    /**
+     * - Error description
+     */
+    error_description: string;
+};
+/**
+ * @typedef {Object} GoogleTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token
+ * @property {number} [expires_in] - Expiration time in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
+ */
+/**
+ * @typedef {Object} GoogleUserInfo
+ * @property {string} id - User ID
+ * @property {string} email - User email
+ * @property {string} [name] - Display name
+ * @property {string} [given_name] - First name
+ * @property {string} [family_name] - Last name
+ * @property {string} [picture] - Profile picture URL
+ * @property {string} [locale] - User locale
+ * @property {boolean} [verified_email] - Whether email is verified
+ */
+/**
+ * @typedef {Object} GoogleError
+ * @property {string} error - Error code
+ * @property {string} error_description - Error description
+ */
 /**
  * Google OAuth Provider class
+ * @extends {baseOAuth}
  */
 declare class GoogleOAuth extends baseOAuth {
     constructor();
@@ -10,48 +101,11 @@ declare class GoogleOAuth extends baseOAuth {
     tokenInfoUrl: string;
     revokeUrl: string;
     /**
-     * Generate Google OAuth authorization URL
-     * @param {Object} params - Authorization parameters
-     * @param {string} params.client_id - Google OAuth Client ID
-     * @param {Array} params.scopes - Required OAuth scopes
-     * @param {string} params.state - State parameter for security
-     * @param {string} params.redirect_uri - Redirect URI after authorization
-     * @returns {string} Authorization URL
+     * Get user information using access token
+     * @param {string} accessToken - Google access token
+     * @returns {Promise<GoogleUserInfo>} User information
      */
-    generateAuthorizationUrl(params: {
-        client_id: string;
-        scopes: any[];
-        state: string;
-        redirect_uri: string;
-    }): string;
-    /**
-     * Exchange authorization code for tokens
-     * @param {Object} params - Exchange parameters
-     * @param {string} params.code - Authorization code from callback
-     * @param {string} params.client_id - Google OAuth Client ID
-     * @param {string} params.client_secret - Google OAuth Client Secret
-     * @param {string} params.redirect_uri - Redirect URI used in authorization
-     * @returns {Object} Token response
-     */
-    exchangeAuthorizationCode(params: {
-        code: string;
-        client_id: string;
-        client_secret: string;
-        redirect_uri: string;
-    }): Object;
-    /**
-     * Refresh Google access token using refresh token
-     * @param {Object} params - Refresh parameters
-     * @param {string} params.refresh_token - Google refresh token
-     * @param {string} params.client_id - Google OAuth Client ID
-     * @param {string} params.client_secret - Google OAuth Client Secret
-     * @returns {Object} New token response
-     */
-    refreshAccessToken(params: {
-        refresh_token: string;
-        client_id: string;
-        client_secret: string;
-    }): Object;
+    getUserInfo(accessToken: string): Promise<GoogleUserInfo>;
 }
 import { baseOAuth } from './base-oauth.js';
 export {};

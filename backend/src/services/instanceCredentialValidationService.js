@@ -7,10 +7,45 @@ import { getMCPTypeByName } from '../db/queries/mcpTypesQueries.js';
  */
 
 /**
+ * @typedef {Object} ServiceCredentials
+ * @property {string} api_key - API key for the service
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} isValid - Whether credentials are valid
+ * @property {string} [message] - Success message
+ * @property {string} [error] - Error message if validation failed
+ * @property {string} [errorCode] - Error code for programmatic handling
+ * @property {string} [service] - Service name
+ * @property {Object} [userInfo] - User information from API
+ * @property {string} [testEndpoint] - Endpoint used for testing
+ * @property {string} [validatedAt] - ISO timestamp of validation
+ * @property {Object} [details] - Additional details about the validation
+ */
+
+/**
+ * @typedef {Object} FormatValidationResult
+ * @property {boolean} isValid - Whether format is valid
+ * @property {string} [error] - Error message if format is invalid
+ * @property {string} [errorCode] - Error code for programmatic handling
+ * @property {string} [service] - Service name
+ * @property {Object} [details] - Additional details about the validation
+ */
+
+/**
+ * @typedef {Object} ConnectivityResult
+ * @property {boolean} connected - Whether connection was successful
+ * @property {string} service - Service name
+ * @property {string} message - Result message
+ * @property {string|null} error - Error message if connection failed
+ */
+
+/**
  * Validate credentials for a specific service instance
  * @param {string} serviceName - Service name (figma, github, etc.)
- * @param {Object} credentials - Credentials to validate
- * @returns {Promise<Object>} Validation result with detailed feedback
+ * @param {ServiceCredentials} credentials - Credentials to validate
+ * @returns {Promise<ValidationResult>} Validation result with detailed feedback
  */
 export async function validateCredentialsForService(serviceName, credentials) {
 	try {
@@ -37,7 +72,7 @@ export async function validateCredentialsForService(serviceName, credentials) {
 				isValid: true,
 				message: `Successfully validated ${serviceName} credentials`,
 				service: serviceName,
-				userInfo: validationResult.api_info,
+				userInfo: validationResult.api_info || undefined,
 				testEndpoint: getTestEndpointForService(serviceName),
 				validatedAt: new Date().toISOString()
 			};
@@ -48,9 +83,9 @@ export async function validateCredentialsForService(serviceName, credentials) {
 				errorCode: validationResult.error_code || 'VALIDATION_FAILED',
 				service: serviceName,
 				details: {
-					...validationResult.details,
+					...(validationResult.details || {}),
 					testEndpoint: getTestEndpointForService(serviceName),
-					suggestion: getSuggestionForService(serviceName, validationResult.error_code)
+					suggestion: getSuggestionForService(serviceName, validationResult.error_code || 'VALIDATION_FAILED')
 				}
 			};
 		}
@@ -91,8 +126,8 @@ export async function validateGithubCredentials(apiKey) {
 /**
  * Validate credentials with format checking
  * @param {string} serviceName - Service name
- * @param {Object} credentials - Credentials to validate
- * @returns {Promise<Object>} Validation result with format validation
+ * @param {ServiceCredentials} credentials - Credentials to validate
+ * @returns {Promise<ValidationResult>} Validation result with format validation
  */
 export async function validateCredentialsWithFormat(serviceName, credentials) {
 	// Pre-validation format checks
@@ -108,8 +143,8 @@ export async function validateCredentialsWithFormat(serviceName, credentials) {
 /**
  * Validate credential format before API testing
  * @param {string} serviceName - Service name
- * @param {Object} credentials - Credentials to validate
- * @returns {Object} Format validation result
+ * @param {ServiceCredentials} credentials - Credentials to validate
+ * @returns {FormatValidationResult} Format validation result
  */
 function validateCredentialFormat(serviceName, credentials) {
 	if (!credentials || typeof credentials !== 'object') {
@@ -144,8 +179,8 @@ function validateCredentialFormat(serviceName, credentials) {
 
 /**
  * Validate Figma credential format
- * @param {Object} credentials - Credentials object
- * @returns {Object} Format validation result
+ * @param {ServiceCredentials} credentials - Credentials object
+ * @returns {FormatValidationResult} Format validation result
  */
 function validateFigmaCredentialFormat(credentials) {
 	if (!credentials.api_key) {
@@ -198,8 +233,8 @@ function validateFigmaCredentialFormat(credentials) {
 
 /**
  * Validate GitHub credential format
- * @param {Object} credentials - Credentials object
- * @returns {Object} Format validation result
+ * @param {ServiceCredentials} credentials - Credentials object
+ * @returns {FormatValidationResult} Format validation result
  */
 function validateGithubCredentialFormat(credentials) {
 	if (!credentials.api_key) {
@@ -245,6 +280,7 @@ function validateGithubCredentialFormat(credentials) {
  * @returns {string} Test endpoint URL
  */
 function getTestEndpointForService(serviceName) {
+	/** @type {Record<string, string>} */
 	const endpoints = {
 		figma: 'https://api.figma.com/v1/me',
 		github: 'https://api.github.com/user',
@@ -261,6 +297,7 @@ function getTestEndpointForService(serviceName) {
  * @returns {string} Helpful suggestion message
  */
 function getSuggestionForService(serviceName, errorCode) {
+	/** @type {Record<string, Record<string, string>>} */
 	const suggestions = {
 		figma: {
 			'INVALID_CREDENTIALS': 'Please verify your Figma Personal Access Token in your Figma Account Settings',
@@ -286,8 +323,8 @@ function getSuggestionForService(serviceName, errorCode) {
  * Test credential connectivity without full validation
  * Useful for quick health checks
  * @param {string} serviceName - Service name
- * @param {Object} credentials - Credentials to test
- * @returns {Promise<Object>} Basic connectivity result
+ * @param {ServiceCredentials} credentials - Credentials to test
+ * @returns {Promise<ConnectivityResult>} Basic connectivity result
  */
 export async function testCredentialConnectivity(serviceName, credentials) {
 	try {
@@ -296,7 +333,7 @@ export async function testCredentialConnectivity(serviceName, credentials) {
 			connected: result.isValid,
 			service: serviceName,
 			message: result.isValid ? 'Connection successful' : 'Connection failed',
-			error: result.isValid ? null : result.error
+			error: result.isValid ? null : (result.error || null)
 		};
 	} catch (error) {
 		return {

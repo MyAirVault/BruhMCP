@@ -7,6 +7,14 @@ declare class NotionOAuth extends baseOAuth {
     authUrl: string;
     tokenUrl: string;
     userInfoUrl: string;
+    revokeUrl: any;
+    /**
+     * Validate Notion OAuth credentials format
+     * @param {string} clientId - Notion OAuth Client ID
+     * @param {string} clientSecret - Notion OAuth Client Secret
+     * @returns {Object} Validation result
+     */
+    validateCredentials(clientId: string, clientSecret: string): Object;
     /**
      * Generate Notion OAuth authorization URL
      * @param {Object} params - Authorization parameters
@@ -37,6 +45,30 @@ declare class NotionOAuth extends baseOAuth {
         client_secret: string;
         redirect_uri: string;
     }): Object;
+    /**
+     * Refresh Notion access token (not needed - tokens don't expire)
+     * @param {Object} params - Refresh parameters
+     * @returns {Object} Token response
+     */
+    refreshAccessToken(params: Object): Object;
+    /**
+     * Validate Notion token scopes (not applicable - uses workspace permissions)
+     * @param {Object} tokens - Token response
+     * @returns {Object} Scope validation result
+     */
+    validateTokenScopes(tokens: Object): Object;
+    /**
+     * Get user information using access token
+     * @param {string} accessToken - Notion access token
+     * @returns {Object} User information
+     */
+    getUserInfo(accessToken: string): Object;
+    /**
+     * Revoke Notion OAuth token (not supported by Notion)
+     * @param {string} token - Token to revoke
+     * @returns {boolean} False - revocation not supported
+     */
+    revokeToken(token: string): boolean;
 }
 import { baseOAuth } from './base-oauth.js';
 export {};

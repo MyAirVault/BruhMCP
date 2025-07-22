@@ -605,18 +605,18 @@ export const rateLimitSchema: z.ZodObject<{
     global: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
 }, "strip", z.ZodTypeAny, {
     limit: number;
-    global: boolean;
     remaining: number;
     reset: number;
     resetAfter: number;
+    global: boolean;
     bucket?: string | undefined;
 }, {
     limit: number;
     remaining: number;
     reset: number;
     resetAfter: number;
-    global?: boolean | undefined;
     bucket?: string | undefined;
+    global?: boolean | undefined;
 }>;
 export const apiResponseSchema: z.ZodObject<{
     data: z.ZodAny;
@@ -629,18 +629,18 @@ export const apiResponseSchema: z.ZodObject<{
         global: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
     }, "strip", z.ZodTypeAny, {
         limit: number;
-        global: boolean;
         remaining: number;
         reset: number;
         resetAfter: number;
+        global: boolean;
         bucket?: string | undefined;
     }, {
         limit: number;
         remaining: number;
         reset: number;
         resetAfter: number;
-        global?: boolean | undefined;
         bucket?: string | undefined;
+        global?: boolean | undefined;
     }>>;
     timestamp: z.ZodString;
     requestId: z.ZodOptional<z.ZodString>;
@@ -650,10 +650,10 @@ export const apiResponseSchema: z.ZodObject<{
     requestId?: string | undefined;
     rateLimit?: {
         limit: number;
-        global: boolean;
         remaining: number;
         reset: number;
         resetAfter: number;
+        global: boolean;
         bucket?: string | undefined;
     } | undefined;
 }, {
@@ -665,8 +665,8 @@ export const apiResponseSchema: z.ZodObject<{
         remaining: number;
         reset: number;
         resetAfter: number;
-        global?: boolean | undefined;
         bucket?: string | undefined;
+        global?: boolean | undefined;
     } | undefined;
 }>;
 import { z } from 'zod';

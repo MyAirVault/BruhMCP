@@ -171,20 +171,20 @@ async function validateFigmaCacheCleanup(instanceId) {
 
 /**
  * Validate GitHub cache cleanup (future implementation)
- * @param {string} instanceId - Instance ID to verify
+ * @param {string} _instanceId - Instance ID to verify (unused - future implementation)
  * @returns {Promise<boolean>} True if not in cache
  */
-async function validateGithubCacheCleanup(instanceId) {
+async function validateGithubCacheCleanup(_instanceId) {
 	// TODO: Implement validation when GitHub service is added
 	return true;
 }
 
 /**
  * Validate Slack cache cleanup (future implementation)
- * @param {string} instanceId - Instance ID to verify
+ * @param {string} _instanceId - Instance ID to verify (unused - future implementation)
  * @returns {Promise<boolean>} True if not in cache
  */
-async function validateSlackCacheCleanup(instanceId) {
+async function validateSlackCacheCleanup(_instanceId) {
 	// TODO: Implement validation when Slack service is added
 	return true;
 }
@@ -343,10 +343,10 @@ async function updateFigmaCacheMetadata(instanceId, updates) {
 /**
  * Update GitHub service cache metadata (future implementation)
  * @param {string} instanceId - Instance ID to update
- * @param {Object} updates - Metadata updates
+ * @param {Object} _updates - Metadata updates (unused - future implementation)
  * @returns {Promise<boolean>} Success status
  */
-async function updateGithubCacheMetadata(instanceId, updates) {
+async function updateGithubCacheMetadata(instanceId, _updates) {
 	try {
 		// TODO: Implement GitHub cache metadata update when GitHub service is added
 		console.log(`ℹ️ GitHub cache metadata update not yet implemented for instance: ${instanceId}`);
@@ -360,10 +360,10 @@ async function updateGithubCacheMetadata(instanceId, updates) {
 /**
  * Update Slack service cache metadata (future implementation)
  * @param {string} instanceId - Instance ID to update
- * @param {Object} updates - Metadata updates
+ * @param {Object} _updates - Metadata updates (unused - future implementation)
  * @returns {Promise<boolean>} Success status
  */
-async function updateSlackCacheMetadata(instanceId, updates) {
+async function updateSlackCacheMetadata(instanceId, _updates) {
 	try {
 		// TODO: Implement Slack cache metadata update when Slack service is added
 		console.log(`ℹ️ Slack cache metadata update not yet implemented for instance: ${instanceId}`);

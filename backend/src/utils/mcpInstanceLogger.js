@@ -11,20 +11,53 @@ import { getMCPLogDirectoryPath } from './logDirectoryManager.js';
 /** @typedef {import('express').Response} Response */
 /** @typedef {import('express').NextFunction} NextFunction */
 
+/**
+ * @typedef {Object} LogMetadata
+ * @property {string} [userAgent] - User agent string
+ * @property {string} [ip] - Client IP address
+ * @property {number} [contentLength] - Content length
+ * @property {string} [operation] - MCP operation type
+ * @property {string} [protocol] - Protocol type
+ */
+
+/**
+ * @typedef {Object} MCPLogger
+ * @property {string} instanceId - Instance ID
+ * @property {string} [userId] - User ID
+ * @property {string|null} logDir - Log directory path
+ * @property {function(string, string, LogMetadata): void} app - Application logger
+ * @property {function(string, string, number, number, LogMetadata): void} access - Access logger
+ * @property {function(Error|string, LogMetadata): void} error - Error logger
+ * @property {function(string, LogMetadata): void} info - Info logger
+ * @property {function(string, LogMetadata): void} warn - Warning logger
+ * @property {function(string, LogMetadata): void} debug - Debug logger
+ * @property {function(string, LogMetadata): void} mcpOperation - MCP operation logger
+ */
+
+/**
+ * @typedef {Object} LoggerStats
+ * @property {number} activeLoggers - Number of active loggers
+ * @property {string[]} instances - Array of instance IDs
+ */
+
 class MCPInstanceLogger {
 	constructor() {
-		this.activeLoggers = new Map(); // instanceId -> logger instance
+		/** @type {Map<string, MCPLogger>} */
+		this.activeLoggers = new Map();
 	}
 
 	/**
 	 * Initialize logger for a specific MCP instance
 	 * @param {string} instanceId - MCP instance ID
 	 * @param {string} userId - User ID who owns the instance
-	 * @returns {Object} Logger instance with log methods
+	 * @returns {MCPLogger} Logger instance with log methods
 	 */
 	initializeLogger(instanceId, userId) {
 		if (this.activeLoggers.has(instanceId)) {
-			return this.activeLoggers.get(instanceId);
+			const existingLogger = this.activeLoggers.get(instanceId);
+			if (existingLogger) {
+				return existingLogger;
+			}
 		}
 
 		const logDir = getMCPLogDirectoryPath(userId, instanceId);
@@ -44,7 +77,7 @@ class MCPInstanceLogger {
 			 * Log application events to app.log
 			 * @param {string} level - Log level (info, warn, error)
 			 * @param {string} message - Log message
-			 * @param {Object} metadata - Additional metadata
+			 * @param {LogMetadata} metadata - Additional metadata
 			 */
 			app: (level, message, metadata = {}) => {
 				this.writeLog(logDir, 'app.log', {
@@ -64,7 +97,7 @@ class MCPInstanceLogger {
 			 * @param {string} url - Request URL
 			 * @param {number} statusCode - Response status code
 			 * @param {number} responseTime - Response time in ms
-			 * @param {Object} metadata - Additional metadata
+			 * @param {LogMetadata} metadata - Additional metadata
 			 */
 			access: (method, url, statusCode, responseTime, metadata = {}) => {
 				this.writeLog(logDir, 'access.log', {
@@ -84,9 +117,10 @@ class MCPInstanceLogger {
 			/**
 			 * Log errors to error.log
 			 * @param {Error|string} error - Error object or message
-			 * @param {Object} metadata - Additional metadata
+			 * @param {LogMetadata} metadata - Additional metadata
 			 */
 			error: (error, metadata = {}) => {
+				/** @type {Record<string, any>} */
 				const errorData = {
 					timestamp: new Date().toISOString(),
 					level: 'error',
@@ -109,15 +143,25 @@ class MCPInstanceLogger {
 
 			/**
 			 * Convenience methods for common log levels
+			 * @param {string} message - Log message
+			 * @param {LogMetadata} metadata - Additional metadata
 			 */
 			info: (message, metadata = {}) => logger.app('info', message, metadata),
+			/**
+			 * @param {string} message - Log message
+			 * @param {LogMetadata} metadata - Additional metadata
+			 */
 			warn: (message, metadata = {}) => logger.app('warn', message, metadata),
+			/**
+			 * @param {string} message - Log message
+			 * @param {LogMetadata} metadata - Additional metadata
+			 */
 			debug: (message, metadata = {}) => logger.app('debug', message, metadata),
 
 			/**
 			 * Log MCP protocol specific events
 			 * @param {string} operation - MCP operation (tools, call, resources)
-			 * @param {Object} data - Operation data
+			 * @param {LogMetadata} data - Operation data
 			 */
 			mcpOperation: (operation, data = {}) => {
 				logger.app('info', `MCP ${operation}`, {
@@ -137,19 +181,19 @@ class MCPInstanceLogger {
 	/**
 	 * Create a null logger that doesn't write to files (fallback)
 	 * @param {string} instanceId - Instance ID for identification
-	 * @returns {Object} Null logger with same interface
+	 * @returns {MCPLogger} Null logger with same interface
 	 */
 	createNullLogger(instanceId) {
 		return {
 			instanceId,
 			logDir: null,
-			app: (/** @type {string} */ level, /** @type {string} */ message, /** @type {Object} */ metadata = {}) => {},
-			access: (/** @type {string} */ method, /** @type {string} */ url, /** @type {number} */ statusCode, /** @type {number} */ responseTime, /** @type {Object} */ metadata = {}) => {},
-			error: (/** @type {Error|string} */ error) => console.error(`[${instanceId}] ${error}`),
-			info: (/** @type {string} */ message) => console.log(`[${instanceId}] ${message}`),
-			warn: (/** @type {string} */ message) => console.warn(`[${instanceId}] ${message}`),
-			debug: (/** @type {string} */ message) => console.debug(`[${instanceId}] ${message}`),
-			mcpOperation: (/** @type {string} */ operation, /** @type {Object} */ data = {}) => {}
+			app: (_level, _message, _metadata = {}) => {},
+			access: (_method, _url, _statusCode, _responseTime, _metadata = {}) => {},
+			error: (error) => console.error(`[${instanceId}] ${error}`),
+			info: (message) => console.log(`[${instanceId}] ${message}`),
+			warn: (message) => console.warn(`[${instanceId}] ${message}`),
+			debug: (message) => console.debug(`[${instanceId}] ${message}`),
+			mcpOperation: (_operation, _data = {}) => {}
 		};
 	}
 
@@ -157,7 +201,7 @@ class MCPInstanceLogger {
 	 * Write log entry to specified log file
 	 * @param {string} logDir - Log directory path
 	 * @param {string} logFile - Log file name
-	 * @param {Object} logData - Log data to write
+	 * @param {Record<string, any>} logData - Log data to write
 	 */
 	writeLog(logDir, logFile, logData) {
 		try {
@@ -166,14 +210,15 @@ class MCPInstanceLogger {
 			
 			fs.appendFileSync(logFilePath, logLine);
 		} catch (error) {
-			console.error(`⚠️ Failed to write to ${logFile}:`, error.message);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			console.error(`⚠️ Failed to write to ${logFile}:`, errorMessage);
 		}
 	}
 
 	/**
 	 * Get logger for existing instance
 	 * @param {string} instanceId - Instance ID
-	 * @returns {Object|null} Logger instance or null if not found
+	 * @returns {MCPLogger|null} Logger instance or null if not found
 	 */
 	getLogger(instanceId) {
 		return this.activeLoggers.get(instanceId) || null;
@@ -200,7 +245,7 @@ class MCPInstanceLogger {
 
 	/**
 	 * Get logger statistics
-	 * @returns {Object} Logger statistics
+	 * @returns {LoggerStats} Logger statistics
 	 */
 	getStats() {
 		return {
@@ -212,17 +257,17 @@ class MCPInstanceLogger {
 	/**
 	 * Express middleware factory for request logging
 	 * @param {string} instanceId - Instance ID
-	 * @returns {Function} Express middleware function
+	 * @returns {function(Request, Response, NextFunction): void} Express middleware function
 	 */
 	createRequestMiddleware(instanceId) {
 		const logger = this.getLogger(instanceId);
 		
 		if (!logger) {
 			console.warn(`⚠️ No logger found for instance ${instanceId}`);
-			return (/** @type {Request} */ req, /** @type {Response} */ res, /** @type {NextFunction} */ next) => next();
+			return (_req, _res, next) => next();
 		}
 
-		return (/** @type {Request} */ req, /** @type {Response} */ res, /** @type {NextFunction} */ next) => {
+		return (req, res, next) => {
 			const startTime = Date.now();
 			
 			// Capture original response methods
@@ -230,21 +275,21 @@ class MCPInstanceLogger {
 			const originalJson = res.json;
 			
 			// Override response methods to capture when response is sent
-			res.send = function(/** @type {any} */ data) {
+			res.send = function(data) {
 				const responseTime = Date.now() - startTime;
-				if (logger && logger.access) {
+				if (logger) {
 					logger.access(req.method, req.originalUrl, res.statusCode, responseTime, {
 						userAgent: req.get('User-Agent'),
 						ip: req.ip,
-						contentLength: data ? Buffer.byteLength(data, 'utf8') : 0
+						contentLength: data ? Buffer.byteLength(String(data), 'utf8') : 0
 					});
 				}
 				return originalSend.call(this, data);
 			};
 
-			res.json = function(/** @type {any} */ data) {
+			res.json = function(data) {
 				const responseTime = Date.now() - startTime;
-				if (logger && logger.access) {
+				if (logger) {
 					logger.access(req.method, req.originalUrl, res.statusCode, responseTime, {
 						userAgent: req.get('User-Agent'),
 						ip: req.ip,
@@ -259,8 +304,10 @@ class MCPInstanceLogger {
 				if (!res.headersSent) return;
 				
 				const responseTime = Date.now() - startTime;
+				/** @type {Response & {_logged?: boolean}} */
+				const responseWithLogged = res;
 				// Only log if we haven't already logged via send/json
-				if (!res._logged && logger && logger.access) {
+				if (!responseWithLogged._logged && logger) {
 					logger.access(req.method, req.originalUrl, res.statusCode, responseTime, {
 						userAgent: req.get('User-Agent'),
 						ip: req.ip

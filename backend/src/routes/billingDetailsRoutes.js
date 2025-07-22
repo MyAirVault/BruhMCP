@@ -1,3 +1,12 @@
+// @ts-check
+
+/**
+ * @typedef {import('express').Request} Request
+ * @typedef {import('express').Response} Response
+ * @typedef {import('express').NextFunction} NextFunction
+ * @typedef {Request & {user: {id: number}}} AuthenticatedRequest
+ */
+
 import express from 'express';
 import { authenticate } from '../middleware/authMiddleware.js';
 import {
@@ -15,10 +24,13 @@ const router = express.Router();
  * @route GET /api/billing-details
  * @desc Get billing details for authenticated user
  * @access Private
+ * @param {AuthenticatedRequest} req - Express request object with authenticated user
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 router.get('/', authenticate, async (req, res) => {
 	try {
-		const userId = req.user.id;
+		const userId = String(req.user?.id);
 		const billingDetails = await getBillingDetailsByUserId(userId);
 
 		if (!billingDetails) {
@@ -37,9 +49,10 @@ router.get('/', authenticate, async (req, res) => {
 			success: true,
 			data: billingDetails
 		});
+		return;
 	} catch (error) {
 		console.error('Error fetching billing details:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -53,10 +66,13 @@ router.get('/', authenticate, async (req, res) => {
  * @route POST /api/billing-details
  * @desc Create or update billing details for authenticated user
  * @access Private
+ * @param {AuthenticatedRequest} req - Express request object with authenticated user
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 router.post('/', authenticate, async (req, res) => {
 	try {
-		const userId = req.user.id;
+		const userId = String(req.user?.id);
 		const {
 			address_line1,
 			address_line2,
@@ -92,9 +108,10 @@ router.post('/', authenticate, async (req, res) => {
 			data: billingDetails,
 			message: 'Billing details saved successfully'
 		});
+		return;
 	} catch (error) {
 		console.error('Error saving billing details:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -108,10 +125,13 @@ router.post('/', authenticate, async (req, res) => {
  * @route POST /api/billing-details/cards
  * @desc Add a card to user's billing details
  * @access Private
+ * @param {AuthenticatedRequest} req - Express request object with authenticated user
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 router.post('/cards', authenticate, async (req, res) => {
 	try {
-		const userId = req.user.id;
+		const userId = String(req.user?.id);
 		const { cardData, setAsDefault = false } = req.body;
 
 		if (!cardData || !cardData.id) {
@@ -128,17 +148,18 @@ router.post('/cards', authenticate, async (req, res) => {
 			data: billingDetails,
 			message: 'Card added successfully'
 		});
+		return;
 	} catch (error) {
 		console.error('Error adding card:', error);
 		
-		if (error.message.includes('Billing details not found')) {
+		if (error instanceof Error && error.message.includes('Billing details not found')) {
 			return res.status(404).json({
 				success: false,
 				message: error.message
 			});
 		}
 
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -152,10 +173,13 @@ router.post('/cards', authenticate, async (req, res) => {
  * @route DELETE /api/billing-details/cards/:cardId
  * @desc Remove a card from user's billing details
  * @access Private
+ * @param {AuthenticatedRequest} req - Express request object with authenticated user
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 router.delete('/cards/:cardId', authenticate, async (req, res) => {
 	try {
-		const userId = req.user.id;
+		const userId = String(req.user?.id);
 		const { cardId } = req.params;
 
 		const billingDetails = await removeCardFromBillingDetails(userId, cardId);
@@ -165,17 +189,18 @@ router.delete('/cards/:cardId', authenticate, async (req, res) => {
 			data: billingDetails,
 			message: 'Card removed successfully'
 		});
+		return;
 	} catch (error) {
 		console.error('Error removing card:', error);
 
-		if (error.message.includes('Billing details not found')) {
+		if (error instanceof Error && error.message.includes('Billing details not found')) {
 			return res.status(404).json({
 				success: false,
 				message: error.message
 			});
 		}
 
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -189,10 +214,13 @@ router.delete('/cards/:cardId', authenticate, async (req, res) => {
  * @route PUT /api/billing-details/cards/:cardId/default
  * @desc Set a card as default
  * @access Private
+ * @param {AuthenticatedRequest} req - Express request object with authenticated user
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 router.put('/cards/:cardId/default', authenticate, async (req, res) => {
 	try {
-		const userId = req.user.id;
+		const userId = String(req.user?.id);
 		const { cardId } = req.params;
 
 		const billingDetails = await setDefaultCard(userId, cardId);
@@ -202,17 +230,18 @@ router.put('/cards/:cardId/default', authenticate, async (req, res) => {
 			data: billingDetails,
 			message: 'Default card updated successfully'
 		});
+		return;
 	} catch (error) {
 		console.error('Error setting default card:', error);
 
-		if (error.message.includes('not found')) {
+		if (error instanceof Error && error.message.includes('not found')) {
 			return res.status(404).json({
 				success: false,
 				message: error.message
 			});
 		}
 
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
@@ -226,17 +255,21 @@ router.put('/cards/:cardId/default', authenticate, async (req, res) => {
  * @route DELETE /api/billing-details
  * @desc Delete billing details for authenticated user
  * @access Private
+ * @param {AuthenticatedRequest} req - Express request object with authenticated user
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 router.delete('/', authenticate, async (req, res) => {
 	try {
-		const userId = req.user.id;
+		const userId = String(req.user?.id);
 		const deleted = await deleteBillingDetails(userId);
 
 		if (!deleted) {
-			return res.status(404).json({
+			res.status(404).json({
 				success: false,
 				message: 'Billing details not found'
 			});
+			return;
 		}
 
 		res.json({

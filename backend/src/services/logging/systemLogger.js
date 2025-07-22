@@ -4,6 +4,92 @@ import fs from 'fs';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 /**
+ * @typedef {Object} SecurityContext
+ * @property {string} [ip] - Client IP address
+ * @property {string} [userAgent] - User agent string
+ * @property {string} [userId] - User identifier
+ * @property {string} [action] - Security action performed
+ * @property {string} [email] - User email address
+ * @property {string} [password] - User password (will be sanitized)
+ * @property {string} [token] - Authentication token (will be sanitized)
+ * @property {string} [apiKey] - API key (will be sanitized)
+ * @property {string} [secret] - Secret value (will be sanitized)
+ * @property {Object} [credentials] - Credential object (will be sanitized)
+ */
+
+/**
+ * @typedef {Object} PerformanceData
+ * @property {number} [duration] - Operation duration in ms
+ * @property {number} [memory] - Memory usage
+ * @property {number} [cpu] - CPU usage percentage
+ * @property {string} [operation] - Operation name
+ */
+
+/**
+ * @typedef {Object} AuditContext
+ * @property {string} [userId] - User identifier
+ * @property {string} [instanceId] - Instance identifier
+ * @property {Object} [changes] - Changes made
+ * @property {string} [result] - Operation result
+ */
+
+/**
+ * @typedef {Object} DatabaseContext
+ * @property {Error} [error] - Database error if any
+ * @property {number} [duration] - Query duration in ms
+ * @property {string} [query] - SQL query string
+ * @property {number} [affectedRows] - Number of affected rows
+ * @property {Object} [connectionPool] - Connection pool status
+ */
+
+/**
+ * @typedef {Object} CacheContext
+ * @property {string} [service] - Service name
+ * @property {string} [instanceId] - Instance identifier
+ * @property {boolean} [hit] - Cache hit indicator
+ * @property {boolean} [miss] - Cache miss indicator
+ * @property {number} [size] - Cache size
+ * @property {number} [duration] - Operation duration
+ */
+
+/**
+ * @typedef {Object} StartupInfo
+ * @property {string} [component] - Component name
+ * @property {string} [version] - Component version
+ * @property {string} [logDirectory] - Log directory path
+ */
+
+/**
+ * @typedef {Object} ShutdownInfo
+ * @property {string} [reason] - Shutdown reason
+ * @property {boolean} [graceful] - Whether shutdown was graceful
+ */
+
+/**
+ * @typedef {Object} LoggerHealth
+ * @property {string} status - Health status
+ * @property {Array<LoggerInfo>} loggers - Logger information
+ * @property {string} logDirectory - Log directory path
+ * @property {DirectorySize} diskUsage - Disk usage information
+ * @property {string|null} lastError - Last error message
+ */
+
+/**
+ * @typedef {Object} LoggerInfo
+ * @property {string} name - Logger name
+ * @property {string} level - Log level
+ * @property {number} transports - Number of transports
+ */
+
+/**
+ * @typedef {Object} DirectorySize
+ * @property {number} totalBytes - Total size in bytes
+ * @property {number} totalMB - Total size in MB
+ * @property {number} fileCount - Number of files
+ * @property {string} [error] - Error message if any
+ */
+
+/**
  * Enhanced system logging service using Winston
  * Provides structured logging for system-wide events, errors, and monitoring
  */
@@ -23,7 +109,8 @@ const logFormat = winston.format.combine(
 	}),
 	winston.format.errors({ stack: true }),
 	winston.format.json(),
-	winston.format.printf(({ timestamp, level, message, service, category, metadata, stack, ...rest }) => {
+	winston.format.printf((info) => {
+		const { timestamp, level, message, service, category, metadata, ...rest } = info;
 		const logEntry = {
 			timestamp,
 			level,
@@ -35,8 +122,9 @@ const logFormat = winston.format.combine(
 		};
 
 		// Include stack trace for errors
+		const stack = 'stack' in info ? info.stack : undefined;
 		if (stack) {
-			logEntry.stack = stack;
+			/** @type {any} */ (logEntry).stack = stack;
 		}
 
 		return JSON.stringify(logEntry);
@@ -152,6 +240,7 @@ class SystemLogger {
 	 * @param {string} level - Log level (info, warn, error, debug)
 	 * @param {string} message - Log message
 	 * @param {Object} metadata - Additional metadata
+	 * @returns {void}
 	 */
 	application(level, message, metadata = {}) {
 		loggers.application.log(level, message, { metadata });
@@ -161,7 +250,8 @@ class SystemLogger {
 	 * Log security-related events
 	 * @param {string} level - Log level
 	 * @param {string} message - Security event description
-	 * @param {Object} securityContext - Security-related metadata
+	 * @param {SecurityContext} securityContext - Security-related metadata
+	 * @returns {void}
 	 */
 	security(level, message, securityContext = {}) {
 		const sanitizedContext = this.sanitizeSecurityData(securityContext);
@@ -179,7 +269,8 @@ class SystemLogger {
 	/**
 	 * Log performance metrics and monitoring data
 	 * @param {string} message - Performance event description
-	 * @param {Object} performanceData - Performance metrics
+	 * @param {PerformanceData} performanceData - Performance metrics
+	 * @returns {void}
 	 */
 	performance(message, performanceData = {}) {
 		loggers.performance.info(message, { 
@@ -193,7 +284,8 @@ class SystemLogger {
 	/**
 	 * Log audit trail events for compliance and tracking
 	 * @param {string} action - Action performed
-	 * @param {Object} auditContext - Audit context and metadata
+	 * @param {AuditContext} auditContext - Audit context and metadata
+	 * @returns {void}
 	 */
 	audit(action, auditContext = {}) {
 		loggers.audit.info(`Audit: ${action}`, { 
@@ -211,7 +303,8 @@ class SystemLogger {
 	/**
 	 * Log database operations and performance
 	 * @param {string} operation - Database operation type
-	 * @param {Object} dbContext - Database context and metrics
+	 * @param {DatabaseContext} dbContext - Database context and metrics
+	 * @returns {void}
 	 */
 	database(operation, dbContext = {}) {
 		const level = dbContext.error ? 'error' : 'info';
@@ -230,7 +323,8 @@ class SystemLogger {
 	/**
 	 * Log cache operations and performance
 	 * @param {string} operation - Cache operation type
-	 * @param {Object} cacheContext - Cache context and metrics
+	 * @param {CacheContext} cacheContext - Cache context and metrics
+	 * @returns {void}
 	 */
 	cache(operation, cacheContext = {}) {
 		loggers.cache.info(`Cache: ${operation}`, { 
@@ -249,26 +343,48 @@ class SystemLogger {
 
 	/**
 	 * Convenience methods for common log levels
+	 * @param {string} message - Log message
+	 * @param {Object} metadata - Additional metadata
+	 * @returns {void}
 	 */
 	info(message, metadata = {}) {
 		this.application('info', message, metadata);
 	}
 
+	/**
+	 * Log warning message
+	 * @param {string} message - Warning message
+	 * @param {Object} metadata - Additional metadata
+	 * @returns {void}
+	 */
 	warn(message, metadata = {}) {
 		this.application('warn', message, metadata);
 	}
 
+	/**
+	 * Log error message
+	 * @param {string} message - Error message
+	 * @param {Object} metadata - Additional metadata
+	 * @returns {void}
+	 */
 	error(message, metadata = {}) {
 		this.application('error', message, metadata);
 	}
 
+	/**
+	 * Log debug message
+	 * @param {string} message - Debug message
+	 * @param {Object} metadata - Additional metadata
+	 * @returns {void}
+	 */
 	debug(message, metadata = {}) {
 		this.application('debug', message, metadata);
 	}
 
 	/**
 	 * Log system startup and initialization
-	 * @param {Object} startupInfo - System startup information
+	 * @param {StartupInfo} startupInfo - System startup information
+	 * @returns {void}
 	 */
 	startup(startupInfo = {}) {
 		this.application('info', 'System startup initiated', {
@@ -284,7 +400,8 @@ class SystemLogger {
 
 	/**
 	 * Log system shutdown and cleanup
-	 * @param {Object} shutdownInfo - System shutdown information
+	 * @param {ShutdownInfo} shutdownInfo - System shutdown information
+	 * @returns {void}
 	 */
 	shutdown(shutdownInfo = {}) {
 		this.application('info', 'System shutdown initiated', {
@@ -298,18 +415,18 @@ class SystemLogger {
 
 	/**
 	 * Sanitize security data to prevent logging sensitive information
-	 * @param {Object} data - Security context data
-	 * @returns {Object} Sanitized data
+	 * @param {SecurityContext} data - Security context data
+	 * @returns {SecurityContext} Sanitized data
 	 */
 	sanitizeSecurityData(data) {
-		const sanitized = { ...data };
+		const sanitized = /** @type {SecurityContext} */ ({ ...data });
 		
 		// Remove sensitive fields
-		delete sanitized.password;
-		delete sanitized.token;
-		delete sanitized.apiKey;
-		delete sanitized.secret;
-		delete sanitized.credentials;
+		if ('password' in sanitized) delete sanitized.password;
+		if ('token' in sanitized) delete sanitized.token;
+		if ('apiKey' in sanitized) delete sanitized.apiKey;
+		if ('secret' in sanitized) delete sanitized.secret;
+		if ('credentials' in sanitized) delete sanitized.credentials;
 		
 		// Mask email addresses partially
 		if (sanitized.email) {
@@ -354,16 +471,19 @@ class SystemLogger {
 
 	/**
 	 * Get logger statistics and health information
-	 * @returns {Object} Logger health and statistics
+	 * @returns {LoggerHealth} Logger health and statistics
 	 */
 	getLoggerHealth() {
 		const stats = {
 			status: 'healthy',
-			loggers: Object.keys(loggers).map(name => ({
-				name,
-				level: loggers[name].level,
-				transports: loggers[name].transports.length
-			})),
+			loggers: Object.keys(loggers).map(name => {
+				const logger = /** @type {winston.Logger} */ (loggers[/** @type {keyof typeof loggers} */ (name)]);
+				return {
+					name,
+					level: logger.level,
+					transports: logger.transports.length
+				};
+			}),
 			logDirectory: LOGS_DIR,
 			diskUsage: this.getLogDirectorySize(),
 			lastError: null
@@ -374,7 +494,7 @@ class SystemLogger {
 
 	/**
 	 * Get log directory size for monitoring
-	 * @returns {Object} Directory size information
+	 * @returns {DirectorySize} Directory size information
 	 */
 	getLogDirectorySize() {
 		try {
@@ -393,8 +513,9 @@ class SystemLogger {
 				fileCount: files.length
 			};
 		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
 			return {
-				error: error.message,
+				error: errorMessage,
 				totalBytes: 0,
 				totalMB: 0,
 				fileCount: 0
@@ -404,15 +525,20 @@ class SystemLogger {
 
 	/**
 	 * Force log rotation for all daily rotate transports
+	 * @returns {void}
 	 */
 	rotateAllLogs() {
 		Object.values(loggers).forEach(logger => {
 			logger.transports.forEach(transport => {
-				if (transport instanceof DailyRotateFile && typeof transport.rotate === 'function') {
+				if (transport instanceof DailyRotateFile) {
 					try {
-						transport.rotate();
+						const rotateTransport = /** @type {DailyRotateFile & {rotate?: Function}} */ (transport);
+						if (rotateTransport.rotate && typeof rotateTransport.rotate === 'function') {
+							rotateTransport.rotate();
+						}
 					} catch (error) {
-						console.error('Error rotating log transport:', error.message);
+						const errorMessage = error instanceof Error ? error.message : String(error);
+						console.error('Error rotating log transport:', errorMessage);
 					}
 				}
 			});
@@ -422,6 +548,7 @@ class SystemLogger {
 	/**
 	 * Cleanup old log files beyond retention period
 	 * @param {number} retentionDays - Days to retain logs
+	 * @returns {number} Number of files cleaned up
 	 */
 	cleanupOldLogs(retentionDays = 90) {
 		try {
@@ -448,7 +575,8 @@ class SystemLogger {
 
 			return cleanedCount;
 		} catch (error) {
-			this.error('Log cleanup failed', { error: error.message });
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			this.error('Log cleanup failed', { error: errorMessage });
 			return 0;
 		}
 	}

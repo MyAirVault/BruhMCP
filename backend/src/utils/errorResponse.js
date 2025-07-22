@@ -5,30 +5,50 @@
  */
 
 /**
+ * Validation error detail structure
+ * @typedef {Object} ValidationDetail
+ * @property {string} field - Field name with validation error
+ * @property {string} message - Validation error message
+ * @property {string} code - Validation error code
+ */
+
+/**
+ * Error object structure
+ * @typedef {Object} ErrorObject
+ * @property {string} code - Error code (e.g., 'VALIDATION_ERROR', 'NOT_FOUND')
+ * @property {string} message - Human-readable error message
+ * @property {string} timestamp - ISO timestamp of when error occurred
+ * @property {Array<ValidationDetail>} [details] - Additional error details (for validation errors)
+ * @property {string} [instanceId] - Instance ID if applicable
+ * @property {string} [userId] - User ID if applicable
+ * @property {Object} [metadata] - Additional metadata
+ */
+
+/**
  * Standard error response structure
  * @typedef {Object} ErrorResponse
- * @property {Object} error - Error details
- * @property {string} error.code - Error code (e.g., 'VALIDATION_ERROR', 'NOT_FOUND')
- * @property {string} error.message - Human-readable error message
- * @property {Array<Object>} [error.details] - Additional error details (for validation errors)
- * @property {string} [error.instanceId] - Instance ID if applicable
- * @property {string} [error.userId] - User ID if applicable
- * @property {string} error.timestamp - ISO timestamp of when error occurred
+ * @property {ErrorObject} error - Error details
+ */
+
+/**
+ * Options for error response creation
+ * @typedef {Object} ErrorOptions
+ * @property {Array<ValidationDetail>} [details] - Validation error details
+ * @property {string} [instanceId] - Instance ID
+ * @property {string} [userId] - User ID
+ * @property {Object} [metadata] - Additional metadata
  */
 
 /**
  * Creates a standardized error response
- * @param {number} statusCode - HTTP status code
+ * @param {number} _statusCode - HTTP status code (not used in response, kept for API compatibility)
  * @param {string} code - Error code (uppercase with underscores)
  * @param {string} message - Human-readable error message
- * @param {Object} [options] - Additional options
- * @param {Array<Object>} [options.details] - Validation error details
- * @param {string} [options.instanceId] - Instance ID
- * @param {string} [options.userId] - User ID
- * @param {Object} [options.metadata] - Additional metadata
- * @returns {Object} Standardized error response object
+ * @param {ErrorOptions} [options] - Additional options
+ * @returns {ErrorResponse} Standardized error response object
  */
-export function createErrorResponse(statusCode, code, message, options = {}) {
+export function createErrorResponse(_statusCode, code, message, options = {}) {
+	/** @type {ErrorResponse} */
 	const errorResponse = {
 		error: {
 			code,
@@ -63,7 +83,7 @@ export function createErrorResponse(statusCode, code, message, options = {}) {
  * @param {number} statusCode - HTTP status code
  * @param {string} code - Error code
  * @param {string} message - Error message
- * @param {Object} [options] - Additional options
+ * @param {ErrorOptions} [options] - Additional options
  */
 export function sendErrorResponse(res, statusCode, code, message, options = {}) {
 	const errorResponse = createErrorResponse(statusCode, code, message, options);
@@ -75,42 +95,98 @@ export function sendErrorResponse(res, statusCode, code, message, options = {}) 
  */
 export const ErrorResponses = {
 	// Authentication & Authorization
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	unauthorized: (res, message = 'Authentication required', options = {}) =>
 		sendErrorResponse(res, 401, 'UNAUTHORIZED', message, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	forbidden: (res, message = 'Access denied', options = {}) =>
 		sendErrorResponse(res, 403, 'FORBIDDEN', message, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	invalidToken: (res, message = 'Invalid or expired authentication token', options = {}) =>
 		sendErrorResponse(res, 401, 'INVALID_AUTH_TOKEN', message, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	missingToken: (res, message = 'Authentication token required', options = {}) =>
 		sendErrorResponse(res, 401, 'MISSING_AUTH_TOKEN', message, options),
 
 	// Validation
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {Array<ValidationDetail>} [details] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	validation: (res, message = 'Invalid request parameters', details = [], options = {}) =>
 		sendErrorResponse(res, 400, 'VALIDATION_ERROR', message, { ...options, details }),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	invalidInput: (res, message = 'Invalid input provided', options = {}) =>
 		sendErrorResponse(res, 400, 'INVALID_INPUT', message, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} field 
+	 * @param {ErrorOptions} [options] 
+	 */
 	missingField: (res, field, options = {}) =>
 		sendErrorResponse(res, 400, 'MISSING_FIELD', `Required field '${field}' is missing`, options),
 
 	// Resource Management
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [resource] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	notFound: (res, resource = 'Resource', options = {}) =>
 		sendErrorResponse(res, 404, 'NOT_FOUND', `${resource} not found`, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [resource] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	alreadyExists: (res, resource = 'Resource', options = {}) =>
 		sendErrorResponse(res, 409, 'ALREADY_EXISTS', `${resource} already exists`, options),
 
 	// Instance-specific
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} instanceId 
+	 * @param {ErrorOptions} [options] 
+	 */
 	instanceNotFound: (res, instanceId, options = {}) =>
 		sendErrorResponse(res, 404, 'INSTANCE_NOT_FOUND', 'MCP instance not found or access denied', {
 			instanceId,
 			...options,
 		}),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} instanceId 
+	 * @param {ErrorOptions} [options] 
+	 */
 	instanceUnavailable: (res, instanceId, options = {}) =>
 		sendErrorResponse(res, 502, 'INSTANCE_NOT_AVAILABLE', `MCP instance is not available or not running`, {
 			instanceId,
@@ -118,27 +194,63 @@ export const ErrorResponses = {
 		}),
 
 	// Service Management
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} serviceName 
+	 * @param {ErrorOptions} [options] 
+	 */
 	serviceDisabled: (res, serviceName, options = {}) =>
 		sendErrorResponse(res, 503, 'SERVICE_DISABLED', `${serviceName} service is currently disabled`, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [serviceName] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	serviceUnavailable: (res, serviceName = 'Service', options = {}) =>
 		sendErrorResponse(res, 503, 'SERVICE_UNAVAILABLE', `${serviceName} is temporarily unavailable`, options),
 
 	// Rate Limiting
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	rateLimited: (res, message = 'Too many requests', options = {}) =>
 		sendErrorResponse(res, 429, 'RATE_LIMITED', message, options),
 
 	// Server Errors
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	internal: (res, message = 'Internal server error', options = {}) =>
 		sendErrorResponse(res, 500, 'INTERNAL_ERROR', message, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	databaseError: (res, message = 'Database operation failed', options = {}) =>
 		sendErrorResponse(res, 500, 'DATABASE_ERROR', message, options),
 
 	// External API Errors
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} service 
+	 * @param {string} [message] 
+	 * @param {ErrorOptions} [options] 
+	 */
 	externalApiError: (res, service, message = 'External service error', options = {}) =>
 		sendErrorResponse(res, 502, 'EXTERNAL_API_ERROR', `${service}: ${message}`, options),
 
+	/**
+	 * @param {import('express').Response} res 
+	 * @param {string} service 
+	 * @param {ErrorOptions} [options] 
+	 */
 	credentialsInvalid: (res, service, options = {}) =>
 		sendErrorResponse(res, 400, 'INVALID_CREDENTIALS', `Invalid credentials for ${service}`, options),
 };
@@ -146,7 +258,7 @@ export const ErrorResponses = {
 /**
  * Converts Zod validation errors to standard format
  * @param {import('zod').ZodError} zodError - Zod validation error
- * @returns {Array<Object>} Formatted validation details
+ * @returns {Array<ValidationDetail>} Formatted validation details
  */
 export function formatZodErrors(zodError) {
 	return zodError.errors.map(err => ({

@@ -1,9 +1,12 @@
 /**
  * Generate JWT token for user
- * @param {import('../types/index.js').User} user
+ * @param {{id: string, email: string}} user
  * @returns {string} JWT token
  */
-export function generateJWT(user: import("../types/index.js").User): string;
+export function generateJWT(user: {
+    id: string;
+    email: string;
+}): string;
 /**
  * Verify JWT token
  * @param {string} token

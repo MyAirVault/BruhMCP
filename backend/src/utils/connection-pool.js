@@ -7,9 +7,37 @@ import { Agent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
 /**
+ * @typedef {Object} ConnectionPoolOptions
+ * @property {string} [name] - Pool name
+ * @property {number} [maxSockets] - Maximum sockets per host
+ * @property {number} [maxFreeSockets] - Maximum free sockets per host
+ * @property {number} [timeout] - Request timeout in milliseconds
+ * @property {boolean} [keepAlive] - Enable keep-alive connections
+ * @property {number} [keepAliveMsecs] - Keep-alive timeout
+ * @property {number} [maxRetries] - Maximum retry attempts
+ * @property {number} [retryDelay] - Delay between retries in milliseconds
+ * @property {number} [maxConcurrentRequests] - Maximum concurrent requests
+ */
+
+/**
+ * @typedef {Object} ConnectionMetrics
+ * @property {number} totalRequests - Total number of requests
+ * @property {number} activeConnections - Currently active connections
+ * @property {number} successfulRequests - Number of successful requests
+ * @property {number} failedRequests - Number of failed requests
+ * @property {number} retryCount - Total number of retries
+ * @property {number} averageResponseTime - Average response time in milliseconds
+ * @property {number|null} lastRequestTime - Timestamp of last request
+ * @property {number} createdAt - Pool creation timestamp
+ */
+
+/**
  * HTTP Connection Pool Manager
  */
 class ConnectionPool {
+  /**
+   * @param {ConnectionPoolOptions} options - Pool configuration options
+   */
   constructor(options = {}) {
     this.name = options.name || 'default';
     this.maxSockets = options.maxSockets || 10;
@@ -38,6 +66,7 @@ class ConnectionPool {
     });
     
     // Connection metrics
+    /** @type {ConnectionMetrics} */
     this.metrics = {
       totalRequests: 0,
       activeConnections: 0,
@@ -50,6 +79,7 @@ class ConnectionPool {
     };
     
     // Queue for managing concurrent requests
+    /** @type {Array<() => void>} */
     this.requestQueue = [];
     this.maxConcurrentRequests = options.maxConcurrentRequests || 50;
     this.activeRequests = 0;
@@ -60,7 +90,7 @@ class ConnectionPool {
   /**
    * Execute HTTP request with connection pooling
    * @param {string} url - Request URL
-   * @param {Object} options - Request options
+   * @param {RequestInit} options - Request options
    * @returns {Promise<Response>} HTTP response
    */
   async fetch(url, options = {}) {
@@ -83,11 +113,18 @@ class ConnectionPool {
       const agent = isHttps ? this.httpsAgent : this.httpAgent;
       
       // Set up request options with connection pooling
+      /** @type {RequestInit & {agent?: any, timeout?: number}} */
       const requestOptions = {
         ...options,
-        agent,
-        timeout: options.timeout || this.timeout
+        agent
       };
+      
+      // Set timeout from either options or default
+      const optionsWithTimeout = /** @type {RequestInit & {timeout?: number}} */ (options);
+      if (optionsWithTimeout.timeout || this.timeout) {
+        /** @type {RequestInit & {agent?: any, timeout?: number}} */
+        (requestOptions).timeout = optionsWithTimeout.timeout || this.timeout;
+      }
       
       // Execute request with retries
       const response = await this.executeWithRetries(url, requestOptions);
@@ -116,10 +153,11 @@ class ConnectionPool {
   /**
    * Execute request with retry logic
    * @param {string} url - Request URL
-   * @param {Object} options - Request options
+   * @param {RequestInit} options - Request options
    * @returns {Promise<Response>} HTTP response
    */
   async executeWithRetries(url, options) {
+    /** @type {Error|undefined} */
     let lastError;
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -133,13 +171,14 @@ class ConnectionPool {
         
         // Treat non-2xx responses as errors for retry logic
         lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
-        lastError.response = response;
+        /** @type {Error & {response?: Response}} */
+        (lastError).response = response;
         
       } catch (error) {
-        lastError = error;
+        lastError = /** @type {Error} */ (error);
         
         // Don't retry for certain errors
-        if (!this.shouldRetryError(error, attempt)) {
+        if (!this.shouldRetryError(/** @type {Error} */(error), attempt)) {
           throw error;
         }
       }
@@ -179,12 +218,15 @@ class ConnectionPool {
   shouldRetryError(error, attempt) {
     if (attempt >= this.maxRetries) return false;
     
+    /** @type {NodeJS.ErrnoException} */
+    const nodeError = error;
+    
     // Retry on network errors
     return (
-      error.code === 'ECONNRESET' ||
-      error.code === 'ETIMEDOUT' ||
-      error.code === 'ENOTFOUND' ||
-      error.code === 'ECONNREFUSED' ||
+      nodeError.code === 'ECONNRESET' ||
+      nodeError.code === 'ETIMEDOUT' ||
+      nodeError.code === 'ENOTFOUND' ||
+      nodeError.code === 'ECONNREFUSED' ||
       error.name === 'AbortError'
     );
   }
@@ -205,7 +247,9 @@ class ConnectionPool {
   processNextRequest() {
     if (this.requestQueue.length > 0 && this.activeRequests < this.maxConcurrentRequests) {
       const resolve = this.requestQueue.shift();
-      resolve();
+      if (resolve) {
+        resolve();
+      }
     }
   }
   
@@ -229,8 +273,19 @@ class ConnectionPool {
   }
   
   /**
+   * @typedef {Object} PoolStatus
+   * @property {string} name - Pool name
+   * @property {Object} config - Pool configuration
+   * @property {ConnectionMetrics} metrics - Pool metrics
+   * @property {number} activeRequests - Current active requests
+   * @property {number} queuedRequests - Queued requests count
+   * @property {Object} httpAgent - HTTP agent status
+   * @property {Object} httpsAgent - HTTPS agent status
+   */
+
+  /**
    * Get connection pool status
-   * @returns {Object} Pool status
+   * @returns {PoolStatus} Pool status
    */
   getStatus() {
     return {
@@ -247,24 +302,37 @@ class ConnectionPool {
       activeRequests: this.activeRequests,
       queuedRequests: this.requestQueue.length,
       httpAgent: {
-        sockets: Object.keys(this.httpAgent.sockets).length,
-        freeSockets: Object.keys(this.httpAgent.freeSockets).length,
-        requests: Object.keys(this.httpAgent.requests).length
+        sockets: Object.keys(this.httpAgent.sockets || {}).length,
+        freeSockets: Object.keys(this.httpAgent.freeSockets || {}).length,
+        requests: Object.keys(this.httpAgent.requests || {}).length
       },
       httpsAgent: {
-        sockets: Object.keys(this.httpsAgent.sockets).length,
-        freeSockets: Object.keys(this.httpsAgent.freeSockets).length,
-        requests: Object.keys(this.httpsAgent.requests).length
+        sockets: Object.keys(this.httpsAgent.sockets || {}).length,
+        freeSockets: Object.keys(this.httpsAgent.freeSockets || {}).length,
+        requests: Object.keys(this.httpsAgent.requests || {}).length
       }
     };
   }
   
   /**
+   * @typedef {Object} HealthAssessment
+   * @property {boolean} healthy - Overall health status
+   * @property {string} status - Health status string
+   * @property {number} uptime - Pool uptime in milliseconds
+   * @property {string} successRate - Success rate percentage
+   * @property {string} retryRate - Retry rate percentage
+   * @property {string} averageResponseTime - Average response time
+   * @property {number} activeConnections - Active connections count
+   * @property {number} queuedRequests - Queued requests count
+   * @property {string[]} issues - List of issues
+   * @property {string[]} warnings - List of warnings
+   */
+
+  /**
    * Get health assessment
-   * @returns {Object} Health assessment
+   * @returns {HealthAssessment} Health assessment
    */
   getHealthAssessment() {
-    const status = this.getStatus();
     const uptime = Date.now() - this.metrics.createdAt;
     const successRate = this.metrics.totalRequests > 0 ? 
       (this.metrics.successfulRequests / this.metrics.totalRequests) * 100 : 0;
@@ -363,20 +431,25 @@ class ConnectionPool {
  */
 class ConnectionPoolManager {
   constructor() {
+    /** @type {Map<string, ConnectionPool>} */
     this.pools = new Map();
   }
   
   /**
    * Get or create connection pool
    * @param {string} name - Pool name
-   * @param {Object} options - Pool options
+   * @param {ConnectionPoolOptions} options - Pool options
    * @returns {ConnectionPool} Connection pool instance
    */
   getOrCreate(name, options = {}) {
     if (!this.pools.has(name)) {
       this.pools.set(name, new ConnectionPool({ ...options, name }));
     }
-    return this.pools.get(name);
+    const pool = this.pools.get(name);
+    if (!pool) {
+      throw new Error(`Failed to create or retrieve connection pool: ${name}`);
+    }
+    return pool;
   }
   
   /**
@@ -390,7 +463,7 @@ class ConnectionPoolManager {
   
   /**
    * Get all connection pools
-   * @returns {Map} All connection pools
+   * @returns {Map<string, ConnectionPool>} All connection pools
    */
   getAll() {
     return new Map(this.pools);
@@ -398,9 +471,10 @@ class ConnectionPoolManager {
   
   /**
    * Get status of all connection pools
-   * @returns {Object} Status of all pools
+   * @returns {Record<string, PoolStatus>} Status of all pools
    */
   getAllStatus() {
+    /** @type {Record<string, PoolStatus>} */
     const status = {};
     for (const [name, pool] of this.pools) {
       status[name] = pool.getStatus();
@@ -410,9 +484,10 @@ class ConnectionPoolManager {
   
   /**
    * Get health assessment of all connection pools
-   * @returns {Object} Health assessment of all pools
+   * @returns {Record<string, HealthAssessment>} Health assessment of all pools
    */
   getAllHealthAssessments() {
+    /** @type {Record<string, HealthAssessment>} */
     const assessments = {};
     for (const [name, pool] of this.pools) {
       assessments[name] = pool.getHealthAssessment();

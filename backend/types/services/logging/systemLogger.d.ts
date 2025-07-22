@@ -1,4 +1,208 @@
 export default systemLogger;
+export type SecurityContext = {
+    /**
+     * - Client IP address
+     */
+    ip?: string | undefined;
+    /**
+     * - User agent string
+     */
+    userAgent?: string | undefined;
+    /**
+     * - User identifier
+     */
+    userId?: string | undefined;
+    /**
+     * - Security action performed
+     */
+    action?: string | undefined;
+    /**
+     * - User email address
+     */
+    email?: string | undefined;
+    /**
+     * - User password (will be sanitized)
+     */
+    password?: string | undefined;
+    /**
+     * - Authentication token (will be sanitized)
+     */
+    token?: string | undefined;
+    /**
+     * - API key (will be sanitized)
+     */
+    apiKey?: string | undefined;
+    /**
+     * - Secret value (will be sanitized)
+     */
+    secret?: string | undefined;
+    /**
+     * - Credential object (will be sanitized)
+     */
+    credentials?: Object | undefined;
+};
+export type PerformanceData = {
+    /**
+     * - Operation duration in ms
+     */
+    duration?: number | undefined;
+    /**
+     * - Memory usage
+     */
+    memory?: number | undefined;
+    /**
+     * - CPU usage percentage
+     */
+    cpu?: number | undefined;
+    /**
+     * - Operation name
+     */
+    operation?: string | undefined;
+};
+export type AuditContext = {
+    /**
+     * - User identifier
+     */
+    userId?: string | undefined;
+    /**
+     * - Instance identifier
+     */
+    instanceId?: string | undefined;
+    /**
+     * - Changes made
+     */
+    changes?: Object | undefined;
+    /**
+     * - Operation result
+     */
+    result?: string | undefined;
+};
+export type DatabaseContext = {
+    /**
+     * - Database error if any
+     */
+    error?: Error | undefined;
+    /**
+     * - Query duration in ms
+     */
+    duration?: number | undefined;
+    /**
+     * - SQL query string
+     */
+    query?: string | undefined;
+    /**
+     * - Number of affected rows
+     */
+    affectedRows?: number | undefined;
+    /**
+     * - Connection pool status
+     */
+    connectionPool?: Object | undefined;
+};
+export type CacheContext = {
+    /**
+     * - Service name
+     */
+    service?: string | undefined;
+    /**
+     * - Instance identifier
+     */
+    instanceId?: string | undefined;
+    /**
+     * - Cache hit indicator
+     */
+    hit?: boolean | undefined;
+    /**
+     * - Cache miss indicator
+     */
+    miss?: boolean | undefined;
+    /**
+     * - Cache size
+     */
+    size?: number | undefined;
+    /**
+     * - Operation duration
+     */
+    duration?: number | undefined;
+};
+export type StartupInfo = {
+    /**
+     * - Component name
+     */
+    component?: string | undefined;
+    /**
+     * - Component version
+     */
+    version?: string | undefined;
+    /**
+     * - Log directory path
+     */
+    logDirectory?: string | undefined;
+};
+export type ShutdownInfo = {
+    /**
+     * - Shutdown reason
+     */
+    reason?: string | undefined;
+    /**
+     * - Whether shutdown was graceful
+     */
+    graceful?: boolean | undefined;
+};
+export type LoggerHealth = {
+    /**
+     * - Health status
+     */
+    status: string;
+    /**
+     * - Logger information
+     */
+    loggers: Array<LoggerInfo>;
+    /**
+     * - Log directory path
+     */
+    logDirectory: string;
+    /**
+     * - Disk usage information
+     */
+    diskUsage: DirectorySize;
+    /**
+     * - Last error message
+     */
+    lastError: string | null;
+};
+export type LoggerInfo = {
+    /**
+     * - Logger name
+     */
+    name: string;
+    /**
+     * - Log level
+     */
+    level: string;
+    /**
+     * - Number of transports
+     */
+    transports: number;
+};
+export type DirectorySize = {
+    /**
+     * - Total size in bytes
+     */
+    totalBytes: number;
+    /**
+     * - Total size in MB
+     */
+    totalMB: number;
+    /**
+     * - Number of files
+     */
+    fileCount: number;
+    /**
+     * - Error message if any
+     */
+    error?: string | undefined;
+};
 declare const systemLogger: SystemLogger;
 /**
  * System logger class providing categorized logging methods

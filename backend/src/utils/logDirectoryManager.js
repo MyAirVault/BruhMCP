@@ -10,10 +10,33 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
+ * Result of log directory creation operation
+ * @typedef {Object} LogDirectoryResult
+ * @property {boolean} success - Whether the operation was successful
+ * @property {string} [logDir] - Path to the created log directory (on success)
+ * @property {string} [error] - Error message (on failure)
+ */
+
+/**
+ * Result of user log directory creation operation
+ * @typedef {Object} UserLogDirectoryResult
+ * @property {boolean} success - Whether the operation was successful
+ * @property {string} [userLogDir] - Path to the created user log directory (on success)
+ * @property {string} [error] - Error message (on failure)
+ */
+
+/**
+ * Result of log directory removal operation
+ * @typedef {Object} RemoveDirectoryResult
+ * @property {boolean} success - Whether the operation was successful
+ * @property {string} [error] - Error message (on failure)
+ */
+
+/**
  * Creates log directory structure for a new MCP instance
  * @param {string} userId - User ID
  * @param {string} instanceId - MCP instance ID
- * @returns {Promise<{success: boolean, logDir?: string, error?: string}>}
+ * @returns {Promise<LogDirectoryResult>}
  */
 export async function createMCPLogDirectory(userId, instanceId) {
 	try {
@@ -44,10 +67,11 @@ export async function createMCPLogDirectory(userId, instanceId) {
 		};
 		
 	} catch (error) {
-		console.error(`⚠️ Failed to create log directory for instance ${instanceId}:`, error.message);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error(`⚠️ Failed to create log directory for instance ${instanceId}:`, errorMessage);
 		return {
 			success: false,
-			error: error.message
+			error: errorMessage
 		};
 	}
 }
@@ -56,7 +80,7 @@ export async function createMCPLogDirectory(userId, instanceId) {
  * Removes log directory structure for a deleted MCP instance
  * @param {string} userId - User ID
  * @param {string} instanceId - MCP instance ID
- * @returns {Promise<{success: boolean, error?: string}>}
+ * @returns {Promise<RemoveDirectoryResult>}
  */
 export async function removeMCPLogDirectory(userId, instanceId) {
 	try {
@@ -75,10 +99,11 @@ export async function removeMCPLogDirectory(userId, instanceId) {
 		};
 		
 	} catch (error) {
-		console.error(`⚠️ Failed to remove log directory for instance ${instanceId}:`, error.message);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error(`⚠️ Failed to remove log directory for instance ${instanceId}:`, errorMessage);
 		return {
 			success: false,
-			error: error.message
+			error: errorMessage
 		};
 	}
 }
@@ -109,7 +134,7 @@ export function mcpLogDirectoryExists(userId, instanceId) {
 /**
  * Creates user log directory structure if it doesn't exist
  * @param {string} userId - User ID
- * @returns {Promise<{success: boolean, userLogDir?: string, error?: string}>}
+ * @returns {Promise<UserLogDirectoryResult>}
  */
 export async function createUserLogDirectory(userId) {
 	try {
@@ -129,10 +154,11 @@ export async function createUserLogDirectory(userId) {
 		};
 		
 	} catch (error) {
-		console.error(`⚠️ Failed to create user log directory for user ${userId}:`, error.message);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error(`⚠️ Failed to create user log directory for user ${userId}:`, errorMessage);
 		return {
 			success: false,
-			error: error.message
+			error: errorMessage
 		};
 	}
 }

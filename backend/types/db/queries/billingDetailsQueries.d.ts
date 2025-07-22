@@ -1,4 +1,12 @@
 /**
+ * @typedef {Object} Card
+ * @property {string} id - Card ID from payment gateway
+ * @property {string} brand - Card brand (Visa, MasterCard, etc.)
+ * @property {string} last4 - Last 4 digits of card
+ * @property {number} exp_month - Expiration month
+ * @property {number} exp_year - Expiration year
+ */
+/**
  * @typedef {Object} BillingDetails
  * @property {string} billing_id - Unique billing ID
  * @property {string} user_id - User ID
@@ -8,8 +16,8 @@
  * @property {string} state - State/Province
  * @property {string} country - Country
  * @property {string} zip_code - ZIP/Postal code
- * @property {Array} cards - Array of card objects
- * @property {string} [default_card_id] - Default card ID from payment gateway
+ * @property {Card[]} cards - Array of card objects
+ * @property {string|null} [default_card_id] - Default card ID from payment gateway
  * @property {Date} created_at - Creation timestamp
  * @property {Date} updated_at - Last update timestamp
  */
@@ -21,8 +29,8 @@
  * @property {string} state - State/Province
  * @property {string} country - Country
  * @property {string} zip_code - ZIP/Postal code
- * @property {Array} [cards] - Array of card objects
- * @property {string} [default_card_id] - Default card ID from payment gateway
+ * @property {Card[]} [cards] - Array of card objects
+ * @property {string|null} [default_card_id] - Default card ID from payment gateway
  */
 /**
  * Get billing details for a user
@@ -40,11 +48,11 @@ export function upsertBillingDetails(userId: string, billingData: BillingDetails
 /**
  * Add a card to user's billing details
  * @param {string} userId - User ID
- * @param {Object} cardData - Card data from payment gateway
- * @param {boolean} setAsDefault - Whether to set this card as default
+ * @param {Card} cardData - Card data from payment gateway
+ * @param {boolean} [setAsDefault=false] - Whether to set this card as default
  * @returns {Promise<BillingDetails>} Updated billing details
  */
-export function addCardToBillingDetails(userId: string, cardData: Object, setAsDefault?: boolean): Promise<BillingDetails>;
+export function addCardToBillingDetails(userId: string, cardData: Card, setAsDefault?: boolean): Promise<BillingDetails>;
 /**
  * Remove a card from user's billing details
  * @param {string} userId - User ID
@@ -65,6 +73,28 @@ export function setDefaultCard(userId: string, cardId: string): Promise<BillingD
  * @returns {Promise<boolean>} True if deleted successfully
  */
 export function deleteBillingDetails(userId: string): Promise<boolean>;
+export type Card = {
+    /**
+     * - Card ID from payment gateway
+     */
+    id: string;
+    /**
+     * - Card brand (Visa, MasterCard, etc.)
+     */
+    brand: string;
+    /**
+     * - Last 4 digits of card
+     */
+    last4: string;
+    /**
+     * - Expiration month
+     */
+    exp_month: number;
+    /**
+     * - Expiration year
+     */
+    exp_year: number;
+};
 export type BillingDetails = {
     /**
      * - Unique billing ID
@@ -101,11 +131,11 @@ export type BillingDetails = {
     /**
      * - Array of card objects
      */
-    cards: any[];
+    cards: Card[];
     /**
      * - Default card ID from payment gateway
      */
-    default_card_id?: string | undefined;
+    default_card_id?: string | null | undefined;
     /**
      * - Creation timestamp
      */
@@ -143,10 +173,10 @@ export type BillingDetailsInput = {
     /**
      * - Array of card objects
      */
-    cards?: any[] | undefined;
+    cards?: Card[] | undefined;
     /**
      * - Default card ID from payment gateway
      */
-    default_card_id?: string | undefined;
+    default_card_id?: string | null | undefined;
 };
 //# sourceMappingURL=billingDetailsQueries.d.ts.map

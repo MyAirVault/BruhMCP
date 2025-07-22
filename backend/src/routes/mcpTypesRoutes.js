@@ -1,3 +1,11 @@
+// @ts-check
+
+/**
+ * @typedef {import('express').Request} Request
+ * @typedef {import('express').Response} Response
+ * @typedef {import('express').NextFunction} NextFunction
+ */
+
 import { Router } from 'express';
 import { getMCPTypes } from '../controllers/mcpTypes/getMCPTypes.js';
 import { getMCPTypeByNameHandler } from '../controllers/mcpTypes/getMCPTypeByName.js';

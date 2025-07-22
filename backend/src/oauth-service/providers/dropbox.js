@@ -1,12 +1,48 @@
 /**
- * Dropbox OAuth Provider Implementation
+ * @fileoverview Dropbox OAuth Provider Implementation
  * Handles Dropbox OAuth 2.0 flows for Dropbox API integrations
  */
 
 import { baseOAuth } from './base-oauth.js';
 
 /**
+ * @typedef {Object} DropboxTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token
+ * @property {number} [expires_in] - Expiration time in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
+ * @property {string} [account_id] - Dropbox account ID
+ * @property {string} [uid] - User ID
+ */
+
+/**
+ * @typedef {Object} DropboxUserInfo
+ * @property {string} account_id - Dropbox account ID
+ * @property {string} email - User email
+ * @property {string} [name] - Display name
+ * @property {string} [given_name] - First name
+ * @property {string} [surname] - Last name
+ * @property {string} [familiar_name] - Familiar name
+ * @property {string} [abbreviated_name] - Abbreviated name
+ * @property {string} [locale] - User locale
+ * @property {string} [referral_link] - Referral link
+ * @property {boolean} [is_paired] - Whether account is paired
+ * @property {string} [account_type] - Account type
+ * @property {any} [root_info] - Root info
+ * @property {string} [profile_photo_url] - Profile photo URL
+ * @property {string} [country] - Country
+ */
+
+/**
+ * @typedef {Object} DropboxError
+ * @property {string} error - Error code
+ * @property {string} error_description - Error description
+ */
+
+/**
  * Dropbox OAuth Provider class
+ * @extends {baseOAuth}
  */
 class DropboxOAuth extends baseOAuth {
   constructor() {
@@ -21,9 +57,10 @@ class DropboxOAuth extends baseOAuth {
    * Validate Dropbox OAuth credentials format
    * @param {string} clientId - Dropbox OAuth Client ID
    * @param {string} clientSecret - Dropbox OAuth Client Secret
-   * @returns {Object} Validation result
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Validation result
    */
   async validateCredentials(clientId, clientSecret) {
+    /** @type {import('./base-oauth.js').ValidationResult} */
     const validation = {
       valid: true,
       errors: []
@@ -32,12 +69,14 @@ class DropboxOAuth extends baseOAuth {
     // Validate Client ID format
     if (!clientId || typeof clientId !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client ID is required and must be a string');
     } else {
       // Dropbox Client ID format: alphanumeric, typically 15 characters
       const dropboxIdRegex = /^[a-zA-Z0-9]{10,20}$/;
       if (!dropboxIdRegex.test(clientId)) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Invalid Dropbox Client ID format - must be 10-20 alphanumeric characters');
       }
     }
@@ -45,30 +84,28 @@ class DropboxOAuth extends baseOAuth {
     // Validate Client Secret format
     if (!clientSecret || typeof clientSecret !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client Secret is required and must be a string');
     } else {
       // Dropbox Client Secret format validation
       if (clientSecret.length < 15 || clientSecret.length > 20) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Dropbox Client Secret length appears invalid');
       }
     }
 
     return {
       valid: validation.valid,
-      error: validation.errors.join(', '),
-      field: validation.valid ? null : 'credentials'
+      error: validation.errors ? validation.errors.join(', ') : undefined,
+      field: validation.valid ? undefined : 'credentials'
     };
   }
 
   /**
    * Generate Dropbox OAuth authorization URL
-   * @param {Object} params - Authorization parameters
-   * @param {string} params.client_id - Dropbox OAuth Client ID
-   * @param {Array} params.scopes - Required OAuth scopes (not used by Dropbox)
-   * @param {string} params.state - State parameter for security
-   * @param {string} params.redirect_uri - Redirect URI after authorization
-   * @returns {string} Authorization URL
+   * @param {import('./base-oauth.js').AuthParams} params - Authorization parameters
+   * @returns {Promise<string>} Authorization URL
    */
   async generateAuthorizationUrl(params) {
     const { client_id, state, redirect_uri } = params;
@@ -92,12 +129,8 @@ class DropboxOAuth extends baseOAuth {
 
   /**
    * Exchange authorization code for tokens
-   * @param {Object} params - Exchange parameters
-   * @param {string} params.code - Authorization code from callback
-   * @param {string} params.client_id - Dropbox OAuth Client ID
-   * @param {string} params.client_secret - Dropbox OAuth Client Secret
-   * @param {string} params.redirect_uri - Redirect URI used in authorization
-   * @returns {Object} Token response
+   * @param {import('./base-oauth.js').ExchangeParams} params - Exchange parameters
+   * @returns {Promise<DropboxTokenResponse>} Token response
    */
   async exchangeAuthorizationCode(params) {
     const { code, client_id, client_secret, redirect_uri } = params;
@@ -141,6 +174,7 @@ class DropboxOAuth extends baseOAuth {
         throw new Error(errorMessage);
       }
 
+      /** @type {any} */
       const tokens = await response.json();
       
       // Validate response contains required fields
@@ -150,7 +184,8 @@ class DropboxOAuth extends baseOAuth {
 
       console.log(`✅ Dropbox tokens obtained successfully (expires in ${tokens.expires_in || 14400} seconds)`);
 
-      return {
+      /** @type {DropboxTokenResponse} */
+      const tokenResponse = {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_in: tokens.expires_in || 14400, // Default 4 hours
@@ -159,20 +194,20 @@ class DropboxOAuth extends baseOAuth {
         account_id: tokens.account_id,
         uid: tokens.uid
       };
+      
+      return tokenResponse;
 
     } catch (error) {
       console.error('Dropbox token exchange failed:', error);
-      throw new Error(`Dropbox token exchange failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Dropbox token exchange failed: ${err.message}`);
     }
   }
 
   /**
    * Refresh Dropbox access token using refresh token
-   * @param {Object} params - Refresh parameters
-   * @param {string} params.refresh_token - Dropbox refresh token
-   * @param {string} params.client_id - Dropbox OAuth Client ID
-   * @param {string} params.client_secret - Dropbox OAuth Client Secret
-   * @returns {Object} New token response
+   * @param {import('./base-oauth.js').RefreshParams} params - Refresh parameters
+   * @returns {Promise<DropboxTokenResponse>} New token response
    */
   async refreshAccessToken(params) {
     const { refresh_token, client_id, client_secret } = params;
@@ -216,11 +251,14 @@ class DropboxOAuth extends baseOAuth {
         }
         
         const error = new Error(errorMessage);
+        // @ts-ignore - Adding custom properties to Error
         error.code = errorCode;
+        // @ts-ignore - Adding custom properties to Error  
         error.status = response.status;
         throw error;
       }
 
+      /** @type {any} */
       const tokens = await response.json();
       
       // Validate response contains required fields
@@ -230,32 +268,38 @@ class DropboxOAuth extends baseOAuth {
 
       console.log(`✅ Dropbox access token refreshed successfully (expires in ${tokens.expires_in || 14400} seconds)`);
 
-      return {
+      /** @type {DropboxTokenResponse} */
+      const tokenResponse = {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token || refresh_token,
         expires_in: tokens.expires_in || 14400,
         token_type: tokens.token_type || 'Bearer',
         scope: tokens.scope
       };
+      
+      return tokenResponse;
 
     } catch (error) {
       console.error('Dropbox token refresh failed:', error);
       
+      const err = error instanceof Error ? error : new Error(String(error));
       // Add specific error handling for Dropbox OAuth errors
-      if (error.code === 'invalid_grant') {
+      // @ts-ignore - Checking custom property
+      if (err.code === 'invalid_grant') {
         throw new Error('invalid_grant: The provided authorization grant is invalid, expired, or revoked');
-      } else if (error.code === 'invalid_client') {
+      // @ts-ignore - Checking custom property
+      } else if (err.code === 'invalid_client') {
         throw new Error('invalid_client: Client authentication failed');
       }
       
-      throw new Error(`Dropbox token refresh failed: ${error.message}`);
+      throw new Error(`Dropbox token refresh failed: ${err.message}`);
     }
   }
 
   /**
    * Validate Dropbox token scopes (Dropbox uses implicit permissions)
-   * @param {Object} tokens - Token response
-   * @returns {Object} Scope validation result
+   * @param {DropboxTokenResponse} tokens - Token response
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Scope validation result
    */
   async validateTokenScopes(tokens) {
     // Dropbox uses implicit permissions based on the app's configuration
@@ -272,7 +316,7 @@ class DropboxOAuth extends baseOAuth {
   /**
    * Get user information using access token
    * @param {string} accessToken - Dropbox access token
-   * @returns {Object} User information
+   * @returns {Promise<DropboxUserInfo>} User information
    */
   async getUserInfo(accessToken) {
     console.log(`👤 Fetching Dropbox user info`);
@@ -292,11 +336,13 @@ class DropboxOAuth extends baseOAuth {
         throw new Error(`Failed to get user info: ${response.status} ${response.statusText}`);
       }
 
+      /** @type {any} */
       const userInfo = await response.json();
 
       console.log(`✅ Retrieved Dropbox user info for: ${userInfo.email}`);
 
-      return {
+      /** @type {DropboxUserInfo} */
+      const userInfoResponse = {
         account_id: userInfo.account_id,
         email: userInfo.email,
         name: userInfo.name?.display_name,
@@ -312,17 +358,20 @@ class DropboxOAuth extends baseOAuth {
         profile_photo_url: userInfo.profile_photo_url,
         country: userInfo.country
       };
+      
+      return userInfoResponse;
 
     } catch (error) {
       console.error('Failed to get Dropbox user info:', error);
-      throw new Error(`Dropbox user info retrieval failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Dropbox user info retrieval failed: ${err.message}`);
     }
   }
 
   /**
    * Revoke Dropbox OAuth token
    * @param {string} token - Token to revoke
-   * @returns {boolean} True if revocation was successful
+   * @returns {Promise<boolean>} True if revocation was successful
    */
   async revokeToken(token) {
     console.log(`🔒 Revoking Dropbox OAuth token`);
@@ -347,7 +396,8 @@ class DropboxOAuth extends baseOAuth {
 
     } catch (error) {
       console.error('Dropbox token revocation failed:', error);
-      throw new Error(`Dropbox token revocation failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Dropbox token revocation failed: ${err.message}`);
     }
   }
 }

@@ -1,12 +1,40 @@
 /**
- * Google OAuth Provider Implementation
+ * @fileoverview Google OAuth Provider Implementation
  * Handles Google OAuth 2.0 flows for Google services (Gmail, Drive, Calendar, etc.)
  */
 
 import { baseOAuth } from './base-oauth.js';
 
 /**
+ * @typedef {Object} GoogleTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token
+ * @property {number} [expires_in] - Expiration time in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
+ */
+
+/**
+ * @typedef {Object} GoogleUserInfo
+ * @property {string} id - User ID
+ * @property {string} email - User email
+ * @property {string} [name] - Display name
+ * @property {string} [given_name] - First name
+ * @property {string} [family_name] - Last name
+ * @property {string} [picture] - Profile picture URL
+ * @property {string} [locale] - User locale
+ * @property {boolean} [verified_email] - Whether email is verified
+ */
+
+/**
+ * @typedef {Object} GoogleError
+ * @property {string} error - Error code
+ * @property {string} error_description - Error description
+ */
+
+/**
  * Google OAuth Provider class
+ * @extends {baseOAuth}
  */
 class GoogleOAuth extends baseOAuth {
   constructor() {
@@ -22,9 +50,10 @@ class GoogleOAuth extends baseOAuth {
    * Validate Google OAuth credentials format
    * @param {string} clientId - Google OAuth Client ID
    * @param {string} clientSecret - Google OAuth Client Secret
-   * @returns {Object} Validation result
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Validation result
    */
   async validateCredentials(clientId, clientSecret) {
+    /** @type {import('./base-oauth.js').ValidationResult} */
     const validation = {
       valid: true,
       errors: []
@@ -33,17 +62,20 @@ class GoogleOAuth extends baseOAuth {
     // Validate Client ID format
     if (!clientId || typeof clientId !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client ID is required and must be a string');
     } else {
       // Google Client ID format: ends with .apps.googleusercontent.com
       if (!clientId.endsWith('.apps.googleusercontent.com')) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Invalid Google Client ID format - must end with .apps.googleusercontent.com');
       }
       
       // Basic length validation
       if (clientId.length < 20 || clientId.length > 100) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Google Client ID length appears invalid');
       }
     }
@@ -51,30 +83,28 @@ class GoogleOAuth extends baseOAuth {
     // Validate Client Secret format
     if (!clientSecret || typeof clientSecret !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client Secret is required and must be a string');
     } else {
       // Google Client Secret is typically 24 characters
       if (clientSecret.length < 20 || clientSecret.length > 50) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Google Client Secret length appears invalid');
       }
     }
 
     return {
       valid: validation.valid,
-      error: validation.errors.join(', '),
-      field: validation.valid ? null : 'credentials'
+      error: validation.errors ? validation.errors.join(', ') : undefined,
+      field: validation.valid ? undefined : 'credentials'
     };
   }
 
   /**
    * Generate Google OAuth authorization URL
-   * @param {Object} params - Authorization parameters
-   * @param {string} params.client_id - Google OAuth Client ID
-   * @param {Array} params.scopes - Required OAuth scopes
-   * @param {string} params.state - State parameter for security
-   * @param {string} params.redirect_uri - Redirect URI after authorization
-   * @returns {string} Authorization URL
+   * @param {import('./base-oauth.js').AuthParams} params - Authorization parameters
+   * @returns {Promise<string>} Authorization URL
    */
   async generateAuthorizationUrl(params) {
     const { client_id, scopes, state, redirect_uri } = params;
@@ -108,12 +138,8 @@ class GoogleOAuth extends baseOAuth {
 
   /**
    * Exchange authorization code for tokens
-   * @param {Object} params - Exchange parameters
-   * @param {string} params.code - Authorization code from callback
-   * @param {string} params.client_id - Google OAuth Client ID
-   * @param {string} params.client_secret - Google OAuth Client Secret
-   * @param {string} params.redirect_uri - Redirect URI used in authorization
-   * @returns {Object} Token response
+   * @param {import('./base-oauth.js').ExchangeParams} params - Exchange parameters
+   * @returns {Promise<GoogleTokenResponse>} Token response
    */
   async exchangeAuthorizationCode(params) {
     const { code, client_id, client_secret, redirect_uri } = params;
@@ -156,6 +182,7 @@ class GoogleOAuth extends baseOAuth {
         throw new Error(errorMessage);
       }
 
+      /** @type {any} */
       const tokens = await response.json();
       
       // Validate response contains required fields
@@ -163,29 +190,30 @@ class GoogleOAuth extends baseOAuth {
         throw new Error('Invalid token response: missing access_token');
       }
 
-      console.log(`✅ Google tokens obtained successfully (expires in ${tokens.expires_in} seconds)`);
+      console.log(`✅ Google tokens obtained successfully (expires in ${tokens.expires_in || 3600} seconds)`);
 
-      return {
+      /** @type {GoogleTokenResponse} */
+      const tokenResponse = {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_in: tokens.expires_in || 3600,
         token_type: tokens.token_type || 'Bearer',
         scope: tokens.scope
       };
+      
+      return tokenResponse;
 
     } catch (error) {
       console.error('Google token exchange failed:', error);
-      throw new Error(`Google token exchange failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Google token exchange failed: ${err.message}`);
     }
   }
 
   /**
    * Refresh Google access token using refresh token
-   * @param {Object} params - Refresh parameters
-   * @param {string} params.refresh_token - Google refresh token
-   * @param {string} params.client_id - Google OAuth Client ID
-   * @param {string} params.client_secret - Google OAuth Client Secret
-   * @returns {Object} New token response
+   * @param {import('./base-oauth.js').RefreshParams} params - Refresh parameters
+   * @returns {Promise<GoogleTokenResponse>} New token response
    */
   async refreshAccessToken(params) {
     const { refresh_token, client_id, client_secret } = params;
@@ -229,11 +257,14 @@ class GoogleOAuth extends baseOAuth {
         
         // Add specific error codes for better error handling
         const error = new Error(errorMessage);
+        // @ts-ignore - Adding custom properties to Error
         error.code = errorCode;
+        // @ts-ignore - Adding custom properties to Error
         error.status = response.status;
         throw error;
       }
 
+      /** @type {any} */
       const tokens = await response.json();
       
       // Validate response contains required fields
@@ -243,45 +274,54 @@ class GoogleOAuth extends baseOAuth {
 
       // Validate token scope for Gmail
       if (tokens.scope) {
-        const scopeValidation = await this.validateTokenScopes(tokens);
+        /** @type {GoogleTokenResponse} */
+        const tokenForValidation = tokens;
+        const scopeValidation = await this.validateTokenScopes(tokenForValidation);
         if (!scopeValidation.valid) {
-          console.warn(`⚠️  Token scope validation warning: ${scopeValidation.error}`);
+          console.warn(`⚠️  Token scope validation warning: ${scopeValidation.error || 'Unknown validation error'}`);
         }
       }
 
-      console.log(`✅ Google access token refreshed successfully (expires in ${tokens.expires_in} seconds)`);
+      console.log(`✅ Google access token refreshed successfully (expires in ${tokens.expires_in || 3600} seconds)`);
 
-      return {
+      /** @type {GoogleTokenResponse} */
+      const tokenResponse = {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token || refresh_token, // Google may not return new refresh token
         expires_in: tokens.expires_in || 3600,
         token_type: tokens.token_type || 'Bearer',
         scope: tokens.scope
       };
+      
+      return tokenResponse;
 
     } catch (error) {
       console.error('Google token refresh failed:', error);
       
+      const err = error instanceof Error ? error : new Error(String(error));
       // Add specific error handling for Google OAuth errors
-      if (error.code === 'invalid_grant') {
+      // @ts-ignore - Checking custom property
+      if (err.code === 'invalid_grant') {
         throw new Error('invalid_grant: The provided authorization grant is invalid, expired, revoked, or does not match the redirection URI');
-      } else if (error.code === 'invalid_client') {
+      // @ts-ignore - Checking custom property
+      } else if (err.code === 'invalid_client') {
         throw new Error('invalid_client: Client authentication failed');
-      } else if (error.code === 'invalid_request') {
+      // @ts-ignore - Checking custom property
+      } else if (err.code === 'invalid_request') {
         throw new Error('invalid_request: The request is missing a required parameter or is otherwise malformed');
       }
       
-      throw new Error(`Google token refresh failed: ${error.message}`);
+      throw new Error(`Google token refresh failed: ${err.message}`);
     }
   }
 
   /**
    * Validate Google token scopes
-   * @param {Object} tokens - Token response
-   * @returns {Object} Scope validation result
+   * @param {GoogleTokenResponse} tokens - Token response
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Scope validation result
    */
   async validateTokenScopes(tokens) {
-    const { access_token, scope } = tokens;
+    const { scope } = tokens;
 
     // Required scopes for Gmail
     const requiredScopes = [
@@ -311,16 +351,14 @@ class GoogleOAuth extends baseOAuth {
     console.log(`✅ Google token scopes validated successfully`);
 
     return {
-      valid: true,
-      scopes: tokenScopes,
-      required: requiredScopes
+      valid: true
     };
   }
 
   /**
    * Get user information using access token
    * @param {string} accessToken - Google access token
-   * @returns {Object} User information
+   * @returns {Promise<GoogleUserInfo>} User information
    */
   async getUserInfo(accessToken) {
     console.log(`👤 Fetching Google user info`);
@@ -337,11 +375,13 @@ class GoogleOAuth extends baseOAuth {
         throw new Error(`Failed to get user info: ${response.status} ${response.statusText}`);
       }
 
+      /** @type {any} */
       const userInfo = await response.json();
 
       console.log(`✅ Retrieved Google user info for: ${userInfo.email}`);
 
-      return {
+      /** @type {GoogleUserInfo} */
+      const userInfoResponse = {
         id: userInfo.id,
         email: userInfo.email,
         name: userInfo.name,
@@ -351,17 +391,20 @@ class GoogleOAuth extends baseOAuth {
         locale: userInfo.locale,
         verified_email: userInfo.verified_email
       };
+      
+      return userInfoResponse;
 
     } catch (error) {
       console.error('Failed to get Google user info:', error);
-      throw new Error(`Google user info retrieval failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Google user info retrieval failed: ${err.message}`);
     }
   }
 
   /**
    * Revoke Google OAuth token
    * @param {string} token - Token to revoke (access or refresh token)
-   * @returns {boolean} True if revocation was successful
+   * @returns {Promise<boolean>} True if revocation was successful
    */
   async revokeToken(token) {
     console.log(`🔒 Revoking Google OAuth token`);
@@ -383,7 +426,8 @@ class GoogleOAuth extends baseOAuth {
 
     } catch (error) {
       console.error('Google token revocation failed:', error);
-      throw new Error(`Google token revocation failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Google token revocation failed: ${err.message}`);
     }
   }
 }

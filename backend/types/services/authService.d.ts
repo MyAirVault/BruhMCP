@@ -26,7 +26,7 @@ declare class AuthService {
     } | {
         success: boolean;
         jwtToken: string;
-        user: Object;
+        user: import("../db/queries/userQueries.js").DatabaseUser;
         error?: undefined;
     }>;
     /**

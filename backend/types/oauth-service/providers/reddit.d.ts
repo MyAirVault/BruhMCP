@@ -9,6 +9,13 @@ declare class RedditOAuth extends baseOAuth {
     userInfoUrl: string;
     revokeUrl: string;
     /**
+     * Validate Reddit OAuth credentials format
+     * @param {string} clientId - Reddit OAuth Client ID
+     * @param {string} clientSecret - Reddit OAuth Client Secret
+     * @returns {Object} Validation result
+     */
+    validateCredentials(clientId: string, clientSecret: string): Object;
+    /**
      * Generate Reddit OAuth authorization URL
      * @param {Object} params - Authorization parameters
      * @param {string} params.client_id - Reddit OAuth Client ID
@@ -51,6 +58,24 @@ declare class RedditOAuth extends baseOAuth {
         client_id: string;
         client_secret: string;
     }): Object;
+    /**
+     * Validate Reddit token scopes
+     * @param {Object} tokens - Token response
+     * @returns {Object} Scope validation result
+     */
+    validateTokenScopes(tokens: Object): Object;
+    /**
+     * Get user information using access token
+     * @param {string} accessToken - Reddit access token
+     * @returns {Object} User information
+     */
+    getUserInfo(accessToken: string): Object;
+    /**
+     * Revoke Reddit OAuth token
+     * @param {string} token - Token to revoke (access or refresh token)
+     * @returns {boolean} True if revocation was successful
+     */
+    revokeToken(token: string): boolean;
 }
 import { baseOAuth } from './base-oauth.js';
 export {};

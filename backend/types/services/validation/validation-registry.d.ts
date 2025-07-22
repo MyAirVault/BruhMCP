@@ -1,33 +1,74 @@
 export const validationRegistry: ValidationRegistry;
+export type ValidatorModule = {
+    /**
+     * - Default export validator function/class
+     */
+    default: Function;
+};
+export type ServiceValidator = Function | Object;
+export type FileSystemError = {
+    /**
+     * - Error code (e.g., 'ENOENT')
+     */
+    code: string;
+    /**
+     * - Error message
+     */
+    message: string;
+    /**
+     * - File path that caused the error
+     */
+    path?: string | undefined;
+};
+/**
+ * @typedef {Object} ValidatorModule
+ * @property {Function} default - Default export validator function/class
+ */
+/**
+ * @typedef {Function|Object} ServiceValidator
+ * @property {Function} [validate] - Validation function
+ * @property {string} [name] - Validator name
+ * @property {string} [version] - Validator version
+ */
+/**
+ * @typedef {Object} FileSystemError
+ * @property {string} code - Error code (e.g., 'ENOENT')
+ * @property {string} message - Error message
+ * @property {string} [path] - File path that caused the error
+ */
 /**
  * Validation registry that discovers and manages service validators
  */
 declare class ValidationRegistry {
-    /** @type {Map<string, any>} */
-    validators: Map<string, any>;
+    /** @type {Map<string, ServiceValidator>} */
+    validators: Map<string, ServiceValidator>;
+    /** @type {boolean} */
     initialized: boolean;
     /**
      * Initialize the registry by discovering validators from MCP server folders
+     * @returns {Promise<void>}
      */
     initialize(): Promise<void>;
     /**
      * Load validator for a specific service
      * @param {string} serviceName - Name of the service
      * @param {string} mcpServersPath - Path to MCP servers directory
+     * @returns {Promise<void>}
      */
     loadServiceValidator(serviceName: string, mcpServersPath: string): Promise<void>;
     /**
      * Get validator for a service
      * @param {string} serviceName - Name of the service
-     * @returns {any|null} Validator instance or null if not found
+     * @returns {ServiceValidator|null} Validator instance or null if not found
      */
-    getValidator(serviceName: string): any | null;
+    getValidator(serviceName: string): ServiceValidator | null;
     /**
      * Register a validator manually
      * @param {string} serviceName - Name of the service
-     * @param {any} validator - Validator instance
+     * @param {ServiceValidator} validator - Validator instance
+     * @returns {void}
      */
-    registerValidator(serviceName: string, validator: any): void;
+    registerValidator(serviceName: string, validator: ServiceValidator): void;
     /**
      * Get all registered services
      * @returns {string[]} Array of service names

@@ -14,12 +14,13 @@ export async function deleteAPIKeyHandler(req, res) {
 		const deleted = await deleteAPIKey(id, userId);
 
 		if (!deleted) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'NOT_FOUND',
 					message: 'API key not found',
 				},
 			});
+			return;
 		}
 
 		res.status(204).send();

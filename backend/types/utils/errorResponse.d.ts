@@ -4,49 +4,60 @@
  * @fileoverview Creates uniform error responses for all API endpoints
  */
 /**
+ * Validation error detail structure
+ * @typedef {Object} ValidationDetail
+ * @property {string} field - Field name with validation error
+ * @property {string} message - Validation error message
+ * @property {string} code - Validation error code
+ */
+/**
+ * Error object structure
+ * @typedef {Object} ErrorObject
+ * @property {string} code - Error code (e.g., 'VALIDATION_ERROR', 'NOT_FOUND')
+ * @property {string} message - Human-readable error message
+ * @property {string} timestamp - ISO timestamp of when error occurred
+ * @property {Array<ValidationDetail>} [details] - Additional error details (for validation errors)
+ * @property {string} [instanceId] - Instance ID if applicable
+ * @property {string} [userId] - User ID if applicable
+ * @property {Object} [metadata] - Additional metadata
+ */
+/**
  * Standard error response structure
  * @typedef {Object} ErrorResponse
- * @property {Object} error - Error details
- * @property {string} error.code - Error code (e.g., 'VALIDATION_ERROR', 'NOT_FOUND')
- * @property {string} error.message - Human-readable error message
- * @property {Array<Object>} [error.details] - Additional error details (for validation errors)
- * @property {string} [error.instanceId] - Instance ID if applicable
- * @property {string} [error.userId] - User ID if applicable
- * @property {string} error.timestamp - ISO timestamp of when error occurred
+ * @property {ErrorObject} error - Error details
+ */
+/**
+ * Options for error response creation
+ * @typedef {Object} ErrorOptions
+ * @property {Array<ValidationDetail>} [details] - Validation error details
+ * @property {string} [instanceId] - Instance ID
+ * @property {string} [userId] - User ID
+ * @property {Object} [metadata] - Additional metadata
  */
 /**
  * Creates a standardized error response
- * @param {number} statusCode - HTTP status code
+ * @param {number} _statusCode - HTTP status code (not used in response, kept for API compatibility)
  * @param {string} code - Error code (uppercase with underscores)
  * @param {string} message - Human-readable error message
- * @param {Object} [options] - Additional options
- * @param {Array<Object>} [options.details] - Validation error details
- * @param {string} [options.instanceId] - Instance ID
- * @param {string} [options.userId] - User ID
- * @param {Object} [options.metadata] - Additional metadata
- * @returns {Object} Standardized error response object
+ * @param {ErrorOptions} [options] - Additional options
+ * @returns {ErrorResponse} Standardized error response object
  */
-export function createErrorResponse(statusCode: number, code: string, message: string, options?: {
-    details?: Object[] | undefined;
-    instanceId?: string | undefined;
-    userId?: string | undefined;
-    metadata?: Object | undefined;
-}): Object;
+export function createErrorResponse(_statusCode: number, code: string, message: string, options?: ErrorOptions): ErrorResponse;
 /**
  * Sends a standardized error response
  * @param {import('express').Response} res - Express response object
  * @param {number} statusCode - HTTP status code
  * @param {string} code - Error code
  * @param {string} message - Error message
- * @param {Object} [options] - Additional options
+ * @param {ErrorOptions} [options] - Additional options
  */
-export function sendErrorResponse(res: import("express").Response, statusCode: number, code: string, message: string, options?: Object): void;
+export function sendErrorResponse(res: import("express").Response, statusCode: number, code: string, message: string, options?: ErrorOptions): void;
 /**
  * Converts Zod validation errors to standard format
  * @param {import('zod').ZodError} zodError - Zod validation error
- * @returns {Array<Object>} Formatted validation details
+ * @returns {Array<ValidationDetail>} Formatted validation details
  */
-export function formatZodErrors(zodError: import("zod").ZodError): Array<Object>;
+export function formatZodErrors(zodError: import("zod").ZodError): Array<ValidationDetail>;
 /**
  * Error handler middleware for Express
  * Catches unhandled errors and formats them consistently
@@ -57,25 +68,75 @@ export function formatZodErrors(zodError: import("zod").ZodError): Array<Object>
  */
 export function errorHandler(err: Error, req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): void;
 export namespace ErrorResponses {
-    function unauthorized(res: any, message?: string, options?: {}): void;
-    function forbidden(res: any, message?: string, options?: {}): void;
-    function invalidToken(res: any, message?: string, options?: {}): void;
-    function missingToken(res: any, message?: string, options?: {}): void;
-    function validation(res: any, message?: string, details?: any[], options?: {}): void;
-    function invalidInput(res: any, message?: string, options?: {}): void;
-    function missingField(res: any, field: any, options?: {}): void;
-    function notFound(res: any, resource?: string, options?: {}): void;
-    function alreadyExists(res: any, resource?: string, options?: {}): void;
-    function instanceNotFound(res: any, instanceId: any, options?: {}): void;
-    function instanceUnavailable(res: any, instanceId: any, options?: {}): void;
-    function serviceDisabled(res: any, serviceName: any, options?: {}): void;
-    function serviceUnavailable(res: any, serviceName?: string, options?: {}): void;
-    function rateLimited(res: any, message?: string, options?: {}): void;
-    function internal(res: any, message?: string, options?: {}): void;
-    function databaseError(res: any, message?: string, options?: {}): void;
-    function externalApiError(res: any, service: any, message?: string, options?: {}): void;
-    function credentialsInvalid(res: any, service: any, options?: {}): void;
+    function unauthorized(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function forbidden(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function invalidToken(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function missingToken(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function validation(res: import("express").Response, message?: string, details?: Array<ValidationDetail>, options?: ErrorOptions): void;
+    function invalidInput(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function missingField(res: import("express").Response, field: string, options?: ErrorOptions): void;
+    function notFound(res: import("express").Response, resource?: string, options?: ErrorOptions): void;
+    function alreadyExists(res: import("express").Response, resource?: string, options?: ErrorOptions): void;
+    function instanceNotFound(res: import("express").Response, instanceId: string, options?: ErrorOptions): void;
+    function instanceUnavailable(res: import("express").Response, instanceId: string, options?: ErrorOptions): void;
+    function serviceDisabled(res: import("express").Response, serviceName: string, options?: ErrorOptions): void;
+    function serviceUnavailable(res: import("express").Response, serviceName?: string, options?: ErrorOptions): void;
+    function rateLimited(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function internal(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function databaseError(res: import("express").Response, message?: string, options?: ErrorOptions): void;
+    function externalApiError(res: import("express").Response, service: string, message?: string, options?: ErrorOptions): void;
+    function credentialsInvalid(res: import("express").Response, service: string, options?: ErrorOptions): void;
 }
+/**
+ * Validation error detail structure
+ */
+export type ValidationDetail = {
+    /**
+     * - Field name with validation error
+     */
+    field: string;
+    /**
+     * - Validation error message
+     */
+    message: string;
+    /**
+     * - Validation error code
+     */
+    code: string;
+};
+/**
+ * Error object structure
+ */
+export type ErrorObject = {
+    /**
+     * - Error code (e.g., 'VALIDATION_ERROR', 'NOT_FOUND')
+     */
+    code: string;
+    /**
+     * - Human-readable error message
+     */
+    message: string;
+    /**
+     * - ISO timestamp of when error occurred
+     */
+    timestamp: string;
+    /**
+     * - Additional error details (for validation errors)
+     */
+    details?: ValidationDetail[] | undefined;
+    /**
+     * - Instance ID if applicable
+     */
+    instanceId?: string | undefined;
+    /**
+     * - User ID if applicable
+     */
+    userId?: string | undefined;
+    /**
+     * - Additional metadata
+     */
+    metadata?: Object | undefined;
+};
 /**
  * Standard error response structure
  */
@@ -83,13 +144,27 @@ export type ErrorResponse = {
     /**
      * - Error details
      */
-    error: {
-        code: string;
-        message: string;
-        details?: Object[] | undefined;
-        instanceId?: string | undefined;
-        userId?: string | undefined;
-        timestamp: string;
-    };
+    error: ErrorObject;
+};
+/**
+ * Options for error response creation
+ */
+export type ErrorOptions = {
+    /**
+     * - Validation error details
+     */
+    details?: ValidationDetail[] | undefined;
+    /**
+     * - Instance ID
+     */
+    instanceId?: string | undefined;
+    /**
+     * - User ID
+     */
+    userId?: string | undefined;
+    /**
+     * - Additional metadata
+     */
+    metadata?: Object | undefined;
 };
 //# sourceMappingURL=errorResponse.d.ts.map

@@ -6,14 +6,14 @@ export const createMCPSchema: z.ZodObject<{
     config: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
 }, "strip", z.ZodTypeAny, {
     mcp_type: string;
-    custom_name: string;
     credentials: Record<string, string>;
+    custom_name: string;
     expiration_option: "never" | "1h" | "6h" | "1day" | "30days";
     config?: Record<string, any> | undefined;
 }, {
     mcp_type: string;
-    custom_name: string;
     credentials: Record<string, string>;
+    custom_name: string;
     expiration_option: "never" | "1h" | "6h" | "1day" | "30days";
     config?: Record<string, any> | undefined;
 }>;
@@ -22,12 +22,12 @@ export const updateMCPSchema: z.ZodObject<{
     credentials: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
     config: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
 }, "strip", z.ZodTypeAny, {
-    custom_name?: string | undefined;
     credentials?: Record<string, string> | undefined;
+    custom_name?: string | undefined;
     config?: Record<string, any> | undefined;
 }, {
-    custom_name?: string | undefined;
     credentials?: Record<string, string> | undefined;
+    custom_name?: string | undefined;
     config?: Record<string, any> | undefined;
 }>;
 export const toggleMCPSchema: z.ZodObject<{

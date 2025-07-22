@@ -4,17 +4,38 @@ import { dirname, join } from 'path';
 import { readdir, access } from 'fs/promises';
 
 /**
+ * @typedef {Object} ValidatorModule
+ * @property {Function} default - Default export validator function/class
+ */
+
+/**
+ * @typedef {Function|Object} ServiceValidator
+ * @property {Function} [validate] - Validation function
+ * @property {string} [name] - Validator name
+ * @property {string} [version] - Validator version
+ */
+
+/**
+ * @typedef {Object} FileSystemError
+ * @property {string} code - Error code (e.g., 'ENOENT')
+ * @property {string} message - Error message
+ * @property {string} [path] - File path that caused the error
+ */
+
+/**
  * Validation registry that discovers and manages service validators
  */
 class ValidationRegistry {
   constructor() {
-    /** @type {Map<string, any>} */
+    /** @type {Map<string, ServiceValidator>} */
     this.validators = new Map();
+    /** @type {boolean} */
     this.initialized = false;
   }
 
   /**
    * Initialize the registry by discovering validators from MCP server folders
+   * @returns {Promise<void>}
    */
   async initialize() {
     if (this.initialized) return;
@@ -46,6 +67,7 @@ class ValidationRegistry {
    * Load validator for a specific service
    * @param {string} serviceName - Name of the service
    * @param {string} mcpServersPath - Path to MCP servers directory
+   * @returns {Promise<void>}
    */
   async loadServiceValidator(serviceName, mcpServersPath) {
     const validatorPath = join(mcpServersPath, serviceName, 'validation', 'credential-validator.js');
@@ -55,18 +77,22 @@ class ValidationRegistry {
       await access(validatorPath);
       
       // Import the validator
+      /** @type {ValidatorModule} */
       const validatorModule = await import(validatorPath);
       
       if (validatorModule.default) {
-        this.validators.set(serviceName, validatorModule.default);
+        const validator = /** @type {ServiceValidator} */ (validatorModule.default);
+        this.validators.set(serviceName, validator);
         console.log(`📝 Loaded validator for ${serviceName} from ${validatorPath}`);
-        console.log(`   Validator type: ${typeof validatorModule.default}`);
+        console.log(`   Validator type: ${typeof validator}`);
       } else {
         console.warn(`⚠️  No default export found in validator for ${serviceName} at ${validatorPath}`);
       }
-    } catch (/** @type {any} */ error) {
+    } catch (error) {
       // If validator doesn't exist, that's okay - not all services need custom validation
-      if (error.code !== 'ENOENT') {
+      const hasCode = error && typeof error === 'object' && 'code' in error;
+      const errorCode = hasCode ? (/** @type {FileSystemError} */ (error)).code : null;
+      if (errorCode !== 'ENOENT') {
         console.error(`Failed to load validator for ${serviceName}:`, error);
       }
     }
@@ -75,7 +101,7 @@ class ValidationRegistry {
   /**
    * Get validator for a service
    * @param {string} serviceName - Name of the service
-   * @returns {any|null} Validator instance or null if not found
+   * @returns {ServiceValidator|null} Validator instance or null if not found
    */
   getValidator(serviceName) {
     return this.validators.get(serviceName) || null;
@@ -84,7 +110,8 @@ class ValidationRegistry {
   /**
    * Register a validator manually
    * @param {string} serviceName - Name of the service
-   * @param {any} validator - Validator instance
+   * @param {ServiceValidator} validator - Validator instance
+   * @returns {void}
    */
   registerValidator(serviceName, validator) {
     this.validators.set(serviceName, validator);

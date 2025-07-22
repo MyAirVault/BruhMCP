@@ -8,15 +8,67 @@ import loggingService from './logging/loggingService.js';
 import circuitBreakerManager from '../utils/circuit-breaker.js';
 import connectionPoolManager from '../utils/connection-pool.js';
 
+/**
+ * @typedef {Object} HealthStatus
+ * @property {'healthy'|'degraded'|'unhealthy'} status - Health status
+ * @property {string} [reason] - Reason for status
+ * @property {number} uptime - Service uptime in milliseconds
+ * @property {Object<string, EndpointResult>} endpoints - Endpoint health results
+ * @property {number} [healthRatio] - Ratio of healthy endpoints
+ * @property {number} [port] - Service port
+ * @property {number} [pid] - Process ID
+ */
+
+/**
+ * @typedef {Object} EndpointResult
+ * @property {'healthy'|'unhealthy'} status - Endpoint status
+ * @property {number|null} statusCode - HTTP status code
+ * @property {number|null} responseTime - Response time in milliseconds
+ * @property {string|null} error - Error message if any
+ */
+
+/**
+ * @typedef {Object} HealthRecommendation
+ * @property {'high'|'medium'|'low'} priority - Recommendation priority
+ * @property {string} action - Recommended action
+ * @property {string} message - Recommendation message
+ * @property {Object} [details] - Additional details
+ */
+
+/**
+ * @typedef {Object} ServiceStatus
+ * @property {boolean} isRunning - Whether service is running
+ * @property {number|string} port - Service port
+ * @property {string} url - Service URL
+ * @property {HealthStatus} health - Health status
+ * @property {HealthRecommendation[]} recommendations - Health recommendations
+ * @property {Object} circuitBreaker - Circuit breaker status
+ * @property {Object} connectionPool - Connection pool status
+ * @property {string|null} startTime - Service start time
+ * @property {number} uptime - Service uptime
+ */
+
+/**
+ * @typedef {Error} CustomError
+ * @property {number} [status] - HTTP status code
+ * @property {Response} [response] - HTTP response object
+ */
+
 class OAuthServiceManager {
   constructor() {
+    /** @type {import('http').Server|null} */
     this.server = null;
+    /** @type {boolean} */
     this.isRunning = false;
-    this.port = process.env.OAUTH_SERVICE_PORT || 3001;
+    /** @type {number} */
+    this.port = Number(process.env.OAUTH_SERVICE_PORT) || 3001;
+    /** @type {NodeJS.Timeout|null} */
     this.healthMonitorInterval = null;
+    /** @type {number|null} */
     this.startTime = null;
     
     // Initialize circuit breaker for OAuth service calls
+    /** @type {import('../utils/circuit-breaker.js').CircuitBreaker} */
     this.circuitBreaker = circuitBreakerManager.getOrCreate('oauth-service', {
       failureThreshold: 5,
       resetTimeout: 60000, // 1 minute
@@ -24,7 +76,10 @@ class OAuthServiceManager {
       successThreshold: 2,
       onStateChange: (prevState, newState) => {
         console.log(`🔄 OAuth service circuit breaker: ${prevState} → ${newState}`);
-        loggingService.logInfo(`OAuth service circuit breaker state changed: ${prevState} → ${newState}`);
+        loggingService.logError(new Error(`OAuth service circuit breaker state changed: ${prevState} → ${newState}`), {
+          operation: 'oauth_service_circuit_breaker_state_change',
+          critical: false
+        });
       },
       onFailure: (error) => {
         loggingService.logError(error, {
@@ -35,6 +90,7 @@ class OAuthServiceManager {
     });
 
     // Initialize connection pool for OAuth service calls
+    /** @type {import('../utils/connection-pool.js').ConnectionPool} */
     this.connectionPool = connectionPoolManager.getOrCreate('oauth-service', {
       maxSockets: 10,
       maxFreeSockets: 5,
@@ -93,12 +149,12 @@ class OAuthServiceManager {
       this.stopHealthMonitoring();
 
       await new Promise((resolve) => {
-        this.server.close(() => {
+        this.server?.close(() => {
           console.log('✅ OAuth service stopped');
           this.isRunning = false;
           this.server = null;
           this.startTime = null;
-          resolve();
+          resolve(undefined);
         });
       });
       return true;
@@ -130,9 +186,9 @@ class OAuthServiceManager {
 
   /**
    * Execute OAuth service call through circuit breaker
-   * @param {Function} fn - Function to execute
-   * @param {...any} args - Arguments to pass to function
-   * @returns {Promise} Result of function execution
+   * @param {(...args: unknown[]) => Promise<unknown>} fn - Function to execute
+   * @param {...unknown} args - Arguments to pass to function
+   * @returns {Promise<unknown>} Result of function execution
    */
   async executeWithCircuitBreaker(fn, ...args) {
     return this.circuitBreaker.execute(fn, ...args);
@@ -141,28 +197,30 @@ class OAuthServiceManager {
   /**
    * Make HTTP request to OAuth service with circuit breaker and connection pooling
    * @param {string} path - API path
-   * @param {Object} options - Request options
+   * @param {RequestInit} options - Request options
    * @returns {Promise<Response>} HTTP response
    */
   async makeOAuthServiceRequest(path, options = {}) {
     const url = `${this.getServiceUrl()}${path}`;
     
-    return this.executeWithCircuitBreaker(async () => {
+    return /** @type {Promise<Response>} */ (this.executeWithCircuitBreaker(async () => {
       // Use connection pool for the request
       const response = await this.connectionPool.fetch(url, {
-        timeout: 10000,
         ...options
       });
       
       if (!response.ok) {
         const error = new Error(`OAuth service request failed: ${response.status} ${response.statusText}`);
-        error.status = response.status;
-        error.response = response;
-        throw error;
+        // Add custom properties to the error
+        Object.assign(error, {
+          status: response.status,
+          response: response
+        });
+        throw /** @type {CustomError} */ (error);
       }
       
       return response;
-    });
+    }));
   }
 
   /**
@@ -180,7 +238,7 @@ class OAuthServiceManager {
 
   /**
    * Check service health by testing endpoints
-   * @returns {Promise<Object>} Health status
+   * @returns {Promise<HealthStatus>} Health status
    */
   async checkServiceHealth() {
     if (!this.isRunning) {
@@ -197,6 +255,7 @@ class OAuthServiceManager {
       health: `${serviceUrl}/health`
     };
 
+    /** @type {Object<string, EndpointResult>} */
     const endpointResults = {};
     let healthyEndpoints = 0;
     
@@ -205,8 +264,7 @@ class OAuthServiceManager {
       try {
         const startTime = Date.now();
         const response = await fetch(url, {
-          method: 'GET',
-          timeout: 5000
+          method: 'GET'
         });
         const responseTime = Date.now() - startTime;
         
@@ -221,11 +279,12 @@ class OAuthServiceManager {
           healthyEndpoints++;
         }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         endpointResults[name] = {
           status: 'unhealthy',
           statusCode: null,
           responseTime: null,
-          error: error.message
+          error: errorMessage
         };
       }
     }
@@ -346,10 +405,11 @@ class OAuthServiceManager {
 
   /**
    * Get health recommendations based on current status
-   * @returns {Promise<Array>} Array of recommendations
+   * @returns {Promise<HealthRecommendation[]>} Array of recommendations
    */
   async getHealthRecommendations() {
     const health = await this.checkServiceHealth();
+    /** @type {HealthRecommendation[]} */
     const recommendations = [];
     
     if (!this.isRunning) {
@@ -378,11 +438,11 @@ class OAuthServiceManager {
           message: `Endpoint ${endpoint} is not responding properly`,
           details: result
         });
-      } else if (result.responseTime > 3000) {
+      } else if (result.responseTime && result.responseTime > 3000) {
         recommendations.push({
           priority: 'low',
           action: 'optimize_performance',
-          message: `Endpoint ${endpoint} has high response time (${result.responseTime}ms)`,
+          message: `Endpoint ${endpoint} has high response time (${result.responseTime ?? 0}ms)`,
           details: result
         });
       }
@@ -403,7 +463,7 @@ class OAuthServiceManager {
 
   /**
    * Get comprehensive service status
-   * @returns {Promise<Object>} Complete service status
+   * @returns {Promise<ServiceStatus>} Complete service status
    */
   async getServiceStatus() {
     const health = await this.checkServiceHealth();

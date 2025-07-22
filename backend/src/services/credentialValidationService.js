@@ -1,26 +1,35 @@
 // @ts-check
-import fetch from 'node-fetch';
 import { validationRegistry } from './validation/validation-registry.js';
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether credentials are valid
+ * @property {Object|null} api_info - Service information if validation succeeded
+ * @property {string|null} error_code - Error code if validation failed
+ * @property {string|null} error_message - Error message if validation failed
+ * @property {Object|null} details - Additional error details
+ */
 
 /**
  * Test API credentials using the modular validation system
  * @param {string} serviceName - Service name (gmail, figma, github, etc.)
- * @param {any} credentials - Credentials to test
+ * @param {Object} credentials - Credentials to test
  * @param {boolean} performApiTest - Whether to perform actual API test (default: format validation only)
- * @returns {Promise<any>} Validation result
+ * @returns {Promise<ValidationResult>} Validation result
  */
 export async function testAPICredentials(serviceName, credentials, performApiTest = false) {
 	try {
 		// Initialize validation registry
 		await validationRegistry.initialize();
 
-		const result = /** @type {any} */ ({
+		/** @type {ValidationResult} */
+		const result = {
 			valid: false,
 			api_info: null,
 			error_code: null,
 			error_message: null,
 			details: null,
-		});
+		};
 
 		// Check if credentials object has required fields
 		if (!credentials || typeof credentials !== 'object') {
@@ -29,28 +38,29 @@ export async function testAPICredentials(serviceName, credentials, performApiTes
 			result.error_message = 'Credentials must be a valid object';
 			return result;
 		}
-		
+
 		console.log(`📋 Validating credentials for ${serviceName}:`, {
 			serviceName,
 			credentialKeys: Object.keys(credentials),
-			performApiTest
+			performApiTest,
 		});
 
 		// Try to get service-specific validator
 		console.log(`🔍 Looking for validator for service: ${serviceName}`);
 		const validatorFactory = validationRegistry.getValidator(serviceName);
-		
+
 		if (validatorFactory) {
 			console.log(`✅ Found validator for ${serviceName}`);
 			try {
 				// Create validator instance based on credentials
 				const validator = validatorFactory(credentials);
 				console.log(`📝 Created validator instance for ${serviceName}`);
-				
+
 				// Use API test if requested and available, otherwise use format validation
-				const validation = performApiTest && typeof validator.testCredentials === 'function'
-					? await validator.testCredentials(credentials)
-					: await validator.validateFormat(credentials);
+				const validation =
+					performApiTest && typeof validator.testCredentials === 'function'
+						? await validator.testCredentials(credentials)
+						: await validator.validateFormat(credentials);
 
 				console.log(`📊 Validation result for ${serviceName}:`, validation);
 
@@ -67,21 +77,16 @@ export async function testAPICredentials(serviceName, credentials, performApiTes
 					};
 					return result;
 				}
-			} catch (/** @type {any} */ error) {
+			} catch (/** @type {unknown} */ error) {
 				console.error(`❌ Error in validator for ${serviceName}:`, error);
 				result.error_code = 'API_ERROR';
-				result.error_message = `Failed to validate ${serviceName} credentials: ${error.message}`;
-				result.details = { error: error.message };
+				const errorMessage = error instanceof Error ? error.message : String(error);
+				result.error_message = `Failed to validate ${serviceName} credentials: ${errorMessage}`;
+				result.details = { error: errorMessage };
 				return result;
 			}
 		} else {
 			console.log(`⚠️  No validator found for ${serviceName}`);
-		}
-
-		// Fallback to legacy hardcoded validation for unsupported services
-		const legacyResult = await legacyValidation(credentials);
-		if (legacyResult) {
-			return legacyResult;
 		}
 
 		// If no valid credentials found
@@ -93,50 +98,51 @@ export async function testAPICredentials(serviceName, credentials, performApiTes
 		};
 
 		return result;
-	} catch (/** @type {any} */ error) {
+	} catch (/** @type {unknown} */ error) {
 		console.error('Error testing credentials:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		return {
 			valid: false,
 			api_info: null,
 			error_code: 'VALIDATION_ERROR',
 			error_message: 'Failed to validate credentials',
 			details: {
-				error: error.message,
+				error: errorMessage,
 			},
 		};
 	}
 }
 
+
 /**
- * Legacy validation fallback for services without custom validators
- * @param {any} credentials - Credentials to validate
- * @returns {Promise<any|null>} Validation result or null if no match
+ * @typedef {Object} ValidationError
+ * @property {string[]} path - Path to the error
+ * @property {string} message - Error message
  */
-async function legacyValidation(credentials) {
-	const result = /** @type {any} */ ({
-		valid: false,
-		api_info: null,
-		error_code: null,
-		error_message: null,
-		details: null,
-	});
 
-	// Add support for other services that don't have custom validators yet
-	// This can be gradually removed as services get their own validators
+/**
+ * @typedef {Object} ParseResult
+ * @property {boolean} success - Whether parsing succeeded
+ * @property {{errors: ValidationError[]}} [error] - Validation errors if parsing failed
+ * @property {Object} [data] - Parsed data if parsing succeeded
+ */
 
-	return null; // No legacy validation found
-}
+/**
+ * @typedef {Object} CredentialSchema
+ * @property {function(Object): ParseResult} safeParse - Function to safely parse credentials
+ */
 
 /**
  * Get credential schema by MCP type ID
  * @param {string} _mcpTypeId - MCP type ID
- * @returns {Object} Credential schema
+ * @returns {CredentialSchema} Credential schema
  */
 export function getCredentialSchemaByType(_mcpTypeId) {
 	// This would normally be fetched from the database
 	// For now, we'll return a basic schema
 	return {
-		safeParse: (/** @type {any} */ credentials) => {
+		safeParse: (/** @type {Object} */ credentials) => {
+			/** @type {ValidationError[]} */
 			const errors = [];
 
 			if (!credentials || typeof credentials !== 'object') {

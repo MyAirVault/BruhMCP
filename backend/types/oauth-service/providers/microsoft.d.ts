@@ -9,6 +9,13 @@ declare class MicrosoftOAuth extends baseOAuth {
     userInfoUrl: string;
     revokeUrl: string;
     /**
+     * Validate Microsoft OAuth credentials format
+     * @param {string} clientId - Microsoft OAuth Client ID
+     * @param {string} clientSecret - Microsoft OAuth Client Secret
+     * @returns {Object} Validation result
+     */
+    validateCredentials(clientId: string, clientSecret: string): Object;
+    /**
      * Generate Microsoft OAuth authorization URL
      * @param {Object} params - Authorization parameters
      * @param {string} params.client_id - Microsoft OAuth Client ID
@@ -51,6 +58,24 @@ declare class MicrosoftOAuth extends baseOAuth {
         client_id: string;
         client_secret: string;
     }): Object;
+    /**
+     * Validate Microsoft token scopes
+     * @param {Object} tokens - Token response
+     * @returns {Object} Scope validation result
+     */
+    validateTokenScopes(tokens: Object): Object;
+    /**
+     * Get user information using access token
+     * @param {string} accessToken - Microsoft access token
+     * @returns {Object} User information
+     */
+    getUserInfo(accessToken: string): Object;
+    /**
+     * Revoke Microsoft OAuth token
+     * @param {string} token - Token to revoke (access or refresh token)
+     * @returns {boolean} True if revocation was successful
+     */
+    revokeToken(token: string): boolean;
 }
 import { baseOAuth } from './base-oauth.js';
 export {};

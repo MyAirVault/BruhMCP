@@ -9,8 +9,56 @@ import { pool } from '../db/config.js';
 import { handlePlanCancellation } from '../utils/planLimits.js';
 
 /**
+ * @typedef {Object} ExpiredProUser
+ * @property {number} user_id - User ID
+ * @property {string} plan_type - Plan type (should be 'pro')
+ * @property {Date|string} plan_expires_at - When the plan expired
+ * @property {string} email - User email
+ * @property {string} name - User name
+ * @property {number} active_instance_count - Number of active instances
+ */
+
+/**
+ * @typedef {Object} PlanCancellationResult
+ * @property {number} deactivatedInstances - Number of instances deactivated
+ * @property {string} newPlan - New plan type after downgrade
+ * @property {string} message - Result message
+ */
+
+/**
+ * @typedef {Object} ProcessResult
+ * @property {boolean} success - Whether processing was successful
+ * @property {number} userId - User ID
+ * @property {string} email - User email
+ * @property {number} [deactivatedInstances] - Number of instances deactivated (on success)
+ * @property {string} [newPlan] - New plan type (on success)
+ * @property {string} [message] - Result message
+ * @property {string} [error] - Error message (on failure)
+ */
+
+/**
+ * @typedef {Object} AgentResult
+ * @property {boolean} success - Overall success status
+ * @property {number} processed - Number of users processed
+ * @property {number} [successCount] - Number of successful processes
+ * @property {number} [errorCount] - Number of failed processes
+ * @property {ProcessResult[]} [results] - Individual processing results
+ * @property {number} duration - Processing duration in milliseconds
+ * @property {string} message - Overall result message
+ * @property {string} [error] - Error message (on failure)
+ */
+
+/**
+ * @typedef {Object} ExpiredUserCheck
+ * @property {boolean} hasExpiredUsers - Whether there are expired users
+ * @property {number} count - Number of expired users
+ * @property {Array<{userId: number, email: string, planExpiredAt: Date|string, activeInstances: number}>} users - List of expired users
+ * @property {string} [error] - Error message if check failed
+ */
+
+/**
  * Get all users with expired pro plans that still have active instances
- * @returns {Promise<Array>} Array of users with expired plans and active instances
+ * @returns {Promise<ExpiredProUser[]>} Array of users with expired plans and active instances
  */
 export async function getExpiredProUsersWithActiveInstances() {
 	try {
@@ -44,8 +92,8 @@ export async function getExpiredProUsersWithActiveInstances() {
 
 /**
  * Process a single expired pro user - deactivate instances and downgrade plan
- * @param {Object} user - User object with expired plan
- * @returns {Promise<Object>} Processing result
+ * @param {ExpiredProUser} user - User object with expired plan
+ * @returns {Promise<ProcessResult>} Processing result
  */
 export async function processExpiredProUser(user) {
 	const { user_id, email, plan_expires_at, active_instance_count } = user;
@@ -55,7 +103,8 @@ export async function processExpiredProUser(user) {
 		console.log(`   Plan expired: ${plan_expires_at}, Active instances: ${active_instance_count}`);
 
 		// Use existing plan cancellation logic to handle the expiration
-		const result = await handlePlanCancellation(user_id);
+		/** @type {any} */
+		const result = await handlePlanCancellation(String(user_id));
 
 		console.log(`✅ Successfully processed expired pro user ${email}:`);
 		console.log(`   - Deactivated ${result.deactivatedInstances} instances`);
@@ -72,20 +121,21 @@ export async function processExpiredProUser(user) {
 		};
 	} catch (error) {
 		console.error(`❌ Error processing expired pro user ${email} (${user_id}):`, error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 
 		return {
 			success: false,
 			userId: user_id,
 			email,
-			error: error.message,
-			message: `Failed to process expired user: ${error.message}`,
+			error: errorMessage,
+			message: `Failed to process expired user: ${errorMessage}`,
 		};
 	}
 }
 
 /**
  * Run the plan expiration agent - process all expired pro users
- * @returns {Promise<Object>} Overall processing result
+ * @returns {Promise<AgentResult>} Overall processing result
  */
 export async function runPlanExpirationAgent() {
 	const startTime = new Date();
@@ -109,12 +159,14 @@ export async function runPlanExpirationAgent() {
 		console.log(`📋 Found ${expiredUsers.length} expired pro users with active instances`);
 
 		// Process each expired user
+		/** @type {ProcessResult[]} */
 		const results = [];
 		let successCount = 0;
 		let errorCount = 0;
 
 		for (const user of expiredUsers) {
-			const result = await processExpiredProUser(user);
+			/** @type {ProcessResult} */
+		const result = await processExpiredProUser(user);
 			results.push(result);
 
 			if (result.success) {
@@ -146,22 +198,23 @@ export async function runPlanExpirationAgent() {
 	} catch (error) {
 		const endTime = new Date();
 		const duration = endTime.getTime() - startTime.getTime();
+		const errorMessage = error instanceof Error ? error.message : String(error);
 
 		console.error('❌ Plan Expiration Agent failed:', error);
 
 		return {
 			success: false,
 			processed: 0,
-			error: error.message,
+			error: errorMessage,
 			duration,
-			message: `Agent failed after ${duration}ms: ${error.message}`,
+			message: `Agent failed after ${duration}ms: ${errorMessage}`,
 		};
 	}
 }
 
 /**
  * Check if there are any users that need plan expiration processing
- * @returns {Promise<Object>} Check result with count of users needing processing
+ * @returns {Promise<ExpiredUserCheck>} Check result with count of users needing processing
  */
 export async function checkForExpiredUsers() {
 	try {
@@ -179,11 +232,12 @@ export async function checkForExpiredUsers() {
 		};
 	} catch (error) {
 		console.error('Error checking for expired users:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		return {
 			hasExpiredUsers: false,
 			count: 0,
 			users: [],
-			error: error.message,
+			error: errorMessage,
 		};
 	}
 }

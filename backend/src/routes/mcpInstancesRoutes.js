@@ -1,3 +1,11 @@
+// @ts-check
+
+/**
+ * @typedef {import('express').Request} Request
+ * @typedef {import('express').Response} Response
+ * @typedef {import('express').NextFunction} NextFunction
+ */
+
 import { Router } from 'express';
 import { createMCP, validateMCPCredentials } from '../controllers/mcpInstances/crud/createMCP.js';
 import { getMCPInstances } from '../controllers/mcpInstances/crud/getMCPInstances.js';

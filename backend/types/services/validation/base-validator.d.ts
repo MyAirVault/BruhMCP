@@ -27,22 +27,22 @@ export class BaseValidator {
     authType: string;
     /**
      * Validate credential format - must be implemented by each service
-     * @param {any} credentials - Credentials to validate
+     * @param {Object} _credentials - Credentials to validate
      * @returns {Promise<ValidationResult>} Validation result
      */
-    validateFormat(credentials: any): Promise<ValidationResult>;
+    validateFormat(_credentials: Object): Promise<ValidationResult>;
     /**
      * Test credentials against actual API (optional, for API key validation)
-     * @param {any} credentials - Credentials to test
+     * @param {Object} credentials - Credentials to test
      * @returns {Promise<ValidationResult>} Validation result
      */
-    testCredentials(credentials: any): Promise<ValidationResult>;
+    testCredentials(credentials: Object): Promise<ValidationResult>;
     /**
      * Get service information for successful validation
-     * @param {any} credentials - Validated credentials
+     * @param {Object} _credentials - Validated credentials
      * @returns {Object} Service information
      */
-    getServiceInfo(credentials: any): Object;
+    getServiceInfo(_credentials: Object): Object;
 }
 export type ValidationResult = {
     /**

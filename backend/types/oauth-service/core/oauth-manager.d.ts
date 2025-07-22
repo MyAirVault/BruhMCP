@@ -10,33 +10,24 @@ declare class OAuthManager {
             userInfoUrl: string;
             tokenInfoUrl: string;
             revokeUrl: string;
-            validateCredentials(clientId: string, clientSecret: string): Object;
-            generateAuthorizationUrl(params: {
-                client_id: string;
-                scopes: any[];
-                state: string;
-                redirect_uri: string;
-            }): string;
-            exchangeAuthorizationCode(params: {
-                code: string;
-                client_id: string;
-                client_secret: string;
-                redirect_uri: string;
-            }): Object;
-            refreshAccessToken(params: {
-                refresh_token: string;
-                client_id: string;
-                client_secret: string;
-            }): Object;
-            validateTokenScopes(tokens: Object): Object;
-            getUserInfo(accessToken: string): Object;
-            revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            validateCredentials(clientId: string, clientSecret: string): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            generateAuthorizationUrl(params: import("../providers/base-oauth.js").AuthParams): Promise<string>;
+            exchangeAuthorizationCode(params: import("../providers/base-oauth.js").ExchangeParams): Promise<GoogleTokenResponse>;
+            refreshAccessToken(params: import("../providers/base-oauth.js").RefreshParams): Promise<GoogleTokenResponse>;
+            validateTokenScopes(tokens: GoogleTokenResponse): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            getUserInfo(accessToken: string): Promise<GoogleUserInfo>;
+            revokeToken(token: string): Promise<boolean>;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
         microsoft: {
             authUrl: string;
@@ -64,12 +55,17 @@ declare class OAuthManager {
             validateTokenScopes(tokens: Object): Object;
             getUserInfo(accessToken: string): Object;
             revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
         notion: {
             authUrl: string;
@@ -93,12 +89,17 @@ declare class OAuthManager {
             validateTokenScopes(tokens: Object): Object;
             getUserInfo(accessToken: string): Object;
             revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
         slack: {
             authUrl: string;
@@ -126,45 +127,41 @@ declare class OAuthManager {
             validateTokenScopes(tokens: Object): Object;
             getUserInfo(accessToken: string, userId?: string): Object;
             revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
         discord: {
             authUrl: string;
             tokenUrl: string;
             userInfoUrl: string;
             revokeUrl: string;
-            validateCredentials(clientId: string, clientSecret: string): Object;
-            generateAuthorizationUrl(params: {
-                client_id: string;
-                scopes: any[];
-                state: string;
-                redirect_uri: string;
-            }): string;
-            exchangeAuthorizationCode(params: {
-                code: string;
-                client_id: string;
-                client_secret: string;
-                redirect_uri: string;
-            }): Object;
-            refreshAccessToken(params: {
-                refresh_token: string;
-                client_id: string;
-                client_secret: string;
-            }): Object;
-            validateTokenScopes(tokens: Object): Object;
-            getUserInfo(accessToken: string): Object;
-            revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            validateCredentials(clientId: string, clientSecret: string): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            generateAuthorizationUrl(params: import("../providers/base-oauth.js").AuthParams): Promise<string>;
+            exchangeAuthorizationCode(params: import("../providers/base-oauth.js").ExchangeParams): Promise<DiscordTokenResponse>;
+            refreshAccessToken(params: import("../providers/base-oauth.js").RefreshParams): Promise<DiscordTokenResponse>;
+            validateTokenScopes(tokens: DiscordTokenResponse): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            getUserInfo(accessToken: string): Promise<DiscordUserInfo>;
+            revokeToken(token: string): Promise<boolean>;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
         reddit: {
             authUrl: string;
@@ -192,74 +189,65 @@ declare class OAuthManager {
             validateTokenScopes(tokens: Object): Object;
             getUserInfo(accessToken: string): Object;
             revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
         github: {
             authUrl: string;
             tokenUrl: string;
             userInfoUrl: string;
             revokeUrl: string;
-            validateCredentials(clientId: string, clientSecret: string): Object;
-            generateAuthorizationUrl(params: {
-                client_id: string;
-                scopes: any[];
-                state: string;
-                redirect_uri: string;
-            }): string;
-            exchangeAuthorizationCode(params: {
-                code: string;
-                client_id: string;
-                client_secret: string;
-                redirect_uri: string;
-            }): Object;
-            refreshAccessToken(params: Object): Object;
-            validateTokenScopes(tokens: Object): Object;
-            getUserInfo(accessToken: string): Object;
-            revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            validateCredentials(clientId: string, clientSecret: string): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            generateAuthorizationUrl(params: import("../providers/base-oauth.js").AuthParams): Promise<string>;
+            exchangeAuthorizationCode(params: import("../providers/base-oauth.js").ExchangeParams): Promise<GitHubTokenResponse>;
+            refreshAccessToken(params: import("../providers/base-oauth.js").RefreshParams): Promise<GitHubTokenResponse>;
+            validateTokenScopes(tokens: GitHubTokenResponse): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            getUserInfo(accessToken: string): Promise<import("../providers/base-oauth.js").UserInfo>;
+            revokeToken(_token: string): Promise<boolean>;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
         dropbox: {
             authUrl: string;
             tokenUrl: string;
             userInfoUrl: string;
             revokeUrl: string;
-            validateCredentials(clientId: string, clientSecret: string): Object;
-            generateAuthorizationUrl(params: {
-                client_id: string;
-                scopes: any[];
-                state: string;
-                redirect_uri: string;
-            }): string;
-            exchangeAuthorizationCode(params: {
-                code: string;
-                client_id: string;
-                client_secret: string;
-                redirect_uri: string;
-            }): Object;
-            refreshAccessToken(params: {
-                refresh_token: string;
-                client_id: string;
-                client_secret: string;
-            }): Object;
-            validateTokenScopes(tokens: Object): Object;
-            getUserInfo(accessToken: string): Object;
-            revokeToken(token: string): boolean;
-            providerName: any;
-            handleApiResponse(response: Response, operation: string): Object;
-            validateRequiredParams(params: Object, required: any[]): void;
-            validateTokenResponse(tokens: Object): Object;
+            validateCredentials(clientId: string, clientSecret: string): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            generateAuthorizationUrl(params: import("../providers/base-oauth.js").AuthParams): Promise<string>;
+            exchangeAuthorizationCode(params: import("../providers/base-oauth.js").ExchangeParams): Promise<DropboxTokenResponse>;
+            refreshAccessToken(params: import("../providers/base-oauth.js").RefreshParams): Promise<DropboxTokenResponse>;
+            validateTokenScopes(tokens: DropboxTokenResponse): Promise<import("../providers/base-oauth.js").ValidationResult>;
+            getUserInfo(accessToken: string): Promise<DropboxUserInfo>;
+            revokeToken(token: string): Promise<boolean>;
+            providerName: string;
+            handleApiResponse(response: Response, operation: string): Promise<any>;
+            validateRequiredParams(params: Record<string, any>, required: string[]): void;
+            validateTokenResponse(tokens: TokenResponse): ValidationResult;
             getProviderName(): string;
-            getProviderUrls(): Object;
+            getProviderUrls(): {
+                authUrl: string | null;
+                tokenUrl: string | null;
+                userInfoUrl: string | null;
+                revokeUrl: string | null;
+            };
         };
     };
     tempCredentials: Map<any, any>;

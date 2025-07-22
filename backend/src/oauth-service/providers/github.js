@@ -1,12 +1,47 @@
 /**
- * GitHub OAuth Provider Implementation
+ * @fileoverview GitHub OAuth Provider Implementation
  * Handles GitHub OAuth 2.0 flows for GitHub API integrations
  */
 
 import { baseOAuth } from './base-oauth.js';
 
 /**
+ * @typedef {Object} GitHubTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token (rarely used by GitHub)
+ * @property {number} [expires_in] - Expiration time in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
+ */
+
+/**
+ * @typedef {Object} GitHubUserInfo
+ * @property {string} id - GitHub user ID
+ * @property {string} login - GitHub username
+ * @property {string} [name] - Display name
+ * @property {string} [email] - User email
+ * @property {string} [avatar_url] - Avatar URL
+ * @property {string} [html_url] - Profile URL
+ * @property {string} [company] - Company
+ * @property {string} [location] - Location
+ * @property {string} [bio] - Bio
+ * @property {number} [public_repos] - Public repositories count
+ * @property {number} [public_gists] - Public gists count
+ * @property {number} [followers] - Followers count
+ * @property {number} [following] - Following count
+ * @property {string} [created_at] - Account creation date
+ * @property {string} [updated_at] - Last update date
+ */
+
+/**
+ * @typedef {Object} GitHubError
+ * @property {string} error - Error code
+ * @property {string} error_description - Error description
+ */
+
+/**
  * GitHub OAuth Provider class
+ * @extends {baseOAuth}
  */
 class GitHubOAuth extends baseOAuth {
   constructor() {
@@ -21,9 +56,10 @@ class GitHubOAuth extends baseOAuth {
    * Validate GitHub OAuth credentials format
    * @param {string} clientId - GitHub OAuth Client ID
    * @param {string} clientSecret - GitHub OAuth Client Secret
-   * @returns {Object} Validation result
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Validation result
    */
   async validateCredentials(clientId, clientSecret) {
+    /** @type {import('./base-oauth.js').ValidationResult} */
     const validation = {
       valid: true,
       errors: []
@@ -32,12 +68,14 @@ class GitHubOAuth extends baseOAuth {
     // Validate Client ID format
     if (!clientId || typeof clientId !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client ID is required and must be a string');
     } else {
       // GitHub Client ID format: alphanumeric, typically 20 characters
       const githubIdRegex = /^[a-zA-Z0-9]{20}$/;
       if (!githubIdRegex.test(clientId)) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Invalid GitHub Client ID format - must be 20 alphanumeric characters');
       }
     }
@@ -45,30 +83,28 @@ class GitHubOAuth extends baseOAuth {
     // Validate Client Secret format
     if (!clientSecret || typeof clientSecret !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client Secret is required and must be a string');
     } else {
       // GitHub Client Secret format validation
       if (clientSecret.length < 40 || clientSecret.length > 40) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('GitHub Client Secret must be exactly 40 characters');
       }
     }
 
     return {
       valid: validation.valid,
-      error: validation.errors.join(', '),
-      field: validation.valid ? null : 'credentials'
+      error: validation.errors ? validation.errors.join(', ') : undefined,
+      field: validation.valid ? undefined : 'credentials'
     };
   }
 
   /**
    * Generate GitHub OAuth authorization URL
-   * @param {Object} params - Authorization parameters
-   * @param {string} params.client_id - GitHub OAuth Client ID
-   * @param {Array} params.scopes - Required OAuth scopes
-   * @param {string} params.state - State parameter for security
-   * @param {string} params.redirect_uri - Redirect URI after authorization
-   * @returns {string} Authorization URL
+   * @param {import('./base-oauth.js').AuthParams} params - Authorization parameters
+   * @returns {Promise<string>} Authorization URL
    */
   async generateAuthorizationUrl(params) {
     const { client_id, scopes, state, redirect_uri } = params;
@@ -102,12 +138,8 @@ class GitHubOAuth extends baseOAuth {
 
   /**
    * Exchange authorization code for tokens
-   * @param {Object} params - Exchange parameters
-   * @param {string} params.code - Authorization code from callback
-   * @param {string} params.client_id - GitHub OAuth Client ID
-   * @param {string} params.client_secret - GitHub OAuth Client Secret
-   * @param {string} params.redirect_uri - Redirect URI used in authorization
-   * @returns {Object} Token response
+   * @param {import('./base-oauth.js').ExchangeParams} params - Exchange parameters
+   * @returns {Promise<GitHubTokenResponse>} Token response
    */
   async exchangeAuthorizationCode(params) {
     const { code, client_id, client_secret, redirect_uri } = params;
@@ -151,6 +183,7 @@ class GitHubOAuth extends baseOAuth {
         throw new Error(errorMessage);
       }
 
+      /** @type {any} */
       const tokens = await response.json();
       
       // Validate response contains required fields
@@ -161,42 +194,49 @@ class GitHubOAuth extends baseOAuth {
       // GitHub doesn't return expires_in by default, tokens don't expire
       console.log(`✅ GitHub tokens obtained successfully (no expiration)`);
 
-      return {
+      /** @type {GitHubTokenResponse} */
+      const tokenResponse = {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token || null,
         expires_in: tokens.expires_in || null, // GitHub tokens don't expire by default
         token_type: tokens.token_type || 'Bearer',
         scope: tokens.scope
       };
+      
+      return tokenResponse;
 
     } catch (error) {
       console.error('GitHub token exchange failed:', error);
-      throw new Error(`GitHub token exchange failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`GitHub token exchange failed: ${err.message}`);
     }
   }
 
   /**
    * Refresh GitHub access token (GitHub tokens don't expire by default)
-   * @param {Object} params - Refresh parameters
-   * @returns {Object} Token response
+   * @param {import('./base-oauth.js').RefreshParams} params - Refresh parameters
+   * @returns {Promise<GitHubTokenResponse>} Token response
    */
   async refreshAccessToken(params) {
     // GitHub tokens don't expire by default, so no refresh is typically needed
     console.log(`ℹ️  GitHub tokens don't expire by default - no refresh needed`);
     
-    return {
-      access_token: params.access_token,
-      refresh_token: null,
-      expires_in: null,
+    /** @type {GitHubTokenResponse} */
+    const tokenResponse = {
+      access_token: params.refresh_token, // Use refresh_token as access_token since GitHub doesn't typically refresh
+      refresh_token: undefined,
+      expires_in: undefined,
       token_type: 'Bearer',
-      scope: params.scope
+      scope: undefined
     };
+    
+    return tokenResponse;
   }
 
   /**
    * Validate GitHub token scopes
-   * @param {Object} tokens - Token response
-   * @returns {Object} Scope validation result
+   * @param {GitHubTokenResponse} tokens - Token response
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Scope validation result
    */
   async validateTokenScopes(tokens) {
     const { scope } = tokens;
@@ -230,15 +270,15 @@ class GitHubOAuth extends baseOAuth {
 
     return {
       valid: true,
-      scopes: tokenScopes,
-      required: requiredScopes
+      error: undefined,
+      field: undefined
     };
   }
 
   /**
    * Get user information using access token
    * @param {string} accessToken - GitHub access token
-   * @returns {Object} User information
+   * @returns {Promise<import('./base-oauth.js').UserInfo>} User information
    */
   async getUserInfo(accessToken) {
     console.log(`👤 Fetching GitHub user info`);
@@ -256,40 +296,35 @@ class GitHubOAuth extends baseOAuth {
         throw new Error(`Failed to get user info: ${response.status} ${response.statusText}`);
       }
 
+      /** @type {any} */
       const userInfo = await response.json();
 
       console.log(`✅ Retrieved GitHub user info for: ${userInfo.login}`);
 
-      return {
-        id: userInfo.id,
-        login: userInfo.login,
+      /** @type {import('./base-oauth.js').UserInfo} */
+      const userInfoResponse = {
+        id: String(userInfo.id), // Convert GitHub ID to string to match UserInfo interface
+        email: userInfo.email || '',
         name: userInfo.name,
-        email: userInfo.email,
-        avatar_url: userInfo.avatar_url,
-        html_url: userInfo.html_url,
-        company: userInfo.company,
-        location: userInfo.location,
-        bio: userInfo.bio,
-        public_repos: userInfo.public_repos,
-        public_gists: userInfo.public_gists,
-        followers: userInfo.followers,
-        following: userInfo.following,
-        created_at: userInfo.created_at,
-        updated_at: userInfo.updated_at
+        given_name: userInfo.name, // GitHub doesn't have separate given_name, use name
+        surname: undefined // GitHub doesn't provide separate surname
       };
+      
+      return userInfoResponse;
 
     } catch (error) {
       console.error('Failed to get GitHub user info:', error);
-      throw new Error(`GitHub user info retrieval failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`GitHub user info retrieval failed: ${err.message}`);
     }
   }
 
   /**
    * Revoke GitHub OAuth token (manual process)
-   * @param {string} token - Token to revoke
-   * @returns {boolean} False - revocation requires manual action
+   * @param {string} _token - Token to revoke (unused - GitHub doesn't support API revocation)
+   * @returns {Promise<boolean>} False - revocation requires manual action
    */
-  async revokeToken(token) {
+  async revokeToken(_token) {
     console.log(`🔒 GitHub token revocation requires manual action`);
     
     // GitHub doesn't provide an API endpoint for token revocation

@@ -1,6 +1,132 @@
 export const githubOAuth: GitHubOAuth;
+export type GitHubTokenResponse = {
+    /**
+     * - Access token
+     */
+    access_token: string;
+    /**
+     * - Refresh token (rarely used by GitHub)
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Expiration time in seconds
+     */
+    expires_in?: number | undefined;
+    /**
+     * - Token type
+     */
+    token_type?: string | undefined;
+    /**
+     * - Token scope
+     */
+    scope?: string | undefined;
+};
+export type GitHubUserInfo = {
+    /**
+     * - GitHub user ID
+     */
+    id: string;
+    /**
+     * - GitHub username
+     */
+    login: string;
+    /**
+     * - Display name
+     */
+    name?: string | undefined;
+    /**
+     * - User email
+     */
+    email?: string | undefined;
+    /**
+     * - Avatar URL
+     */
+    avatar_url?: string | undefined;
+    /**
+     * - Profile URL
+     */
+    html_url?: string | undefined;
+    /**
+     * - Company
+     */
+    company?: string | undefined;
+    /**
+     * - Location
+     */
+    location?: string | undefined;
+    /**
+     * - Bio
+     */
+    bio?: string | undefined;
+    /**
+     * - Public repositories count
+     */
+    public_repos?: number | undefined;
+    /**
+     * - Public gists count
+     */
+    public_gists?: number | undefined;
+    /**
+     * - Followers count
+     */
+    followers?: number | undefined;
+    /**
+     * - Following count
+     */
+    following?: number | undefined;
+    /**
+     * - Account creation date
+     */
+    created_at?: string | undefined;
+    /**
+     * - Last update date
+     */
+    updated_at?: string | undefined;
+};
+export type GitHubError = {
+    /**
+     * - Error code
+     */
+    error: string;
+    /**
+     * - Error description
+     */
+    error_description: string;
+};
+/**
+ * @typedef {Object} GitHubTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token (rarely used by GitHub)
+ * @property {number} [expires_in] - Expiration time in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
+ */
+/**
+ * @typedef {Object} GitHubUserInfo
+ * @property {string} id - GitHub user ID
+ * @property {string} login - GitHub username
+ * @property {string} [name] - Display name
+ * @property {string} [email] - User email
+ * @property {string} [avatar_url] - Avatar URL
+ * @property {string} [html_url] - Profile URL
+ * @property {string} [company] - Company
+ * @property {string} [location] - Location
+ * @property {string} [bio] - Bio
+ * @property {number} [public_repos] - Public repositories count
+ * @property {number} [public_gists] - Public gists count
+ * @property {number} [followers] - Followers count
+ * @property {number} [following] - Following count
+ * @property {string} [created_at] - Account creation date
+ * @property {string} [updated_at] - Last update date
+ */
+/**
+ * @typedef {Object} GitHubError
+ * @property {string} error - Error code
+ * @property {string} error_description - Error description
+ */
 /**
  * GitHub OAuth Provider class
+ * @extends {baseOAuth}
  */
 declare class GitHubOAuth extends baseOAuth {
     constructor();
@@ -8,36 +134,6 @@ declare class GitHubOAuth extends baseOAuth {
     tokenUrl: string;
     userInfoUrl: string;
     revokeUrl: string;
-    /**
-     * Generate GitHub OAuth authorization URL
-     * @param {Object} params - Authorization parameters
-     * @param {string} params.client_id - GitHub OAuth Client ID
-     * @param {Array} params.scopes - Required OAuth scopes
-     * @param {string} params.state - State parameter for security
-     * @param {string} params.redirect_uri - Redirect URI after authorization
-     * @returns {string} Authorization URL
-     */
-    generateAuthorizationUrl(params: {
-        client_id: string;
-        scopes: any[];
-        state: string;
-        redirect_uri: string;
-    }): string;
-    /**
-     * Exchange authorization code for tokens
-     * @param {Object} params - Exchange parameters
-     * @param {string} params.code - Authorization code from callback
-     * @param {string} params.client_id - GitHub OAuth Client ID
-     * @param {string} params.client_secret - GitHub OAuth Client Secret
-     * @param {string} params.redirect_uri - Redirect URI used in authorization
-     * @returns {Object} Token response
-     */
-    exchangeAuthorizationCode(params: {
-        code: string;
-        client_id: string;
-        client_secret: string;
-        redirect_uri: string;
-    }): Object;
 }
 import { baseOAuth } from './base-oauth.js';
 export {};

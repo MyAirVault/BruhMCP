@@ -1,12 +1,46 @@
 /**
- * Discord OAuth Provider Implementation
+ * @fileoverview Discord OAuth Provider Implementation
  * Handles Discord OAuth 2.0 flows for Discord application integrations
  */
 
 import { baseOAuth } from './base-oauth.js';
 
 /**
+ * @typedef {Object} DiscordTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token
+ * @property {number} [expires_in] - Expiration time in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
+ */
+
+/**
+ * @typedef {Object} DiscordUserInfo
+ * @property {string} id - Discord user ID
+ * @property {string} username - Discord username
+ * @property {string} [discriminator] - Discord discriminator (deprecated)
+ * @property {string} [global_name] - Global display name
+ * @property {string} [avatar] - Avatar hash
+ * @property {string} [email] - User email
+ * @property {boolean} [verified] - Email verification status
+ * @property {string} [locale] - User locale
+ * @property {boolean} [mfa_enabled] - MFA enabled status
+ * @property {number} [premium_type] - Nitro subscription type
+ * @property {number} [public_flags] - Public flags
+ * @property {number} [flags] - User flags
+ * @property {string} [banner] - Banner hash
+ * @property {number} [accent_color] - Accent color
+ */
+
+/**
+ * @typedef {Object} DiscordError
+ * @property {string} error - Error code
+ * @property {string} error_description - Error description
+ */
+
+/**
  * Discord OAuth Provider class
+ * @extends {baseOAuth}
  */
 class DiscordOAuth extends baseOAuth {
   constructor() {
@@ -21,9 +55,10 @@ class DiscordOAuth extends baseOAuth {
    * Validate Discord OAuth credentials format
    * @param {string} clientId - Discord OAuth Client ID
    * @param {string} clientSecret - Discord OAuth Client Secret
-   * @returns {Object} Validation result
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Validation result
    */
   async validateCredentials(clientId, clientSecret) {
+    /** @type {import('./base-oauth.js').ValidationResult} */
     const validation = {
       valid: true,
       errors: []
@@ -32,12 +67,14 @@ class DiscordOAuth extends baseOAuth {
     // Validate Client ID format
     if (!clientId || typeof clientId !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client ID is required and must be a string');
     } else {
       // Discord Client ID format: 18-19 digit snowflake
       const discordIdRegex = /^\d{18,19}$/;
       if (!discordIdRegex.test(clientId)) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Invalid Discord Client ID format - must be 18-19 digits');
       }
     }
@@ -45,30 +82,28 @@ class DiscordOAuth extends baseOAuth {
     // Validate Client Secret format
     if (!clientSecret || typeof clientSecret !== 'string') {
       validation.valid = false;
+      if (!validation.errors) validation.errors = [];
       validation.errors.push('Client Secret is required and must be a string');
     } else {
       // Discord Client Secret format validation
       if (clientSecret.length < 30 || clientSecret.length > 40) {
         validation.valid = false;
+        if (!validation.errors) validation.errors = [];
         validation.errors.push('Discord Client Secret length appears invalid');
       }
     }
 
     return {
       valid: validation.valid,
-      error: validation.errors.join(', '),
-      field: validation.valid ? null : 'credentials'
+      error: validation.errors ? validation.errors.join(', ') : undefined,
+      field: validation.valid ? undefined : 'credentials'
     };
   }
 
   /**
    * Generate Discord OAuth authorization URL
-   * @param {Object} params - Authorization parameters
-   * @param {string} params.client_id - Discord OAuth Client ID
-   * @param {Array} params.scopes - Required OAuth scopes
-   * @param {string} params.state - State parameter for security
-   * @param {string} params.redirect_uri - Redirect URI after authorization
-   * @returns {string} Authorization URL
+   * @param {import('./base-oauth.js').AuthParams} params - Authorization parameters
+   * @returns {Promise<string>} Authorization URL
    */
   async generateAuthorizationUrl(params) {
     const { client_id, scopes, state, redirect_uri } = params;
@@ -101,12 +136,8 @@ class DiscordOAuth extends baseOAuth {
 
   /**
    * Exchange authorization code for tokens
-   * @param {Object} params - Exchange parameters
-   * @param {string} params.code - Authorization code from callback
-   * @param {string} params.client_id - Discord OAuth Client ID
-   * @param {string} params.client_secret - Discord OAuth Client Secret
-   * @param {string} params.redirect_uri - Redirect URI used in authorization
-   * @returns {Object} Token response
+   * @param {import('./base-oauth.js').ExchangeParams} params - Exchange parameters
+   * @returns {Promise<DiscordTokenResponse>} Token response
    */
   async exchangeAuthorizationCode(params) {
     const { code, client_id, client_secret, redirect_uri } = params;
@@ -149,6 +180,7 @@ class DiscordOAuth extends baseOAuth {
         throw new Error(errorMessage);
       }
 
+      /** @type {any} */
       const tokens = await response.json();
       
       // Validate response contains required fields
@@ -156,29 +188,30 @@ class DiscordOAuth extends baseOAuth {
         throw new Error('Invalid token response: missing access_token');
       }
 
-      console.log(`✅ Discord tokens obtained successfully (expires in ${tokens.expires_in} seconds)`);
+      console.log(`✅ Discord tokens obtained successfully (expires in ${tokens.expires_in || 604800} seconds)`);
 
-      return {
+      /** @type {DiscordTokenResponse} */
+      const tokenResponse = {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_in: tokens.expires_in || 604800, // Default 7 days
         token_type: tokens.token_type || 'Bearer',
         scope: tokens.scope
       };
+      
+      return tokenResponse;
 
     } catch (error) {
       console.error('Discord token exchange failed:', error);
-      throw new Error(`Discord token exchange failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Discord token exchange failed: ${err.message}`);
     }
   }
 
   /**
    * Refresh Discord access token using refresh token
-   * @param {Object} params - Refresh parameters
-   * @param {string} params.refresh_token - Discord refresh token
-   * @param {string} params.client_id - Discord OAuth Client ID
-   * @param {string} params.client_secret - Discord OAuth Client Secret
-   * @returns {Object} New token response
+   * @param {import('./base-oauth.js').RefreshParams} params - Refresh parameters
+   * @returns {Promise<DiscordTokenResponse>} New token response
    */
   async refreshAccessToken(params) {
     const { refresh_token, client_id, client_secret } = params;
@@ -221,11 +254,14 @@ class DiscordOAuth extends baseOAuth {
         }
         
         const error = new Error(errorMessage);
+        // @ts-ignore - Adding custom properties to Error
         error.code = errorCode;
+        // @ts-ignore - Adding custom properties to Error
         error.status = response.status;
         throw error;
       }
 
+      /** @type {any} */
       const tokens = await response.json();
       
       // Validate response contains required fields
@@ -233,34 +269,40 @@ class DiscordOAuth extends baseOAuth {
         throw new Error('Invalid token response: missing access_token');
       }
 
-      console.log(`✅ Discord access token refreshed successfully (expires in ${tokens.expires_in} seconds)`);
+      console.log(`✅ Discord access token refreshed successfully (expires in ${tokens.expires_in || 604800} seconds)`);
 
-      return {
+      /** @type {DiscordTokenResponse} */
+      const tokenResponse = {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token || refresh_token,
         expires_in: tokens.expires_in || 604800,
         token_type: tokens.token_type || 'Bearer',
         scope: tokens.scope
       };
+      
+      return tokenResponse;
 
     } catch (error) {
       console.error('Discord token refresh failed:', error);
       
+      const err = error instanceof Error ? error : new Error(String(error));
       // Add specific error handling for Discord OAuth errors
-      if (error.code === 'invalid_grant') {
+      // @ts-ignore - Checking custom property
+      if (err.code === 'invalid_grant') {
         throw new Error('invalid_grant: The provided authorization grant is invalid, expired, or revoked');
-      } else if (error.code === 'invalid_client') {
+      // @ts-ignore - Checking custom property
+      } else if (err.code === 'invalid_client') {
         throw new Error('invalid_client: Client authentication failed');
       }
       
-      throw new Error(`Discord token refresh failed: ${error.message}`);
+      throw new Error(`Discord token refresh failed: ${err.message}`);
     }
   }
 
   /**
    * Validate Discord token scopes
-   * @param {Object} tokens - Token response
-   * @returns {Object} Scope validation result
+   * @param {DiscordTokenResponse} tokens - Token response
+   * @returns {Promise<import('./base-oauth.js').ValidationResult>} Scope validation result
    */
   async validateTokenScopes(tokens) {
     const { scope } = tokens;
@@ -302,7 +344,7 @@ class DiscordOAuth extends baseOAuth {
   /**
    * Get user information using access token
    * @param {string} accessToken - Discord access token
-   * @returns {Object} User information
+   * @returns {Promise<DiscordUserInfo>} User information
    */
   async getUserInfo(accessToken) {
     console.log(`👤 Fetching Discord user info`);
@@ -319,11 +361,13 @@ class DiscordOAuth extends baseOAuth {
         throw new Error(`Failed to get user info: ${response.status} ${response.statusText}`);
       }
 
+      /** @type {any} */
       const userInfo = await response.json();
 
-      console.log(`✅ Retrieved Discord user info for: ${userInfo.username}#${userInfo.discriminator}`);
+      console.log(`✅ Retrieved Discord user info for: ${userInfo.username}${userInfo.discriminator ? '#' + userInfo.discriminator : ''}`);
 
-      return {
+      /** @type {DiscordUserInfo} */
+      const userInfoResponse = {
         id: userInfo.id,
         username: userInfo.username,
         discriminator: userInfo.discriminator,
@@ -339,17 +383,20 @@ class DiscordOAuth extends baseOAuth {
         banner: userInfo.banner,
         accent_color: userInfo.accent_color
       };
+      
+      return userInfoResponse;
 
     } catch (error) {
       console.error('Failed to get Discord user info:', error);
-      throw new Error(`Discord user info retrieval failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Discord user info retrieval failed: ${err.message}`);
     }
   }
 
   /**
    * Revoke Discord OAuth token
    * @param {string} token - Token to revoke (access or refresh token)
-   * @returns {boolean} True if revocation was successful
+   * @returns {Promise<boolean>} True if revocation was successful
    */
   async revokeToken(token) {
     console.log(`🔒 Revoking Discord OAuth token`);
@@ -373,7 +420,8 @@ class DiscordOAuth extends baseOAuth {
 
     } catch (error) {
       console.error('Discord token revocation failed:', error);
-      throw new Error(`Discord token revocation failed: ${error.message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw new Error(`Discord token revocation failed: ${err.message}`);
     }
   }
 }

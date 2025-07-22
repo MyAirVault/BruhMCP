@@ -9,6 +9,13 @@ declare class SlackOAuth extends baseOAuth {
     userInfoUrl: string;
     revokeUrl: string;
     /**
+     * Validate Slack OAuth credentials format
+     * @param {string} clientId - Slack OAuth Client ID
+     * @param {string} clientSecret - Slack OAuth Client Secret
+     * @returns {Object} Validation result
+     */
+    validateCredentials(clientId: string, clientSecret: string): Object;
+    /**
      * Generate Slack OAuth authorization URL
      * @param {Object} params - Authorization parameters
      * @param {string} params.client_id - Slack OAuth Client ID
@@ -52,12 +59,24 @@ declare class SlackOAuth extends baseOAuth {
         client_secret: string;
     }): Object;
     /**
+     * Validate Slack token scopes
+     * @param {Object} tokens - Token response
+     * @returns {Object} Scope validation result
+     */
+    validateTokenScopes(tokens: Object): Object;
+    /**
      * Get user information using access token
      * @param {string} accessToken - Slack access token
      * @param {string} userId - Slack user ID (optional, defaults to token owner)
      * @returns {Object} User information
      */
     getUserInfo(accessToken: string, userId?: string): Object;
+    /**
+     * Revoke Slack OAuth token
+     * @param {string} token - Token to revoke
+     * @returns {boolean} True if revocation was successful
+     */
+    revokeToken(token: string): boolean;
 }
 import { baseOAuth } from './base-oauth.js';
 export {};

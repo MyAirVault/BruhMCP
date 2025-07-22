@@ -15,16 +15,16 @@ export class BaseValidator {
 
   /**
    * Validate credential format - must be implemented by each service
-   * @param {any} credentials - Credentials to validate
+   * @param {Object} _credentials - Credentials to validate
    * @returns {Promise<ValidationResult>} Validation result
    */
-  async validateFormat(credentials) {
+  async validateFormat(_credentials) {
     throw new Error(`validateFormat must be implemented by ${this.serviceName} validator`);
   }
 
   /**
    * Test credentials against actual API (optional, for API key validation)
-   * @param {any} credentials - Credentials to test
+   * @param {Object} credentials - Credentials to test
    * @returns {Promise<ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
@@ -34,10 +34,10 @@ export class BaseValidator {
 
   /**
    * Get service information for successful validation
-   * @param {any} credentials - Validated credentials
+   * @param {Object} _credentials - Validated credentials
    * @returns {Object} Service information
    */
-  getServiceInfo(credentials) {
+  getServiceInfo(_credentials) {
     return {
       service: this.serviceName,
       auth_type: this.authType,
