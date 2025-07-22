@@ -53,7 +53,10 @@ export async function authenticate(req, res, next) {
 		// Add user info to request object
 		req.user = {
 			id: user.id,
+			userId: user.id,
 			email: user.email,
+			sessionCreatedAt: new Date(),
+			sessionExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 		};
 
 		// Log successful authentication
@@ -104,7 +107,10 @@ export async function optionalAuthenticate(req, _res, next) {
 		if (user) {
 			req.user = {
 				id: user.id,
+				userId: user.id,
 				email: user.email,
+				sessionCreatedAt: new Date(),
+				sessionExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 			};
 		} else {
 			req.user = null;

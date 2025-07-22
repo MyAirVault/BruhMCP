@@ -6,7 +6,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 /**
  * Generate JWT token for user
- * @param {import('../types/index.js').User} user
+ * @param {{id: string, email: string}} user
  * @returns {string} JWT token
  */
 export function generateJWT(user) {

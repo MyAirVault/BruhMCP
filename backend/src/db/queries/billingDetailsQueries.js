@@ -1,6 +1,15 @@
 import { pool } from '../config.js';
 
 /**
+ * @typedef {Object} Card
+ * @property {string} id - Card ID from payment gateway
+ * @property {string} brand - Card brand (Visa, MasterCard, etc.)
+ * @property {string} last4 - Last 4 digits of card
+ * @property {number} exp_month - Expiration month
+ * @property {number} exp_year - Expiration year
+ */
+
+/**
  * @typedef {Object} BillingDetails
  * @property {string} billing_id - Unique billing ID
  * @property {string} user_id - User ID
@@ -10,8 +19,8 @@ import { pool } from '../config.js';
  * @property {string} state - State/Province
  * @property {string} country - Country
  * @property {string} zip_code - ZIP/Postal code
- * @property {Array} cards - Array of card objects
- * @property {string} [default_card_id] - Default card ID from payment gateway
+ * @property {Card[]} cards - Array of card objects
+ * @property {string|null} [default_card_id] - Default card ID from payment gateway
  * @property {Date} created_at - Creation timestamp
  * @property {Date} updated_at - Last update timestamp
  */
@@ -24,8 +33,8 @@ import { pool } from '../config.js';
  * @property {string} state - State/Province
  * @property {string} country - Country
  * @property {string} zip_code - ZIP/Postal code
- * @property {Array} [cards] - Array of card objects
- * @property {string} [default_card_id] - Default card ID from payment gateway
+ * @property {Card[]} [cards] - Array of card objects
+ * @property {string|null} [default_card_id] - Default card ID from payment gateway
  */
 
 /**
@@ -130,8 +139,8 @@ export async function upsertBillingDetails(userId, billingData) {
 /**
  * Add a card to user's billing details
  * @param {string} userId - User ID
- * @param {Object} cardData - Card data from payment gateway
- * @param {boolean} setAsDefault - Whether to set this card as default
+ * @param {Card} cardData - Card data from payment gateway
+ * @param {boolean} [setAsDefault=false] - Whether to set this card as default
  * @returns {Promise<BillingDetails>} Updated billing details
  */
 export async function addCardToBillingDetails(userId, cardData, setAsDefault = false) {
@@ -224,5 +233,5 @@ export async function deleteBillingDetails(userId) {
 	`;
 	
 	const result = await pool.query(query, [userId]);
-	return result.rowCount > 0;
+	return (result.rowCount ?? 0) > 0;
 }

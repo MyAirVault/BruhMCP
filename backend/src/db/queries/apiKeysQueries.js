@@ -6,9 +6,29 @@
 import { pool } from '../config.js';
 
 /**
+ * @typedef {Object} APIKeyRecord
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the API key
+ * @property {string} mcp_service_id - MCP service identifier
+ * @property {string} custom_name - Custom name for the API key
+ * @property {string} status - Status of the API key
+ * @property {Date|null} expires_at - Expiration date
+ * @property {Date|null} last_used_at - Last usage timestamp
+ * @property {number} usage_count - Number of times used
+ * @property {Date} created_at - Creation timestamp
+ * @property {Date} updated_at - Last update timestamp
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether credentials are valid
+ * @property {string} message - Validation message
+ */
+
+/**
  * Get all API keys for a user
  * @param {string} userId - User ID
- * @returns {Promise<Array>} Array of API key records
+ * @returns {Promise<APIKeyRecord[]>} Array of API key records
  */
 export async function getAllAPIKeys(userId) {
 	const query = `
@@ -35,7 +55,7 @@ export async function getAllAPIKeys(userId) {
 /**
  * Get all API keys for a user (alias for compatibility)
  * @param {string} userId - User ID
- * @returns {Promise<Array>} Array of API key records
+ * @returns {Promise<APIKeyRecord[]>} Array of API key records
  */
 export async function getAPIKeysByUserId(userId) {
 	const query = `
@@ -61,10 +81,10 @@ export async function getAPIKeysByUserId(userId) {
 
 /**
  * Store API key (create MCP instance)
- * @param {Object} apiKeyData - API key data
- * @returns {Promise<Object>} Created API key record
+ * @param {Object} _apiKeyData - API key data (unused)
+ * @returns {Promise<never>} Throws error - use createMCP endpoint instead
  */
-export async function storeAPIKey(apiKeyData) {
+export async function storeAPIKey(_apiKeyData) {
 	// This is handled by createMCP controller
 	// Placeholder for compatibility
 	throw new Error('Use createMCP endpoint instead');
@@ -83,15 +103,15 @@ export async function deleteAPIKey(instanceId, userId) {
 	`;
 	
 	const result = await pool.query(query, [instanceId, userId]);
-	return result.rowCount > 0;
+	return (result.rowCount ?? 0) > 0;
 }
 
 /**
  * Validate API key credentials against external service
- * @param {Object} credentials - Credentials to validate
- * @returns {Promise<Object>} Validation result
+ * @param {Object} _credentials - Credentials to validate (unused)
+ * @returns {Promise<ValidationResult>} Validation result
  */
-export async function validateAPIKeyCredentials(credentials) {
+export async function validateAPIKeyCredentials(_credentials) {
 	// This should be handled by service-specific validation
 	// Placeholder for compatibility
 	return {

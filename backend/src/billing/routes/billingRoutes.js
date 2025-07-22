@@ -13,9 +13,8 @@ import {
 	getPaymentHistory,
 	getDetailedSubscriptionInfo,
 } from '../controllers/checkoutController.js';
-import { handleRazorpayWebhook, getWebhookEvents } from '../controllers/webhookController.js';
+import { handleRazorpayWebhook } from '../controllers/webhookController.js';
 import { requireAuth } from '../../middleware/authMiddleware.js';
-import { requireAdmin } from '../../middleware/adminMiddleware.js';
 
 const router = Router();
 
@@ -60,16 +59,5 @@ router.post('/subscription-callback', (req, res) => {
 	res.redirect('/payment-success');
 });
 
-// === Admin Endpoints ===
-// Require admin privileges for debugging and monitoring - if implemented in future
-
-// POST /api/v1/billing/admin/manual-upgrade - Manually upgrade a user to Pro
-import { manualUpgrade } from '../controllers/manualUpgradeController.js';
-// @ts-ignore - TypeScript type inference issue with Express middleware chain
-router.post('/admin/manual-upgrade', requireAuth, requireAdmin, manualUpgrade);
-
-// GET /api/v1/billing/admin/webhook-events - Get webhook processing history
-// @ts-ignore - TypeScript type inference issue with Express middleware chain
-router.get('/admin/webhook-events', requireAuth, requireAdmin, getWebhookEvents);
 
 export default router;

@@ -5,12 +5,36 @@
 
 import mcpInstanceLogger from '../utils/mcpInstanceLogger.js';
 
+/** @typedef {import('express').Request} Request */
+/** @typedef {import('express').Response} Response */
+/** @typedef {import('express').NextFunction} NextFunction */
+/** @typedef {import('express').ErrorRequestHandler} ErrorRequestHandler */
+
+/**
+ * @typedef {Object} MCPLogger
+ * @property {string} instanceId - Instance ID
+ * @property {string} userId - User ID
+ * @property {string} logDir - Log directory path
+ * @property {(level: string, message: string, metadata?: Object) => void} app - Log application events
+ * @property {(method: string, url: string, statusCode: number, responseTime: number, metadata?: Object) => void} access - Log HTTP access
+ * @property {(error: Error | string, metadata?: Object) => void} error - Log errors
+ * @property {(message: string, metadata?: Object) => void} info - Log info messages
+ * @property {(message: string, metadata?: Object) => void} warn - Log warning messages
+ * @property {(message: string, metadata?: Object) => void} debug - Log debug messages
+ * @property {(operation: string, data?: Object) => void} mcpOperation - Log MCP operations
+ */
+
 /**
  * Create MCP request logging middleware for a specific service
  * @param {string} serviceName - Name of the MCP service (e.g., 'figma', 'github')
- * @returns {Function} Express middleware function
+ * @returns {(req: Request, res: Response, next: NextFunction) => void} Express middleware function
  */
 export function createMCPLoggingMiddleware(serviceName) {
+	/**
+	 * @param {Request} req - Express request object
+	 * @param {Response} res - Express response object
+	 * @param {NextFunction} next - Express next function
+	 */
 	return (req, res, next) => {
 		const startTime = Date.now();
 		const instanceId = req.instanceId || req.params.instanceId;
@@ -21,7 +45,8 @@ export function createMCPLoggingMiddleware(serviceName) {
 		}
 
 		// Get logger for this instance
-		const logger = mcpInstanceLogger.getLogger(instanceId);
+		/** @type {MCPLogger | null} */
+		const logger = /** @type {MCPLogger | null} */ (mcpInstanceLogger.getLogger(instanceId));
 		
 		// Skip logging if no logger is initialized
 		if (!logger) {
@@ -47,6 +72,9 @@ export function createMCPLoggingMiddleware(serviceName) {
 		let responseLogged = false;
 
 		// Function to log response
+		/**
+		 * @param {any} data - Response data
+		 */
 		const logResponse = (data) => {
 			if (responseLogged) return;
 			responseLogged = true;
@@ -85,21 +113,33 @@ export function createMCPLoggingMiddleware(serviceName) {
 		};
 
 		// Override response methods to capture response
+		/**
+		 * @param {any} data - Response data
+		 */
 		res.send = function(data) {
 			logResponse(data);
 			return originalSend.call(this, data);
 		};
 
+		/**
+		 * @param {any} data - JSON response data
+		 */
 		res.json = function(data) {
 			logResponse(data);
 			return originalJson.call(this, data);
 		};
 
-		res.end = function(data, encoding) {
+		/**
+		 * @param {any} data - Response data
+		 * @param {BufferEncoding | (() => void)} [encodingOrCallback] - Encoding type or callback
+		 * @param {(() => void)} [callback] - Callback function
+		 */
+		res.end = function(data, encodingOrCallback, callback) {
 			if (!responseLogged) {
 				logResponse(data);
 			}
-			return originalEnd.call(this, data, encoding);
+			// Cast to any to handle Express overloaded signatures
+			return /** @type {any} */ (originalEnd).call(this, data, encodingOrCallback, callback);
 		};
 
 		// Handle response finish event as fallback
@@ -116,14 +156,21 @@ export function createMCPLoggingMiddleware(serviceName) {
 /**
  * Create MCP error logging middleware for a specific service
  * @param {string} serviceName - Name of the MCP service
- * @returns {Function} Express error middleware function
+ * @returns {(err: Error, req: Request, res: Response, next: NextFunction) => void} Express error middleware function
  */
 export function createMCPErrorMiddleware(serviceName) {
-	return (err, req, res, next) => {
+	/**
+	 * @param {Error} err - Error object
+	 * @param {Request} req - Express request object
+	 * @param {Response} _res - Express response object (unused)
+	 * @param {NextFunction} next - Express next function
+	 */
+	return (err, req, _res, next) => {
 		const instanceId = req.instanceId || req.params.instanceId;
 		
 		if (instanceId) {
-			const logger = mcpInstanceLogger.getLogger(instanceId);
+			/** @type {MCPLogger | null} */
+			const logger = /** @type {MCPLogger | null} */ (mcpInstanceLogger.getLogger(instanceId));
 			
 			if (logger) {
 				// Log error to error.log
@@ -140,7 +187,7 @@ export function createMCPErrorMiddleware(serviceName) {
 				logger.app('error', `${serviceName.toUpperCase()} service error`, {
 					message: err.message,
 					name: err.name,
-					code: err.code,
+					code: /** @type {any} */ (err).code,
 					method: req.method,
 					url: req.originalUrl
 				});
@@ -154,9 +201,14 @@ export function createMCPErrorMiddleware(serviceName) {
 /**
  * Create MCP operation logging middleware for JSON-RPC operations
  * @param {string} serviceName - Name of the MCP service
- * @returns {Function} Express middleware function
+ * @returns {(req: Request, res: Response, next: NextFunction) => void} Express middleware function
  */
 export function createMCPOperationMiddleware(serviceName) {
+	/**
+	 * @param {Request} req - Express request object
+	 * @param {Response} res - Express response object
+	 * @param {NextFunction} next - Express next function
+	 */
 	return (req, res, next) => {
 		const instanceId = req.instanceId || req.params.instanceId;
 		
@@ -164,7 +216,8 @@ export function createMCPOperationMiddleware(serviceName) {
 			return next();
 		}
 
-		const logger = mcpInstanceLogger.getLogger(instanceId);
+		/** @type {MCPLogger | null} */
+		const logger = /** @type {MCPLogger | null} */ (mcpInstanceLogger.getLogger(instanceId));
 		
 		if (!logger) {
 			return next();
@@ -183,6 +236,9 @@ export function createMCPOperationMiddleware(serviceName) {
 
 		// Override res.json to log responses
 		const originalJson = res.json;
+		/**
+		 * @param {any} data - JSON response data
+		 */
 		res.json = function(data) {
 			if (data && (data.result || data.error)) {
 				logger.mcpOperation('json-rpc-response', {
@@ -204,14 +260,14 @@ export function createMCPOperationMiddleware(serviceName) {
 /**
  * Create startup logging function for MCP services
  * @param {string} serviceName - Name of the MCP service
- * @param {Object} serviceConfig - Service configuration
- * @returns {Function} Function to call on service startup
+ * @param {Object} _serviceConfig - Service configuration (unused)
+ * @returns {{logServiceStartup: (activeInstances?: string[]) => void, logInstanceEvent: (instanceId: string, event: string, data?: Object) => void}} Service logger object
  */
-export function createMCPServiceLogger(serviceName, serviceConfig) {
+export function createMCPServiceLogger(serviceName, _serviceConfig) {
 	return {
 		/**
 		 * Log service startup for all instances
-		 * @param {Array<string>} activeInstances - Array of active instance IDs
+		 * @param {string[]} [activeInstances=[]] - Array of active instance IDs
 		 */
 		logServiceStartup: (activeInstances = []) => {
 			console.log(`📝 Initializing logging for ${serviceName.toUpperCase()} service`);
@@ -225,10 +281,11 @@ export function createMCPServiceLogger(serviceName, serviceConfig) {
 		 * Log instance-specific events
 		 * @param {string} instanceId - Instance ID
 		 * @param {string} event - Event type
-		 * @param {Object} data - Event data
+		 * @param {Object} [data={}] - Event data
 		 */
 		logInstanceEvent: (instanceId, event, data = {}) => {
-			const logger = mcpInstanceLogger.getLogger(instanceId);
+			/** @type {MCPLogger | null} */
+			const logger = /** @type {MCPLogger | null} */ (mcpInstanceLogger.getLogger(instanceId));
 			
 			if (logger) {
 				logger.app('info', `${serviceName.toUpperCase()} instance event: ${event}`, {

@@ -6,9 +6,147 @@
 import { pool } from '../config.js';
 
 /**
+ * @typedef {Object} MCPInstanceFilters
+ * @property {string} [status] - Filter by instance status
+ * @property {string} [mcp_type] - Filter by MCP service type
+ * @property {number} [limit] - Limit number of results
+ */
+
+/**
+ * @typedef {Object} MCPInstanceRecord
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {string} custom_name - Custom name for the instance
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {string} oauth_status - OAuth status (pending, completed, failed, expired)
+ * @property {Date|null} expires_at - Expiration timestamp
+ * @property {Date|null} last_used_at - Last usage timestamp
+ * @property {number} usage_count - Usage count
+ * @property {number} renewed_count - Renewal count
+ * @property {Date} created_at - Creation timestamp
+ * @property {Date} updated_at - Last update timestamp
+ * @property {string} mcp_service_name - MCP service name
+ * @property {string} display_name - Service display name
+ * @property {string} type - Service type
+ * @property {number} port - Service port
+ * @property {string} icon_url_path - Icon URL path
+ * @property {Date|null} oauth_completed_at - OAuth completion timestamp
+ * @property {Date|null} token_expires_at - Token expiration timestamp
+ * @property {string} [api_key] - API key (only in detailed views)
+ * @property {string} [client_id] - OAuth client ID (only in detailed views)
+ * @property {string} [client_secret] - OAuth client secret (only in detailed views)
+ * @property {string} [access_token] - OAuth access token (only in detailed views)
+ * @property {string} [refresh_token] - OAuth refresh token (only in detailed views)
+ */
+
+/**
+ * @typedef {Object} MCPInstanceUpdateData
+ * @property {string} [custom_name] - Custom name for the instance
+ * @property {string} [status] - Instance status
+ * @property {Date} [expires_at] - Expiration timestamp
+ * @property {string} [api_key] - API key
+ * @property {string} [client_id] - OAuth client ID
+ * @property {string} [client_secret] - OAuth client secret
+ */
+
+/**
+ * @typedef {Object} MCPInstanceCreateData
+ * @property {string} userId - User ID
+ * @property {string} mcpServiceId - MCP service ID
+ * @property {string} customName - Custom name for the instance
+ * @property {string} [apiKey] - API key for api_key type services
+ * @property {string} [clientId] - Client ID for oauth type services
+ * @property {string} [clientSecret] - Client secret for oauth type services
+ * @property {Date} [expiresAt] - Expiration date
+ * @property {string} serviceType - Service type ('api_key' or 'oauth')
+ */
+
+/**
+ * @typedef {Object} OAuthUpdateData
+ * @property {string} status - OAuth status ('completed', 'failed', 'expired')
+ * @property {string} [accessToken] - Access token
+ * @property {string} [refreshToken] - Refresh token
+ * @property {Date} [tokenExpiresAt] - Token expiration date
+ * @property {string} [scope] - OAuth scope
+ * @property {number} [expectedVersion] - Expected version for optimistic locking
+ */
+
+/**
+ * @typedef {Object} MCPServiceStatsUpdate
+ * @property {number} [activeInstancesIncrement] - Increment active instances by this amount
+ */
+
+/**
+ * @typedef {Object} TokenAuditData
+ * @property {string} instanceId - Instance ID
+ * @property {string} operation - Operation type (refresh, revoke, validate, etc.)
+ * @property {string} status - Operation status (success, failure, pending)
+ * @property {string} [method] - Method used (oauth_service, direct_oauth)
+ * @property {string} [errorType] - Error type if failed
+ * @property {string} [errorMessage] - Error message if failed
+ * @property {Object} [metadata] - Additional metadata
+ * @property {string} [userId] - User ID (optional)
+ */
+
+/**
+ * @typedef {Object} AuditLogOptions
+ * @property {number} [limit] - Limit number of results (default: 50)
+ * @property {number} [offset] - Offset for pagination (default: 0)
+ * @property {string} [operation] - Filter by operation type
+ * @property {string} [status] - Filter by status
+ * @property {Date} [since] - Get logs since this date
+ */
+
+/**
+ * @typedef {Object} AuditLogRecord
+ * @property {string} audit_id - Audit log ID
+ * @property {string} instance_id - Instance ID
+ * @property {string} user_id - User ID
+ * @property {string} operation - Operation type
+ * @property {string} status - Operation status
+ * @property {string} method - Method used
+ * @property {string} error_type - Error type
+ * @property {string} error_message - Error message
+ * @property {Object|null} metadata - Additional metadata
+ * @property {Date} created_at - Creation timestamp
+ */
+
+/**
+ * @typedef {Object} InstanceStatusRecord
+ * @property {string} instance_id - Instance ID
+ * @property {string} user_id - User ID
+ * @property {string} status - Instance status
+ * @property {Date|null} expires_at - Expiration timestamp
+ * @property {Date} updated_at - Last update timestamp
+ * @property {string} mcp_service_name - MCP service name
+ */
+
+/**
+ * @typedef {Object} CreateInstanceResult
+ * @property {boolean} success - Whether creation was successful
+ * @property {string} [reason] - Reason for failure
+ * @property {string} [message] - Human readable message
+ * @property {MCPInstanceRecord} [instance] - Created instance (on success)
+ * @property {number} [currentCount] - Current active instance count
+ * @property {number} [maxInstances] - Maximum allowed instances
+ * @property {string} [error] - Error message (on failure)
+ */
+
+/**
+ * @typedef {Object} AuditStats
+ * @property {number} totalOperations - Total number of operations
+ * @property {Object<string, number>} operationsByType - Operations grouped by type
+ * @property {Object<string, number>} operationsByStatus - Operations grouped by status
+ * @property {Object<string, number>} operationsByMethod - Operations grouped by method
+ * @property {Object<string, number>} errorsByType - Errors grouped by type
+ * @property {Object<string, {total: number, success: number, failure: number}>} dailyBreakdown - Daily statistics
+ */
+
+/**
  * Get all MCP instances for a user
  * @param {string} userId - User ID
- * @param {Object} filters - Optional filters
+ * @param {MCPInstanceFilters} [filters={}] - Optional filters
+ * @returns {Promise<MCPInstanceRecord[]>} Array of MCP instance records
  */
 export async function getAllMCPInstances(userId, filters = {}) {
 	let query = `
@@ -56,7 +194,7 @@ export async function getAllMCPInstances(userId, filters = {}) {
 
 	if (filters.limit) {
 		query += ` LIMIT $${paramIndex}`;
-		params.push(filters.limit);
+		params.push(filters.limit.toString());
 		paramIndex++;
 	}
 
@@ -68,7 +206,7 @@ export async function getAllMCPInstances(userId, filters = {}) {
  * Get single MCP instance by ID
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
- * @returns {Promise<Object|null>} MCP instance record or null
+ * @returns {Promise<MCPInstanceRecord|null>} MCP instance record or null
  */
 export async function getMCPInstanceById(instanceId, userId) {
 	const query = `
@@ -110,8 +248,8 @@ export async function getMCPInstanceById(instanceId, userId) {
  * Update MCP instance
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
- * @param {Object} updateData - Data to update
- * @returns {Promise<Object|null>} Updated instance record or null
+ * @param {MCPInstanceUpdateData} updateData - Data to update
+ * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
 export async function updateMCPInstance(instanceId, userId, updateData) {
 	const setClauses = [];
@@ -192,7 +330,7 @@ export async function deleteMCPInstance(instanceId, userId) {
 	`;
 
 	const result = await pool.query(query, [instanceId, userId]);
-	return result.rowCount > 0;
+	return (result.rowCount ?? 0) > 0;
 }
 
 /**
@@ -200,7 +338,7 @@ export async function deleteMCPInstance(instanceId, userId) {
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
  * @param {boolean} isActive - New active status
- * @returns {Promise<Object|null>} Updated instance record or null
+ * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
 export async function toggleMCPInstance(instanceId, userId, isActive) {
 	const status = isActive ? 'active' : 'inactive';
@@ -212,7 +350,7 @@ export async function toggleMCPInstance(instanceId, userId, isActive) {
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
  * @param {Date} newExpirationDate - New expiration date
- * @returns {Promise<Object|null>} Updated instance record or null
+ * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
 export async function renewMCPInstance(instanceId, userId, newExpirationDate) {
 	const query = `
@@ -236,7 +374,7 @@ export async function renewMCPInstance(instanceId, userId, newExpirationDate) {
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
  * @param {string} status - New status (active, inactive, expired)
- * @returns {Promise<Object|null>} Updated instance record or null
+ * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
 export async function updateInstanceStatus(instanceId, userId, status) {
 	const query = `
@@ -255,7 +393,7 @@ export async function updateInstanceStatus(instanceId, userId, status) {
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
  * @param {string} newExpirationDate - New expiration date
- * @returns {Promise<Object|null>} Updated instance record or null
+ * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
 export async function renewInstanceExpiration(instanceId, userId, newExpirationDate) {
 	const query = `
@@ -272,7 +410,7 @@ export async function renewInstanceExpiration(instanceId, userId, newExpirationD
 /**
  * Get instances by status (for background maintenance)
  * @param {string} status - Status to filter by
- * @returns {Promise<Array>} Array of instances with the specified status
+ * @returns {Promise<InstanceStatusRecord[]>} Array of instances with the specified status
  */
 export async function getInstancesByStatus(status) {
 	const query = `
@@ -295,7 +433,7 @@ export async function getInstancesByStatus(status) {
 
 /**
  * Get expired instances (for background cleanup)
- * @returns {Promise<Array>} Array of expired instances
+ * @returns {Promise<InstanceStatusRecord[]>} Array of expired instances
  */
 export async function getExpiredInstances() {
 	const query = `
@@ -318,7 +456,7 @@ export async function getExpiredInstances() {
 
 /**
  * Get failed OAuth instances (for background cleanup)
- * @returns {Promise<Array>} Array of instances with failed OAuth status
+ * @returns {Promise<InstanceStatusRecord[]>} Array of instances with failed OAuth status
  */
 export async function getFailedOAuthInstances() {
 	const query = `
@@ -341,8 +479,8 @@ export async function getFailedOAuthInstances() {
 
 /**
  * Get pending OAuth instances older than specified minutes (for background cleanup)
- * @param {number} minutesOld - Minutes threshold (default: 5)
- * @returns {Promise<Array>} Array of instances with pending OAuth status older than threshold
+ * @param {number} [minutesOld=5] - Minutes threshold (default: 5)
+ * @returns {Promise<InstanceStatusRecord[]>} Array of instances with pending OAuth status older than threshold
  */
 export async function getPendingOAuthInstances(minutesOld = 5) {
 	const query = `
@@ -367,7 +505,7 @@ export async function getPendingOAuthInstances(minutesOld = 5) {
 
 /**
  * Bulk update expired instances to expired status
- * @param {Array<string>} instanceIds - Array of instance IDs to mark as expired
+ * @param {string[]} instanceIds - Array of instance IDs to mark as expired
  * @returns {Promise<number>} Number of instances updated
  */
 export async function bulkMarkInstancesExpired(instanceIds) {
@@ -381,13 +519,13 @@ export async function bulkMarkInstancesExpired(instanceIds) {
 	`;
 
 	const result = await pool.query(query, instanceIds);
-	return result.rowCount;
+	return result.rowCount ?? 0;
 }
 
 /**
  * Get user instance count by status (only counts completed OAuth instances)
  * @param {string} userId - User ID
- * @param {string} [status] - Optional status filter (if not provided, counts active instances only)
+ * @param {string|null} [status=null] - Optional status filter (if not provided, counts active instances only)
  * @returns {Promise<number>} Number of instances with completed OAuth
  */
 export async function getUserInstanceCount(userId, status = null) {
@@ -414,15 +552,8 @@ export async function getUserInstanceCount(userId, status = null) {
 
 /**
  * Create new MCP instance with transaction support
- * @param {Object} instanceData - Instance data
- * @param {string} instanceData.userId - User ID
- * @param {string} instanceData.mcpServiceId - MCP service ID
- * @param {string} instanceData.customName - Custom instance name
- * @param {string} [instanceData.apiKey] - API key for api_key type services
- * @param {string} [instanceData.clientId] - Client ID for oauth type services
- * @param {string} [instanceData.clientSecret] - Client secret for oauth type services
- * @param {Date} [instanceData.expiresAt] - Expiration date
- * @returns {Promise<Object>} Created instance record
+ * @param {MCPInstanceCreateData} instanceData - Instance data
+ * @returns {Promise<MCPInstanceRecord>} Created instance record
  */
 export async function createMCPInstance(instanceData) {
 	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
@@ -493,17 +624,9 @@ export async function createMCPInstance(instanceData) {
 
 /**
  * Create MCP instance with atomic plan limit checking
- * @param {Object} instanceData - Instance data
- * @param {string} instanceData.userId - User ID
- * @param {string} instanceData.mcpServiceId - MCP service ID
- * @param {string} instanceData.customName - Custom instance name
- * @param {string} [instanceData.apiKey] - API key for api_key type services
- * @param {string} [instanceData.clientId] - Client ID for oauth type services
- * @param {string} [instanceData.clientSecret] - Client secret for oauth type services
- * @param {Date} [instanceData.expiresAt] - Expiration date
- * @param {string} instanceData.serviceType - Service type ('api_key' or 'oauth')
+ * @param {MCPInstanceCreateData} instanceData - Instance data
  * @param {number|null} maxInstances - Maximum allowed active instances (null = unlimited)
- * @returns {Promise<Object>} Created instance record or error
+ * @returns {Promise<CreateInstanceResult>} Created instance record or error
  */
 export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances) {
 	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
@@ -608,7 +731,7 @@ export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances
 			success: false,
 			reason: 'DATABASE_ERROR',
 			message: 'Failed to create instance due to database error',
-			error: error.message
+			error: error instanceof Error ? error.message : String(error)
 		};
 	} finally {
 		client.release();
@@ -618,13 +741,8 @@ export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances
 /**
  * Update OAuth status and tokens for an instance
  * @param {string} instanceId - Instance ID
- * @param {Object} oauthData - OAuth data
- * @param {string} oauthData.status - OAuth status ('completed', 'failed', 'expired')
- * @param {string} [oauthData.accessToken] - Access token
- * @param {string} [oauthData.refreshToken] - Refresh token
- * @param {Date} [oauthData.tokenExpiresAt] - Token expiration date
- * @param {string} [oauthData.scope] - OAuth scope
- * @returns {Promise<Object>} Updated instance record
+ * @param {OAuthUpdateData} oauthData - OAuth data
+ * @returns {Promise<MCPInstanceRecord>} Updated instance record
  */
 export async function updateOAuthStatus(instanceId, oauthData) {
 	const { status, accessToken, refreshToken, tokenExpiresAt, scope } = oauthData;
@@ -686,15 +804,9 @@ export async function updateOAuthStatus(instanceId, oauthData) {
 /**
  * Update OAuth status and tokens with optimistic locking
  * @param {string} instanceId - Instance ID
- * @param {Object} oauthData - OAuth data
- * @param {string} oauthData.status - OAuth status ('completed', 'failed', 'expired')
- * @param {string} [oauthData.accessToken] - Access token
- * @param {string} [oauthData.refreshToken] - Refresh token
- * @param {Date} [oauthData.tokenExpiresAt] - Token expiration date
- * @param {string} [oauthData.scope] - OAuth scope
- * @param {number} [oauthData.expectedVersion] - Expected version for optimistic locking
- * @param {number} [maxRetries] - Maximum retry attempts (default: 3)
- * @returns {Promise<Object>} Updated instance record
+ * @param {OAuthUpdateData} oauthData - OAuth data
+ * @param {number} [maxRetries=3] - Maximum retry attempts (default: 3)
+ * @returns {Promise<MCPInstanceRecord>} Updated instance record
  */
 export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRetries = 3) {
 	const { status, accessToken, refreshToken, tokenExpiresAt, scope, expectedVersion } = oauthData;
@@ -793,7 +905,7 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
 			await client.query('ROLLBACK');
 
 			// Don't retry on non-concurrency errors
-			if (!error.message.includes('Optimistic locking failed')) {
+			if (!(error instanceof Error) || !error.message.includes('Optimistic locking failed')) {
 				throw error;
 			}
 
@@ -804,14 +916,16 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
 			client.release();
 		}
 	}
+	
+	// This should never be reached due to error throwing above
+	throw new Error(`Failed to update OAuth status after ${maxRetries} attempts`);
 }
 
 /**
  * Update MCP service statistics (increment counters)
  * @param {string} serviceId - Service ID
- * @param {Object} updates - Statistics updates
- * @param {number} [updates.activeInstancesIncrement] - Increment active instances by this amount
- * @returns {Promise<Object|null>} Updated service record
+ * @param {MCPServiceStatsUpdate} updates - Statistics updates
+ * @returns {Promise<MCPInstanceRecord|null>} Updated service record
  */
 export async function updateMCPServiceStats(serviceId, updates) {
 	const setClauses = [];
@@ -844,16 +958,8 @@ export async function updateMCPServiceStats(serviceId, updates) {
 
 /**
  * Create audit log entry for token operations
- * @param {Object} auditData - Audit data
- * @param {string} auditData.instanceId - Instance ID
- * @param {string} auditData.operation - Operation type (refresh, revoke, validate, etc.)
- * @param {string} auditData.status - Operation status (success, failure, pending)
- * @param {string} [auditData.method] - Method used (oauth_service, direct_oauth)
- * @param {string} [auditData.errorType] - Error type if failed
- * @param {string} [auditData.errorMessage] - Error message if failed
- * @param {Object} [auditData.metadata] - Additional metadata
- * @param {string} [auditData.userId] - User ID (optional)
- * @returns {Promise<Object>} Created audit log entry
+ * @param {TokenAuditData} auditData - Audit data
+ * @returns {Promise<AuditLogRecord|null>} Created audit log entry
  */
 export async function createTokenAuditLog(auditData) {
 	const { instanceId, operation, status, method, errorType, errorMessage, metadata, userId } = auditData;
@@ -894,7 +1000,9 @@ export async function createTokenAuditLog(auditData) {
 		return result.rows[0];
 	} catch (error) {
 		// If audit table doesn't exist, log error but don't fail the operation
-		if (error.code === '42P01') {
+		/** @type {{code?: string}} */
+		const pgError = /** @type {any} */ (error);
+		if (pgError.code === '42P01') {
 			// relation does not exist
 			console.warn('⚠️  Token audit table does not exist. Skipping audit log.');
 			return null;
@@ -906,13 +1014,8 @@ export async function createTokenAuditLog(auditData) {
 /**
  * Get audit logs for an instance
  * @param {string} instanceId - Instance ID
- * @param {Object} options - Query options
- * @param {number} [options.limit] - Limit number of results (default: 50)
- * @param {number} [options.offset] - Offset for pagination (default: 0)
- * @param {string} [options.operation] - Filter by operation type
- * @param {string} [options.status] - Filter by status
- * @param {Date} [options.since] - Get logs since this date
- * @returns {Promise<Array>} Array of audit log entries
+ * @param {AuditLogOptions} [options={}] - Query options
+ * @returns {Promise<AuditLogRecord[]>} Array of audit log entries
  */
 export async function getTokenAuditLogs(instanceId, options = {}) {
 	const { limit = 50, offset = 0, operation, status, since } = options;
@@ -951,13 +1054,13 @@ export async function getTokenAuditLogs(instanceId, options = {}) {
 
 	if (since) {
 		query += ` AND created_at >= $${paramIndex}`;
-		params.push(since);
+		params.push(since.toISOString());
 		paramIndex++;
 	}
 
 	// Order and pagination
 	query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-	params.push(limit, offset);
+	params.push(limit.toString(), offset.toString());
 
 	try {
 		const result = await pool.query(query, params);
@@ -969,7 +1072,9 @@ export async function getTokenAuditLogs(instanceId, options = {}) {
 		}));
 	} catch (error) {
 		// If audit table doesn't exist, return empty array
-		if (error.code === '42P01') {
+		/** @type {{code?: string}} */
+		const pgError = /** @type {any} */ (error);
+		if (pgError.code === '42P01') {
 			console.warn('⚠️  Token audit table does not exist. Returning empty audit log.');
 			return [];
 		}
@@ -979,9 +1084,9 @@ export async function getTokenAuditLogs(instanceId, options = {}) {
 
 /**
  * Get audit log statistics
- * @param {string} [instanceId] - Instance ID (optional, for all instances if not provided)
- * @param {number} [days] - Number of days to include (default: 30)
- * @returns {Promise<Object>} Audit statistics
+ * @param {string|undefined} [instanceId] - Instance ID (optional, for all instances if not provided)
+ * @param {number} [days=30] - Number of days to include (default: 30)
+ * @returns {Promise<AuditStats>} Audit statistics
  */
 export async function getTokenAuditStats(instanceId, days = 30) {
 	const cutoffDate = new Date();
@@ -999,7 +1104,7 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 		WHERE created_at >= $1
 	`;
 
-	const params = [cutoffDate];
+	const params = [cutoffDate.toISOString()];
 	let paramIndex = 2;
 
 	if (instanceId) {
@@ -1017,13 +1122,14 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 		const result = await pool.query(query, params);
 
 		// Aggregate statistics
+		/** @type {AuditStats} */
 		const stats = {
 			totalOperations: 0,
-			operationsByType: {},
-			operationsByStatus: {},
-			operationsByMethod: {},
-			errorsByType: {},
-			dailyBreakdown: {},
+			operationsByType: /** @type {Object<string, number>} */ ({}),
+			operationsByStatus: /** @type {Object<string, number>} */ ({}),
+			operationsByMethod: /** @type {Object<string, number>} */ ({}),
+			errorsByType: /** @type {Object<string, number>} */ ({}),
+			dailyBreakdown: /** @type {Object<string, {total: number, success: number, failure: number}>} */ ({}),
 		};
 
 		result.rows.forEach(row => {
@@ -1031,35 +1137,27 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 			stats.totalOperations += count;
 
 			// By operation type
-			if (!stats.operationsByType[row.operation]) {
-				stats.operationsByType[row.operation] = 0;
-			}
-			stats.operationsByType[row.operation] += count;
+			const operationType = String(row.operation);
+			stats.operationsByType[operationType] = (stats.operationsByType[operationType] || 0) + count;
 
 			// By status
-			if (!stats.operationsByStatus[row.status]) {
-				stats.operationsByStatus[row.status] = 0;
-			}
-			stats.operationsByStatus[row.status] += count;
+			const statusType = String(row.status);
+			stats.operationsByStatus[statusType] = (stats.operationsByStatus[statusType] || 0) + count;
 
 			// By method
 			if (row.method) {
-				if (!stats.operationsByMethod[row.method]) {
-					stats.operationsByMethod[row.method] = 0;
-				}
-				stats.operationsByMethod[row.method] += count;
+				const methodType = String(row.method);
+				stats.operationsByMethod[methodType] = (stats.operationsByMethod[methodType] || 0) + count;
 			}
 
 			// By error type
 			if (row.error_type) {
-				if (!stats.errorsByType[row.error_type]) {
-					stats.errorsByType[row.error_type] = 0;
-				}
-				stats.errorsByType[row.error_type] += count;
+				const errorType = String(row.error_type);
+				stats.errorsByType[errorType] = (stats.errorsByType[errorType] || 0) + count;
 			}
 
 			// Daily breakdown
-			const dateStr = row.date;
+			const dateStr = String(row.date);
 			if (!stats.dailyBreakdown[dateStr]) {
 				stats.dailyBreakdown[dateStr] = {
 					total: 0,
@@ -1079,7 +1177,9 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 		return stats;
 	} catch (error) {
 		// If audit table doesn't exist, return empty stats
-		if (error.code === '42P01') {
+		/** @type {{code?: string}} */
+		const pgError = /** @type {any} */ (error);
+		if (pgError.code === '42P01') {
 			console.warn('⚠️  Token audit table does not exist. Returning empty stats.');
 			return {
 				totalOperations: 0,
@@ -1096,7 +1196,7 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 
 /**
  * Clean up old audit logs
- * @param {number} daysToKeep - Number of days to keep (default: 90)
+ * @param {number} [daysToKeep=90] - Number of days to keep (default: 90)
  * @returns {Promise<number>} Number of deleted records
  */
 export async function cleanupTokenAuditLogs(daysToKeep = 90) {
@@ -1110,11 +1210,14 @@ export async function cleanupTokenAuditLogs(daysToKeep = 90) {
 
 	try {
 		const result = await pool.query(query, [cutoffDate]);
-		console.log(`🗑️  Cleaned up ${result.rowCount} old audit log entries`);
-		return result.rowCount;
+		const deletedCount = result.rowCount ?? 0;
+		console.log(`🗑️  Cleaned up ${deletedCount} old audit log entries`);
+		return deletedCount;
 	} catch (error) {
 		// If audit table doesn't exist, return 0
-		if (error.code === '42P01') {
+		/** @type {{code?: string}} */
+		const pgError = /** @type {any} */ (error);
+		if (pgError.code === '42P01') {
 			console.warn('⚠️  Token audit table does not exist. Nothing to clean up.');
 			return 0;
 		}

@@ -6,9 +6,42 @@
 import { pool } from '../config.js';
 
 /**
+ * @typedef {Object} UserPlan
+ * @property {string} plan_id - Plan ID
+ * @property {string} user_id - User ID
+ * @property {string} plan_type - Plan type (free/pro)
+ * @property {number|null} max_instances - Maximum instances allowed
+ * @property {Object} features - Plan features
+ * @property {string|null} expires_at - Plan expiration date
+ * @property {string|null} subscription_id - Payment subscription ID
+ * @property {string|null} customer_id - Payment customer ID
+ * @property {string|null} payment_status - Payment status
+ * @property {string} created_at - Creation timestamp
+ * @property {string} updated_at - Last update timestamp
+ */
+
+/**
+ * @typedef {Object} PlanOptions
+ * @property {Date|null} [expiresAt] - Plan expiration date
+ * @property {Object} [features] - Plan features
+ */
+
+/**
+ * @typedef {Object} QueryOptions
+ * @property {number} [limit] - Limit results
+ * @property {number} [offset] - Offset for pagination
+ */
+
+/**
+ * @typedef {Object} PlanStatistics
+ * @property {number} total_users - Total users count
+ * @property {Object.<string, {total: number, active: number, expired: number}>} by_plan - Stats by plan type
+ */
+
+/**
  * Get user's current plan
  * @param {string} userId - User ID
- * @returns {Promise<import('../../types/billing.d.ts').UserPlan|null>} User plan object or null if not found
+ * @returns {Promise<UserPlan|null>} User plan object or null if not found
  */
 export async function getUserPlan(userId) {
 	try {
@@ -41,10 +74,8 @@ export async function getUserPlan(userId) {
  * Update user's plan
  * @param {string} userId - User ID
  * @param {string} planType - Plan type ('free' or 'pro')
- * @param {Object} options - Additional options
- * @param {Date|null} options.expiresAt - Plan expiration date
- * @param {Object} options.features - Plan features
- * @returns {Promise<import('../../types/billing.d.ts').UserPlan>} Updated plan object
+ * @param {PlanOptions} [options] - Additional options
+ * @returns {Promise<UserPlan>} Updated plan object
  */
 export async function updateUserPlan(userId, planType, options = {}) {
 	try {
@@ -82,11 +113,9 @@ export async function updateUserPlan(userId, planType, options = {}) {
 /**
  * Create user plan (used for new users if auto-trigger fails)
  * @param {string} userId - User ID
- * @param {string} planType - Plan type ('free' or 'pro')
- * @param {Object} options - Additional options
- * @param {Date|null} options.expiresAt - Plan expiration date
- * @param {Object} options.features - Plan features
- * @returns {Promise<import('../../types/billing.d.ts').UserPlan>} Created plan object
+ * @param {string} [planType] - Plan type ('free' or 'pro')
+ * @param {PlanOptions} [options] - Additional options
+ * @returns {Promise<UserPlan>} Created plan object
  */
 export async function createUserPlan(userId, planType = 'free', options = {}) {
 	try {
@@ -154,10 +183,8 @@ export async function isUserPlanActive(userId) {
 /**
  * Get all users with a specific plan type
  * @param {string} planType - Plan type ('free' or 'pro')
- * @param {Object} options - Query options
- * @param {number} options.limit - Limit results
- * @param {number} options.offset - Offset for pagination
- * @returns {Promise<Array>} Array of users with the specified plan
+ * @param {QueryOptions} [options] - Query options
+ * @returns {Promise<UserPlan[]>} Array of users with the specified plan
  */
 export async function getUsersByPlanType(planType, options = {}) {
 	try {
@@ -192,7 +219,7 @@ export async function getUsersByPlanType(planType, options = {}) {
 
 /**
  * Get plan statistics
- * @returns {Promise<Object>} Plan statistics
+ * @returns {Promise<PlanStatistics>} Plan statistics
  */
 export async function getPlanStatistics() {
 	try {
@@ -208,6 +235,7 @@ export async function getPlanStatistics() {
 		
 		const result = await pool.query(query);
 		
+		/** @type {PlanStatistics} */
 		const stats = {
 			total_users: 0,
 			by_plan: {}
@@ -236,7 +264,7 @@ export async function getPlanStatistics() {
  * @param {string} billingData.subscriptionId - Subscription ID
  * @param {string} billingData.customerId - Razorpay customer ID
  * @param {string} billingData.paymentStatus - Payment status
- * @returns {Promise<import('../../types/billing.d.ts').UserPlan>} Updated plan object
+ * @returns {Promise<UserPlan>} Updated plan object
  */
 export async function updateUserPlanBilling(userId, billingData) {
 	try {
@@ -270,7 +298,7 @@ export async function updateUserPlanBilling(userId, billingData) {
 /**
  * Get user plan by subscription ID
  * @param {string} subscriptionId - Subscription ID
- * @returns {Promise<import('../../types/billing.d.ts').UserPlan|null>} User plan object or null if not found
+ * @returns {Promise<UserPlan|null>} User plan object or null if not found
  */
 export async function getUserPlanBySubscriptionId(subscriptionId) {
 	try {
@@ -326,7 +354,7 @@ export async function deactivateAllUserInstances(userId) {
 			console.log(`  - Instance ${row.instance_id} → ${row.status}`);
 		}
 		
-		return result.rowCount;
+		return result.rowCount || 0;
 	} catch (error) {
 		console.error('Error deactivating user instances:', error);
 		throw error;
@@ -338,7 +366,7 @@ export async function deactivateAllUserInstances(userId) {
  * @param {string} userId - User ID
  * @param {string} subscriptionId - Razorpay subscription ID
  * @param {Date} expiresAt - Subscription expiration date
- * @param {string} customerId - Razorpay customer ID
+ * @param {string|null} [customerId] - Razorpay customer ID
  * @returns {Promise<Object>} Result object with status and plan data
  */
 export async function atomicActivateProSubscription(userId, subscriptionId, expiresAt, customerId = null) {

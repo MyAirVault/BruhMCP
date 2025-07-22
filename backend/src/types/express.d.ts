@@ -26,6 +26,7 @@ declare global {
 				port: number;
 				is_active: boolean;
 			};
+			mcpInstance?: import('../db/queries/mcpInstancesQueries.js').MCPInstanceRecord;
 			figmaApiKey?: string;
 			instanceId?: string;
 			userId?: string;

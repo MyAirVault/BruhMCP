@@ -6,9 +6,28 @@
 import { pool } from '../config.js';
 
 /**
+ * @typedef {Object} DatabaseUser
+ * @property {string} id - User ID
+ * @property {string} email - User email
+ * @property {string|null} name - User name
+ * @property {string} created_at - Creation timestamp
+ * @property {string} updated_at - Last update timestamp
+ */
+
+/**
+ * @typedef {Object} UserStats
+ * @property {number} total_instances - Total MCP instances
+ * @property {number} active_instances - Active MCP instances
+ * @property {number} expired_instances - Expired MCP instances  
+ * @property {number} inactive_instances - Inactive MCP instances
+ * @property {string|null} first_instance_created - First instance creation timestamp
+ * @property {string|null} last_activity - Last activity timestamp
+ */
+
+/**
  * Find user by email address
  * @param {string} email - User email
- * @returns {Promise<import('../../types/auth.d.ts').AuthUser|null>} User record or null
+ * @returns {Promise<DatabaseUser|null>} User record or null
  */
 export async function findUserByEmail(email) {
 	const query = `
@@ -29,7 +48,7 @@ export async function findUserByEmail(email) {
 /**
  * Find user by ID
  * @param {string} userId - User ID (UUID)
- * @returns {Promise<Object|null>} User record or null
+ * @returns {Promise<DatabaseUser|null>} User record or null
  */
 export async function findUserById(userId) {
 	const query = `
@@ -51,8 +70,8 @@ export async function findUserById(userId) {
  * Create new user
  * @param {Object} userData - User data
  * @param {string} userData.email - User email
- * @param {string} [userData.name] - User name
- * @returns {Promise<Object>} Created user record
+ * @param {string|null} [userData.name] - User name
+ * @returns {Promise<DatabaseUser>} Created user record
  */
 export async function createUser(userData) {
 	const { email, name } = userData;
@@ -70,8 +89,8 @@ export async function createUser(userData) {
 /**
  * Find existing user or create new one (upsert pattern)
  * @param {string} email - User email
- * @param {string} [name] - User name
- * @returns {Promise<Object>} User record (existing or newly created)
+ * @param {string|null} [name] - User name
+ * @returns {Promise<DatabaseUser>} User record (existing or newly created)
  */
 export async function findOrCreateUser(email, name = null) {
 	const client = await pool.connect();
@@ -115,9 +134,9 @@ export async function findOrCreateUser(email, name = null) {
  * Update user information
  * @param {string} userId - User ID
  * @param {Object} updateData - Data to update
- * @param {string} [updateData.name] - User name
+ * @param {string|null} [updateData.name] - User name
  * @param {string} [updateData.email] - User email
- * @returns {Promise<Object|null>} Updated user record or null
+ * @returns {Promise<DatabaseUser|null>} Updated user record or null
  */
 export async function updateUser(userId, updateData) {
 	const setClauses = [];
@@ -157,7 +176,7 @@ export async function updateUser(userId, updateData) {
 /**
  * Get user statistics
  * @param {string} userId - User ID
- * @returns {Promise<Object>} User statistics
+ * @returns {Promise<UserStats>} User statistics
  */
 export async function getUserStats(userId) {
 	const query = `
