@@ -30,7 +30,7 @@ const PRO_PLAN_CONFIG = {
 
 /**
  * Validate Razorpay configuration
- * @returns {Object} Validation result
+ * @returns {import('../../types/billing.d.ts').RazorpayConfig} Validation result
  */
 export function validateRazorpayConfig() {
 	const requiredVars = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'];
@@ -63,7 +63,7 @@ export function validateRazorpayConfig() {
  * @param {string} email - User email
  * @param {string} successUrl - URL to redirect after successful payment
  * @param {string} cancelUrl - URL to redirect if user cancels
- * @returns {Promise<Object>} Subscription and payment link details
+ * @returns {Promise<import('../../types/billing.d.ts').CheckoutSession>} Subscription and payment link details
  */
 export async function createProSubscriptionCheckout(userId, email, successUrl, cancelUrl) {
 	try {
@@ -176,7 +176,7 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
 /**
  * Cancel a Razorpay subscription
  * @param {string} subscriptionId - Razorpay subscription ID
- * @returns {Promise<Object>} Cancellation result
+ * @returns {Promise<import('../../types/billing.d.ts').CancellationResult>} Cancellation result
  */
 export async function cancelSubscription(subscriptionId) {
 	try {
@@ -207,7 +207,7 @@ export async function cancelSubscription(subscriptionId) {
 /**
  * Retrieve subscription details from Razorpay
  * @param {string} subscriptionId - Razorpay subscription ID
- * @returns {Promise<Object>} Subscription details
+ * @returns {Promise<import('../../types/billing.d.ts').SubscriptionDetails>} Subscription details
  */
 export async function getSubscriptionDetails(subscriptionId) {
 	try {

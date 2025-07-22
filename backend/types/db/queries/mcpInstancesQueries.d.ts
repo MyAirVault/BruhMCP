@@ -2,7 +2,6 @@
  * Get all MCP instances for a user
  * @param {string} userId - User ID
  * @param {Object} filters - Optional filters
- * @returns {Promise<Array>} Array of MCP instance records
  */
 export function getAllMCPInstances(userId: string, filters?: Object): Promise<any[]>;
 /**
@@ -88,10 +87,10 @@ export function getPendingOAuthInstances(minutesOld?: number): Promise<any[]>;
  */
 export function bulkMarkInstancesExpired(instanceIds: Array<string>): Promise<number>;
 /**
- * Get user instance count by status
+ * Get user instance count by status (only counts completed OAuth instances)
  * @param {string} userId - User ID
- * @param {string} [status] - Optional status filter (if not provided, counts non-deleted instances)
- * @returns {Promise<number>} Number of instances
+ * @param {string} [status] - Optional status filter (if not provided, counts active instances only)
+ * @returns {Promise<number>} Number of instances with completed OAuth
  */
 export function getUserInstanceCount(userId: string, status?: string): Promise<number>;
 /**
@@ -115,6 +114,30 @@ export function createMCPInstance(instanceData: {
     clientSecret?: string | undefined;
     expiresAt?: Date | undefined;
 }): Promise<Object>;
+/**
+ * Create MCP instance with atomic plan limit checking
+ * @param {Object} instanceData - Instance data
+ * @param {string} instanceData.userId - User ID
+ * @param {string} instanceData.mcpServiceId - MCP service ID
+ * @param {string} instanceData.customName - Custom instance name
+ * @param {string} [instanceData.apiKey] - API key for api_key type services
+ * @param {string} [instanceData.clientId] - Client ID for oauth type services
+ * @param {string} [instanceData.clientSecret] - Client secret for oauth type services
+ * @param {Date} [instanceData.expiresAt] - Expiration date
+ * @param {string} instanceData.serviceType - Service type ('api_key' or 'oauth')
+ * @param {number|null} maxInstances - Maximum allowed active instances (null = unlimited)
+ * @returns {Promise<Object>} Created instance record or error
+ */
+export function createMCPInstanceWithLimitCheck(instanceData: {
+    userId: string;
+    mcpServiceId: string;
+    customName: string;
+    apiKey?: string | undefined;
+    clientId?: string | undefined;
+    clientSecret?: string | undefined;
+    expiresAt?: Date | undefined;
+    serviceType: string;
+}, maxInstances: number | null): Promise<Object>;
 /**
  * Update OAuth status and tokens for an instance
  * @param {string} instanceId - Instance ID
@@ -158,12 +181,10 @@ export function updateOAuthStatusWithLocking(instanceId: string, oauthData: {
  * Update MCP service statistics (increment counters)
  * @param {string} serviceId - Service ID
  * @param {Object} updates - Statistics updates
- * @param {number} [updates.totalInstancesIncrement] - Increment total instances by this amount
  * @param {number} [updates.activeInstancesIncrement] - Increment active instances by this amount
  * @returns {Promise<Object|null>} Updated service record
  */
 export function updateMCPServiceStats(serviceId: string, updates: {
-    totalInstancesIncrement?: number | undefined;
     activeInstancesIncrement?: number | undefined;
 }): Promise<Object | null>;
 /**

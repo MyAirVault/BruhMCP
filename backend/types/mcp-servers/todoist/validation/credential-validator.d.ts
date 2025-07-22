@@ -1,7 +1,9 @@
+export default createTodoistValidator;
 /**
- * Create a validator instance for the validation registry
- * @param {Object} credentials - Credentials to validate
- * @returns {Object} Validator instance with validateFormat and testCredentials methods
+ * Todoist validator factory
+ * @param {any} credentials - Credentials to validate
+ * @returns {BaseValidator} Validator instance
  */
-export default function createTodoistValidator(credentials: Object): Object;
+declare function createTodoistValidator(credentials: any): BaseValidator;
+import { BaseValidator } from '../../../services/validation/base-validator.js';
 //# sourceMappingURL=credential-validator.d.ts.map

@@ -5,18 +5,15 @@
 
 import { Router } from 'express';
 import express from 'express';
-import { 
-	createCheckoutSession, 
-	handleCheckoutSuccess, 
-	getBillingStatus, 
+import {
+	createCheckoutSession,
+	handleCheckoutSuccess,
+	getBillingStatus,
 	cancelSubscription,
 	getPaymentHistory,
-	getDetailedSubscriptionInfo
+	getDetailedSubscriptionInfo,
 } from '../controllers/checkoutController.js';
-import { 
-	handleRazorpayWebhook, 
-	getWebhookEvents 
-} from '../controllers/webhookController.js';
+import { handleRazorpayWebhook, getWebhookEvents } from '../controllers/webhookController.js';
 import { requireAuth } from '../../middleware/authMiddleware.js';
 import { requireAdmin } from '../../middleware/adminMiddleware.js';
 
@@ -52,16 +49,13 @@ router.get('/saved-cards', requireAuth, getSavedCards);
 
 // POST /api/v1/billing/webhooks/razorpay - Razorpay webhook endpoint
 // Use raw body for webhook signature verification
-router.post('/webhooks/razorpay', 
-	express.raw({ type: 'application/json' }), 
-	handleRazorpayWebhook
-);
+router.post('/webhooks/razorpay', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
 
 // Subscription callback endpoint (for Razorpay redirect)
 router.post('/subscription-callback', (req, res) => {
 	// Just acknowledge the callback - actual processing happens via webhooks
 	console.log('Subscription callback received:', req.body);
-	
+
 	// Redirect to the payment success page
 	res.redirect('/payment-success');
 });

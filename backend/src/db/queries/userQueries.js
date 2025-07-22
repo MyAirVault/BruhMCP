@@ -8,7 +8,7 @@ import { pool } from '../config.js';
 /**
  * Find user by email address
  * @param {string} email - User email
- * @returns {Promise<Object|null>} User record or null
+ * @returns {Promise<import('../../types/auth.d.ts').AuthUser|null>} User record or null
  */
 export async function findUserByEmail(email) {
 	const query = `

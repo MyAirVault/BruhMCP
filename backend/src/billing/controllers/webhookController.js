@@ -4,7 +4,7 @@
  */
 
 import { parseWebhookEvent } from '../services/paymentGateway.js';
-import { updateUserPlan, getUserPlan, updateUserPlanBilling, getUserPlanBySubscriptionId, atomicActivateProSubscription } from '../../db/queries/userPlansQueries.js';
+import { updateUserPlanBilling, getUserPlanBySubscriptionId, atomicActivateProSubscription } from '../../db/queries/userPlansQueries.js';
 import { handlePlanCancellation } from '../../utils/planLimits.js';
 import { pool } from '../../db/config.js';
 
@@ -15,7 +15,7 @@ import { pool } from '../../db/config.js';
  * @param {string} gateway - Payment gateway (razorpay)
  * @param {Object} payload - Full webhook payload
  * @param {string} status - Processing status
- * @param {string} errorMessage - Error message if failed
+ * @param {string|null} errorMessage - Error message if failed
  * @returns {Promise<Object>} Stored event record
  */
 async function storeWebhookEvent(eventId, eventType, gateway, payload, status = 'pending', errorMessage = null) {
@@ -36,7 +36,7 @@ async function storeWebhookEvent(eventId, eventType, gateway, payload, status = 
 		return result.rows[0];
 	} catch (error) {
 		console.error('Error storing webhook event:', error);
-		throw error;
+		throw error instanceof Error ? error : new Error(String(error));
 	}
 }
 
@@ -62,14 +62,14 @@ async function isEventProcessed(eventId) {
 		const status = result.rows[0].processing_status;
 		return status === 'processed' || status === 'skipped';
 	} catch (error) {
-		console.error('Error checking event processing status:', error);
+		console.error('Error checking event processing status:', error instanceof Error ? error.message : String(error));
 		return false;
 	}
 }
 
 /**
  * Process subscription activated event
- * @param {Object} subscription - Razorpay subscription object
+ * @param {any} subscription - Razorpay subscription object
  * @returns {Promise<void>}
  */
 async function processSubscriptionActivated(subscription) {
@@ -102,7 +102,7 @@ async function processSubscriptionActivated(subscription) {
 		subscription.customer_id
 	);
 
-	if (result.status === 'already_active') {
+	if (result && typeof result === 'object' && 'status' in result && result.status === 'already_active') {
 		console.log(`ℹ️ User ${userId} subscription ${subscription.id} already activated`);
 	} else {
 		console.log(`✅ User ${userId} upgraded to Pro plan with subscription ${subscription.id}`);
@@ -111,7 +111,7 @@ async function processSubscriptionActivated(subscription) {
 
 /**
  * Process subscription cancelled event
- * @param {Object} subscription - Razorpay subscription object
+ * @param {any} subscription - Razorpay subscription object
  * @returns {Promise<void>}
  */
 async function processSubscriptionCancelled(subscription) {
@@ -126,18 +126,22 @@ async function processSubscriptionCancelled(subscription) {
 	// Use existing plan cancellation logic
 	const cancellationResult = await handlePlanCancellation(userId);
 
-	// Update payment status
+	// Update payment status - using empty customerId as it's not needed for cancellation
 	await updateUserPlanBilling(userId, {
 		subscriptionId: subscription.id,
+		customerId: '',
 		paymentStatus: 'cancelled'
 	});
 
-	console.log(`✅ User ${userId} downgraded to Free plan. Deactivated ${cancellationResult.deactivatedInstances} instances`);
+	const deactivatedCount = cancellationResult && typeof cancellationResult === 'object' && 'deactivatedInstances' in cancellationResult
+		? cancellationResult.deactivatedInstances
+		: 0;
+	console.log(`✅ User ${userId} downgraded to Free plan. Deactivated ${deactivatedCount} instances`);
 }
 
 /**
  * Process payment failed event
- * @param {Object} payment - Razorpay payment object
+ * @param {any} payment - Razorpay payment object
  * @returns {Promise<void>}
  */
 async function processPaymentFailed(payment) {
@@ -167,13 +171,14 @@ async function processPaymentFailed(payment) {
 		return;
 	}
 
-	const { user_id: userId, plan_type: planType } = userPlan;
+	const { user_id: userId } = userPlan;
 
 	console.log(`💳 Processing payment failure for user ${userId}, subscription ${subscriptionId}`);
 
-	// Update payment status to failed
+	// Update payment status to failed - using empty customerId as it's not needed for failure
 	await updateUserPlanBilling(userId, {
 		subscriptionId: subscriptionId,
+		customerId: '',
 		paymentStatus: 'failed'
 	});
 
@@ -182,7 +187,7 @@ async function processPaymentFailed(payment) {
 
 /**
  * Process payment authorized event
- * @param {Object} payment - Razorpay payment object
+ * @param {any} payment - Razorpay payment object
  * @returns {Promise<void>}
  */
 async function processPaymentAuthorized(payment) {
@@ -203,15 +208,18 @@ async function processPaymentAuthorized(payment) {
  * Main Razorpay webhook handler
  * @param {import('express').Request} req
  * @param {import('express').Response} res
+ * @returns {Promise<void>}
  */
 export async function handleRazorpayWebhook(req, res) {
 	try {
 		// Check both lowercase and uppercase headers
-		const signature = req.headers['x-razorpay-signature'] || req.headers['X-Razorpay-Signature'];
+		const signatureHeader = req.headers['x-razorpay-signature'] || req.headers['X-Razorpay-Signature'];
+		const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
 		
 		if (!signature) {
 			console.error('Missing Razorpay signature header');
-			return res.status(400).json({ error: 'Missing signature header' });
+			res.status(400).json({ error: 'Missing signature header' });
+			return;
 		}
 		
 		// When using express.raw(), req.body is a Buffer
@@ -219,88 +227,110 @@ export async function handleRazorpayWebhook(req, res) {
 
 		// Parse and verify webhook event
 		const event = parseWebhookEvent(payload, signature);
+		/** @type {any} */
+		const eventData = event;
 
-		console.log(`📬 Received Razorpay webhook: ${event.type} (${event.id})`);
+		console.log(`📬 Received Razorpay webhook: ${eventData.type} (${eventData.id})`);
 
 		// Check if event already processed
-		const alreadyProcessed = await isEventProcessed(event.id);
+		const alreadyProcessed = await isEventProcessed(eventData.id);
 		if (alreadyProcessed) {
-			console.log(`⏭️ Event ${event.id} already processed, skipping`);
-			await storeWebhookEvent(event.id, event.type, 'razorpay', event, 'skipped');
-			return res.json({ received: true, status: 'skipped' });
+			console.log(`⏭️ Event ${eventData.id} already processed, skipping`);
+			await storeWebhookEvent(eventData.id, eventData.type, 'razorpay', eventData, 'skipped');
+			res.json({ received: true, status: 'skipped' });
+			return;
 		}
 
 		// Store webhook event as pending
-		await storeWebhookEvent(event.id, event.type, 'razorpay', event, 'pending');
+		await storeWebhookEvent(eventData.id, eventData.type, 'razorpay', eventData, 'pending');
 
 		try {
 			// Process different event types
-			switch (event.type) {
+			switch (eventData.type) {
 				case 'subscription.activated':
 				case 'subscription.authenticated':
-					console.log('🔍 Webhook event data:', JSON.stringify(event.data, null, 2));
-					await processSubscriptionActivated(event.data.subscription.entity);
+					console.log('🔍 Webhook event data:', JSON.stringify(eventData.data, null, 2));
+					if (eventData.data && eventData.data.subscription && eventData.data.subscription.entity) {
+						await processSubscriptionActivated(eventData.data.subscription.entity);
+					}
 					break;
 
 				case 'subscription.cancelled':
-					await processSubscriptionCancelled(event.data.subscription.entity);
+					if (eventData.data && eventData.data.subscription && eventData.data.subscription.entity) {
+						await processSubscriptionCancelled(eventData.data.subscription.entity);
+					}
 					break;
 
 				case 'payment.failed':
-					await processPaymentFailed(event.data.payment.entity);
+					if (eventData.data && eventData.data.payment && eventData.data.payment.entity) {
+						await processPaymentFailed(eventData.data.payment.entity);
+					}
 					break;
 
 				case 'subscription.charged':
 					// Handle successful recurring payment
-					console.log(`ℹ️ Subscription charged: ${event.data.subscription.entity.id}`);
+					if (eventData.data && eventData.data.subscription && eventData.data.subscription.entity) {
+						console.log(`ℹ️ Subscription charged: ${eventData.data.subscription.entity.id}`);
+					}
 					break;
 
 				case 'subscription.completed':
 					// Handle subscription completion
-					console.log(`ℹ️ Subscription completed: ${event.data.subscription.entity.id}`);
+					if (eventData.data && eventData.data.subscription && eventData.data.subscription.entity) {
+						console.log(`ℹ️ Subscription completed: ${eventData.data.subscription.entity.id}`);
+					}
 					break;
 
 				case 'payment.authorized':
 					// Payment authorized for subscription
 					console.log(`💳 Payment authorized for subscription`);
-					await processPaymentAuthorized(event.data.payment.entity);
+					if (eventData.data && eventData.data.payment && eventData.data.payment.entity) {
+						await processPaymentAuthorized(eventData.data.payment.entity);
+					}
 					break;
 
 				case 'order.paid':
 					// Order paid event
-					console.log(`💰 Order paid: ${event.data.order.entity.id}`);
+					if (eventData.data && eventData.data.order && eventData.data.order.entity) {
+						console.log(`💰 Order paid: ${eventData.data.order.entity.id}`);
+					}
 					break;
 
 				case 'invoice.paid':
 					// Invoice paid for subscription
-					console.log(`📄 Invoice paid: ${event.data.invoice.entity.id}`);
+					if (eventData.data && eventData.data.invoice && eventData.data.invoice.entity) {
+						console.log(`📄 Invoice paid: ${eventData.data.invoice.entity.id}`);
+					}
 					break;
 
 				default:
-					console.log(`ℹ️ Unhandled webhook event type: ${event.type}`);
-					await storeWebhookEvent(event.id, event.type, 'razorpay', event, 'skipped', 'Unhandled event type');
-					return res.json({ received: true, status: 'unhandled' });
+					console.log(`ℹ️ Unhandled webhook event type: ${eventData.type}`);
+					await storeWebhookEvent(eventData.id, eventData.type, 'razorpay', eventData, 'skipped', 'Unhandled event type');
+					res.json({ received: true, status: 'unhandled' });
+					return;
 			}
 
 			// Mark event as successfully processed
-			await storeWebhookEvent(event.id, event.type, 'razorpay', event, 'processed');
+			await storeWebhookEvent(eventData.id, eventData.type, 'razorpay', eventData, 'processed');
 
-			console.log(`✅ Successfully processed webhook ${event.id} (${event.type})`);
+			console.log(`✅ Successfully processed webhook ${eventData.id} (${eventData.type})`);
 
 			res.json({ received: true, status: 'processed' });
 
 		} catch (processingError) {
-			console.error(`❌ Error processing webhook ${event.id}:`, processingError);
+			console.error(`❌ Error processing webhook ${eventData.id}:`, processingError);
 			
+			const errorMessage = processingError instanceof Error ? processingError.message : String(processingError);
 			// Mark event as failed
-			await storeWebhookEvent(event.id, event.type, 'razorpay', event, 'failed', processingError.message);
+			await storeWebhookEvent(eventData.id, eventData.type, 'razorpay', eventData, 'failed', errorMessage);
 
 			// Still return 200 to prevent Razorpay retries for business logic errors
-			res.json({ received: true, status: 'failed', error: processingError.message });
+			res.json({ received: true, status: 'failed', error: errorMessage });
+			return;
 		}
 
 	} catch (error) {
-		console.error('❌ Webhook signature verification failed:', error);
+		console.error('❌ Webhook signature verification failed:', error instanceof Error ? error.message : String(error));
 		res.status(400).json({
 			error: {
 				code: 'WEBHOOK_SIGNATURE_INVALID',
@@ -314,10 +344,14 @@ export async function handleRazorpayWebhook(req, res) {
  * Get webhook event processing status (for debugging)
  * @param {import('express').Request} req
  * @param {import('express').Response} res
+ * @returns {Promise<void>}
  */
 export async function getWebhookEvents(req, res) {
 	try {
-		const { limit = 50, offset = 0, status = null } = req.query;
+		const queryParams = req.query;
+		const limit = typeof queryParams.limit === 'string' ? queryParams.limit : '50';
+		const offset = typeof queryParams.offset === 'string' ? queryParams.offset : '0';
+		const status = typeof queryParams.status === 'string' ? queryParams.status : null;
 
 		let query = `
 			SELECT 
@@ -342,7 +376,7 @@ export async function getWebhookEvents(req, res) {
 		}
 
 		query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-		params.push(limit, offset);
+		params.push(parseInt(limit), parseInt(offset));
 
 		const result = await pool.query(query, params);
 
@@ -353,18 +387,18 @@ export async function getWebhookEvents(req, res) {
 				pagination: {
 					limit: parseInt(limit),
 					offset: parseInt(offset),
-					total: result.rowCount
+					total: result.rows.length
 				}
 			}
 		});
 
 	} catch (error) {
-		console.error('Error retrieving webhook events:', error);
+		console.error('Error retrieving webhook events:', error instanceof Error ? error.message : String(error));
 		res.status(500).json({
 			error: {
 				code: 'WEBHOOK_EVENTS_ERROR',
 				message: 'Failed to retrieve webhook events',
-				details: error.message
+				details: error instanceof Error ? error.message : String(error)
 			}
 		});
 	}

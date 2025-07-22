@@ -6,29 +6,32 @@ import { ErrorResponses } from '../../utils/errorResponse.js';
  * Manually upgrade a user to Pro plan (admin only)
  * @param {import('express').Request} req
  * @param {import('express').Response} res
+ * @returns {Promise<void>}
  */
 export async function manualUpgrade(req, res) {
 	try {
 		const { email, subscriptionId } = req.body;
 
 		if (!email || !subscriptionId) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'MISSING_FIELDS',
 					message: 'Email and subscriptionId are required'
 				}
 			});
+			return;
 		}
 
 		// Get user by email
 		const user = await findUserByEmail(email);
 		if (!user) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'USER_NOT_FOUND',
 					message: `User not found with email: ${email}`
 				}
 			});
+			return;
 		}
 
 		console.log(`🔧 Manual upgrade initiated for user ${user.id} (${email}) with subscription ${subscriptionId}`);
@@ -38,6 +41,7 @@ export async function manualUpgrade(req, res) {
 		expiresAt.setDate(expiresAt.getDate() + 30);
 
 		// Activate Pro subscription
+		/** @type {any} */
 		const result = await atomicActivateProSubscription(
 			user.id,
 			subscriptionId,
@@ -59,6 +63,8 @@ export async function manualUpgrade(req, res) {
 
 	} catch (error) {
 		console.error('Error in manual upgrade:', error);
-		res.status(500).json(ErrorResponses.INTERNAL_SERVER_ERROR(error.message));
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		ErrorResponses.internal(res, errorMessage);
+		return;
 	}
 }

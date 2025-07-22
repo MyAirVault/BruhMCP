@@ -24,6 +24,7 @@ const LOG_CATEGORIES = ['application', 'security', 'performance', 'audit', 'data
  * Get system logs with filtering and pagination
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function getSystemLogs(req, res) {
 	try {
@@ -38,22 +39,24 @@ export async function getSystemLogs(req, res) {
 		} = req.query;
 
 		// Validate category
-		if (!LOG_CATEGORIES.includes(category)) {
-			return res.status(400).json({
+		if (!LOG_CATEGORIES.includes(String(category))) {
+			res.status(400).json({
 				error: {
 					code: 'INVALID_CATEGORY',
 					message: `Category must be one of: ${LOG_CATEGORIES.join(', ')}`,
 					available_categories: LOG_CATEGORIES
 				}
 			});
+			return;
 		}
 
 		// Validate pagination
-		const limitNum = Math.min(parseInt(limit) || 100, 1000);
-		const offsetNum = parseInt(offset) || 0;
+		const limitNum = Math.min(parseInt(String(limit)) || 100, 1000);
+		const offsetNum = parseInt(String(offset)) || 0;
 
 		// Get logs from file
-		const logs = await readSystemLogFile(category, {
+		/** @type {{entries: any[], total: number}} */
+		const logs = await readSystemLogFile(String(category), {
 			level,
 			start_time,
 			end_time,
@@ -63,7 +66,7 @@ export async function getSystemLogs(req, res) {
 		});
 
 		// Get summary statistics
-		const summary = await getLogSummary(category);
+		const summary = await getLogSummary(String(category));
 
 		res.status(200).json({
 			data: {
@@ -96,7 +99,7 @@ export async function getSystemLogs(req, res) {
 			error: {
 				code: 'INTERNAL_ERROR',
 				message: 'Failed to retrieve system logs',
-				details: process.env.NODE_ENV === 'development' ? error.message : undefined
+				details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined
 			}
 		});
 	}
@@ -106,16 +109,17 @@ export async function getSystemLogs(req, res) {
  * Get system health dashboard data
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function getSystemLogsDashboard(req, res) {
 	try {
 		const { time_range = '24h' } = req.query;
 
 		// Get performance metrics
-		const performanceMetrics = loggingService.getPerformanceMetrics(time_range);
+		const performanceMetrics = loggingService.getPerformanceMetrics(String(time_range));
 		
 		// Get error summary
-		const errorSummary = loggingService.getErrorSummary(time_range);
+		const errorSummary = loggingService.getErrorSummary(String(time_range));
 
 		// Get log system health
 		const logHealth = loggingService.getLoggingHealth();
@@ -124,7 +128,7 @@ export async function getSystemLogsDashboard(req, res) {
 		const diskUsage = await getLogDiskUsage();
 
 		// Get recent critical events
-		const criticalEvents = await getRecentCriticalEvents(time_range);
+		const criticalEvents = await getRecentCriticalEvents(String(time_range));
 
 		res.status(200).json({
 			data: {
@@ -158,6 +162,7 @@ export async function getSystemLogsDashboard(req, res) {
  * Export system logs
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function exportSystemLogs(req, res) {
 	try {
@@ -171,14 +176,15 @@ export async function exportSystemLogs(req, res) {
 		} = req.body;
 
 		// Validate categories
-		const validCategories = categories.filter(cat => LOG_CATEGORIES.includes(cat));
+		const validCategories = categories.filter((/** @type {any} */ cat) => LOG_CATEGORIES.includes(cat));
 		if (validCategories.length === 0) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'INVALID_CATEGORIES',
 					message: 'At least one valid category is required'
 				}
 			});
+			return;
 		}
 
 		// Generate export
@@ -202,7 +208,7 @@ export async function exportSystemLogs(req, res) {
 		}
 
 		// Log export activity
-		loggingService.audit('System logs exported', {
+		loggingService.systemLogger.audit('System logs exported', {
 			userId: req.user?.id,
 			categories: validCategories,
 			format,
@@ -233,6 +239,7 @@ export async function exportSystemLogs(req, res) {
  * Get log maintenance status
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function getLogMaintenanceStatus(req, res) {
 	try {
@@ -266,6 +273,7 @@ export async function getLogMaintenanceStatus(req, res) {
  * Trigger manual log maintenance
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function triggerLogMaintenance(req, res) {
 	try {
@@ -273,7 +281,7 @@ export async function triggerLogMaintenance(req, res) {
 		const maintenancePromise = logMaintenanceService.forceMaintenanceRun();
 
 		// Log the manual trigger
-		loggingService.audit('Manual log maintenance triggered', {
+		loggingService.systemLogger.audit('Manual log maintenance triggered', {
 			userId: req.user?.id,
 			action: 'manual_maintenance'
 		});
@@ -315,8 +323,8 @@ export async function triggerLogMaintenance(req, res) {
 /**
  * Read system log file with filtering
  * @param {string} category - Log category
- * @param {Object} filters - Filtering options
- * @returns {Object} Log entries and metadata
+ * @param {any} filters - Filtering options
+ * @returns {Promise<{entries: any[], total: number}>} Log entries and metadata
  */
 async function readSystemLogFile(category, filters) {
 	const logFilePath = path.join(SYSTEM_LOGS_DIR, `${category}.log`);
@@ -344,25 +352,32 @@ async function readSystemLogFile(category, filters) {
 		}
 
 		// Sort by timestamp (newest first)
-		entries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+		entries.sort((a, b) => {
+			const dateA = new Date(a.timestamp).getTime();
+			const dateB = new Date(b.timestamp).getTime();
+			return dateB - dateA;
+		});
 
 		// Apply pagination
 		const total = entries.length;
-		const start = filters.offset || 0;
-		const end = start + (filters.limit || 100);
+		/** @type {number} */
+		const start = (typeof filters.offset === 'number') ? filters.offset : 0;
+		/** @type {number} */
+		const end = start + ((typeof filters.limit === 'number') ? filters.limit : 100);
 		entries = entries.slice(start, end);
 
 		return { entries, total };
 
 	} catch (error) {
-		throw new Error(`Failed to read log file ${category}: ${error.message}`);
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		throw new Error(`Failed to read log file ${category}: ${errorMessage}`);
 	}
 }
 
 /**
  * Check if log entry matches filters
- * @param {Object} entry - Log entry
- * @param {Object} filters - Filter criteria
+ * @param {any} entry - Log entry
+ * @param {any} filters - Filter criteria
  * @returns {boolean} True if entry matches filters
  */
 function matchesFilters(entry, filters) {
@@ -386,8 +401,8 @@ function matchesFilters(entry, filters) {
 
 	// Search filter
 	if (filters.search) {
-		const searchTerm = filters.search.toLowerCase();
-		const searchableText = `${entry.message} ${JSON.stringify(entry.metadata || {})}`.toLowerCase();
+		const searchTerm = String(filters.search).toLowerCase();
+		const searchableText = `${entry.message || ''} ${JSON.stringify(entry.metadata || {})}`.toLowerCase();
 		
 		if (!searchableText.includes(searchTerm)) {
 			return false;
@@ -400,7 +415,7 @@ function matchesFilters(entry, filters) {
 /**
  * Get log summary statistics
  * @param {string} category - Log category
- * @returns {Object} Summary statistics
+ * @returns {Promise<{total_entries: number, levels: {[key: string]: number}, latest_entry: any, file_size_mb: number, error?: string}>} Summary statistics
  */
 async function getLogSummary(category) {
 	try {
@@ -419,13 +434,16 @@ async function getLogSummary(category) {
 		const content = await readFile(logFilePath, 'utf8');
 		const lines = content.split('\n').filter(line => line.trim());
 
+		/** @type {{[key: string]: number}} */
 		const levels = {};
 		let latestEntry = null;
 
 		for (const line of lines) {
 			try {
 				const entry = JSON.parse(line);
-				levels[entry.level] = (levels[entry.level] || 0) + 1;
+				if (entry.level) {
+					levels[entry.level] = (levels[entry.level] || 0) + 1;
+				}
 				
 				if (!latestEntry || new Date(entry.timestamp) > new Date(latestEntry.timestamp)) {
 					latestEntry = entry;
@@ -448,20 +466,22 @@ async function getLogSummary(category) {
 			levels: {},
 			latest_entry: null,
 			file_size_mb: 0,
-			error: error.message
+			error: error instanceof Error ? error.message : 'Unknown error'
 		};
 	}
 }
 
 /**
  * Get log disk usage information
- * @returns {Object} Disk usage statistics
+ * @returns {Promise<{total_size_mb: number, system_logs_mb: number, user_logs_mb: number, system_file_count?: number, user_file_count?: number, last_updated: string, error?: string}>} Disk usage statistics
  */
 async function getLogDiskUsage() {
 	try {
+		/** @type {{size: number, fileCount: number}} */
 		const systemStats = await getDirectorySize(SYSTEM_LOGS_DIR);
 		// Calculate project root path from the controller location (backend/src/controllers/admin -> project root)
 		const projectRoot = path.resolve(__dirname, '../../../../');
+		/** @type {{size: number, fileCount: number}} */
 		const userStats = await getDirectorySize(path.join(projectRoot, 'logs', 'users'));
 
 		return {
@@ -474,10 +494,11 @@ async function getLogDiskUsage() {
 		};
 	} catch (error) {
 		return {
-			error: error.message,
+			error: error instanceof Error ? error.message : 'Unknown error',
 			total_size_mb: 0,
 			system_logs_mb: 0,
-			user_logs_mb: 0
+			user_logs_mb: 0,
+			last_updated: new Date().toISOString()
 		};
 	}
 }
@@ -485,7 +506,7 @@ async function getLogDiskUsage() {
 /**
  * Get directory size recursively
  * @param {string} directory - Directory path
- * @returns {Object} Size and file count
+ * @returns {Promise<{size: number, fileCount: number}>} Size and file count
  */
 async function getDirectorySize(directory) {
 	let size = 0;
@@ -503,6 +524,7 @@ async function getDirectorySize(directory) {
 			const stats = fs.statSync(filePath);
 			
 			if (stats.isDirectory()) {
+				/** @type {{size: number, fileCount: number}} */
 				const subStats = await getDirectorySize(filePath);
 				size += subStats.size;
 				fileCount += subStats.fileCount;
@@ -521,7 +543,7 @@ async function getDirectorySize(directory) {
 /**
  * Get recent critical events
  * @param {string} timeRange - Time range for events
- * @returns {Array} Critical events
+ * @returns {Promise<any[]>} Critical events
  */
 async function getRecentCriticalEvents(timeRange) {
 	try {
@@ -543,14 +565,16 @@ async function getRecentCriticalEvents(timeRange) {
 
 /**
  * Generate log export data
- * @param {Array} categories - Categories to export
- * @param {Object} options - Export options
- * @returns {Buffer|string} Export data
+ * @param {string[]} categories - Categories to export
+ * @param {any} options - Export options
+ * @returns {Promise<string | Buffer>} Export data
  */
 async function generateLogExport(categories, options) {
+	/** @type {any[]} */
 	const exportData = [];
 
 	for (const category of categories) {
+		/** @type {{entries: any[], total: number}} */
 		const logs = await readSystemLogFile(category, {
 			start_time: options.start_time,
 			end_time: options.end_time,
@@ -558,14 +582,18 @@ async function generateLogExport(categories, options) {
 			limit: 10000 // Large limit for export
 		});
 
-		exportData.push(...logs.entries.map(entry => ({
+		exportData.push(...logs.entries.map((/** @type {any} */ entry) => ({
 			...entry,
 			category
 		})));
 	}
 
 	// Sort by timestamp
-	exportData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+	exportData.sort((a, b) => {
+		const dateA = new Date(a.timestamp).getTime();
+		const dateB = new Date(b.timestamp).getTime();
+		return dateB - dateA;
+	});
 
 	// Format based on requested format
 	let formattedData;
@@ -591,7 +619,7 @@ async function generateLogExport(categories, options) {
 
 /**
  * Format log data as CSV
- * @param {Array} data - Log data
+ * @param {any[]} data - Log data
  * @returns {string} CSV formatted data
  */
 function formatAsCSV(data) {
@@ -616,7 +644,7 @@ function formatAsCSV(data) {
 
 /**
  * Format log data as plain text
- * @param {Array} data - Log data
+ * @param {any[]} data - Log data
  * @returns {string} Text formatted data
  */
 function formatAsText(data) {

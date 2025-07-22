@@ -1,3 +1,9 @@
+/**
+ * Logger utility for Notion MCP service
+ */
+/**
+ * Logger class for Notion MCP service
+ */
 export class Logger {
     /**
      * Log info message

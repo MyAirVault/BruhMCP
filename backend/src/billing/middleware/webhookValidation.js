@@ -4,13 +4,18 @@
  */
 
 /**
+ * @typedef {import('express').Request & {rawBody?: string}} RequestWithRawBody
+ */
+
+/**
  * Middleware to capture raw body for webhook signature verification
  * This must be applied before express.json() middleware for webhook routes
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {Function} next
+ * @param {RequestWithRawBody} req
+ * @param {import('express').Response} _res
+ * @param {import('express').NextFunction} next
+ * @returns {void}
  */
-export function captureRawBody(req, res, next) {
+export function captureRawBody(req, _res, next) {
 	if (req.path.includes('/webhooks/')) {
 		let rawBody = '';
 		
@@ -28,27 +33,38 @@ export function captureRawBody(req, res, next) {
 }
 
 /**
+ * @typedef {Map<string, number[]>} WebhookRateLimitStore
+ */
+
+/**
+ * @typedef {typeof globalThis & {webhookRateLimitStore?: WebhookRateLimitStore}} GlobalWithWebhookStore
+ */
+
+/**
  * Rate limiting for webhook endpoints
  * @param {import('express').Request} req
  * @param {import('express').Response} res
- * @param {Function} next
+ * @param {import('express').NextFunction} next
+ * @returns {void | import('express').Response}
  */
 export function webhookRateLimit(req, res, next) {
 	// Basic rate limiting for webhooks
 	// In production, consider using express-rate-limit or similar
-	const ip = req.ip || req.connection.remoteAddress;
+	const ip = req.ip || req.connection?.remoteAddress || 'unknown';
 	const now = Date.now();
 	
 	// Allow up to 100 webhook requests per minute per IP
 	const maxRequests = 100;
 	const windowMs = 60 * 1000; // 1 minute
 	
-	if (!global.webhookRateLimitStore) {
-		global.webhookRateLimitStore = new Map();
+	const globalWithStore = /** @type {GlobalWithWebhookStore} */ (global);
+	
+	if (!globalWithStore.webhookRateLimitStore) {
+		globalWithStore.webhookRateLimitStore = new Map();
 	}
 	
-	const requests = global.webhookRateLimitStore.get(ip) || [];
-	const recentRequests = requests.filter(timestamp => now - timestamp < windowMs);
+	const requests = globalWithStore.webhookRateLimitStore.get(ip) || [];
+	const recentRequests = requests.filter((timestamp) => now - timestamp < windowMs);
 	
 	if (recentRequests.length >= maxRequests) {
 		console.warn(`Webhook rate limit exceeded for IP: ${ip}`);
@@ -61,14 +77,21 @@ export function webhookRateLimit(req, res, next) {
 	}
 	
 	recentRequests.push(now);
-	global.webhookRateLimitStore.set(ip, recentRequests);
+	globalWithStore.webhookRateLimitStore.set(ip, recentRequests);
 	
 	next();
 }
 
 /**
+ * @typedef {Object} BillingConfigValidation
+ * @property {boolean} valid - Whether the configuration is valid
+ * @property {string[]} [missingVars] - Array of missing environment variable names
+ * @property {string} message - Validation message
+ */
+
+/**
  * Validate required environment variables for billing
- * @returns {Object} Validation result
+ * @returns {BillingConfigValidation} Validation result
  */
 export function validateBillingConfig() {
 	const requiredVars = [
@@ -95,11 +118,12 @@ export function validateBillingConfig() {
 
 /**
  * Middleware to check billing configuration on startup
- * @param {import('express').Request} req
+ * @param {import('express').Request} _req
  * @param {import('express').Response} res
- * @param {Function} next
+ * @param {import('express').NextFunction} next
+ * @returns {void | import('express').Response}
  */
-export function checkBillingConfig(req, res, next) {
+export function checkBillingConfig(_req, res, next) {
 	const validation = validateBillingConfig();
 	
 	if (!validation.valid) {

@@ -22,6 +22,12 @@ export function getCurrentUser(req: import("express").Request & {
     };
 }, res: import("express").Response): Promise<void | import("express").Response<any, Record<string, any>>>;
 /**
+ * Get current user's plan summary with usage information
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ */
+export function getUserPlan(req: import("express").Request, res: import("express").Response): Promise<void | import("express").Response<any, Record<string, any>>>;
+/**
  * Logout user and clear authentication cookie
  * @param {import('express').Request} _req
  * @param {import('express').Response} res

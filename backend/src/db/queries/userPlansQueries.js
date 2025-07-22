@@ -8,7 +8,7 @@ import { pool } from '../config.js';
 /**
  * Get user's current plan
  * @param {string} userId - User ID
- * @returns {Promise<Object|null>} User plan object or null if not found
+ * @returns {Promise<import('../../types/billing.d.ts').UserPlan|null>} User plan object or null if not found
  */
 export async function getUserPlan(userId) {
 	try {
@@ -44,7 +44,7 @@ export async function getUserPlan(userId) {
  * @param {Object} options - Additional options
  * @param {Date|null} options.expiresAt - Plan expiration date
  * @param {Object} options.features - Plan features
- * @returns {Promise<Object>} Updated plan object
+ * @returns {Promise<import('../../types/billing.d.ts').UserPlan>} Updated plan object
  */
 export async function updateUserPlan(userId, planType, options = {}) {
 	try {
@@ -86,7 +86,7 @@ export async function updateUserPlan(userId, planType, options = {}) {
  * @param {Object} options - Additional options
  * @param {Date|null} options.expiresAt - Plan expiration date
  * @param {Object} options.features - Plan features
- * @returns {Promise<Object>} Created plan object
+ * @returns {Promise<import('../../types/billing.d.ts').UserPlan>} Created plan object
  */
 export async function createUserPlan(userId, planType = 'free', options = {}) {
 	try {
@@ -236,7 +236,7 @@ export async function getPlanStatistics() {
  * @param {string} billingData.subscriptionId - Subscription ID
  * @param {string} billingData.customerId - Razorpay customer ID
  * @param {string} billingData.paymentStatus - Payment status
- * @returns {Promise<Object>} Updated plan object
+ * @returns {Promise<import('../../types/billing.d.ts').UserPlan>} Updated plan object
  */
 export async function updateUserPlanBilling(userId, billingData) {
 	try {
@@ -270,7 +270,7 @@ export async function updateUserPlanBilling(userId, billingData) {
 /**
  * Get user plan by subscription ID
  * @param {string} subscriptionId - Subscription ID
- * @returns {Promise<Object|null>} User plan object or null if not found
+ * @returns {Promise<import('../../types/billing.d.ts').UserPlan|null>} User plan object or null if not found
  */
 export async function getUserPlanBySubscriptionId(subscriptionId) {
 	try {

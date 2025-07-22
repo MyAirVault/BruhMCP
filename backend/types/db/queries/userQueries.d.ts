@@ -1,9 +1,9 @@
 /**
  * Find user by email address
  * @param {string} email - User email
- * @returns {Promise<Object|null>} User record or null
+ * @returns {Promise<import('../../types/auth.d.ts').AuthUser|null>} User record or null
  */
-export function findUserByEmail(email: string): Promise<Object | null>;
+export function findUserByEmail(email: string): Promise<import("../../types/auth.d.ts").AuthUser | null>;
 /**
  * Find user by ID
  * @param {string} userId - User ID (UUID)

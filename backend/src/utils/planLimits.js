@@ -50,7 +50,7 @@ export function isPlanUnlimited(planType) {
 /**
  * Check if user can create a new MCP instance (based on active instances)
  * @param {string} userId - User ID
- * @returns {Promise<Object>} Result object with canCreate flag and details
+ * @returns {Promise<{canCreate: boolean, message: string, maxInstances?: number|null, activeInstances?: number, reason?: string, details?: any}>} Result object with canCreate flag and details
  */
 export async function checkInstanceLimit(userId) {
 	try {

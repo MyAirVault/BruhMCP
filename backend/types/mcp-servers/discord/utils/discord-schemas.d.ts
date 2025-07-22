@@ -3,8 +3,8 @@ export function validateMessageContent(content: any): {
     content: string;
     tts: boolean;
     embeds: {
-        timestamp?: string | undefined;
         description?: string | undefined;
+        timestamp?: string | undefined;
         url?: string | undefined;
         image?: {
             url: string;
@@ -37,8 +37,8 @@ export function validateMessageContent(content: any): {
     };
 };
 export function validateEmbed(embed: any): {
-    timestamp?: string | undefined;
     description?: string | undefined;
+    timestamp?: string | undefined;
     url?: string | undefined;
     image?: {
         url: string;
@@ -174,8 +174,8 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         inline?: boolean | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
-    timestamp?: string | undefined;
     description?: string | undefined;
+    timestamp?: string | undefined;
     url?: string | undefined;
     image?: {
         url: string;
@@ -200,8 +200,8 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         url: string;
     } | undefined;
 }, {
-    timestamp?: string | undefined;
     description?: string | undefined;
+    timestamp?: string | undefined;
     url?: string | undefined;
     image?: {
         url: string;
@@ -226,8 +226,8 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         url: string;
     } | undefined;
 }>, {
-    timestamp?: string | undefined;
     description?: string | undefined;
+    timestamp?: string | undefined;
     url?: string | undefined;
     image?: {
         url: string;
@@ -252,8 +252,8 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         url: string;
     } | undefined;
 }, {
-    timestamp?: string | undefined;
     description?: string | undefined;
+    timestamp?: string | undefined;
     url?: string | undefined;
     image?: {
         url: string;
@@ -353,8 +353,8 @@ export const messageContentSchema: z.ZodObject<{
             inline?: boolean | undefined;
         }>, "many">>;
     }, "strip", z.ZodTypeAny, {
-        timestamp?: string | undefined;
         description?: string | undefined;
+        timestamp?: string | undefined;
         url?: string | undefined;
         image?: {
             url: string;
@@ -379,8 +379,8 @@ export const messageContentSchema: z.ZodObject<{
             url: string;
         } | undefined;
     }, {
-        timestamp?: string | undefined;
         description?: string | undefined;
+        timestamp?: string | undefined;
         url?: string | undefined;
         image?: {
             url: string;
@@ -405,8 +405,8 @@ export const messageContentSchema: z.ZodObject<{
             url: string;
         } | undefined;
     }>, {
-        timestamp?: string | undefined;
         description?: string | undefined;
+        timestamp?: string | undefined;
         url?: string | undefined;
         image?: {
             url: string;
@@ -431,8 +431,8 @@ export const messageContentSchema: z.ZodObject<{
             url: string;
         } | undefined;
     }, {
-        timestamp?: string | undefined;
         description?: string | undefined;
+        timestamp?: string | undefined;
         url?: string | undefined;
         image?: {
             url: string;
@@ -478,8 +478,8 @@ export const messageContentSchema: z.ZodObject<{
     content: string;
     tts: boolean;
     embeds: {
-        timestamp?: string | undefined;
         description?: string | undefined;
+        timestamp?: string | undefined;
         url?: string | undefined;
         image?: {
             url: string;
@@ -514,8 +514,8 @@ export const messageContentSchema: z.ZodObject<{
     content: string;
     tts?: boolean | undefined;
     embeds?: {
-        timestamp?: string | undefined;
         description?: string | undefined;
+        timestamp?: string | undefined;
         url?: string | undefined;
         image?: {
             url: string;

@@ -49,7 +49,7 @@ export async function requestToken(req, res) {
 		/** @type {AuthRequestTokenResult} */
 		const result = await authService.requestToken(email);
 
-		if (!result.success) {
+		if (!result.success || !result.token) {
 			return ErrorResponses.internal(res, 'Failed to generate authentication token');
 		}
 

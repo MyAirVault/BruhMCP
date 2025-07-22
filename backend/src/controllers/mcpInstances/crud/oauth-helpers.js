@@ -14,7 +14,7 @@ import oauthServiceManager from '../../../services/oauth-service-manager.js';
  * @param {string} params.clientId - OAuth client ID
  * @param {string} params.clientSecret - OAuth client secret
  * @param {string} params.serviceName - MCP service name
- * @returns {Object} OAuth flow result
+ * @returns {Promise<Object>} OAuth flow result
  */
 export async function handleOAuthFlow(params) {
   const { instanceId, provider, clientId, clientSecret, serviceName } = params;
@@ -49,11 +49,11 @@ export async function handleOAuthFlow(params) {
     });
 
     if (!startOAuthResponse.ok) {
-      const errorData = await startOAuthResponse.json();
+      const errorData = /** @type {{ error?: string }} */ (await startOAuthResponse.json());
       throw new Error(`OAuth service error: ${errorData.error || 'Unknown error'}`);
     }
 
-    const oauthData = await startOAuthResponse.json();
+    const oauthData = /** @type {{ authorization_url: string }} */ (await startOAuthResponse.json());
     
     console.log(`✅ OAuth flow initiated successfully for instance ${instanceId}`);
     
@@ -69,9 +69,10 @@ export async function handleOAuthFlow(params) {
 
   } catch (error) {
     console.error(`❌ OAuth flow failed for instance ${instanceId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      error: error.message
+      error: errorMessage
     };
   }
 }
@@ -82,6 +83,7 @@ export async function handleOAuthFlow(params) {
  * @returns {string} OAuth provider name
  */
 export function getOAuthProvider(serviceName) {
+  /** @type {{ [key: string]: string }} */
   const providerMap = {
     'gmail': 'google',
     'googledrive': 'google',
@@ -113,9 +115,10 @@ export function getOAuthProvider(serviceName) {
 /**
  * Get OAuth scopes based on service name
  * @param {string} serviceName - MCP service name
- * @returns {Array} OAuth scopes
+ * @returns {string[]} OAuth scopes
  */
 export function getOAuthScopes(serviceName) {
+  /** @type {{ [key: string]: string[] }} */
   const scopeMap = {
     'gmail': [
       'https://www.googleapis.com/auth/gmail.modify',
@@ -299,7 +302,7 @@ export async function getServicePort(serviceName) {
  * @param {string} provider - OAuth provider
  * @param {string} clientId - OAuth client ID
  * @param {string} clientSecret - OAuth client secret
- * @returns {Object} Validation result
+ * @returns {Promise<Object>} Validation result
  */
 export async function validateOAuthCredentials(provider, clientId, clientSecret) {
   try {
@@ -324,14 +327,14 @@ export async function validateOAuthCredentials(provider, clientId, clientSecret)
     });
 
     if (!validateResponse.ok) {
-      const errorData = await validateResponse.json();
+      const errorData = /** @type {{ error?: string }} */ (await validateResponse.json());
       return {
         valid: false,
         error: errorData.error || 'Validation failed'
       };
     }
 
-    const validationData = await validateResponse.json();
+    const validationData = /** @type {{ valid: boolean; error?: string }} */ (await validateResponse.json());
     return {
       valid: validationData.valid,
       error: validationData.error || null
@@ -339,16 +342,17 @@ export async function validateOAuthCredentials(provider, clientId, clientSecret)
 
   } catch (error) {
     console.error('OAuth credential validation error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       valid: false,
-      error: error.message
+      error: errorMessage
     };
   }
 }
 
 /**
  * Check if OAuth service is available
- * @returns {boolean} True if OAuth service is available
+ * @returns {Promise<boolean>} True if OAuth service is available
  */
 export async function isOAuthServiceAvailable() {
   try {
@@ -360,10 +364,15 @@ export async function isOAuthServiceAvailable() {
 
     const oauthServiceUrl = oauthServiceManager.getServiceUrl();
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const healthResponse = await fetch(`${oauthServiceUrl}/health`, {
       method: 'GET',
-      timeout: 5000
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     return healthResponse.ok;
 

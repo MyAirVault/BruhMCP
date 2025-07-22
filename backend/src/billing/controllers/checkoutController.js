@@ -8,32 +8,55 @@ import { getUserPlan, updateUserPlan } from '../../db/queries/userPlansQueries.j
 import { ErrorResponses } from '../../utils/errorResponse.js';
 
 /**
+ * @typedef {import('../../types/billing.d.ts').UserPlan} UserPlan
+ * @typedef {import('../../types/billing.d.ts').RazorpayConfig} RazorpayConfig
+ * @typedef {import('../../types/billing.d.ts').CheckoutSession} CheckoutSession
+ * @typedef {import('../../types/billing.d.ts').SubscriptionDetails} SubscriptionDetails
+ * @typedef {import('../../types/billing.d.ts').CancellationResult} CancellationResult
+ */
+
+/**
  * Create checkout session for Pro plan upgrade
  * @param {import('express').Request} req
  * @param {import('express').Response} res
+ * @returns {Promise<void>}
  */
 export async function createCheckoutSession(req, res) {
 	try {
+		// Check authentication
+		if (!req.user) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User not authenticated'
+				}
+			});
+			return;
+		}
+
 		// Validate Razorpay configuration first
+		/** @type {RazorpayConfig} */
 		const config = validateRazorpayConfig();
 		if (!config.valid) {
-			return res.status(500).json({
+			res.status(500).json({
 				error: {
 					code: 'BILLING_CONFIG_ERROR',
 					message: 'Payment gateway not properly configured',
 					details: { missingVars: config.missingVars }
 				}
 			});
+			return;
 		}
 
 		const userId = req.user.id;
 		const userEmail = req.user.email;
 
 		// Check if user already has a pro plan
+		/** @type {UserPlan | null} */
 		const userPlan = await getUserPlan(userId);
 		
 		if (userPlan && userPlan.plan_type === 'pro' && userPlan.payment_status === 'active') {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'ALREADY_PRO',
 					message: 'User already has an active Pro plan',
@@ -43,6 +66,7 @@ export async function createCheckoutSession(req, res) {
 					}
 				}
 			});
+			return;
 		}
 
 		// Create success and cancel URLs
@@ -51,6 +75,7 @@ export async function createCheckoutSession(req, res) {
 		const cancelUrl = `${baseUrl}/billing/cancelled`;
 
 		// Create Razorpay checkout session
+		/** @type {CheckoutSession} */
 		const checkout = await createProSubscriptionCheckout(
 			userId,
 			userEmail,
@@ -76,11 +101,12 @@ export async function createCheckoutSession(req, res) {
 
 	} catch (error) {
 		console.error('Error creating checkout session:', error);
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		res.status(500).json({
 			error: {
 				code: 'CHECKOUT_ERROR',
 				message: 'Failed to create checkout session',
-				details: error.message
+				details: errorMessage
 			}
 		});
 	}
@@ -90,19 +116,32 @@ export async function createCheckoutSession(req, res) {
  * Handle successful checkout (called from frontend after payment)
  * @param {import('express').Request} req
  * @param {import('express').Response} res
+ * @returns {Promise<void>}
  */
 export async function handleCheckoutSuccess(req, res) {
 	try {
+		// Check authentication
+		if (!req.user) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User not authenticated'
+				}
+			});
+			return;
+		}
+
 		const { sessionId } = req.body;
 		const userId = req.user.id;
 
 		if (!sessionId) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'MISSING_SESSION_ID',
 					message: 'Checkout session ID is required'
 				}
 			});
+			return;
 		}
 
 		// Handle successful payment - coordinate with webhook processing
@@ -113,11 +152,12 @@ export async function handleCheckoutSuccess(req, res) {
 		const maxAttempts = 10; // 10 seconds maximum wait
 		
 		while (attempts < maxAttempts) {
+			/** @type {UserPlan | null} */
 			const userPlan = await getUserPlan(userId);
 			
 			if (userPlan && userPlan.plan_type === 'pro' && userPlan.payment_status === 'active') {
 				// Successfully activated (likely by webhook)
-				return res.json({
+				res.json({
 					message: 'Payment successful - Pro plan activated',
 					data: {
 						planType: 'pro',
@@ -126,6 +166,7 @@ export async function handleCheckoutSuccess(req, res) {
 						maxInstances: userPlan.max_instances
 					}
 				});
+				return;
 			}
 			
 			// Wait 1 second before checking again
@@ -136,6 +177,7 @@ export async function handleCheckoutSuccess(req, res) {
 		}
 
 		// If webhook hasn't processed after timeout, return pending status
+		/** @type {UserPlan | null} */
 		const userPlan = await getUserPlan(userId);
 		res.json({
 			message: 'Payment successful - Pro plan activation in progress',
@@ -148,7 +190,9 @@ export async function handleCheckoutSuccess(req, res) {
 
 	} catch (error) {
 		console.error('Error handling checkout success:', error);
-		res.status(500).json(ErrorResponses.INTERNAL_SERVER_ERROR(error.message));
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		res.status(500).json(ErrorResponses.internal(res, errorMessage));
+		return;
 	}
 }
 
@@ -159,17 +203,29 @@ export async function handleCheckoutSuccess(req, res) {
  */
 export async function getBillingStatus(req, res) {
 	try {
+		// Check authentication
+		if (!req.user) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User not authenticated'
+				}
+			});
+			return;
+		}
+
 		const userId = req.user.id;
 
 		const userPlan = await getUserPlan(userId);
 
 		if (!userPlan) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'NO_PLAN',
 					message: 'No plan found for user'
 				}
 			});
+			return;
 		}
 
 		// Get subscription details if user has active subscription
@@ -201,7 +257,8 @@ export async function getBillingStatus(req, res) {
 
 	} catch (error) {
 		console.error('Error getting billing status:', error);
-		res.status(500).json(ErrorResponses.INTERNAL_SERVER_ERROR(error.message));
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		ErrorResponses.internal(res, errorMessage);
 	}
 }
 
@@ -212,21 +269,33 @@ export async function getBillingStatus(req, res) {
  */
 export async function cancelSubscription(req, res) {
 	try {
+		// Check authentication
+		if (!req.user) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User not authenticated'
+				}
+			});
+			return;
+		}
+
 		const userId = req.user.id;
 
 		const userPlan = await getUserPlan(userId);
 
 		if (!userPlan || !userPlan.subscription_id) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'NO_SUBSCRIPTION',
 					message: 'No active subscription found'
 				}
 			});
+			return;
 		}
 
 		if (userPlan.payment_status !== 'active') {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'SUBSCRIPTION_NOT_ACTIVE',
 					message: 'Subscription is not active',
@@ -235,6 +304,7 @@ export async function cancelSubscription(req, res) {
 					}
 				}
 			});
+			return;
 		}
 
 		// Cancel subscription via payment gateway
@@ -243,7 +313,7 @@ export async function cancelSubscription(req, res) {
 
 		// Update payment status (the plan downgrade will happen via webhook)
 		await updateUserPlan(userId, userPlan.plan_type, {
-			expiresAt: userPlan.expires_at,
+			expiresAt: userPlan.expires_at ? new Date(userPlan.expires_at) : null,
 			features: {
 				...userPlan.features,
 				cancelled_at: new Date().toISOString(),
@@ -264,7 +334,8 @@ export async function cancelSubscription(req, res) {
 
 	} catch (error) {
 		console.error('Error cancelling subscription:', error);
-		res.status(500).json(ErrorResponses.INTERNAL_SERVER_ERROR(error.message));
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		ErrorResponses.internal(res, errorMessage);
 	}
 }
 
@@ -275,13 +346,24 @@ export async function cancelSubscription(req, res) {
  */
 export async function getPaymentHistory(req, res) {
 	try {
+		// Check authentication
+		if (!req.user) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User not authenticated'
+				}
+			});
+			return;
+		}
+
 		const userId = req.user.id;
 		const { limit = 10, offset = 0 } = req.query;
 
 		const userPlan = await getUserPlan(userId);
 		
 		if (!userPlan || !userPlan.subscription_id) {
-			return res.json({
+			res.json({
 				message: 'Payment history retrieved successfully',
 				data: {
 					payments: [],
@@ -289,19 +371,19 @@ export async function getPaymentHistory(req, res) {
 					hasMore: false
 				}
 			});
+			return;
 		}
 
 		// Get payments from Razorpay via subscription
+		/** @type {any} */
 		const { razorpay } = await import('../services/paymentGateway.js');
 		
-		// Get subscription details first
-		const subscription = await razorpay.subscriptions.fetch(userPlan.subscription_id);
-		
 		// Get invoices for this subscription instead of all payments
+		/** @type {any} */
 		const invoices = await razorpay.invoices.all({
 			subscription_id: userPlan.subscription_id,
-			count: parseInt(limit),
-			skip: parseInt(offset)
+			count: parseInt(String(limit)),
+			skip: parseInt(String(offset))
 		});
 
 		// Get payment details for each invoice
@@ -335,13 +417,15 @@ export async function getPaymentHistory(req, res) {
 			data: {
 				payments: formattedPayments,
 				total: invoices.count || formattedPayments.length,
-				hasMore: invoices.items.length === parseInt(limit)
+				hasMore: invoices.items.length === parseInt(String(limit))
 			}
 		});
 
 	} catch (error) {
 		console.error('Error getting payment history:', error);
-		ErrorResponses.internal(res, error.message);
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		ErrorResponses.internal(res, errorMessage);
+		return;
 	}
 }
 
@@ -352,17 +436,29 @@ export async function getPaymentHistory(req, res) {
  */
 export async function getDetailedSubscriptionInfo(req, res) {
 	try {
+		// Check authentication
+		if (!req.user) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User not authenticated'
+				}
+			});
+			return;
+		}
+
 		const userId = req.user.id;
 
 		const userPlan = await getUserPlan(userId);
 		
 		if (!userPlan || !userPlan.subscription_id) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'NO_SUBSCRIPTION',
 					message: 'No active subscription found'
 				}
 			});
+			return;
 		}
 
 		// Get subscription details from Razorpay
@@ -370,10 +466,13 @@ export async function getDetailedSubscriptionInfo(req, res) {
 		const subscriptionDetails = await getSubscriptionDetails(userPlan.subscription_id);
 
 		// Get additional subscription info from Razorpay
+		/** @type {any} */
 		const { razorpay } = await import('../services/paymentGateway.js');
+		/** @type {any} */
 		const subscription = await razorpay.subscriptions.fetch(userPlan.subscription_id);
 		
 		// Get plan details
+		/** @type {any} */
 		const plan = await razorpay.plans.fetch(subscription.plan_id);
 
 		res.json({
@@ -402,6 +501,8 @@ export async function getDetailedSubscriptionInfo(req, res) {
 
 	} catch (error) {
 		console.error('Error getting subscription details:', error);
-		ErrorResponses.internal(res, error.message);
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		ErrorResponses.internal(res, errorMessage);
+		return;
 	}
 }

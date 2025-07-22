@@ -1,24 +1,46 @@
+/// <reference types="../../../types/express.d.ts" />
+
 import { getAllMCPInstances } from '../../../db/queries/mcpInstancesQueries.js';
 import { generateAccessUrl } from '../utils.js';
 
 /**
  * Get MCP instances for user
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @returns {Promise<void>}
  */
 export async function getMCPInstances(req, res) {
 	try {
-		const userId = req.user.id;
-		const { status, is_active, mcp_type, expiration_option, page = 1, limit = 20 } = req.query;
+		const userId = req.user?.id;
+		if (!userId) {
+			res.status(401).json({
+				error: {
+					code: 'UNAUTHORIZED',
+					message: 'User not authenticated',
+				},
+			});
+			return;
+		}
 
-		const offset = (parseInt(page) - 1) * parseInt(limit);
+		const { status, is_active, mcp_type, expiration_option, page = '1', limit = '20' } = /** @type {{ 
+			status?: string;
+			is_active?: string;
+			mcp_type?: string;
+			expiration_option?: string;
+			page?: string;
+			limit?: string;
+		}} */ (req.query);
+
+		const pageNum = parseInt(page);
+		const limitNum = parseInt(limit);
+		const offset = (pageNum - 1) * limitNum;
 
 		const instances = await getAllMCPInstances(userId, {
 			status,
 			isActive: is_active === 'true' ? true : is_active === 'false' ? false : undefined,
 			mcp_type,
 			expiration_option,
-			limit: parseInt(limit),
+			limit: limitNum,
 			offset,
 		});
 
@@ -46,17 +68,18 @@ export async function getMCPInstances(req, res) {
 			data: formattedInstances,
 			meta: {
 				total: formattedInstances.length,
-				page: parseInt(page),
-				limit: parseInt(limit),
-				pages: Math.ceil(formattedInstances.length / parseInt(limit)),
+				page: pageNum,
+				limit: limitNum,
+				pages: Math.ceil(formattedInstances.length / limitNum),
 			},
 		});
 	} catch (error) {
 		console.error('Error fetching MCP instances:', error);
+		const errorMessage = error instanceof Error ? error.message : 'Failed to fetch MCP instances';
 		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Failed to fetch MCP instances',
+				message: errorMessage,
 			},
 		});
 	}

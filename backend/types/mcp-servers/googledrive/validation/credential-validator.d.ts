@@ -37,10 +37,12 @@ export function validateScopes(scopes: any[]): Object;
  * @returns {Object} Validation result
  */
 export function validateInstanceConfig(config: Object): Object;
+export default createGoogleDriveValidator;
 /**
- * Create a validator instance for the validation registry
- * @param {Object} credentials - Credentials to validate
- * @returns {Object} Validator instance with validateFormat and testCredentials methods
+ * Google Drive validator factory
+ * @param {any} credentials - Credentials to validate
+ * @returns {BaseValidator} Validator instance
  */
-export default function createGoogleDriveValidator(credentials: Object): Object;
+declare function createGoogleDriveValidator(credentials: any): BaseValidator;
+import { BaseValidator } from '../../../services/validation/base-validator.js';
 //# sourceMappingURL=credential-validator.d.ts.map

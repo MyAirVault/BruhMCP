@@ -6,7 +6,7 @@
  * @param {string} params.clientId - OAuth client ID
  * @param {string} params.clientSecret - OAuth client secret
  * @param {string} params.serviceName - MCP service name
- * @returns {Object} OAuth flow result
+ * @returns {Promise<Object>} OAuth flow result
  */
 export function handleOAuthFlow(params: {
     instanceId: string;
@@ -14,7 +14,7 @@ export function handleOAuthFlow(params: {
     clientId: string;
     clientSecret: string;
     serviceName: string;
-}): Object;
+}): Promise<Object>;
 /**
  * Get OAuth provider name based on service name
  * @param {string} serviceName - MCP service name
@@ -24,9 +24,9 @@ export function getOAuthProvider(serviceName: string): string;
 /**
  * Get OAuth scopes based on service name
  * @param {string} serviceName - MCP service name
- * @returns {Array} OAuth scopes
+ * @returns {string[]} OAuth scopes
  */
-export function getOAuthScopes(serviceName: string): any[];
+export function getOAuthScopes(serviceName: string): string[];
 /**
  * Cache OAuth tokens for a service instance
  * @param {string} instanceId - Instance ID
@@ -50,12 +50,12 @@ export function getServicePort(serviceName: string): Promise<number>;
  * @param {string} provider - OAuth provider
  * @param {string} clientId - OAuth client ID
  * @param {string} clientSecret - OAuth client secret
- * @returns {Object} Validation result
+ * @returns {Promise<Object>} Validation result
  */
-export function validateOAuthCredentials(provider: string, clientId: string, clientSecret: string): Object;
+export function validateOAuthCredentials(provider: string, clientId: string, clientSecret: string): Promise<Object>;
 /**
  * Check if OAuth service is available
- * @returns {boolean} True if OAuth service is available
+ * @returns {Promise<boolean>} True if OAuth service is available
  */
-export function isOAuthServiceAvailable(): boolean;
+export function isOAuthServiceAvailable(): Promise<boolean>;
 //# sourceMappingURL=oauth-helpers.d.ts.map
