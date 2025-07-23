@@ -60,7 +60,24 @@ export async function handleRefreshFailure(instanceId, refreshError) {
   // Use centralized error handling
   logOAuthError(compatibleError, 'token refresh', instanceId);
   
-  const errorResponse = await handleTokenRefreshFailure(instanceId, compatibleError, updateOAuthStatus);
+  // Create a wrapper function to convert OAuthStatusUpdate to OAuthUpdateData
+  /**
+   * @param {string} instanceId
+   * @param {import('../utils/oauth-error-handler.js').OAuthStatusUpdate} oauthStatusUpdate
+   * @returns {Promise<void>}
+   */
+  const updateOAuthStatusWrapper = async (instanceId, oauthStatusUpdate) => {
+    const oauthUpdateData = {
+      status: oauthStatusUpdate.status,
+      accessToken: oauthStatusUpdate.accessToken || undefined,
+      refreshToken: oauthStatusUpdate.refreshToken || undefined,
+      tokenExpiresAt: oauthStatusUpdate.tokenExpiresAt ? new Date(oauthStatusUpdate.tokenExpiresAt) : undefined,
+      scope: oauthStatusUpdate.scope || undefined
+    };
+    await updateOAuthStatus(instanceId, oauthUpdateData);
+  };
+
+  const errorResponse = await handleTokenRefreshFailure(instanceId, compatibleError, updateOAuthStatusWrapper);
   
   // Cast the response to our expected type
   const typedResponse = /** @type {any} */ (errorResponse);

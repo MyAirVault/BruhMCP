@@ -1,10 +1,10 @@
 /**
  * Validate tool arguments against schema
  * @param {string} toolName - Name of the tool
- * @param {Object} args - Arguments to validate
+ * @param {Record<string, any>} args - Arguments to validate
  * @throws {Error} Validation error if arguments are invalid
  */
-export function validateToolArguments(toolName: string, args: Object): void;
+export function validateToolArguments(toolName: string, args: Record<string, any>): void;
 /**
  * Validate Gmail search query
  * @param {string} query - Search query
@@ -29,4 +29,61 @@ export function validateThreadId(threadId: string): void;
  * @throws {Error} If label ID format is invalid
  */
 export function validateLabelId(labelId: string): void;
+/**
+ * JSON schema definition
+ */
+export type JSONSchema = {
+    /**
+     * - Data type
+     */
+    type?: string | undefined;
+    /**
+     * - Required properties
+     */
+    required?: string[] | undefined;
+    /**
+     * - Property schemas
+     */
+    properties?: Record<string, JSONSchema> | undefined;
+    /**
+     * - Enumerated values
+     */
+    enum?: any[] | undefined;
+    /**
+     * - Minimum string length
+     */
+    minLength?: number | undefined;
+    /**
+     * - Maximum string length
+     */
+    maxLength?: number | undefined;
+    /**
+     * - Regex pattern
+     */
+    pattern?: string | undefined;
+    /**
+     * - Minimum number value
+     */
+    minimum?: number | undefined;
+    /**
+     * - Maximum number value
+     */
+    maximum?: number | undefined;
+    /**
+     * - Multiple of value
+     */
+    multipleOf?: number | undefined;
+    /**
+     * - Minimum array items
+     */
+    minItems?: number | undefined;
+    /**
+     * - Maximum array items
+     */
+    maxItems?: number | undefined;
+    /**
+     * - Array item schema
+     */
+    items?: JSONSchema | undefined;
+};
 //# sourceMappingURL=validation.d.ts.map

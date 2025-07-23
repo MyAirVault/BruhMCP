@@ -9,24 +9,8 @@ import { makeGmailRequest } from './request-handler.js';
 import { formatMessageResponse } from '../../utils/gmail-formatting.js';
 
 /**
- * @typedef {Object} GmailMessagePayload
- * @property {string} [partId] - Part ID
- * @property {string} [mimeType] - MIME type
- * @property {string} [filename] - Filename
- * @property {Object} [headers] - Message headers
- * @property {Object} [body] - Message body
- * @property {GmailMessagePayload[]} [parts] - Message parts
- */
-
-/**
- * @typedef {Object} GmailMessage
- * @property {string} id - Message ID
- * @property {string} threadId - Thread ID
- * @property {string} snippet - Message snippet
- * @property {string} internalDate - Internal date timestamp
- * @property {GmailMessagePayload} payload - Message payload
- * @property {string[]} labelIds - Label IDs
- * @property {number} sizeEstimate - Size estimate
+ * @typedef {import('../../middleware/types.js').GmailMessage} GmailMessage
+ * @typedef {import('../../middleware/types.js').GmailMessagePayload} GmailMessagePayload
  */
 
 /**

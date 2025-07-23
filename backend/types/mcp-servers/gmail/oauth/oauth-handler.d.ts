@@ -29,9 +29,13 @@ declare class GmailOAuthHandler {
      * Refreshes OAuth tokens
      * @param {string} refreshToken - Refresh token
      * @param {AuthCredentials} credentials - OAuth credentials
-     * @returns {Promise<Object>} New tokens
+     * @returns {Promise<{access_token: string, refresh_token: string, expires_in: number}>} New tokens
      */
-    refreshToken(refreshToken: string, credentials: AuthCredentials): Promise<Object>;
+    refreshToken(refreshToken: string, credentials: AuthCredentials): Promise<{
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+    }>;
 }
 declare namespace GmailOAuthHandler {
     export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult };

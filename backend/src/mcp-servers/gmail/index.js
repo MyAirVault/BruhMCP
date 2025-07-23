@@ -77,7 +77,7 @@ app.use('/:instanceId/*', createMCPOperationMiddleware(SERVICE_CONFIG.name));
 
 // Add cache performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
-	app.use(/** @type {import('express').RequestHandler} */ (createCachePerformanceMiddleware()));
+	app.use(createCachePerformanceMiddleware());
 }
 
 /**

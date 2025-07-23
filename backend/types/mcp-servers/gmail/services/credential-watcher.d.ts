@@ -14,9 +14,9 @@ export function getWatcherStatus(): Object;
 /**
  * Force refresh a specific instance token
  * @param {string} instanceId - Instance ID to refresh
- * @returns {boolean} True if refresh was successful
+ * @returns {Promise<boolean>} True if refresh was successful
  */
-export function forceRefreshInstanceToken(instanceId: string): boolean;
+export function forceRefreshInstanceToken(instanceId: string): Promise<boolean>;
 /**
  * Manual cleanup of invalid cache entries
  * @returns {number} Number of entries removed

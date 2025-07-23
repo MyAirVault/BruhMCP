@@ -37,7 +37,7 @@ import {
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
- * @returns {Function} Express middleware function
+ * @returns {import('express').RequestHandler} Express middleware function
  */
 export function createCredentialAuthMiddleware() {
   /**
@@ -162,7 +162,7 @@ export function createCredentialAuthMiddleware() {
 
 /**
  * Create lightweight authentication middleware for non-critical endpoints
- * @returns {Function} Express middleware function
+ * @returns {import('express').RequestHandler} Express middleware function
  */
 export function createLightweightAuthMiddleware() {
   /**
@@ -204,7 +204,7 @@ export function createLightweightAuthMiddleware() {
 
 /**
  * Create cache performance monitoring middleware for development
- * @returns {Function} Express middleware function
+ * @returns {import('express').RequestHandler} Express middleware function
  */
 export function createCachePerformanceMiddleware() {
   /**

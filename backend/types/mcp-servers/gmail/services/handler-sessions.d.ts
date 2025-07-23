@@ -1,11 +1,11 @@
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {import('../middleware/types.js').ServiceConfig} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {GmailMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: Object, bearerToken: string): GmailMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: import("../middleware/types.js").ServiceConfig, bearerToken: string): GmailMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance

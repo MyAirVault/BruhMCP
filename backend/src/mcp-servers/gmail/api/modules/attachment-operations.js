@@ -90,7 +90,7 @@ export async function downloadAttachment(args, bearerToken) {
 
 	// First get fresh attachment metadata to handle Gmail's unstable attachment IDs
 	const messageResult = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
-	const messageResponse = /** @type {MessageResponse} */ (formatMessageResponse(messageResult));
+	const messageResponse = /** @type {MessageResponse} */ (formatMessageResponse(/** @type {import('../../middleware/types.js').GmailMessage} */ (messageResult)));
 	
 	// Try to find attachment by ID first
 	/** @type {GmailAttachment | undefined} */
@@ -100,7 +100,7 @@ export async function downloadAttachment(args, bearerToken) {
 	if (!attachment && messageResponse.attachments.length > 0) {
 		// Get the filename from the original attachment ID request
 		const originalMessageResult = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
-		const originalResponse = /** @type {MessageResponse} */ (formatMessageResponse(originalMessageResult));
+		const originalResponse = /** @type {MessageResponse} */ (formatMessageResponse(/** @type {import('../../middleware/types.js').GmailMessage} */ (originalMessageResult)));
 		
 		// Find the first attachment (assuming single attachment or match by position)
 		attachment = originalResponse.attachments[0];
@@ -206,7 +206,7 @@ export async function listAttachments(args, bearerToken) {
 	const { messageId } = args;
 
 	const result = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
-	const messageResponse = /** @type {MessageResponse} */ (formatMessageResponse(result));
+	const messageResponse = /** @type {MessageResponse} */ (formatMessageResponse(/** @type {import('../../middleware/types.js').GmailMessage} */ (result)));
 
 	return {
 		action: 'list_attachments',
