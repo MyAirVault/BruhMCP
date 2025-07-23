@@ -1,4 +1,4 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstancesQueries.js';
+import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
 import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
 // import { checkInstanceLimit } from '../../../utils/planLimits.js';
 import { pool } from '../../../db/config.js';

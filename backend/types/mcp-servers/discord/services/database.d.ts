@@ -58,5 +58,5 @@ export function markInstanceForReauth(instanceId: string, reason: string): Promi
  */
 export function getServiceHealthStats(): Promise<Object>;
 export { createTokenAuditLog };
-import { createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
+import { createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
 //# sourceMappingURL=database.d.ts.map

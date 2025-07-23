@@ -11,7 +11,7 @@ import { tokenExchange } from './core/token-exchange.js';
 import { validateCredentialFormat } from './utils/validation.js';
 import { ErrorResponses } from '../utils/errorResponse.js';
 import { pool } from '../db/config.js';
-import { updateOAuthStatus } from '../db/queries/mcpInstancesQueries.js';
+import { updateOAuthStatus } from '../db/queries/mcpInstances/index.js';
 import { checkInstanceLimit } from '../utils/planLimits.js';
 
 const app = express();

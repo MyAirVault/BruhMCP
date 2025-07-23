@@ -7,7 +7,7 @@
 import { createMCPSchema } from '../schemas.js';
 import { calculateExpirationDate } from '../utils.js';
 import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
-import { updateMCPServiceStats, createMCPInstanceWithLimitCheck } from '../../../db/queries/mcpInstancesQueries.js';
+import { updateMCPServiceStats, createMCPInstanceWithLimitCheck } from '../../../db/queries/mcpInstances/index.js';
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';

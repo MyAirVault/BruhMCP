@@ -1,4 +1,4 @@
-import { getExpiredInstances, updateMCPInstance, getMCPInstanceById, getFailedOAuthInstances, getPendingOAuthInstances, deleteMCPInstance } from '../db/queries/mcpInstancesQueries.js';
+import { getExpiredInstances, updateMCPInstance, getMCPInstanceById, getFailedOAuthInstances, getPendingOAuthInstances, deleteMCPInstance } from '../db/queries/mcpInstances/index.js';
 import { invalidateInstanceCache } from './cacheInvalidationService.js';
 
 /**

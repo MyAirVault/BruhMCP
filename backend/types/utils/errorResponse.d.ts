@@ -24,6 +24,7 @@
  * @property {string} [plan] - Plan type if applicable
  * @property {number} [currentCount] - Current count if applicable
  * @property {number} [maxInstances] - Maximum instances if applicable
+ * @property {string} [upgradeMessage] - Upgrade message if applicable
  * @property {Object} [metadata] - Additional metadata
  */
 /**
@@ -42,6 +43,7 @@
  * @property {string} [plan] - Plan type
  * @property {number} [currentCount] - Current count
  * @property {number} [maxInstances] - Maximum instances
+ * @property {string} [upgradeMessage] - Upgrade message
  * @property {Object} [metadata] - Additional metadata
  */
 /**
@@ -163,6 +165,10 @@ export type ErrorObject = {
      */
     maxInstances?: number | undefined;
     /**
+     * - Upgrade message if applicable
+     */
+    upgradeMessage?: string | undefined;
+    /**
      * - Additional metadata
      */
     metadata?: Object | undefined;
@@ -212,6 +218,10 @@ export type ErrorOptions = {
      * - Maximum instances
      */
     maxInstances?: number | undefined;
+    /**
+     * - Upgrade message
+     */
+    upgradeMessage?: string | undefined;
     /**
      * - Additional metadata
      */

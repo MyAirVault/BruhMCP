@@ -1,6 +1,6 @@
 /// <reference types="../../../types/express.d.ts" />
 
-import { getAllMCPInstances } from '../../../db/queries/mcpInstancesQueries.js';
+import { getAllMCPInstances } from '../../../db/queries/mcpInstances/index.js';
 import { generateAccessUrl } from '../utils.js';
 
 /**

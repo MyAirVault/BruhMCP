@@ -182,7 +182,7 @@ async function checkAndRefreshToken(instanceId) {
     resetRefreshAttempts(instanceId);
 
     // Update database with new tokens
-    const { updateOAuthStatus } = await import('../../../db/queries/mcpInstancesQueries.js');
+    const { updateOAuthStatus } = await import('../../../db/queries/mcpInstances/index.js');
     await updateOAuthStatus(instanceId, {
       status: 'completed',
       accessToken: newTokens.access_token,

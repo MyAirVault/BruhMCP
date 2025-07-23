@@ -7,7 +7,7 @@
 import { getCachedCredential, setCachedCredential } from '../services/credential-cache.js';
 import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
 import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauth-validation.js';
-import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
+import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
 import { ErrorResponses } from '../../../utils/errorResponse.js';
 import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauth-error-handler.js';
 import { recordTokenRefreshMetrics } from '../utils/token-metrics.js';

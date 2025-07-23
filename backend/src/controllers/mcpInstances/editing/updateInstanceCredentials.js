@@ -1,4 +1,4 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstancesQueries.js';
+import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
 import { validateCredentialsWithFormat } from '../../../services/instanceCredentialValidationService.js';
 import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
 import { pool } from '../../../db/config.js';

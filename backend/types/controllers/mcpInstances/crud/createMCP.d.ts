@@ -1,4 +1,4 @@
-/** @typedef {import('express').Request} Request */
+/** @typedef {import('express').Request & { user?: { id: string } }} Request */
 /** @typedef {import('express').Response} Response */
 /**
  * @typedef {Object} MCPService
@@ -56,7 +56,11 @@ export function createMCP(req: Request, res: Response): Promise<void | import("e
  * @param {Response} res - Express response object
  */
 export function validateMCPCredentials(req: Request, res: Response): Promise<import("express").Response<any, Record<string, any>>>;
-export type Request = import("express").Request;
+export type Request = import("express").Request & {
+    user?: {
+        id: string;
+    };
+};
 export type Response = import("express").Response;
 export type MCPService = {
     mcp_service_id: string;

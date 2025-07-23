@@ -1,5 +1,5 @@
 // @ts-check
-import { getMCPInstanceById } from '../db/queries/mcpInstancesQueries.js';
+import { getMCPInstanceById } from '../db/queries/mcpInstances/index.js';
 import { ErrorResponses } from '../utils/errorResponse.js';
 
 /**

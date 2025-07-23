@@ -4,7 +4,7 @@
  */
 
 import { getUserPlan, isUserPlanActive, deactivateAllUserInstances, createUserPlan } from '../db/queries/userPlansQueries.js';
-import { getUserInstanceCount } from '../db/queries/mcpInstancesQueries.js';
+import { getUserInstanceCount } from '../db/queries/mcpInstances/index.js';
 
 /**
  * Plan limits configuration

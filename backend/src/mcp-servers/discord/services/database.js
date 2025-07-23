@@ -5,7 +5,7 @@
  */
 
 import { pool } from '../../../db/config.js';
-import { createTokenAuditLog } from '../../../db/queries/mcpInstancesQueries.js';
+import { createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
 
 // Export audit logging function for use in other modules
 export { createTokenAuditLog };

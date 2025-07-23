@@ -300,7 +300,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
-		const { getMCPInstanceById } = await import('../../../../db/queries/mcpInstancesQueries.js');
+		const { getMCPInstanceById } = await import('../../../../db/queries/mcpInstances/index.js');
 		const { lookupInstanceCredentials } = await import('../database.js');
 		
 		// Get current cache state
@@ -358,7 +358,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		if (updateDatabase && cacheIsNewer && cachedCredential) {
 			console.log(`🔄 Updating database from GitHub cache for instance: ${instanceId}`);
 			
-			const { updateOAuthStatus } = await import('../../../../db/queries/mcpInstancesQueries.js');
+			const { updateOAuthStatus } = await import('../../../../db/queries/mcpInstances/index.js');
 			
 			const tokenExpiresAt = cachedCredential.expiresAt ? 
 				new Date(cachedCredential.expiresAt) : null;
