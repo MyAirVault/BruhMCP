@@ -13,9 +13,10 @@ const TOKEN_REFRESH_THRESHOLD = 10 * 60 * 1000; // Refresh tokens with less than
 const MAX_REFRESH_ATTEMPTS = 3;
 
 // Watcher state
+/** @type {NodeJS.Timeout | null} */
 let watcherInterval = null;
 let watcherStats = {
-  lastRun: null,
+  lastRun: /** @type {string | null} */ (null),
   totalRuns: 0,
   tokensRefreshed: 0,
   refreshFailures: 0,
@@ -127,7 +128,8 @@ async function checkAndRefreshToken(instanceId) {
   }
 
   const now = Date.now();
-  const timeUntilExpiry = cached.expiresAt - now;
+  const cached_typed = /** @type {import('../middleware/types.js').ExtendedCachedCredential} */ (cached);
+  const timeUntilExpiry = cached_typed.expiresAt - now;
 
   // Skip if token doesn't need refresh yet
   if (timeUntilExpiry > TOKEN_REFRESH_THRESHOLD) {
@@ -137,7 +139,7 @@ async function checkAndRefreshToken(instanceId) {
   }
 
   // Check if we've already tried too many times
-  const refreshAttempts = cached.refresh_attempts || 0;
+  const refreshAttempts = cached_typed.refresh_attempts || 0;
   if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
     console.log(`⚠️  Max refresh attempts reached for instance ${instanceId}, removing from cache`);
     cleanupInvalidCacheEntries('max_attempts_reached');
@@ -153,7 +155,8 @@ async function checkAndRefreshToken(instanceId) {
     // Get instance credentials from database
     const instance = await lookupInstanceCredentials(instanceId, 'gmail');
     
-    if (!instance || !instance.client_id || !instance.client_secret) {
+    const instance_typed = /** @type {import('../middleware/types.js').DatabaseInstance} */ (instance);
+  if (!instance || !instance_typed.client_id || !instance_typed.client_secret) {
       console.log(`❌ Invalid instance credentials for ${instanceId}, removing from cache`);
       cleanupInvalidCacheEntries('invalid_credentials');
       return;
@@ -161,31 +164,33 @@ async function checkAndRefreshToken(instanceId) {
 
     // Refresh the Bearer token
     const newTokens = await refreshBearerToken({
-      refreshToken: cached.refreshToken,
-      clientId: instance.client_id,
-      clientSecret: instance.client_secret
+      refreshToken: cached_typed.refreshToken,
+      clientId: instance_typed.client_id,
+      clientSecret: instance_typed.client_secret
     });
 
     // Update cache with new tokens
+    const newTokens_typed = /** @type {import('../middleware/types.js').NewOAuthTokens} */ (newTokens);
     updateCachedCredentialMetadata(instanceId, {
-      bearerToken: newTokens.access_token,
-      refreshToken: newTokens.refresh_token || cached.refreshToken,
-      expiresAt: Date.now() + (newTokens.expires_in * 1000)
+      bearerToken: newTokens_typed.access_token,
+      refreshToken: newTokens_typed.refresh_token || cached_typed.refreshToken,
+      expiresAt: Date.now() + (newTokens_typed.expires_in * 1000)
     });
 
     // Reset refresh attempts after success
     resetRefreshAttempts(instanceId);
 
     watcherStats.tokensRefreshed++;
-    const newExpiryMinutes = Math.floor(newTokens.expires_in / 60);
+    const newExpiryMinutes = Math.floor(newTokens_typed.expires_in / 60);
     console.log(`✅ Successfully refreshed token for instance ${instanceId} (expires in ${newExpiryMinutes} minutes)`);
 
   } catch (error) {
-    console.error(`❌ Failed to refresh token for instance ${instanceId}:`, error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`❌ Failed to refresh token for instance ${instanceId}:`, err);
     watcherStats.refreshFailures++;
     
     // If refresh failed due to invalid refresh token, remove from cache
-    if (error.message.includes('invalid_grant') || error.message.includes('invalid_request')) {
+    if (err.message.includes('invalid_grant') || err.message.includes('invalid_request')) {
       console.log(`🗑️  Removing instance ${instanceId} from cache due to invalid refresh token`);
       cleanupInvalidCacheEntries('invalid_refresh_token');
     }
@@ -195,7 +200,7 @@ async function checkAndRefreshToken(instanceId) {
 /**
  * Force refresh a specific instance token
  * @param {string} instanceId - Instance ID to refresh
- * @returns {boolean} True if refresh was successful
+ * @returns {Promise<boolean>} True if refresh was successful
  */
 export async function forceRefreshInstanceToken(instanceId) {
   try {

@@ -97,7 +97,8 @@ export function getCacheStatistics() {
 	
 	const recentlyUsed = entries.filter(entry => {
 		const lastUsed = new Date(entry.last_used);
-		const hoursSinceUsed = (now - lastUsed) / (1000 * 60 * 60);
+		const lastUsedTime = lastUsed.getTime();
+		const hoursSinceUsed = (now - lastUsedTime) / (1000 * 60 * 60);
 		return hoursSinceUsed < 1;
 	}).length;
 	
@@ -300,7 +301,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
-		const { getMCPInstanceById } = await import('../../../db/queries/mcpInstances/index.js');
+		// const { getMCPInstanceById } = await import('../../../db/queries/mcpInstances/index.js'); // Currently unused
 		const { lookupInstanceCredentials } = await import('./database.js');
 		
 		// Get current cache state
@@ -319,10 +320,12 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		}
 		
 		// Check if database has newer data
-		const dbTokenTimestamp = dbInstance.credentials_updated_at ? 
-			new Date(dbInstance.credentials_updated_at).getTime() : 0;
-		const cacheTimestamp = cachedCredential?.cached_at ? 
-			new Date(cachedCredential.cached_at).getTime() : 0;
+		const dbInstance_typed = /** @type {import('../middleware/types.js').DatabaseInstance} */ (dbInstance);
+		const dbTokenTimestamp = dbInstance_typed.credentials_updated_at ? 
+			new Date(dbInstance_typed.credentials_updated_at).getTime() : 0;
+		const cachedCredential_typed = /** @type {import('../middleware/types.js').ExtendedCachedCredential} */ (cachedCredential);
+		const cacheTimestamp = cachedCredential_typed?.cached_at ? 
+			new Date(cachedCredential_typed.cached_at).getTime() : 0;
 		
 		const dbIsNewer = dbTokenTimestamp > cacheTimestamp;
 		const cacheIsNewer = cacheTimestamp > dbTokenTimestamp;
@@ -332,16 +335,16 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 			console.log(`🔄 Syncing cache from database for instance: ${instanceId} (force: ${forceRefresh}, dbNewer: ${dbIsNewer})`);
 			
 			// Update cache with database data
-			if (dbInstance.access_token && dbInstance.refresh_token) {
-				const tokenExpiresAt = dbInstance.token_expires_at ? 
-					new Date(dbInstance.token_expires_at).getTime() : 
+			if (dbInstance_typed.access_token && dbInstance_typed.refresh_token) {
+				const tokenExpiresAt = dbInstance_typed.token_expires_at ? 
+					new Date(dbInstance_typed.token_expires_at).getTime() : 
 					Date.now() + (3600 * 1000); // Default 1 hour
 				
 				setCachedCredential(instanceId, {
-					bearerToken: dbInstance.access_token,
-					refreshToken: dbInstance.refresh_token,
+					bearerToken: dbInstance_typed.access_token,
+					refreshToken: dbInstance_typed.refresh_token,
 					expiresAt: tokenExpiresAt,
-					user_id: dbInstance.user_id
+					user_id: dbInstance_typed.user_id
 				});
 				
 				console.log(`✅ Updated cache from database for instance: ${instanceId}`);
@@ -360,15 +363,15 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 			
 			const { updateOAuthStatus } = await import('../../../db/queries/mcpInstances/index.js');
 			
-			const tokenExpiresAt = cachedCredential.expiresAt ? 
-				new Date(cachedCredential.expiresAt) : null;
+			const tokenExpiresAt = cachedCredential_typed.expiresAt ? 
+				new Date(cachedCredential_typed.expiresAt) : null;
 			
 			await updateOAuthStatus(instanceId, {
 				status: 'completed',
-				accessToken: cachedCredential.bearerToken,
-				refreshToken: cachedCredential.refreshToken,
-				tokenExpiresAt: tokenExpiresAt,
-				scope: cachedCredential.scope || null
+				accessToken: cachedCredential_typed.bearerToken,
+				refreshToken: cachedCredential_typed.refreshToken,
+				tokenExpiresAt: tokenExpiresAt || undefined,
+				scope: cachedCredential_typed.scope || undefined
 			});
 			
 			console.log(`✅ Updated database from cache for instance: ${instanceId}`);

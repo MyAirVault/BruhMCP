@@ -4,7 +4,9 @@
  */
 
 /**
- * OAuth error types
+ * OAuth error types enumeration
+ * @readonly
+ * @enum {string}
  */
 export const OAUTH_ERROR_TYPES = {
   INVALID_REFRESH_TOKEN: 'INVALID_REFRESH_TOKEN',
@@ -16,9 +18,19 @@ export const OAUTH_ERROR_TYPES = {
 };
 
 /**
+ * OAuth error analysis result
+ * @typedef {Object} ErrorAnalysis
+ * @property {string} type - Error type from OAUTH_ERROR_TYPES
+ * @property {boolean} requiresReauth - Whether re-authentication is required
+ * @property {string} userMessage - User-friendly error message
+ * @property {boolean} shouldRetry - Whether the operation should be retried
+ * @property {string} logLevel - Logging level (error, warn, info)
+ */
+
+/**
  * Parse OAuth error and determine appropriate action
  * @param {Error} error - OAuth error
- * @returns {Object} Error analysis
+ * @returns {ErrorAnalysis} Error analysis
  */
 export function parseOAuthError(error) {
   const message = error.message.toLowerCase();
@@ -63,10 +75,10 @@ export function parseOAuthError(error) {
   }
   
   // Check for network errors
-  if (error.code === 'ECONNRESET' || 
-      error.code === 'ETIMEDOUT' || 
-      error.code === 'ENOTFOUND' ||
-      error.code === 'ECONNREFUSED' ||
+  if (/** @type {NodeJS.ErrnoException} */ (error).code === 'ECONNRESET' || 
+      /** @type {NodeJS.ErrnoException} */ (error).code === 'ETIMEDOUT' || 
+      /** @type {NodeJS.ErrnoException} */ (error).code === 'ENOTFOUND' ||
+      /** @type {NodeJS.ErrnoException} */ (error).code === 'ECONNREFUSED' ||
       error.name === 'AbortError') {
     return {
       type: OAUTH_ERROR_TYPES.NETWORK_ERROR,
@@ -101,11 +113,33 @@ export function parseOAuthError(error) {
 }
 
 /**
+ * OAuth status update data
+ * @typedef {Object} OAuthStatusUpdate
+ * @property {string} status - OAuth status
+ * @property {string|null} accessToken - Access token
+ * @property {string|null} refreshToken - Refresh token
+ * @property {string|null} tokenExpiresAt - Token expiration
+ * @property {string|null} scope - OAuth scope
+ */
+
+/**
+ * Token refresh failure response
+ * @typedef {Object} RefreshFailureResponse
+ * @property {string} instanceId - Instance ID
+ * @property {string} error - Error message
+ * @property {string} errorCode - Error code
+ * @property {boolean} requiresReauth - Requires re-authentication
+ * @property {boolean} shouldRetry - Should retry operation
+ * @property {string} logLevel - Log level
+ * @property {string} originalError - Original error message
+ */
+
+/**
  * Handle token refresh failure with appropriate response
  * @param {string} instanceId - Instance ID
  * @param {Error} error - Refresh error
- * @param {Function} updateOAuthStatus - Database update function
- * @returns {Object} Error response details
+ * @param {function(string, OAuthStatusUpdate): Promise<void>} updateOAuthStatus - Database update function
+ * @returns {Promise<RefreshFailureResponse>} Error response details
  */
 export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
   const errorAnalysis = parseOAuthError(error);
@@ -199,11 +233,25 @@ export function logOAuthError(error, context, instanceId) {
 }
 
 /**
+ * Standardized OAuth error response
+ * @typedef {Object} OAuthErrorResponse
+ * @property {boolean} success - Always false for errors
+ * @property {string} instanceId - Instance ID
+ * @property {string} context - Error context
+ * @property {string} error - User-friendly error message
+ * @property {string} errorCode - Error code
+ * @property {boolean} requiresReauth - Requires re-authentication
+ * @property {boolean} shouldRetry - Should retry operation
+ * @property {string} timestamp - Error timestamp
+ * @property {{originalError: string, errorType: string, logLevel: string}} metadata - Error metadata
+ */
+
+/**
  * Create standardized error response for OAuth failures
  * @param {string} instanceId - Instance ID
  * @param {Error} error - OAuth error
  * @param {string} context - Error context
- * @returns {Object} Standardized error response
+ * @returns {OAuthErrorResponse} Standardized error response
  */
 export function createOAuthErrorResponse(instanceId, error, context) {
   const errorAnalysis = parseOAuthError(error);

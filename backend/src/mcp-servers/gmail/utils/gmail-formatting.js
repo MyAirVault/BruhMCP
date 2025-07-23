@@ -4,8 +4,60 @@
  */
 
 /**
+ * Email data for formatting MCP responses
+ * @typedef {Object} EmailData
+ * @property {string} [timestamp] - Operation timestamp
+ * @property {string} action - Action performed
+ * @property {string} [messageId] - Gmail message ID
+ * @property {string} [threadId] - Gmail thread ID
+ * @property {string} [to] - Recipient email
+ * @property {string} [subject] - Email subject
+ * @property {string} [draftId] - Draft ID
+ * @property {Array<MessagePreview>} [messages] - Message previews
+ * @property {number} [count] - Message count
+ * @property {string} [query] - Search query
+ * @property {number} [totalEstimate] - Total result estimate
+ * @property {number} [attachmentCount] - Attachment count
+ * @property {Array<AttachmentInfo>} [attachments] - Attachment details
+ * @property {Array<string>} [messageIds] - Message IDs array
+ * @property {string} [attachmentId] - Attachment ID
+ * @property {number} [size] - Size in bytes
+ * @property {Array<DraftInfo>} [drafts] - Draft information
+ */
+
+/**
+ * Message preview data
+ * @typedef {Object} MessagePreview
+ * @property {string} id - Message ID
+ * @property {string} [snippet] - Message snippet
+ * @property {string} [subject] - Message subject
+ * @property {string} [from] - Sender email
+ * @property {string} [date] - Message date
+ * @property {boolean} [hasAttachments] - Has attachments flag
+ * @property {Array<{filename: string}>} [attachments] - Attachment list
+ */
+
+/**
+ * Attachment information
+ * @typedef {Object} AttachmentInfo
+ * @property {string} filename - Attachment filename
+ * @property {number} size - Size in bytes
+ * @property {string} [readableSize] - Human readable size
+ * @property {string} [mimeType] - MIME type
+ * @property {string} [attachmentId] - Attachment ID
+ * @property {string} [partId] - Part ID
+ */
+
+/**
+ * Draft information
+ * @typedef {Object} DraftInfo
+ * @property {string} id - Draft ID
+ * @property {{subject?: string, to?: string}} message - Message data
+ */
+
+/**
  * Format email response for MCP protocol
- * @param {Object} data - Email data to format
+ * @param {EmailData} data - Email data to format
  * @returns {string} Formatted email response
  */
 export function formatEmailResponse(data) {
@@ -36,20 +88,22 @@ Reply Details:
 Your reply has been added to the email conversation.`;
 
     case 'fetch':
-      const emailList = data.messages.map((msg, index) => {
+      const emailList = data.messages ? data.messages.map((msg, index) => {
         const snippet = msg.snippet ? msg.snippet.substring(0, 100) + '...' : '';
-        const attachmentInfo = msg.hasAttachments ? 
-          `\n   📎 Attachments: ${msg.attachments.length} file(s) - ${msg.attachments.map(att => att.filename).join(', ')}` : '';
-        return `${index + 1}. ${msg.subject}
-   From: ${msg.from}
-   Date: ${msg.date}
+        const attachmentInfo = msg.hasAttachments && msg.attachments ? 
+          `\n   📎 Attachments: ${msg.attachments.length} file(s) - ${msg.attachments.map((att) => att.filename).join(', ')}` : '';
+        return `${index + 1}. ${msg.subject || 'No Subject'}
+   From: ${msg.from || 'Unknown'}
+   Date: ${msg.date || 'Unknown'}
    ${snippet}${attachmentInfo}
    Message ID: ${msg.id}`;
-      }).join('\n\n');
+      }).join('\n\n') : '';
 
-      return `📧 Retrieved ${data.count} email(s) ${data.query ? `matching "${data.query}"` : ''}
+      const count = data.count || 0;
+      const totalEstimate = data.totalEstimate || count;
+      return `📧 Retrieved ${count} email(s) ${data.query ? `matching "${data.query}"` : ''}
 
-${data.totalEstimate > data.count ? `Showing ${data.count} of approximately ${data.totalEstimate} results\n` : ''}${emailList || 'No emails found.'}`;
+${totalEstimate > count ? `Showing ${count} of approximately ${totalEstimate} results\n` : ''}${emailList || 'No emails found.'}`;
 
     case 'deleted':
       return `🗑️ Email deleted successfully!
@@ -78,17 +132,19 @@ The email has been moved to the trash folder.`;
 Your draft has been sent and is no longer in drafts.`;
 
     case 'marked_as_read':
-      return `📖 Marked ${data.count} message(s) as read
+      const readIds = data.messageIds || [];
+      return `📖 Marked ${data.count || 0} message(s) as read
 
-- Message IDs: ${data.messageIds.join(', ')}
+- Message IDs: ${readIds.join(', ')}
 - Updated at: ${timestamp}
 
 The messages are now marked as read.`;
 
     case 'marked_as_unread':
-      return `📩 Marked ${data.count} message(s) as unread
+      const unreadIds = data.messageIds || [];
+      return `📩 Marked ${data.count || 0} message(s) as unread
 
-- Message IDs: ${data.messageIds.join(', ')}
+- Message IDs: ${unreadIds.join(', ')}
 - Updated at: ${timestamp}
 
 The messages are now marked as unread.`;
@@ -100,13 +156,13 @@ The messages are now marked as unread.`;
 This message does not contain any file attachments.`;
       }
 
-      const attachmentList = data.attachments.map((att, index) => {
+      const attachmentList = data.attachments ? data.attachments.map((att, index) => {
         return `${index + 1}. ${att.filename}
-   📋 Type: ${att.mimeType}
-   📏 Size: ${att.readableSize}
-   🔗 Attachment ID: ${att.attachmentId}
-   🔗 Part ID: ${att.partId}`;
-      }).join('\n\n');
+   📋 Type: ${att.mimeType || 'unknown'}
+   📏 Size: ${att.readableSize || formatFileSize(att.size)}
+   🔗 Attachment ID: ${att.attachmentId || 'unknown'}
+   🔗 Part ID: ${att.partId || 'unknown'}`;
+      }).join('\n\n') : 'No attachments';
 
       return `📎 Found ${data.attachmentCount} attachment(s) for message ${data.messageId}
 
@@ -143,14 +199,62 @@ The email and all attachments have been delivered.`;
 }
 
 /**
+ * Gmail message payload part
+ * @typedef {Object} MessagePayloadPart
+ * @property {Array<{name: string, value: string}>} [headers] - Message headers
+ * @property {string} [filename] - Part filename
+ * @property {string} [mimeType] - MIME type
+ * @property {string} [partId] - Part ID
+ * @property {{data?: string, size?: number, attachmentId?: string}} [body] - Part body
+ * @property {Array<MessagePayloadPart>} [parts] - Nested parts
+ */
+
+/**
+ * Gmail message object
+ * @typedef {Object} GmailMessage
+ * @property {string} id - Message ID
+ * @property {string} [threadId] - Thread ID
+ * @property {Array<string>} [labelIds] - Label IDs
+ * @property {string} [snippet] - Message snippet
+ * @property {string} [internalDate] - Internal date
+ * @property {MessagePayloadPart} [payload] - Message payload
+ * @property {number} [sizeEstimate] - Size estimate
+ * @property {string} [raw] - Raw message data
+ */
+
+/**
+ * Formatted message response
+ * @typedef {Object} FormattedMessage
+ * @property {string} id - Message ID
+ * @property {string} threadId - Thread ID
+ * @property {string} subject - Message subject
+ * @property {string} from - Sender
+ * @property {string} to - Recipient
+ * @property {string} date - Formatted date
+ * @property {string} snippet - Message snippet
+ * @property {string} body - Message body
+ * @property {Array<string>} labelIds - Label IDs
+ * @property {string} messageId - Message ID header
+ * @property {number} sizeEstimate - Size estimate
+ * @property {string} raw - Raw availability
+ * @property {Array<AttachmentInfo>} attachments - Attachments
+ * @property {boolean} hasAttachments - Has attachments flag
+ */
+
+/**
  * Format individual message response
- * @param {Object} message - Gmail message object
- * @returns {Object} Formatted message data
+ * @param {GmailMessage} message - Gmail message object
+ * @returns {FormattedMessage} Formatted message data
  */
 export function formatMessageResponse(message) {
   const headers = message.payload?.headers || [];
   
   // Extract important headers
+  /**
+   * Get header value by name
+   * @param {string} name - Header name
+   * @returns {string} Header value
+   */
   const getHeader = (name) => {
     const header = headers.find(h => h.name.toLowerCase() === name.toLowerCase());
     return header ? header.value : '';
@@ -187,7 +291,7 @@ export function formatMessageResponse(message) {
 
   return {
     id: message.id,
-    threadId: message.threadId,
+    threadId: message.threadId || '',
     subject,
     from,
     to,
@@ -205,12 +309,16 @@ export function formatMessageResponse(message) {
 
 /**
  * Extract attachments from Gmail payload
- * @param {Object} payload - Gmail message payload
- * @returns {Array} Array of attachment objects
+ * @param {MessagePayloadPart} payload - Gmail message payload
+ * @returns {Array<AttachmentInfo>} Array of attachment objects
  */
 function extractAttachments(payload) {
   const attachments = [];
 
+  /**
+   * Process payload part for attachments
+   * @param {MessagePayloadPart} part - Payload part
+   */
   function processPayloadPart(part) {
     // Check if this part is an attachment
     if (part.filename && part.filename.length > 0 && part.body && part.body.attachmentId) {
@@ -252,7 +360,7 @@ function extractAttachments(payload) {
 
 /**
  * Extract message body from Gmail payload
- * @param {Object} payload - Gmail message payload
+ * @param {MessagePayloadPart} payload - Gmail message payload
  * @returns {string} Extracted body text
  */
 function extractMessageBody(payload) {
@@ -289,8 +397,21 @@ function extractMessageBody(payload) {
 }
 
 /**
+ * Draft formatting data
+ * @typedef {Object} DraftData
+ * @property {string} [timestamp] - Operation timestamp
+ * @property {string} action - Action performed
+ * @property {string} [draftId] - Draft ID
+ * @property {string} [messageId] - Message ID
+ * @property {string} [to] - Recipient
+ * @property {string} [subject] - Subject
+ * @property {number} [count] - Draft count
+ * @property {Array<{draftId: string, messageId: string, snippet?: string, timestamp: string}>} [drafts] - Draft list
+ */
+
+/**
  * Format draft response for MCP protocol
- * @param {Object} data - Draft data to format
+ * @param {DraftData} data - Draft data to format
  * @returns {string} Formatted draft response
  */
 export function formatDraftResponse(data) {
@@ -316,7 +437,7 @@ Your draft has been saved and can be edited or sent later.`;
 You don't have any email drafts at the moment.`;
       }
 
-      const draftList = data.drafts.map((draft, index) => {
+      const draftList = (data.drafts || []).map((draft, index) => {
         return `${index + 1}. Draft ID: ${draft.draftId}
    Message ID: ${draft.messageId}
    Preview: ${draft.snippet || '(No preview available)'}
@@ -334,7 +455,7 @@ ${draftList}`;
 
 /**
  * Format search results for better readability
- * @param {Array} messages - Array of message objects
+ * @param {Array<FormattedMessage>} messages - Array of message objects
  * @param {string} query - Search query used
  * @returns {string} Formatted search results
  */
@@ -405,4 +526,17 @@ Error Message: ${error.message}
 Timestamp: ${timestamp}
 
 Suggestion: ${suggestion}`;
+}
+
+/**
+ * Format file size in bytes to human readable format
+ * @param {number} bytes - Size in bytes
+ * @returns {string} Formatted file size
+ */
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }

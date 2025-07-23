@@ -4,6 +4,44 @@
  */
 
 /**
+ * Token metrics data structure
+ * @typedef {Object} MetricsData
+ * @property {number} refreshAttempts - Total refresh attempts
+ * @property {number} refreshSuccesses - Successful refreshes
+ * @property {number} refreshFailures - Failed refreshes
+ * @property {number} directOAuthFallbacks - Direct OAuth fallbacks
+ * @property {number} serviceUnavailableErrors - Service unavailable errors
+ * @property {number} invalidTokenErrors - Invalid token errors
+ * @property {number} networkErrors - Network errors
+ * @property {number} totalLatency - Total latency sum
+ * @property {number} maxLatency - Maximum latency
+ * @property {number} minLatency - Minimum latency
+ * @property {number} lastReset - Last reset timestamp
+ * @property {Record<string, number>} errorsByType - Errors by type
+ * @property {Record<string, DailyStats>} dailyStats - Daily statistics
+ * @property {Record<string, InstanceMetric>} instanceMetrics - Instance metrics
+ */
+
+/**
+ * Daily statistics
+ * @typedef {Object} DailyStats
+ * @property {number} attempts - Attempts count
+ * @property {number} successes - Success count
+ * @property {number} failures - Failure count
+ * @property {number} directFallbacks - Direct fallback count
+ */
+
+/**
+ * Instance metric data
+ * @typedef {Object} InstanceMetric
+ * @property {number} attempts - Attempts count
+ * @property {number} successes - Success count
+ * @property {number} failures - Failure count
+ * @property {{timestamp: number, method: string}|null} lastAttempt - Last attempt info
+ * @property {number} averageLatency - Average latency
+ */
+
+/**
  * Metrics storage and management
  */
 class TokenMetrics {
@@ -20,16 +58,16 @@ class TokenMetrics {
       maxLatency: 0,
       minLatency: Infinity,
       lastReset: Date.now(),
-      errorsByType: {},
-      dailyStats: {},
-      instanceMetrics: {}
+      errorsByType: /** @type {Record<string, number>} */ ({}),
+      dailyStats: /** @type {Record<string, DailyStats>} */ ({}),
+      instanceMetrics: /** @type {Record<string, InstanceMetric>} */ ({})
     };
   }
 
   /**
    * Record a token refresh attempt
    * @param {string} instanceId - Instance ID
-   * @param {string} method - Method used ('oauth_service' | 'direct_oauth')
+   * @param {'oauth_service'|'direct_oauth'} method - Method used
    * @param {number} startTime - Start timestamp
    */
   recordRefreshAttempt(instanceId, method, startTime) {
@@ -37,6 +75,7 @@ class TokenMetrics {
     
     // Initialize instance metrics if needed
     if (!this.metrics.instanceMetrics[instanceId]) {
+      /** @type {InstanceMetric} */
       this.metrics.instanceMetrics[instanceId] = {
         attempts: 0,
         successes: 0,
@@ -55,6 +94,7 @@ class TokenMetrics {
     // Track daily stats
     const today = new Date().toISOString().split('T')[0];
     if (!this.metrics.dailyStats[today]) {
+      /** @type {DailyStats} */
       this.metrics.dailyStats[today] = {
         attempts: 0,
         successes: 0,
@@ -73,7 +113,7 @@ class TokenMetrics {
   /**
    * Record a successful token refresh
    * @param {string} instanceId - Instance ID
-   * @param {string} method - Method used
+   * @param {'oauth_service'|'direct_oauth'} method - Method used
    * @param {number} startTime - Start timestamp
    * @param {number} endTime - End timestamp
    */
@@ -99,8 +139,9 @@ class TokenMetrics {
 
     // Update daily stats
     const today = new Date().toISOString().split('T')[0];
-    if (this.metrics.dailyStats[today]) {
-      this.metrics.dailyStats[today].successes++;
+    const dailyStat = this.metrics.dailyStats[today];
+    if (dailyStat) {
+      dailyStat.successes++;
     }
 
     console.log(`📊 Token refresh success: ${instanceId} via ${method} (${latency}ms)`);
@@ -109,7 +150,7 @@ class TokenMetrics {
   /**
    * Record a failed token refresh
    * @param {string} instanceId - Instance ID
-   * @param {string} method - Method used
+   * @param {'oauth_service'|'direct_oauth'} method - Method used
    * @param {string} errorType - Type of error
    * @param {string} errorMessage - Error message
    * @param {number} startTime - Start timestamp
@@ -142,16 +183,26 @@ class TokenMetrics {
 
     // Update daily stats
     const today = new Date().toISOString().split('T')[0];
-    if (this.metrics.dailyStats[today]) {
-      this.metrics.dailyStats[today].failures++;
+    const dailyStat = this.metrics.dailyStats[today];
+    if (dailyStat) {
+      dailyStat.failures++;
     }
 
     console.log(`📊 Token refresh failure: ${instanceId} via ${method} - ${errorType} (${latency}ms)`);
   }
 
   /**
+   * Metrics summary structure
+   * @typedef {Object} MetricsSummary
+   * @property {{totalAttempts: number, totalSuccesses: number, totalFailures: number, successRate: string, directFallbackRate: string}} overview - Overview stats
+   * @property {{averageLatency: string, maxLatency: string, minLatency: string}} performance - Performance stats
+   * @property {{invalidTokenErrors: number, serviceUnavailableErrors: number, networkErrors: number, errorsByType: Object<string, number>}} errors - Error stats
+   * @property {{metricsStarted: string, uptimeHours: string}} uptime - Uptime stats
+   */
+
+  /**
    * Get current metrics summary
-   * @returns {Object} Metrics summary
+   * @returns {MetricsSummary} Metrics summary
    */
   getMetricsSummary() {
     const successRate = this.metrics.refreshAttempts > 0 
@@ -193,9 +244,21 @@ class TokenMetrics {
   }
 
   /**
+   * Instance metrics structure
+   * @typedef {Object} InstanceMetrics
+   * @property {string} instanceId - Instance ID
+   * @property {number} totalAttempts - Total attempts
+   * @property {number} totalSuccesses - Total successes
+   * @property {number} totalFailures - Total failures
+   * @property {string} successRate - Success rate percentage
+   * @property {string} averageLatency - Average latency
+   * @property {{timestamp: number, method: string}|null} lastAttempt - Last attempt info
+   */
+
+  /**
    * Get metrics for a specific instance
    * @param {string} instanceId - Instance ID
-   * @returns {Object} Instance-specific metrics
+   * @returns {InstanceMetrics|null} Instance-specific metrics
    */
   getInstanceMetrics(instanceId) {
     const instanceMetric = this.metrics.instanceMetrics[instanceId];
@@ -221,11 +284,12 @@ class TokenMetrics {
 
   /**
    * Get daily statistics
-   * @param {number} days - Number of days to include (default: 7)
-   * @returns {Object} Daily statistics
+   * @param {number} [days=7] - Number of days to include
+   * @returns {Object<string, DailyStats>} Daily statistics
    */
   getDailyStats(days = 7) {
     const today = new Date();
+    /** @type {Record<string, DailyStats>} */
     const stats = {};
 
     for (let i = 0; i < days; i++) {
@@ -233,7 +297,8 @@ class TokenMetrics {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       
-      stats[dateStr] = this.metrics.dailyStats[dateStr] || {
+      const existingStat = this.metrics.dailyStats[dateStr];
+      stats[dateStr] = existingStat || {
         attempts: 0,
         successes: 0,
         failures: 0,
@@ -260,33 +325,52 @@ class TokenMetrics {
       maxLatency: 0,
       minLatency: Infinity,
       lastReset: Date.now(),
-      errorsByType: {},
-      dailyStats: {},
-      instanceMetrics: {}
+      errorsByType: /** @type {Record<string, number>} */ ({}),
+      dailyStats: /** @type {Record<string, DailyStats>} */ ({}),
+      instanceMetrics: /** @type {Record<string, InstanceMetric>} */ ({})
     };
     
     console.log('📊 Token metrics reset');
   }
 
   /**
+   * Exportable metrics structure
+   * @typedef {Object} ExportableMetrics
+   * @property {number} timestamp - Export timestamp
+   * @property {MetricsSummary} summary - Metrics summary
+   * @property {Object<string, DailyStats>} dailyStats - Daily statistics
+   * @property {Array<InstanceMetrics>} allInstanceMetrics - All instance metrics
+   * @property {MetricsData} rawMetrics - Raw metrics data
+   */
+
+  /**
    * Export metrics for external monitoring systems
-   * @returns {Object} Exportable metrics
+   * @returns {ExportableMetrics} Exportable metrics
    */
   exportMetrics() {
     return {
       timestamp: Date.now(),
       summary: this.getMetricsSummary(),
       dailyStats: this.getDailyStats(),
-      allInstanceMetrics: Object.keys(this.metrics.instanceMetrics).map(
-        instanceId => this.getInstanceMetrics(instanceId)
-      ),
+      allInstanceMetrics: Object.keys(this.metrics.instanceMetrics)
+        .map(/** @param {string} instanceId */ instanceId => this.getInstanceMetrics(instanceId))
+        .filter(/** @param {InstanceMetrics|null} metric */ metric => metric !== null),
       rawMetrics: { ...this.metrics }
     };
   }
 
   /**
+   * Health assessment structure
+   * @typedef {Object} HealthAssessment
+   * @property {'healthy'|'degraded'|'unhealthy'} status - Overall health status
+   * @property {Array<string>} issues - Critical issues
+   * @property {Array<string>} warnings - Warning messages
+   * @property {MetricsSummary} summary - Metrics summary
+   */
+
+  /**
    * Check if metrics indicate system health issues
-   * @returns {Object} Health assessment
+   * @returns {HealthAssessment} Health assessment
    */
   getHealthAssessment() {
     const summary = this.getMetricsSummary();
@@ -341,14 +425,14 @@ const tokenMetrics = new TokenMetrics();
 /**
  * Record token refresh metrics
  * @param {string} instanceId - Instance ID
- * @param {string} method - Method used
+ * @param {'oauth_service'|'direct_oauth'} method - Method used
  * @param {boolean} success - Whether refresh was successful
- * @param {string} errorType - Error type if failed
- * @param {string} errorMessage - Error message if failed
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
+ * @param {string} [errorType=''] - Error type if failed
+ * @param {string} [errorMessage=''] - Error message if failed
  */
-export function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
+export function recordTokenRefreshMetrics(instanceId, method, success, startTime, endTime, errorType = '', errorMessage = '') {
   // Record the attempt
   tokenMetrics.recordRefreshAttempt(instanceId, method, startTime);
 
@@ -356,7 +440,7 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
   if (success) {
     tokenMetrics.recordRefreshSuccess(instanceId, method, startTime, endTime);
   } else {
-    tokenMetrics.recordRefreshFailure(instanceId, method, errorType, errorMessage, startTime, endTime);
+    tokenMetrics.recordRefreshFailure(instanceId, method, errorType || 'UNKNOWN', errorMessage || 'Unknown error', startTime, endTime);
   }
 }
 
@@ -369,6 +453,8 @@ export function getTokenMetricsSummary() {
 
 /**
  * Get instance-specific metrics
+ * @param {string} instanceId - Instance ID
+ * @returns {InstanceMetrics|null} Instance metrics
  */
 export function getInstanceTokenMetrics(instanceId) {
   return tokenMetrics.getInstanceMetrics(instanceId);
@@ -376,8 +462,10 @@ export function getInstanceTokenMetrics(instanceId) {
 
 /**
  * Get daily statistics
+ * @param {number} [days=7] - Number of days to include
+ * @returns {Record<string, DailyStats>} Daily statistics
  */
-export function getDailyTokenStats(days) {
+export function getDailyTokenStats(days = 7) {
   return tokenMetrics.getDailyStats(days);
 }
 

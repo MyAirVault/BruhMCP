@@ -8,12 +8,12 @@ import { getTools } from '../endpoints/tools.js';
 /**
  * Validate tool arguments against schema
  * @param {string} toolName - Name of the tool
- * @param {Object} args - Arguments to validate
+ * @param {Record<string, any>} args - Arguments to validate
  * @throws {Error} Validation error if arguments are invalid
  */
 export function validateToolArguments(toolName, args) {
-  const toolsData = getTools();
-  const tool = toolsData.tools.find(t => t.name === toolName);
+  const toolsData = /** @type {{tools: Array<{name: string, inputSchema?: JSONSchema}>}} */ (getTools());
+  const tool = toolsData.tools.find(/** @param {{name: string}} t */ t => t.name === toolName);
   
   if (!tool) {
     throw new Error(`Unknown tool: ${toolName}`);
@@ -28,9 +28,27 @@ export function validateToolArguments(toolName, args) {
 }
 
 /**
+ * JSON schema definition
+ * @typedef {Object} JSONSchema
+ * @property {string} [type] - Data type
+ * @property {Array<string>} [required] - Required properties
+ * @property {Record<string, JSONSchema>} [properties] - Property schemas
+ * @property {Array<any>} [enum] - Enumerated values
+ * @property {number} [minLength] - Minimum string length
+ * @property {number} [maxLength] - Maximum string length
+ * @property {string} [pattern] - Regex pattern
+ * @property {number} [minimum] - Minimum number value
+ * @property {number} [maximum] - Maximum number value
+ * @property {number} [multipleOf] - Multiple of value
+ * @property {number} [minItems] - Minimum array items
+ * @property {number} [maxItems] - Maximum array items
+ * @property {JSONSchema} [items] - Array item schema
+ */
+
+/**
  * Validate object against JSON schema
- * @param {Object} obj - Object to validate
- * @param {Object} schema - JSON schema
+ * @param {Record<string, any>} obj - Object to validate
+ * @param {JSONSchema} schema - JSON schema
  * @param {string} context - Context for error messages
  */
 function validateObject(obj, schema, context) {
@@ -64,7 +82,7 @@ function validateObject(obj, schema, context) {
 /**
  * Validate individual property
  * @param {any} value - Value to validate
- * @param {Object} schema - Property schema
+ * @param {JSONSchema} schema - Property schema
  * @param {string} context - Context for error messages
  */
 function validateProperty(value, schema, context) {
@@ -124,7 +142,7 @@ function validateType(value, expectedType) {
 /**
  * Validate string property
  * @param {string} value - String value
- * @param {Object} schema - String schema
+ * @param {JSONSchema} schema - String schema
  * @param {string} context - Context for error messages
  */
 function validateString(value, schema, context) {
@@ -152,7 +170,7 @@ function validateString(value, schema, context) {
 /**
  * Validate number property
  * @param {number} value - Number value
- * @param {Object} schema - Number schema
+ * @param {JSONSchema} schema - Number schema
  * @param {string} context - Context for error messages
  */
 function validateNumber(value, schema, context) {
@@ -171,8 +189,8 @@ function validateNumber(value, schema, context) {
 
 /**
  * Validate array property
- * @param {Array} value - Array value
- * @param {Object} schema - Array schema
+ * @param {Array<any>} value - Array value
+ * @param {JSONSchema} schema - Array schema
  * @param {string} context - Context for error messages
  */
 function validateArray(value, schema, context) {
@@ -187,7 +205,7 @@ function validateArray(value, schema, context) {
   // Validate array items
   if (schema.items) {
     value.forEach((item, index) => {
-      validateProperty(item, schema.items, `${context}[${index}]`);
+      validateProperty(item, /** @type {JSONSchema} */ (schema.items), `${context}[${index}]`);
     });
   }
 }

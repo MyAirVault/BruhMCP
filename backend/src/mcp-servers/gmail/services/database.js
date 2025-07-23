@@ -9,7 +9,7 @@ import { pool } from '../../../db/config.js';
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
  * @param {string} serviceName - Name of the MCP service (gmail)
- * @returns {Object|null} Instance credentials or null if not found
+ * @returns {Promise<Object|null>} Instance credentials or null if not found
  */
 export async function lookupInstanceCredentials(instanceId, serviceName) {
   try {
@@ -57,15 +57,16 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
     return instance;
     
   } catch (error) {
-    console.error('Database lookup error:', error);
-    throw new Error(`Failed to lookup instance credentials: ${error.message}`);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('Database lookup error:', err);
+    throw new Error(`Failed to lookup instance credentials: ${err.message}`);
   }
 }
 
 /**
  * Update instance usage tracking
  * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
 export async function updateInstanceUsage(instanceId) {
   try {
@@ -102,7 +103,7 @@ export async function updateInstanceUsage(instanceId) {
 /**
  * Get instance statistics
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Instance statistics or null if not found
+ * @returns {Promise<Object|null>} Instance statistics or null if not found
  */
 export async function getInstanceStatistics(instanceId) {
   try {
@@ -133,8 +134,9 @@ export async function getInstanceStatistics(instanceId) {
     return result.rows[0];
     
   } catch (error) {
-    console.error('Database statistics query error:', error);
-    throw new Error(`Failed to get instance statistics: ${error.message}`);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('Database statistics query error:', err);
+    throw new Error(`Failed to get instance statistics: ${err.message}`);
   }
 }
 
@@ -142,7 +144,7 @@ export async function getInstanceStatistics(instanceId) {
  * Update instance status
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newStatus - New status (active, inactive, expired)
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
 export async function updateInstanceStatus(instanceId, newStatus) {
   try {
@@ -167,14 +169,15 @@ export async function updateInstanceStatus(instanceId, newStatus) {
     return true;
     
   } catch (error) {
-    console.error('Database status update error:', error);
-    throw new Error(`Failed to update instance status: ${error.message}`);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('Database status update error:', err);
+    throw new Error(`Failed to update instance status: ${err.message}`);
   }
 }
 
 /**
  * Get all active instances for Gmail service
- * @returns {Array} Array of active instance records
+ * @returns {Promise<Object[]>} Array of active instance records
  */
 export async function getActiveGmailInstances() {
   try {
@@ -203,8 +206,9 @@ export async function getActiveGmailInstances() {
     return result.rows;
     
   } catch (error) {
-    console.error('Database active instances query error:', error);
-    throw new Error(`Failed to get active Gmail instances: ${error.message}`);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('Database active instances query error:', err);
+    throw new Error(`Failed to get active Gmail instances: ${err.message}`);
   }
 }
 
@@ -212,7 +216,7 @@ export async function getActiveGmailInstances() {
  * Validate instance exists and is accessible
  * @param {string} instanceId - UUID of the service instance
  * @param {string} userId - UUID of the user (for additional security)
- * @returns {boolean} True if instance is valid and accessible
+ * @returns {Promise<boolean>} True if instance is valid and accessible
  */
 export async function validateInstanceAccess(instanceId, userId) {
   try {
@@ -245,7 +249,7 @@ export async function validateInstanceAccess(instanceId, userId) {
 
 /**
  * Clean up expired instances
- * @returns {number} Number of instances marked as expired
+ * @returns {Promise<number>} Number of instances marked as expired
  */
 export async function cleanupExpiredInstances() {
   try {
@@ -274,7 +278,8 @@ export async function cleanupExpiredInstances() {
     return expiredCount;
     
   } catch (error) {
-    console.error('Database cleanup error:', error);
-    throw new Error(`Failed to cleanup expired instances: ${error.message}`);
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('Database cleanup error:', err);
+    throw new Error(`Failed to cleanup expired instances: ${err.message}`);
   }
 }

@@ -3,7 +3,6 @@
  * OAuth 2.0 Implementation following Multi-Tenant Architecture
  */
 
-/// <reference path="../../types/gmail.d.ts" />
 
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -78,10 +77,14 @@ app.use('/:instanceId/*', createMCPOperationMiddleware(SERVICE_CONFIG.name));
 
 // Add cache performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
-	app.use(createCachePerformanceMiddleware());
+	app.use(/** @type {import('express').RequestHandler} */ (createCachePerformanceMiddleware()));
 }
 
-// OAuth token caching endpoint (for OAuth service integration)
+/**
+ * OAuth token caching endpoint for OAuth service integration
+ * @param {import('express').Request} req - Express request object with instance_id and tokens in body
+ * @param {import('express').Response} res - Express response object
+ */
 app.post('/cache-tokens', async (req, res) => {
 	try {
 		const { instance_id, tokens } = req.body;
@@ -111,10 +114,11 @@ app.post('/cache-tokens', async (req, res) => {
 			instance_id,
 		});
 	} catch (error) {
-		console.error('Token caching error:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Token caching error:', errorMessage);
 		res.status(500).json({
 			error: 'Failed to cache tokens',
-			details: error.message,
+			details: errorMessage,
 		});
 	}
 });
@@ -123,7 +127,11 @@ app.post('/cache-tokens', async (req, res) => {
 const credentialAuthMiddleware = createCredentialAuthMiddleware();
 const lightweightAuthMiddleware = createLightweightAuthMiddleware();
 
-// Global health endpoint (no instance required)
+/**
+ * Global health endpoint (no instance required)
+ * @param {import('express').Request} _ - Express request object (unused)
+ * @param {import('express').Response} res - Express response object
+ */
 app.get('/health', (_, res) => {
 	try {
 		const healthStatus = healthCheck(SERVICE_CONFIG);
@@ -138,8 +146,12 @@ app.get('/health', (_, res) => {
 
 // Instance-based endpoints with multi-tenant routing
 
-// OAuth well-known endpoint for OAuth 2.0 discovery
-app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
+/**
+ * OAuth well-known endpoint for OAuth 2.0 discovery
+ * @param {import('express').Request} _ - Express request object with instanceId param (unused)
+ * @param {import('express').Response} res - Express response object
+ */
+app.get('/.well-known/oauth-authorization-server/:instanceId', (_, res) => {
 	res.json({
 		issuer: `https://accounts.google.com`,
 		authorization_endpoint: 'https://accounts.google.com/o/oauth2/auth',
@@ -153,12 +165,16 @@ app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
 	});
 });
 
-// Instance health endpoint (using lightweight auth - no credential caching needed)
-app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
+/**
+ * Instance health endpoint (using lightweight auth - no credential caching needed)
+ * @param {import('express').Request & {instanceId: string}} req - Express request object with instanceId
+ * @param {import('express').Response} res - Express response object
+ */
+app.get('/:instanceId/health', lightweightAuthMiddleware, /** @type {(req: any, res: any) => void} */ (req, res) => {
 	try {
 		const healthStatus = {
 			...healthCheck(SERVICE_CONFIG),
-			instanceId: req.instanceId,
+			instanceId: (/** @type {{instanceId: string}} */ (req)).instanceId,
 			message: 'Instance-specific health check',
 			authType: 'oauth',
 			scopes: SERVICE_CONFIG.scopes,
@@ -167,17 +183,21 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		ErrorResponses.internal(res, `${SERVICE_CONFIG.displayName} instance health check failed`, {
-			instanceId: req.instanceId,
+			instanceId: (/** @type {{instanceId: string}} */ (req)).instanceId,
 			metadata: { service: SERVICE_CONFIG.name, errorMessage },
 		});
 	}
 });
 
-// MCP JSON-RPC endpoint at base instance URL for Claude Code compatibility
-app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
+/**
+ * MCP JSON-RPC endpoint at base instance URL for Claude Code compatibility
+ * @param {import('express').Request & {instanceId: string, bearerToken?: string}} req - Express request object with auth data
+ * @param {import('express').Response} res - Express response object
+ */
+app.post('/:instanceId', credentialAuthMiddleware, /** @type {(req: any, res: any) => Promise<void>} */ async (req, res) => {
 	try {
 		// Get or create persistent handler for this instance
-		const mcpHandler = getOrCreateHandler(req.instanceId, SERVICE_CONFIG, req.bearerToken || '');
+		const mcpHandler = getOrCreateHandler((/** @type {{instanceId: string}} */ (req)).instanceId, SERVICE_CONFIG, (/** @type {{bearerToken?: string}} */ (req)).bearerToken || '');
 
 		// Process the MCP message with persistent handler (using new SDK signature)
 		await mcpHandler.handleMCPRequest(req, res, req.body);
@@ -198,11 +218,15 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
 	}
 });
 
-// MCP JSON-RPC endpoint at /mcp path (requires full credential authentication with caching)
-app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
+/**
+ * MCP JSON-RPC endpoint at /mcp path (requires full credential authentication with caching)
+ * @param {import('express').Request & {instanceId: string, bearerToken?: string}} req - Express request object with auth data
+ * @param {import('express').Response} res - Express response object
+ */
+app.post('/:instanceId/mcp', credentialAuthMiddleware, /** @type {(req: any, res: any) => Promise<void>} */ async (req, res) => {
 	try {
 		// Get or create persistent handler for this instance
-		const mcpHandler = getOrCreateHandler(req.instanceId, SERVICE_CONFIG, req.bearerToken || '');
+		const mcpHandler = getOrCreateHandler((/** @type {{instanceId: string}} */ (req)).instanceId, SERVICE_CONFIG, (/** @type {{bearerToken?: string}} */ (req)).bearerToken || '');
 
 		// Process the MCP message with persistent handler (using new SDK signature)
 		await mcpHandler.handleMCPRequest(req, res, req.body);
@@ -225,6 +249,11 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
 
 // Debug endpoint for cache monitoring (development only)
 if (process.env.NODE_ENV === 'development') {
+	/**
+	 * Debug endpoint for cache monitoring (development only)
+	 * @param {import('express').Request} _ - Express request object (unused)
+	 * @param {import('express').Response} res - Express response object
+	 */
 	app.get('/debug/cache-status', (_, res) => {
 		try {
 			const cacheStats = getCacheStatistics();
@@ -253,12 +282,13 @@ if (process.env.NODE_ENV === 'development') {
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
 /**
- * @param {any} err
- * @param {any} req
- * @param {any} res
- * @param {any} next
+ * Global error handler middleware
+ * @param {Error} err - Error object
+ * @param {import('express').Request} _req - Express request object (unused)
+ * @param {import('express').Response} res - Express response object
+ * @param {import('express').NextFunction} _next - Express next function (unused)
  */
-app.use((err, req, res, next) => {
+app.use(/** @type {import('express').ErrorRequestHandler} */ (err, _req, res, _next) => {
 	console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
 	const errorMessage = err instanceof Error ? err.message : String(err);
 	ErrorResponses.internal(res, 'Internal server error', {
@@ -266,7 +296,11 @@ app.use((err, req, res, next) => {
 	});
 });
 
-// 404 handler
+/**
+ * 404 handler for unmatched routes
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ */
 app.use('*', (req, res) => {
 	ErrorResponses.notFound(res, 'Endpoint', {
 		metadata: {

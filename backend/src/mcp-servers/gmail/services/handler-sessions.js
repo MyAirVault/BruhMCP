@@ -18,7 +18,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {import('../middleware/types.js').ServiceConfig} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {GmailMCPHandler} Persistent handler instance
  */
@@ -28,7 +28,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	if (!session) {
 		// Create new handler instance for this instanceId
 		console.log(`🔧 Creating new Gmail handler session for instance: ${instanceId}`);
-		const handler = new GmailMCPHandler(serviceConfig, bearerToken);
+		const handler = new GmailMCPHandler(/** @type {import('../middleware/types.js').ServiceConfig} */ (serviceConfig), bearerToken);
 		
 		session = {
 			handler,
@@ -114,6 +114,7 @@ function cleanupExpiredSessions() {
 }
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout | null} */
 let cleanupInterval = null;
 
 /**
