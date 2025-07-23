@@ -84,9 +84,10 @@ async function analyzeServiceDirectory(serviceName, servicePath) {
  * @returns {Promise<ServiceType|null>} Service type or null if invalid
  */
 async function determineServiceType(servicePath) {
-	const hasValidateCredentials = await fileExists(join(servicePath, 'validate-credentials.js'));
-	const hasInitiateOAuth = await fileExists(join(servicePath, 'initiate-oauth.js'));
-	const hasOAuthCallback = await fileExists(join(servicePath, 'oauth-callback.js'));
+	const authPath = join(servicePath, 'auth');
+	const hasValidateCredentials = await fileExists(join(authPath, 'validate-credentials.js'));
+	const hasInitiateOAuth = await fileExists(join(authPath, 'initiate-oauth.js'));
+	const hasOAuthCallback = await fileExists(join(authPath, 'oauth-callback.js'));
 
 	if (!hasValidateCredentials) {
 		return null; // Service must have credential validation
@@ -108,11 +109,12 @@ async function determineServiceType(servicePath) {
  */
 async function checkServiceHealth(servicePath, serviceType) {
 	const requiredFiles = getRequiredFiles(serviceType);
+	const authPath = join(servicePath, 'auth');
 	
 	for (const file of requiredFiles) {
-		const filePath = join(servicePath, file);
+		const filePath = join(authPath, file);
 		if (!(await fileExists(filePath))) {
-			console.log(`❌ Service missing required file: ${file}`);
+			console.log(`❌ Service missing required file: auth/${file}`);
 			return false;
 		}
 	}

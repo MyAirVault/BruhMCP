@@ -219,10 +219,8 @@ export async function createMCP(req, res) {
 			try {
 				console.log(`🔐 Initiating OAuth flow for ${mcpService.mcp_service_name} via Auth Registry`);
 
-				// Get OAuth coordinator from auth registry
-				const oauthCoordinator = authRegistry.oauthCoordinator;
-
-				if (!oauthCoordinator.hasService(mcpService.mcp_service_name.toLowerCase())) {
+				// Check if service is available in auth registry
+				if (!authRegistry.hasService(mcpService.mcp_service_name.toLowerCase())) {
 					await deleteMCPInstance(createdInstance.instance_id, userId);
 					res.status(400).json({
 						error: {
@@ -235,15 +233,16 @@ export async function createMCP(req, res) {
 
 				// Prepare credentials for OAuth flow
 				const credentials = {
-					client_id: clientId || '',
-					client_secret: clientSecret || '',
+					clientId: clientId || '',
+					clientSecret: clientSecret || '',
 				};
 
 				// Initiate OAuth flow through auth registry
-				const oauthResult = await oauthCoordinator.initiateOAuthFlow(
+				const oauthResult = await authRegistry.callServiceFunction(
 					mcpService.mcp_service_name.toLowerCase(),
-					createdInstance.instance_id,
-					credentials
+					'initiateOAuth',
+					credentials,
+					userId
 				);
 
 				// Format instance to match frontend expectations

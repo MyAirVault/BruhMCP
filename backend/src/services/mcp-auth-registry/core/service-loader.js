@@ -20,7 +20,7 @@ import { join } from 'path';
  */
 async function importServiceFunction(servicePath, functionName) {
 	try {
-		const functionPath = join(servicePath, `${functionName}.js`);
+		const functionPath = join(servicePath, 'auth', `${functionName}.js`);
 		const module = await import(functionPath);
 		
 		// Look for named export matching function name or default export
@@ -33,7 +33,7 @@ async function importServiceFunction(servicePath, functionName) {
 
 		return exportedFunction;
 	} catch (error) {
-		console.error(`Failed to import ${functionName} from ${servicePath}:`, error);
+		console.error(`Failed to import ${functionName} from ${servicePath}/auth:`, error);
 		return null;
 	}
 }

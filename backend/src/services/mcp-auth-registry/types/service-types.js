@@ -91,3 +91,7 @@
  * @property {string} [functionName] - Function that caused the error
  * @property {Error} [originalError] - Original error object
  */
+
+
+// Export an empty object to make this a proper ES module
+export {};
