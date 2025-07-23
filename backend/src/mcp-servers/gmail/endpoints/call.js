@@ -1,3 +1,5 @@
+// @ts-check
+
 /**
  * Gmail MCP Tool Call Handler
  * Executes Gmail API operations using OAuth Bearer tokens
@@ -28,9 +30,42 @@ import {
 import { validateToolArguments } from '../utils/validation.js';
 
 /**
+ * @typedef {import('../api/modules/message-operations.js').SendEmailArgs} SendEmailArgs
+ * @typedef {import('../api/modules/message-operations.js').FetchEmailsArgs} FetchEmailsArgs
+ * @typedef {import('../api/modules/message-operations.js').FetchMessageByIdArgs} FetchMessageByIdArgs
+ * @typedef {import('../api/modules/message-operations.js').ReplyToEmailArgs} ReplyToEmailArgs
+ * @typedef {import('../api/modules/message-operations.js').MessageIdArgs} MessageIdArgs
+ * @typedef {import('../api/modules/message-operations.js').SearchEmailsArgs} SearchEmailsArgs
+ * @typedef {import('../api/modules/thread-operations.js').GetThreadArgs} GetThreadArgs
+ * @typedef {import('../api/modules/draft-operations.js').CreateDraftArgs} CreateDraftArgs
+ * @typedef {import('../api/modules/draft-operations.js').SendDraftArgs} SendDraftArgs
+ * @typedef {import('../api/modules/draft-operations.js').ListDraftsArgs} ListDraftsArgs
+ * @typedef {import('../api/label-operations.js').CreateLabelArgs} CreateLabelArgs
+ * @typedef {import('../api/label-operations.js').ModifyLabelsArgs} ModifyLabelsArgs
+ */
+
+/**
+ * @typedef {Object} MarkAsReadArgs
+ * @property {string[]} messageIds - Array of message IDs to mark as read
+ */
+
+/**
+ * @typedef {Object} MarkAsUnreadArgs
+ * @property {string[]} messageIds - Array of message IDs to mark as unread
+ */
+
+/**
+ * Union type for all possible tool arguments
+ * @typedef {SendEmailArgs | FetchEmailsArgs | FetchMessageByIdArgs | ReplyToEmailArgs | 
+ *           MessageIdArgs | SearchEmailsArgs | GetThreadArgs | CreateDraftArgs | 
+ *           SendDraftArgs | ListDraftsArgs | CreateLabelArgs | ModifyLabelsArgs | 
+ *           MarkAsReadArgs | MarkAsUnreadArgs} ToolArgs
+ */
+
+/**
  * Execute a Gmail tool call
  * @param {string} toolName - Name of the tool to execute
- * @param {Object} args - Tool arguments
+ * @param {ToolArgs} args - Tool arguments
  * @param {string} bearerToken - OAuth Bearer token for Gmail API
  * @returns {Promise<Object>} Tool execution result
  */
@@ -55,39 +90,39 @@ export async function executeToolCall(toolName, args, bearerToken) {
 
     switch (toolName) {
       case 'send_email':
-        result = await sendEmail(args, bearerToken);
+        result = await sendEmail(/** @type {SendEmailArgs} */ (args), bearerToken);
         break;
 
       case 'fetch_emails':
-        result = await fetchEmails(args, bearerToken);
+        result = await fetchEmails(/** @type {FetchEmailsArgs} */ (args), bearerToken);
         break;
 
       case 'fetch_message_by_id':
-        result = await fetchMessageById(args, bearerToken);
+        result = await fetchMessageById(/** @type {FetchMessageByIdArgs} */ (args), bearerToken);
         break;
 
       case 'reply_to_email':
-        result = await replyToEmail(args, bearerToken);
+        result = await replyToEmail(/** @type {ReplyToEmailArgs} */ (args), bearerToken);
         break;
 
       case 'create_draft':
-        result = await createDraft(args, bearerToken);
+        result = await createDraft(/** @type {CreateDraftArgs} */ (args), bearerToken);
         break;
 
       case 'send_draft':
-        result = await sendDraft(args, bearerToken);
+        result = await sendDraft(/** @type {SendDraftArgs} */ (args), bearerToken);
         break;
 
       case 'list_drafts':
-        result = await listDrafts(args, bearerToken);
+        result = await listDrafts(/** @type {ListDraftsArgs} */ (args), bearerToken);
         break;
 
       case 'delete_message':
-        result = await deleteMessage(args, bearerToken);
+        result = await deleteMessage(/** @type {MessageIdArgs} */ (args), bearerToken);
         break;
 
       case 'move_to_trash':
-        result = await moveToTrash(args, bearerToken);
+        result = await moveToTrash(/** @type {MessageIdArgs} */ (args), bearerToken);
         break;
 
       case 'list_labels':
@@ -95,27 +130,27 @@ export async function executeToolCall(toolName, args, bearerToken) {
         break;
 
       case 'create_label':
-        result = await createLabel(args, bearerToken);
+        result = await createLabel(/** @type {CreateLabelArgs} */ (args), bearerToken);
         break;
 
       case 'modify_labels':
-        result = await modifyLabels(args, bearerToken);
+        result = await modifyLabels(/** @type {ModifyLabelsArgs} */ (args), bearerToken);
         break;
 
       case 'search_emails':
-        result = await searchEmails(args, bearerToken);
+        result = await searchEmails(/** @type {SearchEmailsArgs} */ (args), bearerToken);
         break;
 
       case 'get_thread':
-        result = await getThread(args, bearerToken);
+        result = await getThread(/** @type {GetThreadArgs} */ (args), bearerToken);
         break;
 
       case 'mark_as_read':
-        result = await markAsRead(args, bearerToken);
+        result = await markAsRead(/** @type {MarkAsReadArgs} */ (args), bearerToken);
         break;
 
       case 'mark_as_unread':
-        result = await markAsUnread(args, bearerToken);
+        result = await markAsUnread(/** @type {MarkAsUnreadArgs} */ (args), bearerToken);
         break;
 
       default:
