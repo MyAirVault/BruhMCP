@@ -6,11 +6,74 @@
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
 
 /**
+ * @typedef {Object} RequestOptions
+ * @property {string} [method] - HTTP method
+ * @property {Record<string, string>} [headers] - Request headers
+ * @property {any} [body] - Request body
+ */
+
+/**
+ * @typedef {Object} GmailLabel
+ * @property {string} id - Label ID
+ * @property {string} name - Label name
+ * @property {string} type - Label type (system/user)
+ * @property {number} [messagesTotal] - Total messages
+ * @property {number} [messagesUnread] - Unread messages
+ * @property {number} [threadsTotal] - Total threads
+ * @property {number} [threadsUnread] - Unread threads
+ * @property {string} [messageListVisibility] - Message list visibility
+ * @property {string} [labelListVisibility] - Label list visibility
+ */
+
+/**
+ * @typedef {Object} GmailApiResponse
+ * @property {GmailLabel[]} [labels] - Array of labels
+ * @property {string} [id] - ID field
+ * @property {string} [name] - Name field
+ * @property {string} [type] - Type field
+ * @property {string} [threadId] - Thread ID
+ * @property {string[]} [labelIds] - Label IDs
+ * @property {number} [messagesTotal] - Total messages
+ * @property {number} [messagesUnread] - Unread messages
+ * @property {number} [threadsTotal] - Total threads
+ * @property {number} [threadsUnread] - Unread threads
+ * @property {string} [messageListVisibility] - Message list visibility
+ * @property {string} [labelListVisibility] - Label list visibility
+ */
+
+/**
+ * @typedef {Object} CreateLabelArgs
+ * @property {string} name - Label name
+ * @property {string} [messageListVisibility] - Message list visibility
+ * @property {string} [labelListVisibility] - Label list visibility
+ */
+
+/**
+ * @typedef {Object} ModifyLabelsArgs
+ * @property {string} messageId - Message ID
+ * @property {string[]} [addLabelIds] - Label IDs to add
+ * @property {string[]} [removeLabelIds] - Label IDs to remove
+ */
+
+/**
+ * @typedef {Object} LabelIdArgs
+ * @property {string} labelId - Label ID
+ */
+
+/**
+ * @typedef {Object} UpdateLabelArgs
+ * @property {string} labelId - Label ID
+ * @property {string} [name] - Label name
+ * @property {string} [messageListVisibility] - Message list visibility
+ * @property {string} [labelListVisibility] - Label list visibility
+ */
+
+/**
  * Make authenticated request to Gmail API
  * @param {string} endpoint - API endpoint
  * @param {string} bearerToken - OAuth Bearer token
- * @param {Object} options - Request options
- * @returns {Object} API response
+ * @param {RequestOptions} options - Request options
+ * @returns {Promise<GmailApiResponse>} API response
  */
 async function makeGmailRequest(endpoint, bearerToken, options = {}) {
   const url = `${GMAIL_API_BASE}${endpoint}`;
@@ -49,7 +112,8 @@ async function makeGmailRequest(endpoint, bearerToken, options = {}) {
     throw new Error(errorMessage);
   }
 
-  const data = await response.json();
+  /** @type {GmailApiResponse} */
+  const data = /** @type {GmailApiResponse} */ (await response.json());
   console.log(`✅ Gmail Labels API Response: ${response.status}`);
   
   return data;
@@ -58,12 +122,12 @@ async function makeGmailRequest(endpoint, bearerToken, options = {}) {
 /**
  * List all Gmail labels
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Labels list
+ * @returns {Promise<Object>} Labels list
  */
 export async function listLabels(bearerToken) {
   const result = await makeGmailRequest('/users/me/labels', bearerToken);
 
-  const labels = result.labels.map(label => ({
+  const labels = (result.labels || []).map((/** @type {GmailLabel} */ label) => ({
     id: label.id,
     name: label.name,
     type: label.type,
@@ -76,8 +140,8 @@ export async function listLabels(bearerToken) {
   }));
 
   // Separate system and user labels
-  const systemLabels = labels.filter(label => label.type === 'system');
-  const userLabels = labels.filter(label => label.type === 'user');
+  const systemLabels = labels.filter((/** @type {GmailLabel} */ label) => label.type === 'system');
+  const userLabels = labels.filter((/** @type {GmailLabel} */ label) => label.type === 'user');
 
   return {
     action: 'list_labels',
@@ -97,9 +161,9 @@ export async function listLabels(bearerToken) {
 
 /**
  * Create a new Gmail label
- * @param {Object} args - Label creation arguments
+ * @param {CreateLabelArgs} args - Label creation arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Label creation result
+ * @returns {Promise<Object>} Label creation result
  */
 export async function createLabel(args, bearerToken) {
   const {
@@ -134,9 +198,9 @@ export async function createLabel(args, bearerToken) {
 
 /**
  * Modify labels on a message
- * @param {Object} args - Label modification arguments
+ * @param {ModifyLabelsArgs} args - Label modification arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Label modification result
+ * @returns {Promise<Object>} Label modification result
  */
 export async function modifyLabels(args, bearerToken) {
   const {
@@ -177,9 +241,9 @@ export async function modifyLabels(args, bearerToken) {
 
 /**
  * Delete a Gmail label
- * @param {Object} args - Label deletion arguments
+ * @param {LabelIdArgs} args - Label deletion arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Label deletion result
+ * @returns {Promise<Object>} Label deletion result
  */
 export async function deleteLabel(args, bearerToken) {
   const { labelId } = args;
@@ -197,9 +261,9 @@ export async function deleteLabel(args, bearerToken) {
 
 /**
  * Update a Gmail label
- * @param {Object} args - Label update arguments
+ * @param {UpdateLabelArgs} args - Label update arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Label update result
+ * @returns {Promise<Object>} Label update result
  */
 export async function updateLabel(args, bearerToken) {
   const {
@@ -247,9 +311,9 @@ export async function updateLabel(args, bearerToken) {
 
 /**
  * Get label details by ID
- * @param {Object} args - Label get arguments
+ * @param {LabelIdArgs} args - Label get arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Label details
+ * @returns {Promise<Object>} Label details
  */
 export async function getLabel(args, bearerToken) {
   const { labelId } = args;
