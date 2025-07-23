@@ -265,12 +265,12 @@ export const apiService = {
 
     // Use new auth registry validation endpoint
     const result = await makeRequest<{
-      isValid: boolean;
-      error?: string;
-      userInfo?: {
-        id?: string;
-        email?: string;
-        name?: string;
+      success: boolean;
+      message: string;
+      data?: {
+        userInfo?: any;
+        service?: string;
+        authType?: string;
       };
     }>(`/auth-registry/validate/${serviceName}`, {
       method: 'POST',
@@ -278,9 +278,9 @@ export const apiService = {
     });
 
     return {
-      valid: result.isValid,
-      message: result.error || 'Validation successful',
-      api_info: result.userInfo ? {
+      valid: result.success,
+      message: result.message,
+      api_info: result.data?.userInfo ? {
         service: serviceName,
         permissions: ['read', 'write'] // Default permissions
       } : undefined
@@ -297,18 +297,20 @@ export const apiService = {
   getAuthServices: async (): Promise<{
     services: Array<{
       name: string;
-      type: 'oauth' | 'apikey';
-      fields: string[];
+      type: 'oauth' | 'apikey' | 'hybrid';
+      functions: string[];
     }>;
     total: number;
+    stats: any;
   }> => {
     return makeRequest<{
       services: Array<{
         name: string;
-        type: 'oauth' | 'apikey';
-        fields: string[];
+        type: 'oauth' | 'apikey' | 'hybrid';
+        functions: string[];
       }>;
       total: number;
+      stats: any;
     }>('/auth-registry/services', {
       method: 'GET',
     });
@@ -317,63 +319,73 @@ export const apiService = {
   createOAuthInstance: async (serviceName: string, credentials: Record<string, string>): Promise<{
     success: boolean;
     authUrl?: string;
-    instanceId?: string;
+    state?: string;
     message?: string;
-    error?: string;
+    data?: {
+      instanceId?: string;
+      authUrl?: string;
+      state?: string;
+    };
   }> => {
     return makeRequest<{
       success: boolean;
       authUrl?: string;
-      instanceId?: string;
+      state?: string;
       message?: string;
-      error?: string;
-    }>(`/auth-registry/create/${serviceName}`, {
+      data?: {
+        instanceId?: string;
+        authUrl?: string;
+        state?: string;
+      };
+    }>(`/auth-registry/initiate-oauth/${serviceName}`, {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
   },
 
-  createAPIKeyInstance: async (serviceName: string, credentials: Record<string, string>): Promise<{
+  createAPIKeyInstance: async (serviceName: string, instanceData: { credentials: Record<string, string>; customName?: string; metadata?: any }): Promise<{
     success: boolean;
     instanceId?: string;
-    userInfo?: {
-      id?: string;
-      email?: string;
-      name?: string;
-    };
     message?: string;
-    error?: string;
+    data?: {
+      instanceId?: string;
+      serviceName?: string;
+      customName?: string;
+      status?: string;
+      userInfo?: any;
+    };
   }> => {
     return makeRequest<{
       success: boolean;
       instanceId?: string;
-      userInfo?: {
-        id?: string;
-        email?: string;
-        name?: string;
-      };
       message?: string;
-      error?: string;
-    }>(`/auth-registry/validate-and-create/${serviceName}`, {
+      data?: {
+        instanceId?: string;
+        serviceName?: string;
+        customName?: string;
+        status?: string;
+        userInfo?: any;
+      };
+    }>(`/auth-registry/create-instance/${serviceName}`, {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(instanceData),
     });
   },
 
-  getOAuthStatus: async (instanceId: string): Promise<{
-    instanceId: string;
-    oauth_status: string;
-    status: string;
-    error?: string;
-    message?: string;
+  revokeServiceInstance: async (serviceName: string, instanceId: string): Promise<{
+    success: boolean;
+    message: string;
   }> => {
     return makeRequest<{
-      instanceId: string;
-      oauth_status: string;
-      status: string;
-      error?: string;
-      message?: string;
-    }>(`/auth-registry/status/${instanceId}`, {
+      success: boolean;
+      message: string;
+    }>(`/auth-registry/revoke/${serviceName}/${instanceId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getAuthRegistryStats: async (): Promise<any> => {
+    return makeRequest<any>('/auth-registry/stats', {
       method: 'GET',
     });
   },

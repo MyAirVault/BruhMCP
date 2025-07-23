@@ -1,25 +1,3 @@
-export type ServiceConfig = {
-    /**
-     * - Service name
-     */
-    name: string;
-    /**
-     * - Service authentication type
-     */
-    type: "oauth" | "apikey";
-    /**
-     * - Credential validator
-     */
-    validator: any;
-    /**
-     * - OAuth handler (for OAuth services)
-     */
-    oauthHandler?: any;
-    /**
-     * - Required credential fields
-     */
-    requiredFields: Array<string>;
-};
 export type AuthRegistryConfig = {
     /**
      * - Path to MCP services directory
@@ -38,39 +16,6 @@ export type AuthRegistryConfig = {
      */
     discoveryInterval?: number | undefined;
 };
-export type RegistryStatistics = {
-    /**
-     * - Total number of services
-     */
-    totalServices: number;
-    /**
-     * - Number of OAuth services
-     */
-    oauthServices: number;
-    /**
-     * - Number of API key services
-     */
-    apiKeyServices: number;
-    /**
-     * - Services grouped by type
-     */
-    servicesByType: {
-        oauth: Array<string>;
-        apikey: Array<string>;
-    };
-    /**
-     * - Whether registry is initialized
-     */
-    initialized: boolean;
-};
-/**
- * @typedef {Object} ServiceConfig
- * @property {string} name - Service name
- * @property {'oauth'|'apikey'} type - Service authentication type
- * @property {any} validator - Credential validator
- * @property {any} [oauthHandler] - OAuth handler (for OAuth services)
- * @property {Array<string>} requiredFields - Required credential fields
- */
 /**
  * @typedef {Object} AuthRegistryConfig
  * @property {string} servicesPath - Path to MCP services directory
@@ -79,30 +24,18 @@ export type RegistryStatistics = {
  * @property {number} [discoveryInterval] - Service discovery interval in ms
  */
 /**
- * @typedef {Object} RegistryStatistics
- * @property {number} totalServices - Total number of services
- * @property {number} oauthServices - Number of OAuth services
- * @property {number} apiKeyServices - Number of API key services
- * @property {Object} servicesByType - Services grouped by type
- * @property {Array<string>} servicesByType.oauth - OAuth service names
- * @property {Array<string>} servicesByType.apikey - API key service names
- * @property {boolean} initialized - Whether registry is initialized
- */
-/**
  * MCP Authentication Registry Class
- * Manages authentication flows for all registered MCP services
+ * Manages service discovery and provides unified API for all MCP services
  */
-declare class AuthRegistryImpl {
-    /** @type {OAuthCoordinator} */
-    oauthCoordinator: OAuthCoordinator;
-    /** @type {ApiKeyCoordinator} */
-    apiKeyCoordinator: ApiKeyCoordinator;
-    /** @type {Map<string, ServiceConfig>} */
-    registeredServices: Map<string, ServiceConfig>;
+export class MCPAuthRegistry {
+    /** @type {ServiceRegistry} */
+    serviceRegistry: ServiceRegistry;
     /** @type {boolean} */
     initialized: boolean;
-    /** @type {express.Router|null} */
-    router: express.Router | null;
+    /** @type {import('express').Router|null} */
+    router: import("express").Router | null;
+    /** @type {NodeJS.Timeout|null} */
+    discoveryInterval: NodeJS.Timeout | null;
     /**
      * Initializes the auth registry with automatic service discovery
      * @param {Partial<AuthRegistryConfig>} [config] - Registry configuration
@@ -110,49 +43,38 @@ declare class AuthRegistryImpl {
      */
     initialize(config?: Partial<AuthRegistryConfig>): Promise<void>;
     /**
-     * Discovers and registers all available MCP services
-     * @param {string} servicesPath - Path to MCP services directory
-     * @returns {Promise<void>}
-     */
-    discoverAndRegisterServices(servicesPath: string): Promise<void>;
-    /**
-     * Registers a discovered service with appropriate coordinator
-     * @param {import('./utils/service-discovery.js').DiscoveredService} serviceInfo - Service information
-     * @returns {Promise<void>}
-     */
-    registerDiscoveredService(serviceInfo: import("./utils/service-discovery.js").DiscoveredService): Promise<void>;
-    /**
-     * Creates Express routes for the auth registry
-     * @returns {express.Router} Express router
-     */
-    createRoutes(): express.Router;
-    /**
      * Gets the Express router for the auth registry
-     * @returns {express.Router|null} Express router or null if not initialized
+     * @returns {import('express').Router|null} Express router or null if not initialized
      */
-    getRouter(): express.Router | null;
+    getRouter(): import("express").Router | null;
     /**
-     * Gets list of all registered services
-     * @returns {Array<ServiceConfig>} Array of service configurations
+     * Gets list of all available services
+     * @returns {string[]} Array of service names
      */
-    getRegisteredServices(): Array<ServiceConfig>;
+    getAvailableServices(): string[];
     /**
-     * Gets service configuration by name
+     * Checks if a service is available
      * @param {string} serviceName - Name of the service
-     * @returns {ServiceConfig|null} Service configuration or null if not found
-     */
-    getServiceConfig(serviceName: string): ServiceConfig | null;
-    /**
-     * Checks if a service is registered
-     * @param {string} serviceName - Name of the service
-     * @returns {boolean} True if service is registered
+     * @returns {boolean} True if service is available
      */
     hasService(serviceName: string): boolean;
     /**
-     * Gets registry statistics
-     * @returns {RegistryStatistics} Registry statistics
+     * Gets service information by name
+     * @param {string} serviceName - Name of the service
+     * @returns {import('./types/service-types.js').ServiceRegistryEntry|null} Service entry or null if not found
      */
-    getStatistics(): RegistryStatistics;
+    getService(serviceName: string): import("./types/service-types.js").ServiceRegistryEntry | null;
+    /**
+     * Gets services by type
+     * @param {import('./types/service-types.js').ServiceType} type - Service type
+     * @returns {string[]} Array of service names matching type
+     */
+    getServicesByType(type: import("./types/service-types.js").ServiceType): string[];
+    /**
+     * Gets registry statistics
+     * @returns {Object} Registry statistics
+     */
+    getStatistics(): Object;
     /**
      * Logs registry summary
      * @returns {void}
@@ -166,20 +88,30 @@ declare class AuthRegistryImpl {
      */
     startAutoDiscovery(servicesPath: string, interval: number): void;
     /**
-     * Manually registers a service (for testing or custom services)
-     * @param {ServiceConfig} serviceConfig - Service configuration
+     * Stops automatic service discovery
      * @returns {void}
      */
-    manuallyRegisterService(serviceConfig: ServiceConfig): void;
+    stopAutoDiscovery(): void;
+    /**
+     * Reloads a specific service
+     * @param {string} serviceName - Service name to reload
+     * @returns {Promise<boolean>} True if reload successful
+     */
+    reloadService(serviceName: string): Promise<boolean>;
+    /**
+     * Calls a service function
+     * @param {string} serviceName - Service name
+     * @param {string} functionName - Function name
+     * @param {...*} args - Function arguments
+     * @returns {Promise<*>} Function result
+     */
+    callServiceFunction(serviceName: string, functionName: string, ...args: any[]): Promise<any>;
     /**
      * Shuts down the auth registry
      * @returns {void}
      */
     shutdown(): void;
 }
-export const authRegistry: AuthRegistryImpl;
-import OAuthCoordinator from './coordinators/oauth-coordinator.js';
-import ApiKeyCoordinator from './coordinators/apikey-coordinator.js';
-import express from 'express';
-export { AuthRegistryImpl as MCPAuthRegistry };
+export const authRegistry: MCPAuthRegistry;
+import { ServiceRegistry } from './core/registry.js';
 //# sourceMappingURL=index.d.ts.map

@@ -5,6 +5,7 @@
 
 import GmailOAuthHandler from '../oauth/oauth-handler.js';
 import { createMCPInstance } from '../../../db/queries/mcpInstances/creation.js';
+import { getMCPServiceByName } from '../../../db/queries/mcpServices/crud.js';
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/service-types.js').OAuthResult} OAuthResult
@@ -33,36 +34,35 @@ async function initiateOAuth(credentials, userId) {
 		// Create OAuth handler instance
 		const oauthHandler = new GmailOAuthHandler();
 
+		// Get MCP service ID for Gmail
+		const mcpService = await getMCPServiceByName('gmail');
+		if (!mcpService) {
+			return {
+				success: false,
+				message: 'Gmail service not found in MCP services table'
+			};
+		}
+
 		// First create a pending MCP instance to track the OAuth flow
 		const instanceRecord = await createMCPInstance({
 			userId,
-			serviceName: 'gmail',
+			mcpServiceId: mcpService.id,
 			customName: 'Gmail OAuth',
-			credentials: {
-				client_id: credentials.clientId,
-				client_secret: credentials.clientSecret,
-				oauth_initiated_at: new Date().toISOString()
-			},
-			authType: 'oauth',
-			status: 'oauth_pending',
-			metadata: {
-				service: 'gmail',
-				authType: 'oauth',
-				createdVia: 'auth_registry',
-				oauthStatus: 'pending'
-			}
+			clientId: credentials.clientId,
+			clientSecret: credentials.clientSecret,
+			serviceType: 'oauth'
 		});
 
 		// Initiate OAuth flow using the instance ID
 		const oauthResult = await oauthHandler.initiateFlow(
-			instanceRecord.id,
+			instanceRecord.instance_id,
 			{
 				client_id: credentials.clientId,
 				client_secret: credentials.clientSecret
 			}
 		);
 
-		console.log(`✅ Gmail OAuth initiated for instance: ${instanceRecord.id}`);
+		console.log(`✅ Gmail OAuth initiated for instance: ${instanceRecord.instance_id}`);
 
 		return {
 			success: true,
@@ -70,7 +70,7 @@ async function initiateOAuth(credentials, userId) {
 			state: oauthResult.state,
 			message: 'Gmail OAuth flow initiated successfully',
 			data: {
-				instanceId: instanceRecord.id,
+				instanceId: instanceRecord.instance_id,
 				authUrl: oauthResult.authUrl,
 				state: oauthResult.state
 			}

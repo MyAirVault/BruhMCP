@@ -5,6 +5,7 @@
 
 import createFigmaValidator from '../validation/credential-validator.js';
 import { createMCPInstance } from '../../../db/queries/mcpInstances/creation.js';
+import { getMCPServiceByName } from '../../../db/queries/mcpServices/crud.js';
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/service-types.js').InstanceResult} InstanceResult
@@ -46,38 +47,35 @@ async function createInstance(instanceData, userId) {
 			};
 		}
 
+		// Get MCP service ID for Figma
+		const mcpService = await getMCPServiceByName('figma');
+		if (!mcpService) {
+			return {
+				success: false,
+				message: 'Figma service not found in MCP services table'
+			};
+		}
+
 		// Create MCP instance in database
 		const instanceRecord = await createMCPInstance({
 			userId,
-			serviceName: 'figma',
+			mcpServiceId: mcpService.id,
 			customName: customName || 'Figma API',
-			credentials: {
-				api_key: figmaCredentials.api_key,
-				validated_at: new Date().toISOString(),
-				user_info: validationResult.data
-			},
-			authType: 'api_key',
-			status: 'active',
-			metadata: {
-				service: 'figma',
-				authType: 'apikey',
-				createdVia: 'auth_registry',
-				userInfo: validationResult.data,
-				...metadata
-			}
+			apiKey: figmaCredentials.api_key,
+			serviceType: 'api_key'
 		});
 
-		console.log(`✅ Created Figma instance: ${instanceRecord.id}`);
+		console.log(`✅ Created Figma instance: ${instanceRecord.instance_id}`);
 
 		return {
 			success: true,
-			instanceId: instanceRecord.id,
+			instanceId: instanceRecord.instance_id,
 			message: 'Figma instance created successfully',
 			data: {
-				instanceId: instanceRecord.id,
+				instanceId: instanceRecord.instance_id,
 				serviceName: 'figma',
-				customName: instanceRecord.customName,
-				status: instanceRecord.status,
+				customName: instanceRecord.custom_name,
+				status: instanceRecord.oauth_status,
 				userInfo: validationResult.data
 			}
 		};
