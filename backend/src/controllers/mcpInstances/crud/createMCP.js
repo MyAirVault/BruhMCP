@@ -12,9 +12,11 @@ import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
 import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
-import { handleOAuthFlow, getOAuthProvider, /* cacheOAuthTokens, */ deleteMCPInstance } from './oauth-helpers.js';
+// Import new MCP Auth Registry
+import { authRegistry } from '../../../services/mcp-auth-registry/index.js';
+import { deleteMCPInstance } from '../../../db/queries/mcpInstances/crud.js';
 
-/** @typedef {import('express').Request & { user?: { id: string } }} Request */
+/** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 
 /**
@@ -127,39 +129,43 @@ export async function createMCP(req, res) {
 		// Validate credentials based on auth type (Authentication Contract Enforcement)
 		if (mcpService.type === 'api_key') {
 			if (!credentials.api_key) {
-				return res.status(400).json({
+				res.status(400).json({
 					error: {
 						code: 'MISSING_CREDENTIALS',
 						message: 'API key is required for this service',
 					},
 				});
+				return;
 			}
 			// Ensure no OAuth credentials provided for API key services
 			if (credentials.client_id || credentials.client_secret) {
-				return res.status(400).json({
+				res.status(400).json({
 					error: {
 						code: 'INVALID_CREDENTIALS',
 						message: 'OAuth credentials not allowed for API key services',
 					},
 				});
+				return;
 			}
 		} else if (mcpService.type === 'oauth') {
 			if (!credentials.client_id || !credentials.client_secret) {
-				return res.status(400).json({
+				res.status(400).json({
 					error: {
 						code: 'MISSING_CREDENTIALS',
 						message: 'Client ID and Client Secret are required for OAuth services',
 					},
 				});
+				return;
 			}
 			// Ensure no API key provided for OAuth services
 			if (credentials.api_key) {
-				return res.status(400).json({
+				res.status(400).json({
 					error: {
 						code: 'INVALID_CREDENTIALS',
 						message: 'API key not allowed for OAuth services',
 					},
 				});
+				return;
 			}
 		}
 
@@ -208,40 +214,44 @@ export async function createMCP(req, res) {
 		/** @type {MCPInstance} */
 		const createdInstance = /** @type {MCPInstance} */ (creationResult.instance);
 
-		// Handle OAuth flow for OAuth services
+		// Handle OAuth flow for OAuth services using new Auth Registry
 		if (mcpService.type === 'oauth') {
 			try {
-				/** @type {OAuthResult} */
-				const oauthResult = /** @type {OAuthResult} */ (
-					await handleOAuthFlow({
-						instanceId: createdInstance.instance_id,
-						provider: getOAuthProvider(mcpService.mcp_service_name),
-						clientId: clientId || '',
-						clientSecret: clientSecret || '',
-						serviceName: mcpService.mcp_service_name,
-					})
-				);
+				console.log(`🔐 Initiating OAuth flow for ${mcpService.mcp_service_name} via Auth Registry`);
 
-				if (!oauthResult.success) {
-					// OAuth failed - delete the created instance
-					await deleteMCPInstance(createdInstance.instance_id);
+				// Get OAuth coordinator from auth registry
+				const oauthCoordinator = authRegistry.oauthCoordinator;
 
-					return res.status(400).json({
+				if (!oauthCoordinator.hasService(mcpService.mcp_service_name.toLowerCase())) {
+					await deleteMCPInstance(createdInstance.instance_id, userId);
+					res.status(400).json({
 						error: {
-							code: 'OAUTH_FAILED',
-							message: 'OAuth authorization failed',
-							details: oauthResult.error,
+							code: 'SERVICE_NOT_FOUND',
+							message: `OAuth service ${mcpService.mcp_service_name} not registered in auth registry`,
 						},
 					});
+					return;
 				}
 
-				// OAuth flow initiated - return authorization URL for user consent
+				// Prepare credentials for OAuth flow
+				const credentials = {
+					client_id: clientId || '',
+					client_secret: clientSecret || '',
+				};
+
+				// Initiate OAuth flow through auth registry
+				const oauthResult = await oauthCoordinator.initiateOAuthFlow(
+					mcpService.mcp_service_name.toLowerCase(),
+					createdInstance.instance_id,
+					credentials
+				);
+
 				// Format instance to match frontend expectations
 				const formattedInstance = {
 					id: createdInstance.instance_id,
 					custom_name: createdInstance.custom_name,
 					status: createdInstance.status,
-					oauth_status: createdInstance.oauth_status,
+					oauth_status: 'pending', // Set to pending during OAuth flow
 					expires_at: createdInstance.expires_at,
 					expiration_option: createdInstance.expiration_option,
 					mcp_type: {
@@ -252,30 +262,32 @@ export async function createMCP(req, res) {
 					created_at: createdInstance.created_at,
 				};
 
-				return res.status(200).json({
+				res.status(200).json({
 					instance: formattedInstance,
 					oauth: {
 						requires_user_consent: true,
-						authorization_url: oauthResult.authorization_url,
-						provider: oauthResult.provider,
-						instance_id: oauthResult.instance_id,
-						message: oauthResult.message,
+						authorization_url: oauthResult.authUrl,
+						provider: mcpService.mcp_service_name.toLowerCase(),
+						instance_id: oauthResult.instanceId,
+						message: `OAuth flow initiated for ${mcpService.mcp_service_name}`,
 					},
 				});
+				return;
 			} catch (oauthError) {
 				const errorMessage = oauthError instanceof Error ? oauthError.message : String(oauthError);
 				console.error(`❌ OAuth flow failed for instance ${createdInstance.instance_id}:`, errorMessage);
 
 				// Delete the created instance on OAuth failure
-				await deleteMCPInstance(createdInstance.instance_id);
+				await deleteMCPInstance(createdInstance.instance_id, userId);
 
-				return res.status(400).json({
+				res.status(400).json({
 					error: {
 						code: 'OAUTH_ERROR',
 						message: 'OAuth flow encountered an error',
 						details: errorMessage,
 					},
 				});
+				return;
 			}
 		}
 
@@ -362,12 +374,13 @@ export async function validateMCPCredentials(req, res) {
 	try {
 		const { mcp_type } = req.body;
 		if (!mcp_type) {
-			return res.status(400).json({
+			res.status(400).json({
 				error: {
 					code: 'MISSING_PARAMETER',
 					message: 'mcp_type is required',
 				},
 			});
+			return;
 		}
 
 		// Get service configuration
@@ -380,12 +393,13 @@ export async function validateMCPCredentials(req, res) {
 		const mcpServiceResult = await pool.query(mcpServiceQuery, [mcp_type]);
 
 		if (mcpServiceResult.rows.length === 0) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'SERVICE_NOT_FOUND',
 					message: `MCP service '${mcp_type}' not found or disabled`,
 				},
 			});
+			return;
 		}
 
 		/** @type {MCPService} */
@@ -400,7 +414,7 @@ export async function validateMCPCredentials(req, res) {
 			});
 
 			if (testResponse.ok) {
-				return res.json({
+				res.json({
 					valid: true,
 					message: 'Credentials validated successfully',
 					service: {
@@ -408,27 +422,31 @@ export async function validateMCPCredentials(req, res) {
 						type: mcpService.type,
 					},
 				});
+				return;
 			} else {
-				return res.status(400).json({
+				res.status(400).json({
 					valid: false,
 					error: 'Service health check failed',
 				});
+				return;
 			}
 		} catch (serviceError) {
 			const errorMessage = serviceError instanceof Error ? serviceError.message : String(serviceError);
-			return res.status(400).json({
+			res.status(400).json({
 				valid: false,
 				error: 'Unable to validate credentials - service unavailable',
 				details: errorMessage,
 			});
+			return;
 		}
 	} catch (error) {
 		console.error('Error validating MCP credentials:', error);
-		return res.status(500).json({
+		res.status(500).json({
 			error: {
 				code: 'VALIDATION_ERROR',
 				message: 'Failed to validate credentials',
 			},
 		});
+		return;
 	}
 }

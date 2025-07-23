@@ -20,10 +20,18 @@
  */
 
 /**
+ * @typedef {function} ValidatorConstructor
+ */
+
+/**
  * @typedef {Object} OAuthHandler
  * @property {function(string, AuthCredentials): Promise<OAuthFlowResult>} initiateFlow - Initiates OAuth flow
  * @property {function(string, string): Promise<OAuthCallbackResult>} handleCallback - Handles OAuth callback
  * @property {function(string, Object): Promise<Object>} [refreshToken] - Refreshes OAuth token
+ */
+
+/**
+ * @typedef {CredentialValidator|function} ValidatorType
  */
 
 /**
@@ -59,7 +67,7 @@
  * @typedef {Object} ServiceConfig
  * @property {string} name - Service name
  * @property {'oauth'|'apikey'} type - Service authentication type
- * @property {CredentialValidator|function(AuthCredentials): CredentialValidator} validator - Credential validator
+ * @property {ValidatorType} validator - Credential validator
  * @property {OAuthHandler} [oauthHandler] - OAuth handler (for OAuth services)
  * @property {Array<string>} requiredFields - Required credential fields
  */
@@ -89,7 +97,7 @@
  * @property {string} status - OAuth status ('pending'|'completed'|'failed'|'expired')
  * @property {string} [accessToken] - Access token (encrypted)
  * @property {string} [refreshToken] - Refresh token (encrypted)
- * @property {Date} [tokenExpiresAt] - Token expiration date
+ * @property {Date|undefined} [tokenExpiresAt] - Token expiration date
  * @property {string} [scope] - Token scope
  * @property {string} [error] - Error message if failed
  * @property {string} [errorMessage] - Detailed error message
@@ -112,6 +120,5 @@
  * @property {number} [discoveryInterval] - Service discovery interval in ms
  */
 
-module.exports = {
-  // Export types for JSDoc usage - no runtime exports needed
-};
+// Export types for JSDoc usage - no runtime exports needed
+export {};

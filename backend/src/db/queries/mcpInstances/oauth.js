@@ -4,7 +4,11 @@
  */
 
 import { pool } from '../../config.js';
-import './types.js';
+
+/**
+ * @typedef {import('./types.js').OAuthUpdateData} OAuthUpdateData
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ */
 
 /**
  * Update OAuth status and tokens for an instance

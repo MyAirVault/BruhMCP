@@ -1,4 +1,8 @@
 /**
+ * @typedef {import('./types.js').MCPServiceStatsUpdate} MCPServiceStatsUpdate
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ */
+/**
  * Get user instance count by status (only counts completed OAuth instances)
  * @param {string} userId - User ID
  * @param {string|null} [status=null] - Optional status filter (if not provided, counts active instances only)
@@ -12,4 +16,6 @@ export function getUserInstanceCount(userId: string, status?: string | null): Pr
  * @returns {Promise<MCPInstanceRecord|null>} Updated service record
  */
 export function updateMCPServiceStats(serviceId: string, updates: MCPServiceStatsUpdate): Promise<MCPInstanceRecord | null>;
+export type MCPServiceStatsUpdate = import("./types.js").MCPServiceStatsUpdate;
+export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
 //# sourceMappingURL=statistics.d.ts.map

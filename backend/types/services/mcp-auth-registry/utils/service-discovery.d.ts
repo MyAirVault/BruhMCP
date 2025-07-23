@@ -1,5 +1,7 @@
 export type ServiceConfig = import("../types/auth-types.js").ServiceConfig;
 export type AuthRegistryConfig = import("../types/auth-types.js").AuthRegistryConfig;
+export type OAuthHandler = import("../types/auth-types.js").OAuthHandler;
+export type ValidatorType = import("../types/auth-types.js").ValidatorType;
 export type DiscoveredService = {
     /**
      * - Service name
@@ -25,6 +27,8 @@ export type DiscoveredService = {
 /**
  * @typedef {import('../types/auth-types.js').ServiceConfig} ServiceConfig
  * @typedef {import('../types/auth-types.js').AuthRegistryConfig} AuthRegistryConfig
+ * @typedef {import('../types/auth-types.js').OAuthHandler} OAuthHandler
+ * @typedef {import('../types/auth-types.js').ValidatorType} ValidatorType
  */
 /**
  * @typedef {Object} DiscoveredService

@@ -34,6 +34,7 @@ export type CredentialValidator = {
      */
     validateFormat?: ((arg0: AuthCredentials) => ValidationResult) | undefined;
 };
+export type ValidatorConstructor = Function;
 export type OAuthHandler = {
     /**
      * - Initiates OAuth flow
@@ -48,6 +49,7 @@ export type OAuthHandler = {
      */
     refreshToken?: ((arg0: string, arg1: Object) => Promise<Object>) | undefined;
 };
+export type ValidatorType = CredentialValidator | Function;
 export type ValidationResult = {
     /**
      * - Whether credentials are valid
@@ -136,7 +138,7 @@ export type ServiceConfig = {
     /**
      * - Credential validator
      */
-    validator: CredentialValidator | ((arg0: AuthCredentials) => CredentialValidator);
+    validator: ValidatorType;
     /**
      * - OAuth handler (for OAuth services)
      */

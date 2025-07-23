@@ -3,8 +3,8 @@
  * Coordinates API key validation and instance creation for API-based services
  */
 
-const { createMCPInstance } = require('../../../db/queries/mcpInstances/creation.js');
-const { createTokenAuditLog } = require('../../../db/queries/mcpInstances/audit.js');
+import { createMCPInstance } from '../../../db/queries/mcpInstances/creation.js';
+import { createTokenAuditLog } from '../../../db/queries/mcpInstances/audit.js';
 
 /**
  * @typedef {import('../types/auth-types.js').AuthCredentials} AuthCredentials
@@ -14,6 +14,7 @@ const { createTokenAuditLog } = require('../../../db/queries/mcpInstances/audit.
  * @typedef {import('../types/auth-types.js').CredentialValidator} CredentialValidator
  * @typedef {import('../types/auth-types.js').AuditLogMetadata} AuditLogMetadata
  * @typedef {import('../types/auth-types.js').InstanceMetadata} InstanceMetadata
+ * @typedef {function} ValidatorConstructor
  */
 
 /**
@@ -71,11 +72,11 @@ class ApiKeyCoordinator {
             let validator;
             
             if (typeof service.validator === 'function' && service.validator.prototype) {
-                // Validator is a constructor function - use type assertion for dynamic constructor
-                const ValidatorClass = /** @type {unknown} */ (service.validator);
-                validator = /** @type {CredentialValidator} */ (new (/** @type {new() => CredentialValidator} */ (ValidatorClass))());
+                // Validator is a constructor function
+                const ValidatorClass = /** @type {new() => CredentialValidator} */ (service.validator);
+                validator = new ValidatorClass();
             } else {
-                // Validator is already an instance or factory function
+                // Validator is already an instance
                 validator = /** @type {CredentialValidator} */ (service.validator);
             }
 
@@ -90,10 +91,11 @@ class ApiKeyCoordinator {
             console.log(`🔑 API key validation result for ${serviceName}: ${result.isValid ? 'valid' : 'invalid'}`);
             return result;
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`API key validation error for ${serviceName}:`, error);
             return {
                 isValid: false,
-                error: `API key validation failed: ${error.message}`
+                error: `API key validation failed: ${errorMessage}`
             };
         }
     }
@@ -161,13 +163,14 @@ class ApiKeyCoordinator {
                 userInfo: validationResult.userInfo
             };
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`Instance creation failed for ${serviceName}:`, error);
 
             // Create audit log for failure
             try {
                 await this.createAuditLog('', 'instance_creation', 'failure', {
                     service: serviceName,
-                    error: error instanceof Error ? error.message : String(error),
+                    error: errorMessage,
                     authType: 'apikey'
                 });
             } catch (auditError) {
@@ -176,7 +179,7 @@ class ApiKeyCoordinator {
 
             return {
                 success: false,
-                error: `Instance creation failed: ${error.message}`
+                error: `Instance creation failed: ${errorMessage}`
             };
         }
     }
@@ -346,4 +349,4 @@ class ApiKeyCoordinator {
     }
 }
 
-module.exports = ApiKeyCoordinator;
+export default ApiKeyCoordinator;

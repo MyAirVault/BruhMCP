@@ -1,7 +1,7 @@
 import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
 import { pool } from '../../../db/config.js';
 
-/** @typedef {import('express').Request & {user?: {id: string}}} Request */
+/** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 
 /**

@@ -4,7 +4,11 @@
  */
 
 import { pool } from '../../config.js';
-import './types.js';
+
+/**
+ * @typedef {import('./types.js').MCPServiceStatsUpdate} MCPServiceStatsUpdate
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ */
 
 /**
  * Get user instance count by status (only counts completed OAuth instances)

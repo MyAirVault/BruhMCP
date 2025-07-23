@@ -7,7 +7,7 @@ import { generateAccessUrl } from '../utils.js';
  */
 
 /**
- * @typedef {import('express').Request & {user?: User}} AuthenticatedRequest
+ * @typedef {import('express').Request} AuthenticatedRequest
  */
 
 /** @typedef {import('express').Response} Response */
@@ -45,8 +45,8 @@ export async function getMCPInstance(req, res) {
 			res.status(401).json({
 				error: {
 					code: 'UNAUTHORIZED',
-					message: 'User authentication required'
-				}
+					message: 'User authentication required',
+				},
 			});
 			return;
 		}
@@ -56,8 +56,8 @@ export async function getMCPInstance(req, res) {
 			res.status(400).json({
 				error: {
 					code: 'MISSING_PARAMETER',
-					message: 'Instance ID is required'
-				}
+					message: 'Instance ID is required',
+				},
 			});
 			return;
 		}
@@ -108,7 +108,7 @@ export async function getMCPInstance(req, res) {
 			error: {
 				code: 'INTERNAL_ERROR',
 				message: 'Failed to fetch MCP instance',
-				details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+				details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
 			},
 		});
 		return;

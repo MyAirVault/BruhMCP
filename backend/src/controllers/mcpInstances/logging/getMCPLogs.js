@@ -23,7 +23,7 @@ const logQuerySchema = z.object({
 export async function getMCPLogs(req, res) {
 	try {
 		const { id } = req.params;
-		
+
 		// Check if user is authenticated
 		if (!req.user || !req.user.id) {
 			res.status(401).json({
@@ -34,7 +34,7 @@ export async function getMCPLogs(req, res) {
 			});
 			return;
 		}
-		
+
 		const userId = req.user.id;
 
 		// Validate UUID format
@@ -146,7 +146,7 @@ export async function getMCPLogs(req, res) {
 		// Apply pagination
 		const paginatedLogs = allLogs.slice(offset, offset + limit);
 
-		return res.status(200).json({
+		res.status(200).json({
 			data: paginatedLogs,
 			meta: {
 				total: allLogs.length,
@@ -154,6 +154,7 @@ export async function getMCPLogs(req, res) {
 				offset,
 			},
 		});
+		return;
 	} catch (error) {
 		console.error('Error in getMCPLogs:', error);
 		res.status(500).json({

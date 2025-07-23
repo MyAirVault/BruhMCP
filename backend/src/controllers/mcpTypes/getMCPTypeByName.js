@@ -27,12 +27,13 @@ export async function getMCPTypeByNameHandler(req, res) {
 		const mcpType = /** @type {MCPType|null} */ (mcpTypeRaw);
 
 		if (!mcpType) {
-			return res.status(404).json({
+			res.status(404).json({
 				error: {
 					code: 'NOT_FOUND',
 					message: `MCP type '${name}' not found`,
 				},
 			});
+			return;
 		}
 
 		// Transform the response to match API specification
@@ -52,7 +53,10 @@ export async function getMCPTypeByNameHandler(req, res) {
 					}));
 				} else {
 					// New format: object array
-					requiredFields = /** @type {Array<{name: string, type: string, description: string, required: boolean}>} */ (mcpType.required_credentials);
+					requiredFields =
+						/** @type {Array<{name: string, type: string, description: string, required: boolean}>} */ (
+							mcpType.required_credentials
+						);
 				}
 			}
 		}
@@ -69,16 +73,18 @@ export async function getMCPTypeByNameHandler(req, res) {
 			required_fields: requiredFields,
 		};
 
-		return res.json({
+		res.json({
 			data: formattedMcpType,
 		});
+		return;
 	} catch (error) {
 		console.error('Error fetching MCP type:', error);
-		return res.status(500).json({
+		res.status(500).json({
 			error: {
 				code: 'INTERNAL_ERROR',
 				message: 'Failed to fetch MCP type',
 			},
 		});
+		return;
 	}
 }

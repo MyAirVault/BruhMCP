@@ -2,12 +2,22 @@ import { getAPIKeysByUserId } from '../../db/queries/apiKeysQueries.js';
 
 /**
  * Get API keys for the authenticated user
- * @param {import('express').Request & { user: { id: string } }} req - Express request object
+ * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
 export async function getAPIKeys(req, res) {
 	try {
-		const userId = req.user.id;
+		const userId = req.user?.id || '';
+
+		if (!userId) {
+			res.json({
+				error: {
+					code: 'USER_NOT_FOUND',
+					message: 'User was not found!',
+				},
+			});
+			return;
+		}
 
 		const apiKeys = await getAPIKeysByUserId(userId);
 

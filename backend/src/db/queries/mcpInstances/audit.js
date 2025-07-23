@@ -4,12 +4,19 @@
  */
 
 import { pool } from '../../config.js';
-import './types.js';
+
+/**
+ * @typedef {import('./types.js').TokenAuditData} TokenAuditData
+ * @typedef {import('./types.js').AuditLogRecord} AuditLogRecord
+ * @typedef {import('./types.js').AuditLogOptions} AuditLogOptions
+ * @typedef {import('./types.js').AuditStats} AuditStats
+ */
 
 /**
  * Create audit log entry for token operations
- * @param {TokenAuditData} auditData - Audit data
- * @returns {Promise<AuditLogRecord|null>} Created audit log entry
+ * @param {TokenAuditData} auditData - Audit data including instance ID, operation type, and status
+ * @returns {Promise<AuditLogRecord|null>} Created audit log entry or null if audit table doesn't exist
+ * @throws {Error} When required fields are missing or database query fails
  */
 export async function createTokenAuditLog(auditData) {
 	const { instanceId, operation, status, method, errorType, errorMessage, metadata, userId } = auditData;
@@ -46,6 +53,7 @@ export async function createTokenAuditLog(auditData) {
 	];
 
 	try {
+		/** @type {import('pg').QueryResult<AuditLogRecord>} */
 		const result = await pool.query(query, params);
 		return result.rows[0];
 	} catch (error) {
@@ -63,9 +71,10 @@ export async function createTokenAuditLog(auditData) {
 
 /**
  * Get audit logs for an instance
- * @param {string} instanceId - Instance ID
- * @param {AuditLogOptions} [options={}] - Query options
- * @returns {Promise<AuditLogRecord[]>} Array of audit log entries
+ * @param {string} instanceId - Instance ID to get audit logs for
+ * @param {AuditLogOptions} [options={}] - Query options including limit, offset, filters, and date range
+ * @returns {Promise<AuditLogRecord[]>} Array of audit log entries with parsed metadata
+ * @throws {Error} When database query fails (returns empty array if audit table doesn't exist)
  */
 export async function getTokenAuditLogs(instanceId, options = {}) {
 	const { limit = 50, offset = 0, operation, status, since } = options;
@@ -113,6 +122,7 @@ export async function getTokenAuditLogs(instanceId, options = {}) {
 	params.push(limit.toString(), offset.toString());
 
 	try {
+		/** @type {import('pg').QueryResult<AuditLogRecord & {metadata: string|null}>} */
 		const result = await pool.query(query, params);
 
 		// Parse metadata JSON
@@ -135,8 +145,9 @@ export async function getTokenAuditLogs(instanceId, options = {}) {
 /**
  * Get audit log statistics
  * @param {string|undefined} [instanceId] - Instance ID (optional, for all instances if not provided)
- * @param {number} [days=30] - Number of days to include (default: 30)
- * @returns {Promise<AuditStats>} Audit statistics
+ * @param {number} [days=30] - Number of days to include in statistics (default: 30)
+ * @returns {Promise<AuditStats>} Comprehensive audit statistics including operations, errors, and daily breakdown
+ * @throws {Error} When database query fails (returns empty stats if audit table doesn't exist)
  */
 export async function getTokenAuditStats(instanceId, days = 30) {
 	const cutoffDate = new Date();
@@ -169,6 +180,7 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 	`;
 
 	try {
+		/** @type {import('pg').QueryResult<{operation: string, status: string, method: string|null, error_type: string|null, count: string, date: string}>} */
 		const result = await pool.query(query, params);
 
 		// Aggregate statistics
@@ -246,8 +258,9 @@ export async function getTokenAuditStats(instanceId, days = 30) {
 
 /**
  * Clean up old audit logs
- * @param {number} [daysToKeep=90] - Number of days to keep (default: 90)
- * @returns {Promise<number>} Number of deleted records
+ * @param {number} [daysToKeep=90] - Number of days to keep audit logs (default: 90)
+ * @returns {Promise<number>} Number of deleted audit log records
+ * @throws {Error} When database query fails (returns 0 if audit table doesn't exist)
  */
 export async function cleanupTokenAuditLogs(daysToKeep = 90) {
 	const cutoffDate = new Date();
@@ -259,7 +272,8 @@ export async function cleanupTokenAuditLogs(daysToKeep = 90) {
 	`;
 
 	try {
-		const result = await pool.query(query, [cutoffDate]);
+		/** @type {import('pg').QueryResult} */
+		const result = await pool.query(query, [cutoffDate.toISOString()]);
 		const deletedCount = result.rowCount ?? 0;
 		console.log(`🗑️  Cleaned up ${deletedCount} old audit log entries`);
 		return deletedCount;

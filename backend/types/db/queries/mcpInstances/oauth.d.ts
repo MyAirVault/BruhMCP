@@ -1,4 +1,8 @@
 /**
+ * @typedef {import('./types.js').OAuthUpdateData} OAuthUpdateData
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ */
+/**
  * Update OAuth status and tokens for an instance
  * @param {string} instanceId - Instance ID
  * @param {OAuthUpdateData} oauthData - OAuth data
@@ -13,4 +17,6 @@ export function updateOAuthStatus(instanceId: string, oauthData: OAuthUpdateData
  * @returns {Promise<MCPInstanceRecord>} Updated instance record
  */
 export function updateOAuthStatusWithLocking(instanceId: string, oauthData: OAuthUpdateData, maxRetries?: number): Promise<MCPInstanceRecord>;
+export type OAuthUpdateData = import("./types.js").OAuthUpdateData;
+export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
 //# sourceMappingURL=oauth.d.ts.map

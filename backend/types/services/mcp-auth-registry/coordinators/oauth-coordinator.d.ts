@@ -1,4 +1,13 @@
-export = OAuthCoordinator;
+export default OAuthCoordinator;
+export type AuthCredentials = import("../types/auth-types.js").AuthCredentials;
+export type OAuthFlowResult = import("../types/auth-types.js").OAuthFlowResult;
+export type OAuthCallbackResult = import("../types/auth-types.js").OAuthCallbackResult;
+export type ServiceConfig = import("../types/auth-types.js").ServiceConfig;
+export type OAuthStatusUpdate = import("../types/auth-types.js").OAuthStatusUpdate;
+export type CredentialValidator = import("../types/auth-types.js").CredentialValidator;
+export type OAuthHandler = import("../types/auth-types.js").OAuthHandler;
+export type AuditLogMetadata = import("../types/auth-types.js").AuditLogMetadata;
+export type ValidatorConstructor = Function;
 /**
  * @typedef {import('../types/auth-types.js').AuthCredentials} AuthCredentials
  * @typedef {import('../types/auth-types.js').OAuthFlowResult} OAuthFlowResult
@@ -8,6 +17,7 @@ export = OAuthCoordinator;
  * @typedef {import('../types/auth-types.js').CredentialValidator} CredentialValidator
  * @typedef {import('../types/auth-types.js').OAuthHandler} OAuthHandler
  * @typedef {import('../types/auth-types.js').AuditLogMetadata} AuditLogMetadata
+ * @typedef {function} ValidatorConstructor
  */
 /**
  * OAuth Flow Coordinator Class
@@ -79,15 +89,4 @@ declare class OAuthCoordinator {
      */
     hasService(serviceName: string): boolean;
 }
-declare namespace OAuthCoordinator {
-    export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult, ServiceConfig, OAuthStatusUpdate, CredentialValidator, OAuthHandler, AuditLogMetadata };
-}
-type AuthCredentials = import("../types/auth-types.js").AuthCredentials;
-type OAuthFlowResult = import("../types/auth-types.js").OAuthFlowResult;
-type OAuthCallbackResult = import("../types/auth-types.js").OAuthCallbackResult;
-type ServiceConfig = import("../types/auth-types.js").ServiceConfig;
-type OAuthStatusUpdate = import("../types/auth-types.js").OAuthStatusUpdate;
-type CredentialValidator = import("../types/auth-types.js").CredentialValidator;
-type OAuthHandler = import("../types/auth-types.js").OAuthHandler;
-type AuditLogMetadata = import("../types/auth-types.js").AuditLogMetadata;
 //# sourceMappingURL=oauth-coordinator.d.ts.map

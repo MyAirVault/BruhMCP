@@ -1,4 +1,30 @@
-export = ApiKeyCoordinator;
+export default ApiKeyCoordinator;
+export type AuthCredentials = import("../types/auth-types.js").AuthCredentials;
+export type ValidationResult = import("../types/auth-types.js").ValidationResult;
+export type ServiceConfig = import("../types/auth-types.js").ServiceConfig;
+export type InstanceCreationData = import("../types/auth-types.js").InstanceCreationData;
+export type CredentialValidator = import("../types/auth-types.js").CredentialValidator;
+export type AuditLogMetadata = import("../types/auth-types.js").AuditLogMetadata;
+export type InstanceMetadata = import("../types/auth-types.js").InstanceMetadata;
+export type ValidatorConstructor = Function;
+export type ApiKeyCreationResult = {
+    /**
+     * - Whether instance creation was successful
+     */
+    success: boolean;
+    /**
+     * - Created instance ID if successful
+     */
+    instanceId?: string | undefined;
+    /**
+     * - Error message if creation failed
+     */
+    error?: string | undefined;
+    /**
+     * - User information from validation
+     */
+    userInfo?: Object | undefined;
+};
 /**
  * @typedef {import('../types/auth-types.js').AuthCredentials} AuthCredentials
  * @typedef {import('../types/auth-types.js').ValidationResult} ValidationResult
@@ -7,6 +33,7 @@ export = ApiKeyCoordinator;
  * @typedef {import('../types/auth-types.js').CredentialValidator} CredentialValidator
  * @typedef {import('../types/auth-types.js').AuditLogMetadata} AuditLogMetadata
  * @typedef {import('../types/auth-types.js').InstanceMetadata} InstanceMetadata
+ * @typedef {function} ValidatorConstructor
  */
 /**
  * @typedef {Object} ApiKeyCreationResult
@@ -91,32 +118,4 @@ declare class ApiKeyCoordinator {
      */
     getServiceConfig(serviceName: string): ServiceConfig | null;
 }
-declare namespace ApiKeyCoordinator {
-    export { AuthCredentials, ValidationResult, ServiceConfig, InstanceCreationData, CredentialValidator, AuditLogMetadata, InstanceMetadata, ApiKeyCreationResult };
-}
-type AuthCredentials = import("../types/auth-types.js").AuthCredentials;
-type ValidationResult = import("../types/auth-types.js").ValidationResult;
-type ServiceConfig = import("../types/auth-types.js").ServiceConfig;
-type InstanceCreationData = import("../types/auth-types.js").InstanceCreationData;
-type CredentialValidator = import("../types/auth-types.js").CredentialValidator;
-type AuditLogMetadata = import("../types/auth-types.js").AuditLogMetadata;
-type InstanceMetadata = import("../types/auth-types.js").InstanceMetadata;
-type ApiKeyCreationResult = {
-    /**
-     * - Whether instance creation was successful
-     */
-    success: boolean;
-    /**
-     * - Created instance ID if successful
-     */
-    instanceId?: string | undefined;
-    /**
-     * - Error message if creation failed
-     */
-    error?: string | undefined;
-    /**
-     * - User information from validation
-     */
-    userInfo?: Object | undefined;
-};
 //# sourceMappingURL=apikey-coordinator.d.ts.map

@@ -132,85 +132,85 @@ export function sendErrorResponse(res, statusCode, code, message, options = {}) 
 export const ErrorResponses = {
 	// Authentication & Authorization
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	unauthorized: (res, message = 'Authentication required', options = {}) =>
 		sendErrorResponse(res, 401, 'UNAUTHORIZED', message, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	forbidden: (res, message = 'Access denied', options = {}) =>
 		sendErrorResponse(res, 403, 'FORBIDDEN', message, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	invalidToken: (res, message = 'Invalid or expired authentication token', options = {}) =>
 		sendErrorResponse(res, 401, 'INVALID_AUTH_TOKEN', message, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	missingToken: (res, message = 'Authentication token required', options = {}) =>
 		sendErrorResponse(res, 401, 'MISSING_AUTH_TOKEN', message, options),
 
 	// Validation
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {Array<ValidationDetail>} [details] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {Array<ValidationDetail>} [details]
+	 * @param {ErrorOptions} [options]
 	 */
 	validation: (res, message = 'Invalid request parameters', details = [], options = {}) =>
 		sendErrorResponse(res, 400, 'VALIDATION_ERROR', message, { ...options, details }),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	invalidInput: (res, message = 'Invalid input provided', options = {}) =>
 		sendErrorResponse(res, 400, 'INVALID_INPUT', message, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} field 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} field
+	 * @param {ErrorOptions} [options]
 	 */
 	missingField: (res, field, options = {}) =>
 		sendErrorResponse(res, 400, 'MISSING_FIELD', `Required field '${field}' is missing`, options),
 
 	// Resource Management
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [resource] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [resource]
+	 * @param {ErrorOptions} [options]
 	 */
 	notFound: (res, resource = 'Resource', options = {}) =>
 		sendErrorResponse(res, 404, 'NOT_FOUND', `${resource} not found`, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [resource] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [resource]
+	 * @param {ErrorOptions} [options]
 	 */
 	alreadyExists: (res, resource = 'Resource', options = {}) =>
 		sendErrorResponse(res, 409, 'ALREADY_EXISTS', `${resource} already exists`, options),
 
 	// Instance-specific
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} instanceId 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} instanceId
+	 * @param {ErrorOptions} [options]
 	 */
 	instanceNotFound: (res, instanceId, options = {}) =>
 		sendErrorResponse(res, 404, 'INSTANCE_NOT_FOUND', 'MCP instance not found or access denied', {
@@ -219,9 +219,9 @@ export const ErrorResponses = {
 		}),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} instanceId 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} instanceId
+	 * @param {ErrorOptions} [options]
 	 */
 	instanceUnavailable: (res, instanceId, options = {}) =>
 		sendErrorResponse(res, 502, 'INSTANCE_NOT_AVAILABLE', `MCP instance is not available or not running`, {
@@ -231,61 +231,61 @@ export const ErrorResponses = {
 
 	// Service Management
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} serviceName 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} serviceName
+	 * @param {ErrorOptions} [options]
 	 */
 	serviceDisabled: (res, serviceName, options = {}) =>
 		sendErrorResponse(res, 503, 'SERVICE_DISABLED', `${serviceName} service is currently disabled`, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [serviceName] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [serviceName]
+	 * @param {ErrorOptions} [options]
 	 */
 	serviceUnavailable: (res, serviceName = 'Service', options = {}) =>
 		sendErrorResponse(res, 503, 'SERVICE_UNAVAILABLE', `${serviceName} is temporarily unavailable`, options),
 
 	// Rate Limiting
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	rateLimited: (res, message = 'Too many requests', options = {}) =>
 		sendErrorResponse(res, 429, 'RATE_LIMITED', message, options),
 
 	// Server Errors
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	internal: (res, message = 'Internal server error', options = {}) =>
 		sendErrorResponse(res, 500, 'INTERNAL_ERROR', message, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	databaseError: (res, message = 'Database operation failed', options = {}) =>
 		sendErrorResponse(res, 500, 'DATABASE_ERROR', message, options),
 
 	// External API Errors
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} service 
-	 * @param {string} [message] 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} service
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
 	 */
 	externalApiError: (res, service, message = 'External service error', options = {}) =>
 		sendErrorResponse(res, 502, 'EXTERNAL_API_ERROR', `${service}: ${message}`, options),
 
 	/**
-	 * @param {import('express').Response} res 
-	 * @param {string} service 
-	 * @param {ErrorOptions} [options] 
+	 * @param {import('express').Response} res
+	 * @param {string} service
+	 * @param {ErrorOptions} [options]
 	 */
 	credentialsInvalid: (res, service, options = {}) =>
 		sendErrorResponse(res, 400, 'INVALID_CREDENTIALS', `Invalid credentials for ${service}`, options),
@@ -317,16 +317,19 @@ export function errorHandler(err, req, res, next) {
 
 	// Check if response was already sent
 	if (res.headersSent) {
-		return next(err);
+		next(err);
+		return;
 	}
 
 	// Handle specific error types
 	if (err.name === 'ValidationError') {
-		return ErrorResponses.validation(res, err.message);
+		ErrorResponses.validation(res, err.message);
+		return;
 	}
 
 	if (err.name === 'UnauthorizedError') {
-		return ErrorResponses.unauthorized(res, err.message);
+		ErrorResponses.unauthorized(res, err.message);
+		return;
 	}
 
 	// Default internal server error

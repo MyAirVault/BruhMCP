@@ -4,13 +4,23 @@ import { storeAPIKeySchema } from './schemas.js';
 
 /**
  * Store API key for the authenticated user
- * @param {import('express').Request & { user: { id: string } }} req - Express request object
+ * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @returns {Promise<void>}
  */
 export async function storeAPIKeyHandler(req, res) {
 	try {
-		const userId = req.user.id;
+		const userId = req.user?.id || '';
+
+		if (!userId) {
+			res.json({
+				error: {
+					code: 'USER_NOT_FOUND',
+					message: 'User was not found!',
+				},
+			});
+			return;
+		}
 
 		// Validate request body
 		const validationResult = storeAPIKeySchema.safeParse(req.body);
@@ -72,7 +82,7 @@ export async function storeAPIKeyHandler(req, res) {
 			is_active: true,
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
-			expires_at: null
+			expires_at: null,
 		};
 
 		res.status(201).json({

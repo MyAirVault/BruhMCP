@@ -4,13 +4,19 @@
  */
 
 import { pool } from '../../config.js';
-import './types.js';
+
+/**
+ * @typedef {import('./types.js').MCPInstanceFilters} MCPInstanceFilters
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ * @typedef {import('./types.js').MCPInstanceUpdateData} MCPInstanceUpdateData
+ */
 
 /**
  * Get all MCP instances for a user
- * @param {string} userId - User ID
- * @param {MCPInstanceFilters} [filters={}] - Optional filters
+ * @param {string} userId - User ID to filter instances
+ * @param {MCPInstanceFilters} [filters={}] - Optional filters for status, type, and pagination
  * @returns {Promise<MCPInstanceRecord[]>} Array of MCP instance records
+ * @throws {Error} When database query fails
  */
 export async function getAllMCPInstances(userId, filters = {}) {
 	let query = `
@@ -62,15 +68,17 @@ export async function getAllMCPInstances(userId, filters = {}) {
 		paramIndex++;
 	}
 
+	/** @type {import('pg').QueryResult<MCPInstanceRecord>} */
 	const result = await pool.query(query, params);
 	return result.rows;
 }
 
 /**
  * Get single MCP instance by ID
- * @param {string} instanceId - Instance ID
- * @param {string} userId - User ID (for authorization)
- * @returns {Promise<MCPInstanceRecord|null>} MCP instance record or null
+ * @param {string} instanceId - Instance ID to retrieve
+ * @param {string} userId - User ID for authorization check
+ * @returns {Promise<MCPInstanceRecord|null>} MCP instance record or null if not found
+ * @throws {Error} When database query fails
  */
 export async function getMCPInstanceById(instanceId, userId) {
 	const query = `
@@ -104,19 +112,23 @@ export async function getMCPInstanceById(instanceId, userId) {
 		WHERE ms.instance_id = $1 AND ms.user_id = $2
 	`;
 
+	/** @type {import('pg').QueryResult<MCPInstanceRecord>} */
 	const result = await pool.query(query, [instanceId, userId]);
 	return result.rows[0] || null;
 }
 
 /**
  * Update MCP instance
- * @param {string} instanceId - Instance ID
- * @param {string} userId - User ID (for authorization)
- * @param {MCPInstanceUpdateData} updateData - Data to update
- * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
+ * @param {string} instanceId - Instance ID to update
+ * @param {string} userId - User ID for authorization check
+ * @param {MCPInstanceUpdateData} updateData - Object containing fields to update
+ * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null if not found
+ * @throws {Error} When no update data provided or database query fails
  */
 export async function updateMCPInstance(instanceId, userId, updateData) {
+	/** @type {string[]} */
 	const setClauses = [];
+	/** @type {(string|Date|null)[]} */
 	const params = [];
 	let paramIndex = 1;
 
@@ -177,15 +189,17 @@ export async function updateMCPInstance(instanceId, userId, updateData) {
 		RETURNING *
 	`;
 
+	/** @type {import('pg').QueryResult<MCPInstanceRecord>} */
 	const result = await pool.query(query, params);
 	return result.rows[0] || null;
 }
 
 /**
  * Delete MCP instance
- * @param {string} instanceId - Instance ID
- * @param {string} userId - User ID (for authorization)
- * @returns {Promise<boolean>} Success status
+ * @param {string} instanceId - Instance ID to delete
+ * @param {string} userId - User ID for authorization check
+ * @returns {Promise<boolean>} True if instance was deleted, false if not found
+ * @throws {Error} When database query fails
  */
 export async function deleteMCPInstance(instanceId, userId) {
 	const query = `
@@ -193,6 +207,7 @@ export async function deleteMCPInstance(instanceId, userId) {
 		WHERE instance_id = $1 AND user_id = $2
 	`;
 
+	/** @type {import('pg').QueryResult} */
 	const result = await pool.query(query, [instanceId, userId]);
 	return (result.rowCount ?? 0) > 0;
 }

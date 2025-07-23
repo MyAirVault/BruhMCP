@@ -1,4 +1,4 @@
-/** @typedef {import('express').Request & {user?: {id: string}}} Request */
+/** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /**
  * Update MCP instance custom name
@@ -13,10 +13,6 @@ export function updateInstanceName(req: Request, res: Response): Promise<void>;
  * @returns {any} Validation result
  */
 export function validateInstanceCustomName(name: string): any;
-export type Request = import("express").Request & {
-    user?: {
-        id: string;
-    };
-};
+export type Request = import("express").Request;
 export type Response = import("express").Response;
 //# sourceMappingURL=updateInstanceName.d.ts.map

@@ -1,4 +1,7 @@
 /**
+ * @typedef {import('./types.js').InstanceStatusRecord} InstanceStatusRecord
+ */
+/**
  * Get instances by status (for background maintenance)
  * @param {string} status - Status to filter by
  * @returns {Promise<InstanceStatusRecord[]>} Array of instances with the specified status
@@ -26,4 +29,5 @@ export function getPendingOAuthInstances(minutesOld?: number): Promise<InstanceS
  * @returns {Promise<number>} Number of instances updated
  */
 export function bulkMarkInstancesExpired(instanceIds: string[]): Promise<number>;
+export type InstanceStatusRecord = import("./types.js").InstanceStatusRecord;
 //# sourceMappingURL=maintenance.d.ts.map

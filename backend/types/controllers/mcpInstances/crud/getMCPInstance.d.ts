@@ -3,7 +3,7 @@
  * @property {number} id - User ID
  */
 /**
- * @typedef {import('express').Request & {user?: User}} AuthenticatedRequest
+ * @typedef {import('express').Request} AuthenticatedRequest
  */
 /** @typedef {import('express').Response} Response */
 /**
@@ -38,9 +38,7 @@ export type User = {
      */
     id: number;
 };
-export type AuthenticatedRequest = import("express").Request & {
-    user?: User;
-};
+export type AuthenticatedRequest = import("express").Request;
 export type Response = import("express").Response;
 /**
  * Database instance record from getMCPInstanceById query

@@ -4,7 +4,10 @@
  */
 
 import { pool } from '../../config.js';
-import './types.js';
+
+/**
+ * @typedef {import('./types.js').InstanceStatusRecord} InstanceStatusRecord
+ */
 
 /**
  * Get instances by status (for background maintenance)

@@ -259,23 +259,122 @@ export const apiService = {
       permissions?: string[];
     };
   }> => {
-    return makeRequest<{
-      valid: boolean;
-      message: string;
-      api_info?: {
-        service: string;
-        quota_remaining?: number;
-        permissions?: string[];
+    // Get MCP type to determine service name
+    const mcpType = await apiService.getMCPTypeByName(data.mcp_type_id);
+    const serviceName = mcpType.name.toLowerCase();
+
+    // Use new auth registry validation endpoint
+    const result = await makeRequest<{
+      isValid: boolean;
+      error?: string;
+      userInfo?: {
+        id?: string;
+        email?: string;
+        name?: string;
       };
-    }>('/api-keys/validate', {
+    }>(`/auth-registry/validate/${serviceName}`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(data.credentials),
     });
+
+    return {
+      valid: result.isValid,
+      message: result.error || 'Validation successful',
+      api_info: result.userInfo ? {
+        service: serviceName,
+        permissions: ['read', 'write'] // Default permissions
+      } : undefined
+    };
   },
 
   deleteAPIKey: async (id: string): Promise<void> => {
     return makeRequest<void>(`/api-keys/${id}`, {
       method: 'DELETE',
+    });
+  },
+
+  // New Auth Registry endpoints
+  getAuthServices: async (): Promise<{
+    services: Array<{
+      name: string;
+      type: 'oauth' | 'apikey';
+      fields: string[];
+    }>;
+    total: number;
+  }> => {
+    return makeRequest<{
+      services: Array<{
+        name: string;
+        type: 'oauth' | 'apikey';
+        fields: string[];
+      }>;
+      total: number;
+    }>('/auth-registry/services', {
+      method: 'GET',
+    });
+  },
+
+  createOAuthInstance: async (serviceName: string, credentials: Record<string, string>): Promise<{
+    success: boolean;
+    authUrl?: string;
+    instanceId?: string;
+    message?: string;
+    error?: string;
+  }> => {
+    return makeRequest<{
+      success: boolean;
+      authUrl?: string;
+      instanceId?: string;
+      message?: string;
+      error?: string;
+    }>(`/auth-registry/create/${serviceName}`, {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  createAPIKeyInstance: async (serviceName: string, credentials: Record<string, string>): Promise<{
+    success: boolean;
+    instanceId?: string;
+    userInfo?: {
+      id?: string;
+      email?: string;
+      name?: string;
+    };
+    message?: string;
+    error?: string;
+  }> => {
+    return makeRequest<{
+      success: boolean;
+      instanceId?: string;
+      userInfo?: {
+        id?: string;
+        email?: string;
+        name?: string;
+      };
+      message?: string;
+      error?: string;
+    }>(`/auth-registry/validate-and-create/${serviceName}`, {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  getOAuthStatus: async (instanceId: string): Promise<{
+    instanceId: string;
+    oauth_status: string;
+    status: string;
+    error?: string;
+    message?: string;
+  }> => {
+    return makeRequest<{
+      instanceId: string;
+      oauth_status: string;
+      status: string;
+      error?: string;
+      message?: string;
+    }>(`/auth-registry/status/${instanceId}`, {
+      method: 'GET',
     });
   },
 

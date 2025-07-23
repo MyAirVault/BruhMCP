@@ -15,7 +15,7 @@ import {
 	addCardToBillingDetails,
 	removeCardFromBillingDetails,
 	setDefaultCard,
-	deleteBillingDetails
+	deleteBillingDetails,
 } from '../db/queries/billingDetailsQueries.js';
 
 const router = express.Router();
@@ -34,10 +34,11 @@ router.get('/', authenticate, async (req, res) => {
 		const billingDetails = await getBillingDetailsByUserId(userId);
 
 		if (!billingDetails) {
-			return res.status(404).json({
+			res.status(404).json({
 				success: false,
-				message: 'Billing details not found'
+				message: 'Billing details not found',
 			});
+			return;
 		}
 
 		// Parse cards if it's a string (shouldn't be needed with JSONB, but just in case)
@@ -47,18 +48,19 @@ router.get('/', authenticate, async (req, res) => {
 
 		res.json({
 			success: true,
-			data: billingDetails
+			data: billingDetails,
 		});
 		return;
 	} catch (error) {
 		console.error('Error fetching billing details:', error);
-		return res.status(500).json({
+		res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Failed to fetch billing details'
-			}
+				message: 'Failed to fetch billing details',
+			},
 		});
+		return;
 	}
 });
 
@@ -73,23 +75,15 @@ router.get('/', authenticate, async (req, res) => {
 router.post('/', authenticate, async (req, res) => {
 	try {
 		const userId = String(req.user?.id);
-		const {
-			address_line1,
-			address_line2,
-			city,
-			state,
-			country,
-			zip_code,
-			cards,
-			default_card_id
-		} = req.body;
+		const { address_line1, address_line2, city, state, country, zip_code, cards, default_card_id } = req.body;
 
 		// Validate required fields
 		if (!address_line1 || !city || !state || !country || !zip_code) {
-			return res.status(400).json({
+			res.status(400).json({
 				success: false,
-				message: 'Required fields: address_line1, city, state, country, zip_code'
+				message: 'Required fields: address_line1, city, state, country, zip_code',
 			});
+			return;
 		}
 
 		const billingDetails = await upsertBillingDetails(userId, {
@@ -100,24 +94,25 @@ router.post('/', authenticate, async (req, res) => {
 			country,
 			zip_code,
 			cards,
-			default_card_id
+			default_card_id,
 		});
 
 		res.json({
 			success: true,
 			data: billingDetails,
-			message: 'Billing details saved successfully'
+			message: 'Billing details saved successfully',
 		});
 		return;
 	} catch (error) {
 		console.error('Error saving billing details:', error);
-		return res.status(500).json({
+		res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Failed to save billing details'
-			}
+				message: 'Failed to save billing details',
+			},
 		});
+		return;
 	}
 });
 
@@ -135,10 +130,11 @@ router.post('/cards', authenticate, async (req, res) => {
 		const { cardData, setAsDefault = false } = req.body;
 
 		if (!cardData || !cardData.id) {
-			return res.status(400).json({
+			res.status(400).json({
 				success: false,
-				message: 'Card data with ID is required'
+				message: 'Card data with ID is required',
 			});
+			return;
 		}
 
 		const billingDetails = await addCardToBillingDetails(userId, cardData, setAsDefault);
@@ -146,26 +142,28 @@ router.post('/cards', authenticate, async (req, res) => {
 		res.json({
 			success: true,
 			data: billingDetails,
-			message: 'Card added successfully'
+			message: 'Card added successfully',
 		});
 		return;
 	} catch (error) {
 		console.error('Error adding card:', error);
-		
+
 		if (error instanceof Error && error.message.includes('Billing details not found')) {
-			return res.status(404).json({
+			res.status(404).json({
 				success: false,
-				message: error.message
+				message: error.message,
 			});
+			return;
 		}
 
-		return res.status(500).json({
+		res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Failed to add card'
-			}
+				message: 'Failed to add card',
+			},
 		});
+		return;
 	}
 });
 
@@ -187,26 +185,28 @@ router.delete('/cards/:cardId', authenticate, async (req, res) => {
 		res.json({
 			success: true,
 			data: billingDetails,
-			message: 'Card removed successfully'
+			message: 'Card removed successfully',
 		});
 		return;
 	} catch (error) {
 		console.error('Error removing card:', error);
 
 		if (error instanceof Error && error.message.includes('Billing details not found')) {
-			return res.status(404).json({
+			res.status(404).json({
 				success: false,
-				message: error.message
+				message: error.message,
 			});
+			return;
 		}
 
-		return res.status(500).json({
+		res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Failed to remove card'
-			}
+				message: 'Failed to remove card',
+			},
 		});
+		return;
 	}
 });
 
@@ -228,26 +228,28 @@ router.put('/cards/:cardId/default', authenticate, async (req, res) => {
 		res.json({
 			success: true,
 			data: billingDetails,
-			message: 'Default card updated successfully'
+			message: 'Default card updated successfully',
 		});
 		return;
 	} catch (error) {
 		console.error('Error setting default card:', error);
 
 		if (error instanceof Error && error.message.includes('not found')) {
-			return res.status(404).json({
+			res.status(404).json({
 				success: false,
-				message: error.message
+				message: error.message,
 			});
+			return;
 		}
 
-		return res.status(500).json({
+		res.status(500).json({
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Failed to set default card'
-			}
+				message: 'Failed to set default card',
+			},
 		});
+		return;
 	}
 });
 
@@ -267,14 +269,14 @@ router.delete('/', authenticate, async (req, res) => {
 		if (!deleted) {
 			res.status(404).json({
 				success: false,
-				message: 'Billing details not found'
+				message: 'Billing details not found',
 			});
 			return;
 		}
 
 		res.json({
 			success: true,
-			message: 'Billing details deleted successfully'
+			message: 'Billing details deleted successfully',
 		});
 	} catch (error) {
 		console.error('Error deleting billing details:', error);
@@ -282,8 +284,8 @@ router.delete('/', authenticate, async (req, res) => {
 			success: false,
 			error: {
 				code: 'INTERNAL_ERROR',
-				message: 'Failed to delete billing details'
-			}
+				message: 'Failed to delete billing details',
+			},
 		});
 	}
 });

@@ -1,4 +1,7 @@
 /**
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ */
+/**
  * Toggle MCP instance status
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID (for authorization)
@@ -30,4 +33,5 @@ export function updateInstanceStatus(instanceId: string, userId: string, status:
  * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
 export function renewInstanceExpiration(instanceId: string, userId: string, newExpirationDate: string): Promise<MCPInstanceRecord | null>;
+export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
 //# sourceMappingURL=status.d.ts.map

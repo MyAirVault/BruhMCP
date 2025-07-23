@@ -30,11 +30,8 @@ export async function requestToken(req, res) {
 		const validationResult = authRequestSchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			return ErrorResponses.validation(
-				res,
-				'Invalid request parameters',
-				formatZodErrors(validationResult.error)
-			);
+			ErrorResponses.validation(res, 'Invalid request parameters', formatZodErrors(validationResult.error));
+			return;
 		}
 
 		const { email } = validationResult.data;
@@ -42,7 +39,8 @@ export async function requestToken(req, res) {
 		// Check email format more strictly
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
-			return ErrorResponses.invalidInput(res, 'Invalid email format');
+			ErrorResponses.invalidInput(res, 'Invalid email format');
+			return;
 		}
 
 		// Request token from auth service
@@ -50,7 +48,8 @@ export async function requestToken(req, res) {
 		const result = await authService.requestToken(email);
 
 		if (!result.success || !result.token) {
-			return ErrorResponses.internal(res, 'Failed to generate authentication token');
+			ErrorResponses.internal(res, 'Failed to generate authentication token');
+			return;
 		}
 
 		// Send magic link via email
@@ -66,7 +65,8 @@ export async function requestToken(req, res) {
 		// Check if email was sent successfully
 		if (!emailResult.success) {
 			console.error('Failed to send magic link email:', emailResult.error);
-			return ErrorResponses.internal(res, 'Failed to send magic link email');
+			ErrorResponses.internal(res, 'Failed to send magic link email');
+			return;
 		}
 
 		// Return success response
@@ -82,10 +82,12 @@ export async function requestToken(req, res) {
 			response.token = result.token;
 		}
 
-		return res.status(200).json(response);
+		res.status(200).json(response);
+		return;
 	} catch (error) {
 		console.error('Error in requestToken:', error);
-		return ErrorResponses.internal(res, 'An unexpected error occurred');
+		ErrorResponses.internal(res, 'An unexpected error occurred');
+		return;
 	}
 }
 
@@ -100,11 +102,8 @@ export async function verifyToken(req, res) {
 		const validationResult = authVerifySchema.safeParse(req.body);
 
 		if (!validationResult.success) {
-			return ErrorResponses.validation(
-				res,
-				'Invalid request parameters',
-				formatZodErrors(validationResult.error)
-			);
+			ErrorResponses.validation(res, 'Invalid request parameters', formatZodErrors(validationResult.error));
+			return;
 		}
 
 		const { token } = validationResult.data;
@@ -115,11 +114,14 @@ export async function verifyToken(req, res) {
 
 		if (!result.success) {
 			if (result.error === 'TOKEN_NOT_FOUND') {
-				return ErrorResponses.invalidToken(res, 'Authentication token not found');
+				ErrorResponses.invalidToken(res, 'Authentication token not found');
+				return;
 			} else if (result.error === 'TOKEN_EXPIRED') {
-				return ErrorResponses.invalidToken(res, 'Authentication token expired');
+				ErrorResponses.invalidToken(res, 'Authentication token expired');
+				return;
 			} else {
-				return ErrorResponses.invalidInput(res, 'Token verification failed');
+				ErrorResponses.invalidInput(res, 'Token verification failed');
+				return;
 			}
 		}
 
@@ -132,35 +134,40 @@ export async function verifyToken(req, res) {
 		});
 
 		// Return success response
-		return res.status(200).json({
+		res.status(200).json({
 			success: true,
 			message: 'Authentication successful',
 			user: result.user,
 		});
+		return;
 	} catch (error) {
 		console.error('Error in verifyToken:', error);
-		return ErrorResponses.internal(res, 'An unexpected error occurred');
+		ErrorResponses.internal(res, 'An unexpected error occurred');
+		return;
 	}
 }
 
 /**
  * Get current user information
- * @param {import('express').Request & { user: { id: string; email: string } }} req
+ * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
 export async function getCurrentUser(req, res) {
 	try {
 		// User is already available via authenticate middleware
-		return res.status(200).json({
+		res.status(200).json({
 			success: true,
 			user: {
-				id: req.user.id,
-				email: req.user.email,
+				id: req.user?.id,
+				email: req.user?.email,
 			},
 		});
+
+		return;
 	} catch (error) {
 		console.error('Error in getCurrentUser:', error);
-		return ErrorResponses.internal(res, 'An unexpected error occurred');
+		ErrorResponses.internal(res, 'An unexpected error occurred');
+		return;
 	}
 }
 
@@ -173,18 +180,21 @@ export async function getUserPlan(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
-			return ErrorResponses.unauthorized(res, 'User authentication required');
+			ErrorResponses.unauthorized(res, 'User authentication required');
+			return;
 		}
 
 		const planSummary = await getUserPlanSummary(userId);
-		
-		return res.status(200).json({
+
+		res.status(200).json({
 			success: true,
-			data: planSummary
+			data: planSummary,
 		});
+		return;
 	} catch (error) {
 		console.error('Error getting user plan:', error);
-		return ErrorResponses.internal(res, 'Failed to retrieve plan information');
+		ErrorResponses.internal(res, 'Failed to retrieve plan information');
+		return;
 	}
 }
 
@@ -202,12 +212,14 @@ export async function logout(_req, res) {
 			sameSite: 'strict',
 		});
 
-		return res.status(200).json({
+		res.status(200).json({
 			success: true,
 			message: 'Logged out successfully',
 		});
+		return;
 	} catch (error) {
 		console.error('Error in logout:', error);
-		return ErrorResponses.internal(res, 'An unexpected error occurred');
+		ErrorResponses.internal(res, 'An unexpected error occurred');
+		return;
 	}
 }

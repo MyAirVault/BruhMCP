@@ -4,7 +4,7 @@ import { invalidateInstanceCache } from '../../../services/cacheInvalidationServ
 import { pool } from '../../../db/config.js';
 import loggingService from '../../../services/logging/loggingService.js';
 
-/** @typedef {import('express').Request & {user?: {id: string}}} Request */
+/** @typedef {import('express').Request } Request */
 /** @typedef {import('express').Response} Response */
 
 /** @typedef {Object} ValidationResult
@@ -103,13 +103,13 @@ export async function updateInstanceCredentials(req, res) {
 			testEndpoint: 'temporary-endpoint',
 			userInfo: {
 				email: 'temp-validation@example.com',
-				service: serviceName
+				service: serviceName,
 			},
 			details: {
 				testEndpoint: 'temporary-endpoint',
-				message: 'Temporary validation - service-specific validation to be implemented'
+				message: 'Temporary validation - service-specific validation to be implemented',
 			},
-			validatedAt: new Date().toISOString()
+			validatedAt: new Date().toISOString(),
 		};
 
 		if (!validationResult.isValid) {
@@ -171,10 +171,12 @@ export async function updateInstanceCredentials(req, res) {
 
 			// Update API key in credentials table
 			/** @type {DatabaseUpdateResult} */
-			const updateResult = /** @type {any} */ (await client.query(
-				'UPDATE mcp_credentials SET api_key = $1, updated_at = NOW() WHERE instance_id = $2 AND instance_id IN (SELECT instance_id FROM mcp_service_table WHERE user_id = $3) RETURNING updated_at',
-				[newApiKey, id, userId]
-			));
+			const updateResult = /** @type {any} */ (
+				await client.query(
+					'UPDATE mcp_credentials SET api_key = $1, updated_at = NOW() WHERE instance_id = $2 AND instance_id IN (SELECT instance_id FROM mcp_service_table WHERE user_id = $3) RETURNING updated_at',
+					[newApiKey, id, userId]
+				)
+			);
 
 			if (updateResult.rowCount === 0) {
 				await client.query('ROLLBACK');
@@ -225,7 +227,9 @@ export async function updateInstanceCredentials(req, res) {
 					validation_status: 'success',
 					validation_details: {
 						test_endpoint: validationResult.testEndpoint,
-						validated_user: /** @type {any} */ (validationResult.userInfo)?.email || /** @type {any} */ (validationResult.userInfo)?.handle,
+						validated_user:
+							/** @type {any} */ (validationResult.userInfo)?.email ||
+							/** @type {any} */ (validationResult.userInfo)?.handle,
 						user_info: sanitizeUserInfo(/** @type {UserInfo} */ (validationResult.userInfo)),
 					},
 					cache_invalidated: true,
@@ -323,20 +327,22 @@ export async function validateInstanceCredentialsOnly(req, res) {
 
 		// TODO: Replace with service-specific validation - temporary valid response
 		// Note: credentials parameter will be used when service-specific validation is implemented
-		console.log(`🔍 Credentials validation requested for ${serviceName} (temporary bypass)`, { hasCredentials: !!credentials });
+		console.log(`🔍 Credentials validation requested for ${serviceName} (temporary bypass)`, {
+			hasCredentials: !!credentials,
+		});
 		/** @type {ValidationResult} */
 		const validationResult = {
 			isValid: true,
 			testEndpoint: 'temporary-endpoint',
 			userInfo: {
 				email: 'temp-validation@example.com',
-				service: serviceName
+				service: serviceName,
 			},
 			details: {
 				testEndpoint: 'temporary-endpoint',
-				message: 'Temporary validation - service-specific validation to be implemented'
+				message: 'Temporary validation - service-specific validation to be implemented',
 			},
-			validatedAt: new Date().toISOString()
+			validatedAt: new Date().toISOString(),
 		};
 
 		if (validationResult.isValid) {
@@ -348,7 +354,9 @@ export async function validateInstanceCredentialsOnly(req, res) {
 					validation_status: 'success',
 					validation_details: {
 						test_endpoint: validationResult.testEndpoint,
-						validated_user: /** @type {any} */ (validationResult.userInfo)?.email || /** @type {any} */ (validationResult.userInfo)?.handle,
+						validated_user:
+							/** @type {any} */ (validationResult.userInfo)?.email ||
+							/** @type {any} */ (validationResult.userInfo)?.handle,
 						user_info: sanitizeUserInfo(/** @type {UserInfo} */ (validationResult.userInfo)),
 					},
 					validated_at: validationResult.validatedAt,

@@ -2,14 +2,24 @@ import { deleteAPIKey } from '../../db/queries/apiKeysQueries.js';
 
 /**
  * Delete API key
- * @param {import('express').Request & { user: { id: string } }} req - Express request object
+ * @param {import('express').Request } req - Express request object
  * @param {import('express').Response} res - Express response object
- * @returns {Promise<import('express').Response | void>}
+ * @returns {Promise<void>}
  */
 export async function deleteAPIKeyHandler(req, res) {
 	try {
-		const userId = req.user.id;
+		const userId = req.user?.id || '';
 		const { id } = req.params;
+
+		if (!userId) {
+			res.json({
+				error: {
+					code: 'USER_NOT_FOUND',
+					message: 'User was not found!',
+				},
+			});
+			return;
+		}
 
 		const deleted = await deleteAPIKey(id, userId);
 
@@ -32,5 +42,6 @@ export async function deleteAPIKeyHandler(req, res) {
 				message: 'Failed to delete API key',
 			},
 		});
+		return;
 	}
 }

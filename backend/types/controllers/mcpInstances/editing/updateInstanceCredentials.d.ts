@@ -1,4 +1,4 @@
-/** @typedef {import('express').Request & {user?: {id: string}}} Request */
+/** @typedef {import('express').Request } Request */
 /** @typedef {import('express').Response} Response */
 /** @typedef {Object} ValidationResult
  * @property {boolean} isValid - Whether validation passed
@@ -41,11 +41,7 @@ export function updateInstanceCredentials(req: Request, res: Response): Promise<
  * @returns {Promise<void>}
  */
 export function validateInstanceCredentialsOnly(req: Request, res: Response): Promise<void>;
-export type Request = import("express").Request & {
-    user?: {
-        id: string;
-    };
-};
+export type Request = import("express").Request;
 export type Response = import("express").Response;
 export type ValidationResult = {
     /**

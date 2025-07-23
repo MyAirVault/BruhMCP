@@ -4,16 +4,23 @@
  */
 
 import { pool } from '../../config.js';
-import './types.js';
+
+/**
+ * @typedef {import('./types.js').MCPInstanceCreateData} MCPInstanceCreateData
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ * @typedef {import('./types.js').CreateInstanceResult} CreateInstanceResult
+ */
 
 /**
  * Create new MCP instance with transaction support
- * @param {MCPInstanceCreateData} instanceData - Instance data
- * @returns {Promise<MCPInstanceRecord>} Created instance record
+ * @param {MCPInstanceCreateData} instanceData - Instance creation data including user ID, service info, and credentials
+ * @returns {Promise<MCPInstanceRecord>} Created instance record with all properties
+ * @throws {Error} When database transaction fails or required fields are missing
  */
 export async function createMCPInstance(instanceData) {
 	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
 
+	/** @type {import('pg').PoolClient} */
 	const client = await pool.connect();
 	try {
 		await client.query('BEGIN');
@@ -37,6 +44,7 @@ export async function createMCPInstance(instanceData) {
 		`;
 
 		const instanceParams = [userId, mcpServiceId, customName, oauthStatus, expiresAt];
+		/** @type {import('pg').QueryResult<MCPInstanceRecord>} */
 		const instanceResult = await client.query(instanceQuery, instanceParams);
 		const createdInstance = instanceResult.rows[0];
 
@@ -80,13 +88,15 @@ export async function createMCPInstance(instanceData) {
 
 /**
  * Create MCP instance with atomic plan limit checking
- * @param {MCPInstanceCreateData} instanceData - Instance data
- * @param {number|null} maxInstances - Maximum allowed active instances (null = unlimited)
- * @returns {Promise<CreateInstanceResult>} Created instance record or error
+ * @param {MCPInstanceCreateData} instanceData - Instance creation data including user ID, service info, and credentials
+ * @param {number|null} maxInstances - Maximum allowed active instances (null = unlimited for pro plans)
+ * @returns {Promise<CreateInstanceResult>} Success result with instance or failure result with error details
+ * @throws {Error} When database connection fails or transaction cannot be started
  */
 export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances) {
 	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
 
+	/** @type {import('pg').PoolClient} */
 	const client = await pool.connect();
 	try {
 		await client.query('BEGIN');
@@ -111,6 +121,7 @@ export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances
 			JOIN mcp_table m ON ms.mcp_service_id = m.mcp_service_id
 			WHERE ms.user_id = $1 AND ms.status = 'active' AND ms.oauth_status = 'completed'
 		`;
+		/** @type {import('pg').QueryResult<{count: string}>} */
 		const countResult = await client.query(countQuery, [userId]);
 		const currentActiveInstances = parseInt(countResult.rows[0].count);
 
@@ -144,6 +155,7 @@ export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances
 		`;
 
 		const instanceParams = [userId, mcpServiceId, customName, oauthStatus, expiresAt];
+		/** @type {import('pg').QueryResult<MCPInstanceRecord>} */
 		const instanceResult = await client.query(instanceQuery, instanceParams);
 		const createdInstance = instanceResult.rows[0];
 

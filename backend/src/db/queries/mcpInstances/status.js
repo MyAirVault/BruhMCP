@@ -5,7 +5,10 @@
 
 import { pool } from '../../config.js';
 import { updateMCPInstance } from './crud.js';
-import './types.js';
+
+/**
+ * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
+ */
 
 /**
  * Toggle MCP instance status

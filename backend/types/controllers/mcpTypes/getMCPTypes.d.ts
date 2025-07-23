@@ -25,7 +25,7 @@
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export function getMCPTypes(req: import("express").Request, res: import("express").Response): Promise<void | import("express").Response<any, Record<string, any>>>;
+export function getMCPTypes(req: import("express").Request, res: import("express").Response): Promise<void>;
 export type MCPType = {
     mcp_service_id: string;
     mcp_service_name: string;

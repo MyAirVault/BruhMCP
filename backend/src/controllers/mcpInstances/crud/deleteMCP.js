@@ -13,7 +13,7 @@ import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
  */
 
 /**
- * @typedef {import('express').Request & {user?: User}} AuthenticatedRequest
+ * @typedef {import('express').Request } AuthenticatedRequest
  */
 
 /** @typedef {import('express').Response} Response */

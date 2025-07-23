@@ -22,6 +22,9 @@ import { errorHandler } from './utils/errorResponse.js';
 // Import database
 import { initializeDatabase } from './db/config.js';
 
+// Import MCP Auth Registry
+import { authRegistry } from './services/mcp-auth-registry/index.js';
+
 // Port validation removed - no longer using dynamic port allocation
 
 // Import expiration monitor
@@ -138,6 +141,19 @@ app.use('/api/v1/mcps', mcpInstancesRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/billing-details', billingDetailsRoutes);
 
+// Register MCP Auth Registry routes (will be initialized during startup)
+app.use('/api/v1/auth-registry', (req, res, next) => {
+	const router = authRegistry.getRouter();
+	if (router) {
+		router(req, res, next);
+	} else {
+		res.status(503).json({
+			error: 'Auth registry not initialized',
+			message: 'The authentication registry is still initializing. Please try again in a few moments.'
+		});
+	}
+});
+
 
 // SPA fallback - serve index.html for non-API routes
 app.get('*', (req, res) => {
@@ -207,6 +223,25 @@ const server = app.listen(port, async () => {
 		console.error('❌ Database initialization failed:', error instanceof Error ? error.message : error);
 		console.error('🛑 Server cannot start without a properly configured database');
 		process.exit(1);
+	}
+
+	// Initialize MCP Auth Registry
+	try {
+		console.log('🔐 Initializing MCP Auth Registry...');
+		await authRegistry.initialize({
+			servicesPath: './src/mcp-servers',
+			baseUrl: process.env.BASE_URL || `http://localhost:${port}`,
+			autoDiscovery: true,
+			discoveryInterval: 30000 // 30 seconds
+		});
+		console.log('✅ MCP Auth Registry initialized');
+	} catch (error) {
+		console.error('❌ Failed to initialize MCP Auth Registry:', error);
+		loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
+			operation: 'auth_registry_init',
+			critical: true
+		});
+		// Don't exit - allow server to continue with reduced functionality
 	}
 
 	// OAuth service removed - now handled per service

@@ -3,8 +3,8 @@
  * Coordinates OAuth authentication flows between services and database
  */
 
-const { updateOAuthStatus } = require('../../../db/queries/mcpInstances/oauth.js');
-const { createTokenAuditLog } = require('../../../db/queries/mcpInstances/audit.js');
+import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
+import { createTokenAuditLog } from '../../../db/queries/mcpInstances/audit.js';
 
 /**
  * @typedef {import('../types/auth-types.js').AuthCredentials} AuthCredentials
@@ -15,6 +15,7 @@ const { createTokenAuditLog } = require('../../../db/queries/mcpInstances/audit.
  * @typedef {import('../types/auth-types.js').CredentialValidator} CredentialValidator
  * @typedef {import('../types/auth-types.js').OAuthHandler} OAuthHandler
  * @typedef {import('../types/auth-types.js').AuditLogMetadata} AuditLogMetadata
+ * @typedef {function} ValidatorConstructor
  */
 
 /**
@@ -68,11 +69,11 @@ class OAuthCoordinator {
             let validator;
             
             if (typeof service.validator === 'function' && service.validator.prototype) {
-                // Validator is a constructor function - use type assertion for dynamic constructor
-                const ValidatorClass = /** @type {unknown} */ (service.validator);
-                validator = /** @type {CredentialValidator} */ (new (/** @type {new() => CredentialValidator} */ (ValidatorClass))());
+                // Validator is a constructor function
+                const ValidatorClass = /** @type {new() => CredentialValidator} */ (service.validator);
+                validator = new ValidatorClass();
             } else {
-                // Validator is already an instance or factory function
+                // Validator is already an instance
                 validator = /** @type {CredentialValidator} */ (service.validator);
             }
 
@@ -136,16 +137,18 @@ class OAuthCoordinator {
             console.error(`OAuth flow initiation failed for ${serviceName}:`, error);
 
             // Update status to failed
+            const errorMessage = error instanceof Error ? error.message : String(error);
             await this.updateOAuthStatusInDatabase(instanceId, {
                 status: 'failed',
                 error: 'oauth_initiation_failed',
-                errorMessage: error.message
+                errorMessage
             });
 
             // Create audit log
+            const auditErrorMessage = error instanceof Error ? error.message : String(error);
             await this.createAuditLog(instanceId, 'oauth_initiation', 'failure', {
                 service: serviceName,
-                error: error.message
+                error: auditErrorMessage
             });
 
             throw error;
@@ -187,7 +190,7 @@ class OAuthCoordinator {
                     status: 'completed',
                     accessToken: result.tokens.access_token,
                     refreshToken: result.tokens.refresh_token,
-                    tokenExpiresAt: new Date(Date.now() + (result.tokens.expires_in * 1000)),
+                    tokenExpiresAt: result.tokens.expires_in ? new Date(Date.now() + (result.tokens.expires_in * 1000)) : undefined,
                     scope: result.tokens.scope
                 });
 
@@ -224,15 +227,17 @@ class OAuthCoordinator {
             try {
                 const instanceId = this.extractInstanceIdFromState(state);
                 if (instanceId) {
+                    const statusErrorMessage = error instanceof Error ? error.message : String(error);
                     await this.updateOAuthStatusInDatabase(instanceId, {
                         status: 'failed',
                         error: 'oauth_callback_error',
-                        errorMessage: error.message
+                        errorMessage: statusErrorMessage
                     });
 
+                    const auditStatusErrorMessage = error instanceof Error ? error.message : String(error);
                     await this.createAuditLog(instanceId, 'oauth_completion', 'failure', {
                         service: serviceName,
-                        error: error.message
+                        error: auditStatusErrorMessage
                     });
                 }
             } catch (auditError) {
@@ -319,4 +324,4 @@ class OAuthCoordinator {
     }
 }
 
-module.exports = OAuthCoordinator;
+export default OAuthCoordinator;

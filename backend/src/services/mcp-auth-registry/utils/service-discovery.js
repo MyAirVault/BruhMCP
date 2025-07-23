@@ -3,12 +3,14 @@
  * Discovers and registers MCP services automatically
  */
 
-const { readdir, access } = require('fs/promises');
-const { join } = require('path');
+import { readdir, access } from 'fs/promises';
+import { join } from 'path';
 
 /**
  * @typedef {import('../types/auth-types.js').ServiceConfig} ServiceConfig
  * @typedef {import('../types/auth-types.js').AuthRegistryConfig} AuthRegistryConfig
+ * @typedef {import('../types/auth-types.js').OAuthHandler} OAuthHandler
+ * @typedef {import('../types/auth-types.js').ValidatorType} ValidatorType
  */
 
 /**
@@ -88,14 +90,8 @@ async function analyzeService(serviceName, servicePath) {
  */
 async function loadServiceModule(modulePath) {
     try {
-        // Use dynamic import for ES modules, require for CommonJS
-        let module;
-        try {
-            module = await import(modulePath);
-        } catch (importError) {
-            // Fallback to require for CommonJS modules
-            module = require(modulePath);
-        }
+        // Use dynamic import for ES modules
+        const module = await import(modulePath);
 
         return module.default || module;
     } catch (error) {
@@ -110,7 +106,7 @@ async function loadServiceModule(modulePath) {
  * @returns {Promise<ServiceConfig|null>} Service configuration or null if failed
  */
 async function registerService(serviceInfo) {
-    const { name, path, type, hasValidator, hasOAuthHandler } = serviceInfo;
+    const { name, path, type, hasOAuthHandler } = serviceInfo;
 
     try {
         const validatorPath = join(path, 'validation', 'credential-validator.js');
@@ -121,23 +117,26 @@ async function registerService(serviceInfo) {
             return null;
         }
 
-        let oauthHandler = null;
+        /** @type {import('../types/auth-types.js').OAuthHandler|undefined} */
+        let oauthHandler = undefined;
         if (hasOAuthHandler) {
             const oauthHandlerPath = join(path, 'oauth', 'oauth-handler.js');
-            oauthHandler = await loadServiceModule(oauthHandlerPath);
+            const loadedHandler = await loadServiceModule(oauthHandlerPath);
 
-            if (!oauthHandler) {
+            if (!loadedHandler) {
                 console.error(`❌ Failed to load OAuth handler for ${name}`);
                 return null;
             }
+            oauthHandler = /** @type {import('../types/auth-types.js').OAuthHandler} */ (loadedHandler);
         }
 
         const requiredFields = determineRequiredFields(type);
 
+        /** @type {ServiceConfig} */
         const serviceConfig = {
             name,
-            type,
-            validator,
+            type: /** @type {'oauth'|'apikey'} */ (type),
+            validator: /** @type {import('../types/auth-types.js').ValidatorType} */ (validator),
             oauthHandler,
             requiredFields
         };
@@ -180,7 +179,7 @@ async function fileExists(filePath) {
     }
 }
 
-module.exports = {
+export {
     discoverServices,
     analyzeService,
     loadServiceModule,

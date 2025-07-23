@@ -1,4 +1,4 @@
-/** @typedef {import('express').Request & { user?: { id: string } }} Request */
+/** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /**
  * @typedef {Object} MCPService
@@ -48,19 +48,15 @@
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  */
-export function createMCP(req: Request, res: Response): Promise<void | import("express").Response<any, Record<string, any>>>;
+export function createMCP(req: Request, res: Response): Promise<void>;
 /**
  * Validate credentials against external service (optional)
  * This can be called before instance creation for real-time validation
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  */
-export function validateMCPCredentials(req: Request, res: Response): Promise<import("express").Response<any, Record<string, any>>>;
-export type Request = import("express").Request & {
-    user?: {
-        id: string;
-    };
-};
+export function validateMCPCredentials(req: Request, res: Response): Promise<void>;
+export type Request = import("express").Request;
 export type Response = import("express").Response;
 export type MCPService = {
     mcp_service_id: string;

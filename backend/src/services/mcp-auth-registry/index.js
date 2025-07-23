@@ -3,24 +3,52 @@
  * Central authentication registry that coordinates auth flows for all MCP services
  */
 
-const express = require('express');
-const { join } = require('path');
+import express from 'express';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const { discoverServices, registerService } = require('./utils/service-discovery.js');
-const OAuthCoordinator = require('./coordinators/oauth-coordinator.js');
-const ApiKeyCoordinator = require('./coordinators/apikey-coordinator.js');
-const { createAuthRoutes } = require('./routes/auth-routes.js');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+import { discoverServices, registerService } from './utils/service-discovery.js';
+import OAuthCoordinator from './coordinators/oauth-coordinator.js';
+import ApiKeyCoordinator from './coordinators/apikey-coordinator.js';
+import { createAuthRoutes } from './routes/auth-routes.js';
 
 /**
- * @typedef {import('./types/auth-types.js').AuthRegistryConfig} AuthRegistryConfig
- * @typedef {import('./types/auth-types.js').ServiceConfig} ServiceConfig
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {'oauth'|'apikey'} type - Service authentication type
+ * @property {any} validator - Credential validator
+ * @property {any} [oauthHandler] - OAuth handler (for OAuth services)
+ * @property {Array<string>} requiredFields - Required credential fields
+ */
+
+/**
+ * @typedef {Object} AuthRegistryConfig
+ * @property {string} servicesPath - Path to MCP services directory
+ * @property {string} baseUrl - Base URL for callbacks
+ * @property {boolean} autoDiscovery - Enable automatic service discovery
+ * @property {number} [discoveryInterval] - Service discovery interval in ms
+ */
+
+
+/**
+ * @typedef {Object} RegistryStatistics
+ * @property {number} totalServices - Total number of services
+ * @property {number} oauthServices - Number of OAuth services
+ * @property {number} apiKeyServices - Number of API key services
+ * @property {Object} servicesByType - Services grouped by type
+ * @property {Array<string>} servicesByType.oauth - OAuth service names
+ * @property {Array<string>} servicesByType.apikey - API key service names
+ * @property {boolean} initialized - Whether registry is initialized
  */
 
 /**
  * MCP Authentication Registry Class
  * Manages authentication flows for all registered MCP services
  */
-class MCPAuthRegistry {
+class AuthRegistryImpl {
     constructor() {
         /** @type {OAuthCoordinator} */
         this.oauthCoordinator = new OAuthCoordinator();
@@ -40,7 +68,7 @@ class MCPAuthRegistry {
 
     /**
      * Initializes the auth registry with automatic service discovery
-     * @param {AuthRegistryConfig} [config] - Registry configuration
+     * @param {Partial<AuthRegistryConfig>} [config] - Registry configuration
      * @returns {Promise<void>}
      */
     async initialize(config = {}) {
@@ -49,6 +77,7 @@ class MCPAuthRegistry {
             return;
         }
 
+        /** @type {AuthRegistryConfig} */
         const defaultConfig = {
             servicesPath: join(__dirname, '../../mcp-servers'),
             baseUrl: process.env.BASE_URL || 'http://localhost:3000',
@@ -56,7 +85,13 @@ class MCPAuthRegistry {
             discoveryInterval: 30000 // 30 seconds
         };
 
-        const finalConfig = { ...defaultConfig, ...config };
+        /** @type {AuthRegistryConfig} */
+        const finalConfig = { 
+            servicesPath: config.servicesPath || defaultConfig.servicesPath,
+            baseUrl: config.baseUrl || defaultConfig.baseUrl,
+            autoDiscovery: config.autoDiscovery !== undefined ? config.autoDiscovery : defaultConfig.autoDiscovery,
+            discoveryInterval: config.discoveryInterval || defaultConfig.discoveryInterval
+        };
 
         try {
             console.log('🚀 Initializing MCP Auth Registry...');
@@ -74,7 +109,7 @@ class MCPAuthRegistry {
             this.logRegistrySummary();
 
             // Set up auto-discovery if enabled
-            if (finalConfig.autoDiscovery && finalConfig.discoveryInterval > 0) {
+            if (finalConfig.autoDiscovery && finalConfig.discoveryInterval && finalConfig.discoveryInterval > 0) {
                 this.startAutoDiscovery(finalConfig.servicesPath, finalConfig.discoveryInterval);
             }
         } catch (error) {
@@ -187,7 +222,7 @@ class MCPAuthRegistry {
 
     /**
      * Gets registry statistics
-     * @returns {Object} Registry statistics
+     * @returns {RegistryStatistics} Registry statistics
      */
     getStatistics() {
         const oauthServices = this.oauthCoordinator.getRegisteredServices();
@@ -268,9 +303,6 @@ class MCPAuthRegistry {
 }
 
 // Create singleton instance
-const authRegistry = new MCPAuthRegistry();
+const authRegistry = new AuthRegistryImpl();
 
-module.exports = {
-    MCPAuthRegistry,
-    authRegistry
-};
+export { AuthRegistryImpl as MCPAuthRegistry, authRegistry };
