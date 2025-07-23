@@ -27,8 +27,7 @@ import { initializeDatabase } from './db/config.js';
 // Import expiration monitor
 import expirationMonitor from './services/expiration-monitor.js';
 
-// Import OAuth service manager
-import oauthServiceManager from './services/oauth-service-manager.js';
+// OAuth service removed - now handled per service
 
 // Import logging services
 import loggingService from './services/logging/loggingService.js';
@@ -210,21 +209,7 @@ const server = app.listen(port, async () => {
 		process.exit(1);
 	}
 
-	// Start OAuth service
-	try {
-		const oauthStarted = await oauthServiceManager.startService();
-		if (oauthStarted) {
-			console.log('✅ OAuth service started');
-		} else {
-			console.log('⚠️ OAuth service failed to start - OAuth flows will start it on demand');
-		}
-	} catch (error) {
-		console.error('❌ Failed to start OAuth service:', error);
-		loggingService.logError(error instanceof Error ? error : new Error(String(error)), {
-			operation: 'oauth_service_start',
-			critical: false
-		});
-	}
+	// OAuth service removed - now handled per service
 
 	// Start expiration monitor
 	try {
@@ -267,7 +252,6 @@ process.on('SIGTERM', () => {
 	// Stop services
 	expirationMonitor.stop();
 	logMaintenanceService.stopAutomatedMaintenance();
-	oauthServiceManager.stopService();
 
 	server.close(() => {
 		console.log('✅ Server closed');
@@ -287,7 +271,6 @@ process.on('SIGINT', () => {
 	// Stop services
 	expirationMonitor.stop();
 	logMaintenanceService.stopAutomatedMaintenance();
-	oauthServiceManager.stopService();
 
 	server.close(() => {
 		console.log('✅ Server closed');
