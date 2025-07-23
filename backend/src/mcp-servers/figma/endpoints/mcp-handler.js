@@ -147,7 +147,11 @@ export class FigmaMCPHandler {
 				console.log(`📁 FileKey: ${fileKey}, Nodes: ${nodes.length}, Path: ${localPath}`);
 
 				try {
-					const imageFills = nodes.filter(({ imageRef }) => !!imageRef);
+					const imageFills = nodes.filter(({ imageRef }) => !!imageRef).map(node => ({
+						nodeId: node.nodeId,
+						fileName: node.fileName,
+						imageRef: /** @type {string} */ (node.imageRef)
+					}));
 					const fillDownloads = this.figmaService.getImageFills(fileKey, imageFills, localPath);
 					
 					const renderRequests = nodes
