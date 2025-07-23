@@ -3,6 +3,20 @@
  * Handles all communication with Figma's REST API
  */
 
+/**
+ * @typedef {Object} CommentPosition
+ * @property {number} x - X coordinate
+ * @property {number} y - Y coordinate
+ */
+
+/**
+ * @typedef {Object} CommentRequestBody
+ * @property {string} message - Comment message
+ * @property {Object} [client_meta] - Client metadata for position
+ * @property {number} client_meta.x - X coordinate
+ * @property {number} client_meta.y - Y coordinate
+ */
+
 import fetch from 'node-fetch';
 
 const FIGMA_BASE_URL = 'https://api.figma.com/v1';
@@ -465,7 +479,7 @@ export async function getFigmaProjectFiles(projectId, apiKey) {
  * @param {string} fileKey - Figma file key
  * @param {string} apiKey - User's Figma API key
  * @param {string} message - Comment message
- * @param {Object} [position] - Comment position with x, y coordinates
+ * @param {CommentPosition} [position] - Comment position with x, y coordinates
  * @returns {Promise<any>}
  */
 export async function postFigmaComment(fileKey, apiKey, message, position) {
@@ -481,6 +495,7 @@ export async function postFigmaComment(fileKey, apiKey, message, position) {
 		throw new Error('Message is required');
 	}
 
+	/** @type {CommentRequestBody} */
 	const requestBody = {
 		message,
 	};

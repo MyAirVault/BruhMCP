@@ -87,7 +87,7 @@ function createAuthRoutes(coordinators) {
                 });
             }
 
-            // Generate instance ID (this would typically come from your instance creation logic)
+            // Generate instance ID using timestamp and random string
             const instanceId = generateInstanceId();
 
             const result = await oauthCoordinator.initiateOAuthFlow(
@@ -177,8 +177,7 @@ function createAuthRoutes(coordinators) {
 
             console.log(`📊 Checking OAuth status for instance: ${instanceId}`);
 
-            // This would typically query your database for the instance status
-            // For now, we'll use a placeholder implementation
+            // Query database for instance OAuth status
             const status = await getInstanceOAuthStatus(instanceId);
 
             res.json({

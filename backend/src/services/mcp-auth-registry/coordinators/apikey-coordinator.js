@@ -11,6 +11,9 @@ const { createTokenAuditLog } = require('../../../db/queries/mcpInstances/audit.
  * @typedef {import('../types/auth-types.js').ValidationResult} ValidationResult
  * @typedef {import('../types/auth-types.js').ServiceConfig} ServiceConfig
  * @typedef {import('../types/auth-types.js').InstanceCreationData} InstanceCreationData
+ * @typedef {import('../types/auth-types.js').CredentialValidator} CredentialValidator
+ * @typedef {import('../types/auth-types.js').AuditLogMetadata} AuditLogMetadata
+ * @typedef {import('../types/auth-types.js').InstanceMetadata} InstanceMetadata
  */
 
 /**
@@ -63,10 +66,17 @@ class ApiKeyCoordinator {
         try {
             console.log(`🔑 Validating API key credentials for ${serviceName}`);
             
-            // Create validator instance if it's a class
-            let validator = service.validator;
+            // Get validator instance
+            /** @type {CredentialValidator} */
+            let validator;
+            
             if (typeof service.validator === 'function' && service.validator.prototype) {
-                validator = new service.validator();
+                // Validator is a constructor function - use type assertion for dynamic constructor
+                const ValidatorClass = /** @type {unknown} */ (service.validator);
+                validator = /** @type {CredentialValidator} */ (new (/** @type {new() => CredentialValidator} */ (ValidatorClass))());
+            } else {
+                // Validator is already an instance or factory function
+                validator = /** @type {CredentialValidator} */ (service.validator);
             }
 
             // Ensure validator has validateCredentials method
@@ -113,22 +123,25 @@ class ApiKeyCoordinator {
                 console.error(`❌ Credential validation failed for ${serviceName}: ${validationResult.error}`);
                 return {
                     success: false,
-                    error: validationResult.error,
-                    userInfo: null
+                    error: validationResult.error
                 };
             }
 
             // Step 2: Create MCP instance
+            /** @type {InstanceMetadata} */
+            const metadata = {
+                userInfo: validationResult.userInfo,
+                authType: 'apikey',
+                validatedAt: new Date().toISOString(),
+                userEmail: creationData.metadata?.userEmail,
+                createdVia: creationData.metadata?.createdVia || 'api'
+            };
+
             const instanceData = {
                 serviceName,
                 userId: creationData.userId,
                 credentials: creationData.credentials,
-                metadata: {
-                    ...creationData.metadata,
-                    userInfo: validationResult.userInfo,
-                    authType: 'apikey',
-                    validatedAt: new Date().toISOString()
-                }
+                metadata
             };
 
             const instance = await this.createInstance(instanceData);
@@ -152,9 +165,9 @@ class ApiKeyCoordinator {
 
             // Create audit log for failure
             try {
-                await this.createAuditLog(null, 'instance_creation', 'failure', {
+                await this.createAuditLog('', 'instance_creation', 'failure', {
                     service: serviceName,
-                    error: error.message,
+                    error: error instanceof Error ? error.message : String(error),
                     authType: 'apikey'
                 });
             } catch (auditError) {
@@ -171,7 +184,7 @@ class ApiKeyCoordinator {
     /**
      * Creates MCP instance in database
      * @param {InstanceCreationData} instanceData - Instance data
-     * @returns {Promise<Object>} Created instance
+     * @returns {Promise<{id: string}>} Created instance
      */
     async createInstance(instanceData) {
         try {
@@ -198,10 +211,10 @@ class ApiKeyCoordinator {
 
     /**
      * Creates audit log entry
-     * @param {string|null} instanceId - MCP instance ID (null for failures)
+     * @param {string} instanceId - MCP instance ID (empty string for failures)
      * @param {string} operation - Operation type
      * @param {string} status - Operation status
-     * @param {Object} metadata - Additional metadata
+     * @param {AuditLogMetadata} metadata - Additional metadata
      * @returns {Promise<void>}
      */
     async createAuditLog(instanceId, operation, status, metadata = {}) {
@@ -238,12 +251,12 @@ class ApiKeyCoordinator {
         }
 
         const { requiredFields } = service;
-        const missingFields = [];
 
         // Check if at least one required field is present
-        const hasRequiredField = requiredFields.some(field => 
-            credentials[field] && typeof credentials[field] === 'string' && credentials[field].trim().length > 0
-        );
+        const hasRequiredField = requiredFields.some(field => {
+            const value = credentials[/** @type {keyof AuthCredentials} */ (field)];
+            return value && typeof value === 'string' && value.trim().length > 0;
+        });
 
         if (!hasRequiredField) {
             return {
@@ -254,8 +267,9 @@ class ApiKeyCoordinator {
 
         // Additional field-specific validation
         for (const field of requiredFields) {
-            if (credentials[field]) {
-                const fieldValidation = this.validateCredentialField(field, credentials[field]);
+            const value = credentials[/** @type {keyof AuthCredentials} */ (field)];
+            if (value) {
+                const fieldValidation = this.validateCredentialField(field, String(value));
                 if (!fieldValidation.isValid) {
                     return fieldValidation;
                 }

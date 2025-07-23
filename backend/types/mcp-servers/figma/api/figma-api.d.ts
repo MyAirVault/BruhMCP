@@ -90,10 +90,10 @@ export function getFigmaProjectFiles(projectId: string, apiKey: string): Promise
  * @param {string} fileKey - Figma file key
  * @param {string} apiKey - User's Figma API key
  * @param {string} message - Comment message
- * @param {Object} [position] - Comment position with x, y coordinates
+ * @param {CommentPosition} [position] - Comment position with x, y coordinates
  * @returns {Promise<any>}
  */
-export function postFigmaComment(fileKey: string, apiKey: string, message: string, position?: Object): Promise<any>;
+export function postFigmaComment(fileKey: string, apiKey: string, message: string, position?: CommentPosition): Promise<any>;
 /**
  * Delete a comment from a file
  * @param {string} fileKey - Figma file key
@@ -205,4 +205,33 @@ export function deleteFigmaWebhook(apiKey: string, webhookId: string): Promise<a
  * @returns {Promise<any>}
  */
 export function getFigmaFileWithVersion(fileKey: string, apiKey: string, versionId: string): Promise<any>;
+export type CommentPosition = {
+    /**
+     * - X coordinate
+     */
+    x: number;
+    /**
+     * - Y coordinate
+     */
+    y: number;
+};
+export type CommentRequestBody = {
+    /**
+     * - Comment message
+     */
+    message: string;
+    /**
+     * - Client metadata for position
+     */
+    client_meta?: {
+        /**
+         * - X coordinate
+         */
+        x: number;
+        /**
+         * - Y coordinate
+         */
+        y: number;
+    } | undefined;
+};
 //# sourceMappingURL=figma-api.d.ts.map

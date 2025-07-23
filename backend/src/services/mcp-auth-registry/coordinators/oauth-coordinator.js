@@ -12,6 +12,9 @@ const { createTokenAuditLog } = require('../../../db/queries/mcpInstances/audit.
  * @typedef {import('../types/auth-types.js').OAuthCallbackResult} OAuthCallbackResult
  * @typedef {import('../types/auth-types.js').ServiceConfig} ServiceConfig
  * @typedef {import('../types/auth-types.js').OAuthStatusUpdate} OAuthStatusUpdate
+ * @typedef {import('../types/auth-types.js').CredentialValidator} CredentialValidator
+ * @typedef {import('../types/auth-types.js').OAuthHandler} OAuthHandler
+ * @typedef {import('../types/auth-types.js').AuditLogMetadata} AuditLogMetadata
  */
 
 /**
@@ -60,10 +63,17 @@ class OAuthCoordinator {
         try {
             console.log(`🔐 Validating OAuth credentials for ${serviceName}`);
             
-            // Create validator instance if it's a class
-            let validator = service.validator;
+            // Get validator instance
+            /** @type {CredentialValidator} */
+            let validator;
+            
             if (typeof service.validator === 'function' && service.validator.prototype) {
-                validator = new service.validator();
+                // Validator is a constructor function - use type assertion for dynamic constructor
+                const ValidatorClass = /** @type {unknown} */ (service.validator);
+                validator = /** @type {CredentialValidator} */ (new (/** @type {new() => CredentialValidator} */ (ValidatorClass))());
+            } else {
+                // Validator is already an instance or factory function
+                validator = /** @type {CredentialValidator} */ (service.validator);
             }
 
             // Ensure validator has validateCredentials method
@@ -114,7 +124,10 @@ class OAuthCoordinator {
             });
 
             // Call service OAuth handler
-            const oauthHandler = service.oauthHandler;
+            const oauthHandler = /** @type {OAuthHandler} */ (service.oauthHandler);
+            if (!oauthHandler || typeof oauthHandler.initiateFlow !== 'function') {
+                throw new Error(`Invalid OAuth handler for service ${serviceName}`);
+            }
             const result = await oauthHandler.initiateFlow(instanceId, credentials);
 
             console.log(`✅ OAuth flow initiated for ${serviceName}: ${result.authUrl}`);
@@ -162,7 +175,10 @@ class OAuthCoordinator {
             }
 
             // Call service OAuth handler
-            const oauthHandler = service.oauthHandler;
+            const oauthHandler = /** @type {OAuthHandler} */ (service.oauthHandler);
+            if (!oauthHandler || typeof oauthHandler.handleCallback !== 'function') {
+                throw new Error(`Invalid OAuth handler for service ${serviceName}`);
+            }
             const result = await oauthHandler.handleCallback(code, state);
 
             if (result.success && result.tokens) {
@@ -248,7 +264,7 @@ class OAuthCoordinator {
      * @param {string} instanceId - MCP instance ID
      * @param {string} operation - Operation type
      * @param {string} status - Operation status
-     * @param {Object} metadata - Additional metadata
+     * @param {AuditLogMetadata} metadata - Additional metadata
      * @returns {Promise<void>}
      */
     async createAuditLog(instanceId, operation, status, metadata = {}) {

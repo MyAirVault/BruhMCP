@@ -10,7 +10,20 @@
  * @property {string} [api_token] - API token (for API key services)
  * @property {string} [api_key] - API key (for API key services)
  * @property {Array<string>} [scopes] - OAuth scopes (for OAuth services)
- * @property {string} [key] - Generic credential key for flexible access
+ */
+
+/**
+ * @typedef {Object} CredentialValidator
+ * @property {function(AuthCredentials): Promise<ValidationResult>} validateCredentials - Validates credentials
+ * @property {function(AuthCredentials): Promise<ValidationResult>} [testCredentials] - Tests credentials against API
+ * @property {function(AuthCredentials): ValidationResult} [validateFormat] - Validates credential format
+ */
+
+/**
+ * @typedef {Object} OAuthHandler
+ * @property {function(string, AuthCredentials): Promise<OAuthFlowResult>} initiateFlow - Initiates OAuth flow
+ * @property {function(string, string): Promise<OAuthCallbackResult>} handleCallback - Handles OAuth callback
+ * @property {function(string, Object): Promise<Object>} [refreshToken] - Refreshes OAuth token
  */
 
 /**
@@ -46,9 +59,21 @@
  * @typedef {Object} ServiceConfig
  * @property {string} name - Service name
  * @property {'oauth'|'apikey'} type - Service authentication type
- * @property {Function} validator - Credential validator function
- * @property {Function} [oauthHandler] - OAuth handler (for OAuth services)
+ * @property {CredentialValidator|function(AuthCredentials): CredentialValidator} validator - Credential validator
+ * @property {OAuthHandler} [oauthHandler] - OAuth handler (for OAuth services)
  * @property {Array<string>} requiredFields - Required credential fields
+ */
+
+/**
+ * @typedef {Object} InstanceMetadata
+ * @property {Object} [userInfo] - User information from validation
+ * @property {string} [userInfo.id] - User ID
+ * @property {string} [userInfo.email] - User email
+ * @property {string} [userInfo.name] - User name
+ * @property {string} [userEmail] - User email
+ * @property {string} [createdVia] - Creation method
+ * @property {string} [authType] - Authentication type
+ * @property {string} [validatedAt] - Validation timestamp
  */
 
 /**
@@ -56,7 +81,7 @@
  * @property {string} serviceName - Name of the service
  * @property {AuthCredentials} credentials - Service credentials
  * @property {string} userId - User ID creating the instance
- * @property {Object} [metadata] - Additional metadata
+ * @property {InstanceMetadata} [metadata] - Additional metadata
  */
 
 /**
@@ -68,6 +93,15 @@
  * @property {string} [scope] - Token scope
  * @property {string} [error] - Error message if failed
  * @property {string} [errorMessage] - Detailed error message
+ */
+
+/**
+ * @typedef {Object} AuditLogMetadata
+ * @property {string} [method] - Method used for operation
+ * @property {string} [service] - Service name
+ * @property {string} [error] - Error message
+ * @property {string} [scope] - OAuth scope
+ * @property {string} [authType] - Authentication type
  */
 
 /**

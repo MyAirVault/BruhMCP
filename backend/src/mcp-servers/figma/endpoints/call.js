@@ -6,7 +6,7 @@
 import { 
 	getFigmaFile, 
 	getFigmaNodes
-} from '../api/figma-api.js';
+} from '../api/index.js';
 
 import { 
 	createSuccessResponse, 
