@@ -1,8 +1,8 @@
-export type ServiceRegistry = import("../types/service-types.js").ServiceRegistry;
+export type ServiceRegistryMap = import("../types/service-types.js").ServiceRegistryMap;
 export type ServiceRegistryEntry = import("../types/service-types.js").ServiceRegistryEntry;
 export type ServiceError = import("../types/service-types.js").ServiceError;
 /**
- * @typedef {import('../types/service-types.js').ServiceRegistry} ServiceRegistry
+ * @typedef {import('../types/service-types.js').ServiceRegistryMap} ServiceRegistryMap
  * @typedef {import('../types/service-types.js').ServiceRegistryEntry} ServiceRegistryEntry
  * @typedef {import('../types/service-types.js').ServiceError} ServiceError
  */
@@ -62,9 +62,17 @@ export class ServiceRegistry {
     reloadService(serviceName: string): Promise<boolean>;
     /**
      * Get registry statistics
-     * @returns {Object} Registry statistics
+     * @returns {{initialized: boolean, totalServices: number, activeServices: number, servicesByType: Object.<string, number>, services: string[]}} Registry statistics
      */
-    getStats(): Object;
+    getStats(): {
+        initialized: boolean;
+        totalServices: number;
+        activeServices: number;
+        servicesByType: {
+            [x: string]: number;
+        };
+        services: string[];
+    };
     #private;
 }
 //# sourceMappingURL=registry.d.ts.map

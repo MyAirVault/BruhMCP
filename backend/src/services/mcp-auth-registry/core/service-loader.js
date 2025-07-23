@@ -46,6 +46,7 @@ async function importServiceFunction(servicePath, functionName) {
  * @returns {Promise<ServiceFunctions>} Loaded functions
  */
 async function loadServiceFunctions(servicePath, serviceType) {
+	/** @type {ServiceFunctions} */
 	const functions = {};
 	const functionNames = getFunctionNamesForType(serviceType);
 
@@ -188,10 +189,11 @@ async function safeCallFunction(func, serviceName, functionName, ...args) {
 		return result;
 	} catch (error) {
 		console.error(`Error calling ${serviceName}.${functionName}:`, error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		return {
 			success: false,
-			message: `Function ${functionName} failed: ${error.message}`,
-			error: createServiceError('FUNCTION_ERROR', error.message, serviceName, functionName, error)
+			message: `Function ${functionName} failed: ${errorMessage}`,
+			error: createServiceError('FUNCTION_ERROR', errorMessage, serviceName, functionName, error instanceof Error ? error : undefined)
 		};
 	}
 }

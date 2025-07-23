@@ -8,7 +8,7 @@ import { discoverServices } from './service-discovery.js';
 import { loadServiceFunctions, loadSpecificFunction, safeCallFunction } from './service-loader.js';
 
 /**
- * @typedef {import('../types/service-types.js').ServiceRegistry} ServiceRegistry
+ * @typedef {import('../types/service-types.js').ServiceRegistryMap} ServiceRegistryMap
  * @typedef {import('../types/service-types.js').ServiceRegistryEntry} ServiceRegistryEntry
  * @typedef {import('../types/service-types.js').ServiceError} ServiceError
  */
@@ -18,22 +18,13 @@ import { loadServiceFunctions, loadSpecificFunction, safeCallFunction } from './
  * Main service registry class
  */
 class ServiceRegistry {
-	/**
-	 * @private
-	 * @type {ServiceRegistry}
-	 */
+	/** @type {Object.<string, ServiceRegistryEntry>} */
 	#services = {};
 
-	/**
-	 * @private
-	 * @type {string}
-	 */
+	/** @type {string} */
 	#servicesPath = '';
 
-	/**
-	 * @private
-	 * @type {boolean}
-	 */
+	/** @type {boolean} */
 	#initialized = false;
 
 
@@ -64,7 +55,6 @@ class ServiceRegistry {
 
 	/**
 	 * Load functions for all discovered services
-	 * @private
 	 * @returns {Promise<void>}
 	 */
 	async #loadAllServiceFunctions() {
@@ -239,7 +229,7 @@ class ServiceRegistry {
 
 	/**
 	 * Get registry statistics
-	 * @returns {Object} Registry statistics
+	 * @returns {{initialized: boolean, totalServices: number, activeServices: number, servicesByType: Object.<string, number>, services: string[]}} Registry statistics
 	 */
 	getStats() {
 		if (!this.#initialized) {
@@ -247,15 +237,17 @@ class ServiceRegistry {
 				initialized: false,
 				totalServices: 0,
 				activeServices: 0,
-				servicesByType: {}
+				servicesByType: {},
+				services: []
 			};
 		}
 
 		const totalServices = Object.keys(this.#services).length;
 		const activeServices = this.getAvailableServices().length;
+		/** @type {Object.<string, number>} */
 		const servicesByType = {};
 
-		for (const [serviceName, service] of Object.entries(this.#services)) {
+		for (const [_serviceName, service] of Object.entries(this.#services)) {
 			if (service.isActive) {
 				servicesByType[service.type] = (servicesByType[service.type] || 0) + 1;
 			}

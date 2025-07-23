@@ -9,13 +9,12 @@ import { requireAuth as authMiddleware } from '../../../middleware/authMiddlewar
 /**
  * @typedef {import('../types/service-types.js').CredentialsData} CredentialsData
  * @typedef {import('../types/service-types.js').InstanceData} InstanceData
- * @typedef {import('../core/registry.js').ServiceRegistry} ServiceRegistry
  */
 
 
 /**
  * Creates authentication routes for the MCP auth registry
- * @param {ServiceRegistry} serviceRegistry - Service registry instance
+ * @param {import('../core/registry.js').ServiceRegistry} serviceRegistry - Service registry instance
  * @returns {express.Router} Express router with auth routes
  */
 function createAuthRoutes(serviceRegistry) {

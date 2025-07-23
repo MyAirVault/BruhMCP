@@ -8,7 +8,7 @@ import { join } from 'path';
 
 /**
  * @typedef {import('../types/service-types.js').ServiceType} ServiceType
- * @typedef {import('../types/service-types.js').ServiceRegistry} ServiceRegistry
+ * @typedef {import('../types/service-types.js').ServiceRegistryMap} ServiceRegistryMap
  * @typedef {import('../types/service-types.js').ServiceRegistryEntry} ServiceRegistryEntry
  */
 
@@ -16,11 +16,12 @@ import { join } from 'path';
 /**
  * Discovers available MCP services and their capabilities
  * @param {string} servicesDir - Path to mcp-servers directory
- * @returns {Promise<ServiceRegistry>} Service registry mapping
+ * @returns {Promise<ServiceRegistryMap>} Service registry mapping
  */
 async function discoverServices(servicesDir) {
 	try {
 		const serviceDirectories = await readdir(servicesDir, { withFileTypes: true });
+		/** @type {ServiceRegistryMap} */
 		const serviceRegistry = {};
 
 		for (const dirent of serviceDirectories) {
@@ -146,7 +147,7 @@ function getRequiredFiles(serviceType) {
 
 /**
  * Gets available service names from registry
- * @param {ServiceRegistry} registry - Service registry
+ * @param {ServiceRegistryMap} registry - Service registry
  * @returns {string[]} Array of service names
  */
 function getAvailableServices(registry) {
@@ -158,7 +159,7 @@ function getAvailableServices(registry) {
 
 /**
  * Gets services by type
- * @param {ServiceRegistry} registry - Service registry
+ * @param {ServiceRegistryMap} registry - Service registry
  * @param {ServiceType} type - Service type to filter by
  * @returns {string[]} Array of service names matching type
  */

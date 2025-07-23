@@ -26,7 +26,7 @@ const __dirname = dirname(__filename);
  */
 class MCPAuthRegistry {
 	constructor() {
-		/** @type {ServiceRegistry} */
+		/** @type {import('./core/registry.js').ServiceRegistry} */
 		this.serviceRegistry = new ServiceRegistry();
 		
 		/** @type {boolean} */
@@ -159,7 +159,7 @@ class MCPAuthRegistry {
 
 	/**
 	 * Gets registry statistics
-	 * @returns {Object} Registry statistics
+	 * @returns {{initialized: boolean, totalServices: number, activeServices: number, servicesByType: Object.<string, number>, services?: string[]}} Registry statistics
 	 */
 	getStatistics() {
 		if (!this.initialized) {

@@ -83,18 +83,18 @@ export function handleValidationError(field: string, reason: string): Object;
 export function handleOAuthError(serviceName: string, reason: string): Object;
 /**
  * Validates request parameters
- * @param {Object} params - Parameters to validate
+ * @param {Record<string, any>} params - Parameters to validate
  * @param {string[]} requiredFields - Required field names
  * @returns {Object|null} Error response or null if valid
  */
-export function validateRequestParams(params: Object, requiredFields: string[]): Object | null;
+export function validateRequestParams(params: Record<string, any>, requiredFields: string[]): Object | null;
 /**
  * Validates service credentials based on service type
- * @param {Object} credentials - Credentials to validate
+ * @param {import('../types/service-types.js').CredentialsData} credentials - Credentials to validate
  * @param {import('../types/service-types.js').ServiceType} serviceType - Service type
  * @returns {Object|null} Error response or null if valid
  */
-export function validateCredentials(credentials: Object, serviceType: import("../types/service-types.js").ServiceType): Object | null;
+export function validateCredentials(credentials: import("../types/service-types.js").CredentialsData, serviceType: import("../types/service-types.js").ServiceType): Object | null;
 /**
  * Logs error with context
  * @param {string} context - Error context

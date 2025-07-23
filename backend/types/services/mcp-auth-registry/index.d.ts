@@ -28,8 +28,8 @@ export type AuthRegistryConfig = {
  * Manages service discovery and provides unified API for all MCP services
  */
 export class MCPAuthRegistry {
-    /** @type {ServiceRegistry} */
-    serviceRegistry: ServiceRegistry;
+    /** @type {import('./core/registry.js').ServiceRegistry} */
+    serviceRegistry: import("./core/registry.js").ServiceRegistry;
     /** @type {boolean} */
     initialized: boolean;
     /** @type {import('express').Router|null} */
@@ -72,9 +72,17 @@ export class MCPAuthRegistry {
     getServicesByType(type: import("./types/service-types.js").ServiceType): string[];
     /**
      * Gets registry statistics
-     * @returns {Object} Registry statistics
+     * @returns {{initialized: boolean, totalServices: number, activeServices: number, servicesByType: Object.<string, number>, services?: string[]}} Registry statistics
      */
-    getStatistics(): Object;
+    getStatistics(): {
+        initialized: boolean;
+        totalServices: number;
+        activeServices: number;
+        servicesByType: {
+            [x: string]: number;
+        };
+        services?: string[];
+    };
     /**
      * Logs registry summary
      * @returns {void}
@@ -113,5 +121,4 @@ export class MCPAuthRegistry {
     shutdown(): void;
 }
 export const authRegistry: MCPAuthRegistry;
-import { ServiceRegistry } from './core/registry.js';
 //# sourceMappingURL=index.d.ts.map

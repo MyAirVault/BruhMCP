@@ -42,12 +42,7 @@
 
 
 /**
- * @typedef {Object} ServiceFunctions
- * @property {Function} [validateCredentials] - Validate credentials function
- * @property {Function} [createInstance] - Create instance function  
- * @property {Function} [initiateOAuth] - Initiate OAuth function
- * @property {Function} [oauthCallback] - Handle OAuth callback function
- * @property {Function} [revokeInstance] - Revoke instance function
+ * @typedef {Object.<string, Function>} ServiceFunctions - Dynamic collection of service functions
  */
 
 
@@ -61,7 +56,7 @@
 
 
 /**
- * @typedef {Object.<string, ServiceRegistryEntry>} ServiceRegistry
+ * @typedef {Object.<string, ServiceRegistryEntry>} ServiceRegistryMap
  */
 
 

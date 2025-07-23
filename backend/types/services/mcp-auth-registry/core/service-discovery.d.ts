@@ -1,17 +1,17 @@
 export type ServiceType = import("../types/service-types.js").ServiceType;
-export type ServiceRegistry = import("../types/service-types.js").ServiceRegistry;
+export type ServiceRegistryMap = import("../types/service-types.js").ServiceRegistryMap;
 export type ServiceRegistryEntry = import("../types/service-types.js").ServiceRegistryEntry;
 /**
  * @typedef {import('../types/service-types.js').ServiceType} ServiceType
- * @typedef {import('../types/service-types.js').ServiceRegistry} ServiceRegistry
+ * @typedef {import('../types/service-types.js').ServiceRegistryMap} ServiceRegistryMap
  * @typedef {import('../types/service-types.js').ServiceRegistryEntry} ServiceRegistryEntry
  */
 /**
  * Discovers available MCP services and their capabilities
  * @param {string} servicesDir - Path to mcp-servers directory
- * @returns {Promise<ServiceRegistry>} Service registry mapping
+ * @returns {Promise<ServiceRegistryMap>} Service registry mapping
  */
-export function discoverServices(servicesDir: string): Promise<ServiceRegistry>;
+export function discoverServices(servicesDir: string): Promise<ServiceRegistryMap>;
 /**
  * Analyzes a service directory to create registry entry
  * @param {string} serviceName - Name of the service
@@ -40,17 +40,17 @@ export function checkServiceHealth(servicePath: string, serviceType: ServiceType
 export function getRequiredFiles(serviceType: ServiceType): string[];
 /**
  * Gets available service names from registry
- * @param {ServiceRegistry} registry - Service registry
+ * @param {ServiceRegistryMap} registry - Service registry
  * @returns {string[]} Array of service names
  */
-export function getAvailableServices(registry: ServiceRegistry): string[];
+export function getAvailableServices(registry: ServiceRegistryMap): string[];
 /**
  * Gets services by type
- * @param {ServiceRegistry} registry - Service registry
+ * @param {ServiceRegistryMap} registry - Service registry
  * @param {ServiceType} type - Service type to filter by
  * @returns {string[]} Array of service names matching type
  */
-export function getServicesByType(registry: ServiceRegistry, type: ServiceType): string[];
+export function getServicesByType(registry: ServiceRegistryMap, type: ServiceType): string[];
 /**
  * Checks if a file exists
  * @param {string} filePath - Path to check

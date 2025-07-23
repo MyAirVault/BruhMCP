@@ -179,7 +179,7 @@ function handleOAuthError(serviceName, reason) {
 
 /**
  * Validates request parameters
- * @param {Object} params - Parameters to validate
+ * @param {Record<string, any>} params - Parameters to validate
  * @param {string[]} requiredFields - Required field names
  * @returns {Object|null} Error response or null if valid
  */
@@ -200,7 +200,7 @@ function validateRequestParams(params, requiredFields) {
 
 /**
  * Validates service credentials based on service type
- * @param {Object} credentials - Credentials to validate
+ * @param {import('../types/service-types.js').CredentialsData} credentials - Credentials to validate
  * @param {import('../types/service-types.js').ServiceType} serviceType - Service type
  * @returns {Object|null} Error response or null if valid
  */
@@ -288,7 +288,7 @@ async function safeExecute(fn, context, defaultValue = null) {
 	try {
 		return await fn();
 	} catch (error) {
-		logError(context, error);
+		logError(context, error instanceof Error ? error : String(error));
 		return defaultValue;
 	}
 }

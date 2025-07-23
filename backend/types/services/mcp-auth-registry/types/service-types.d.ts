@@ -59,27 +59,11 @@ export type RevokeResult = {
     message: string;
 };
 export type ServiceType = "apikey" | "oauth" | "hybrid";
+/**
+ * - Dynamic collection of service functions
+ */
 export type ServiceFunctions = {
-    /**
-     * - Validate credentials function
-     */
-    validateCredentials?: Function | undefined;
-    /**
-     * - Create instance function
-     */
-    createInstance?: Function | undefined;
-    /**
-     * - Initiate OAuth function
-     */
-    initiateOAuth?: Function | undefined;
-    /**
-     * - Handle OAuth callback function
-     */
-    oauthCallback?: Function | undefined;
-    /**
-     * - Revoke instance function
-     */
-    revokeInstance?: Function | undefined;
+    [x: string]: Function;
 };
 export type ServiceRegistryEntry = {
     /**
@@ -99,7 +83,7 @@ export type ServiceRegistryEntry = {
      */
     isActive: boolean;
 };
-export type ServiceRegistry = {
+export type ServiceRegistryMap = {
     [x: string]: ServiceRegistryEntry;
 };
 export type CredentialsData = {
