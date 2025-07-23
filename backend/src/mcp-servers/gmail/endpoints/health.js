@@ -4,15 +4,54 @@
  */
 
 /**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ * @property {number} port - Service port
+ * @property {string} version - Service version
+ * @property {string} authType - Authentication type
+ * @property {string} description - Service description
+ * @property {string} iconPath - Icon path
+ * @property {string[]} scopes - OAuth scopes
+ */
+
+/**
+ * @typedef {Object} PerformanceMetrics
+ * @property {number} responseTimeMs - Response time in milliseconds
+ * @property {NodeJS.MemoryUsage} memoryUsage - Memory usage information
+ * @property {string} nodeVersion - Node.js version
+ */
+
+/**
+ * @typedef {Object} HealthStatus
+ * @property {string} service - Service name
+ * @property {string} displayName - Display name
+ * @property {string} status - Health status
+ * @property {number} uptime - Uptime in seconds
+ * @property {number} port - Service port
+ * @property {string} version - Service version
+ * @property {string} authType - Authentication type
+ * @property {string} timestamp - Timestamp
+ * @property {string} description - Description
+ * @property {string} iconPath - Icon path
+ * @property {string[]} scopes - OAuth scopes
+ * @property {Object} capabilities - Service capabilities
+ * @property {Object} endpoints - Available endpoints
+ * @property {Object} oauth - OAuth configuration
+ * @property {PerformanceMetrics} [performance] - Performance metrics
+ */
+
+/**
  * Get health status for Gmail service
- * @param {Object} serviceConfig - Service configuration object
- * @returns {Object} Health status information
+ * @param {ServiceConfig} serviceConfig - Service configuration object
+ * @returns {HealthStatus} Health status information
  */
 export function healthCheck(serviceConfig) {
   const startTime = process.hrtime();
   const uptime = process.uptime();
   
   // Basic service health information
+  /** @type {HealthStatus} */
   const healthStatus = {
     service: serviceConfig.name,
     displayName: serviceConfig.displayName,

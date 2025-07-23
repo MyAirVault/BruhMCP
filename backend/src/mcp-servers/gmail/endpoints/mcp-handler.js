@@ -89,7 +89,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error sending email:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error sending email: ${error.message}` }]
+						content: [{ type: 'text', text: `Error sending email: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -116,7 +116,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error fetching emails:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error fetching emails: ${error.message}` }]
+						content: [{ type: 'text', text: `Error fetching emails: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -141,7 +141,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error fetching message:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error fetching message: ${error.message}` }]
+						content: [{ type: 'text', text: `Error fetching message: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -168,7 +168,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error replying to email:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error replying to email: ${error.message}` }]
+						content: [{ type: 'text', text: `Error replying to email: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -197,7 +197,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error creating draft:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error creating draft: ${error.message}` }]
+						content: [{ type: 'text', text: `Error creating draft: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -221,7 +221,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error sending draft:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error sending draft: ${error.message}` }]
+						content: [{ type: 'text', text: `Error sending draft: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -246,7 +246,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error listing drafts:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error listing drafts: ${error.message}` }]
+						content: [{ type: 'text', text: `Error listing drafts: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -270,7 +270,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error deleting message:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error deleting message: ${error.message}` }]
+						content: [{ type: 'text', text: `Error deleting message: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -294,7 +294,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error moving to trash:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error moving to trash: ${error.message}` }]
+						content: [{ type: 'text', text: `Error moving to trash: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -316,7 +316,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error listing labels:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error listing labels: ${error.message}` }]
+						content: [{ type: 'text', text: `Error listing labels: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -342,7 +342,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error creating label:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error creating label: ${error.message}` }]
+						content: [{ type: 'text', text: `Error creating label: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -368,7 +368,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error modifying labels:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error modifying labels: ${error.message}` }]
+						content: [{ type: 'text', text: `Error modifying labels: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -395,7 +395,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error searching emails:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error searching emails: ${error.message}` }]
+						content: [{ type: 'text', text: `Error searching emails: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -420,7 +420,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error getting thread:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error getting thread: ${error.message}` }]
+						content: [{ type: 'text', text: `Error getting thread: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -444,7 +444,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error marking as read:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error marking as read: ${error.message}` }]
+						content: [{ type: 'text', text: `Error marking as read: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -468,7 +468,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error marking as unread:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error marking as unread: ${error.message}` }]
+						content: [{ type: 'text', text: `Error marking as unread: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -492,7 +492,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error listing attachments:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error listing attachments: ${error.message}` }]
+						content: [{ type: 'text', text: `Error listing attachments: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -517,7 +517,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error downloading attachment:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error downloading attachment: ${error.message}` }]
+						content: [{ type: 'text', text: `Error downloading attachment: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -551,7 +551,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error sending email with attachments:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error sending email with attachments: ${error.message}` }]
+						content: [{ type: 'text', text: `Error sending email with attachments: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}
@@ -575,7 +575,7 @@ export class GmailMCPHandler {
 					console.error(`❌ Error deleting label:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error deleting label: ${error.message}` }]
+						content: [{ type: 'text', text: `Error deleting label: ${error instanceof Error ? error.message : 'Unknown error'}` }]
 					};
 				}
 			}

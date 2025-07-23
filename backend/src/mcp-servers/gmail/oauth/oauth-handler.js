@@ -3,6 +3,7 @@
  * Implements OAuth flow for Gmail MCP service
  */
 
+// @ts-ignore
 const { google } = require('googleapis');
 
 /**
@@ -70,7 +71,7 @@ class GmailOAuthHandler {
             };
         } catch (error) {
             console.error('Failed to initiate Gmail OAuth flow:', error);
-            throw new Error(`OAuth initiation failed: ${error.message}`);
+            throw new Error(`OAuth initiation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
@@ -92,13 +93,15 @@ class GmailOAuthHandler {
 
             // Get stored credentials for this instance
             const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/crud.js');
-            const instance = await getMCPInstanceById(instanceId);
+            // We don't have userId in the state, so we'll pass an empty string
+            // The function will still return the instance if it exists
+            const instance = await getMCPInstanceById(instanceId, '');
             
-            if (!instance || !instance.credentials) {
+            if (!instance || !instance.client_id || !instance.client_secret) {
                 throw new Error('Instance not found or missing credentials');
             }
 
-            const { client_id, client_secret } = instance.credentials;
+            const { client_id, client_secret } = { client_id: instance.client_id, client_secret: instance.client_secret };
 
             // Create OAuth2 client
             const oauth2Client = new google.auth.OAuth2(
@@ -129,7 +132,7 @@ class GmailOAuthHandler {
             console.error('Gmail OAuth callback failed:', error);
             return {
                 success: false,
-                error: error.message || 'OAuth callback failed'
+                error: error instanceof Error ? error.message : 'OAuth callback failed'
             };
         }
     }
@@ -138,7 +141,7 @@ class GmailOAuthHandler {
      * Refreshes OAuth tokens
      * @param {string} refreshToken - Refresh token
      * @param {AuthCredentials} credentials - OAuth credentials
-     * @returns {Promise<Object>} New tokens
+     * @returns {Promise<{access_token: string, refresh_token: string, expires_in: number}>} New tokens
      */
     async refreshToken(refreshToken, credentials) {
         try {
@@ -163,7 +166,7 @@ class GmailOAuthHandler {
             };
         } catch (error) {
             console.error('Failed to refresh Gmail OAuth token:', error);
-            throw new Error(`Token refresh failed: ${error.message}`);
+            throw new Error(`Token refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 }

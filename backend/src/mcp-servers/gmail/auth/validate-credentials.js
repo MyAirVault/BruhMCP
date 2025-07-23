@@ -47,7 +47,7 @@ async function validateCredentials(credentials, userId) {
 				success: true,
 				message: 'Gmail OAuth credentials format is valid',
 				data: {
-					serviceInfo: result.data,
+					serviceInfo: result.service_info,
 					service: 'gmail',
 					authType: 'oauth',
 					clientId: credentials.clientId,
@@ -65,7 +65,7 @@ async function validateCredentials(credentials, userId) {
 		console.error('Gmail credential validation error:', error);
 		return {
 			success: false,
-			message: `Validation failed: ${error.message}`
+			message: `Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
 		};
 	}
 }

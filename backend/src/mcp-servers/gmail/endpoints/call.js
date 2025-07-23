@@ -32,7 +32,7 @@ import { validateToolArguments } from '../utils/validation.js';
  * @param {string} toolName - Name of the tool to execute
  * @param {Object} args - Tool arguments
  * @param {string} bearerToken - OAuth Bearer token for Gmail API
- * @returns {Object} Tool execution result
+ * @returns {Promise<Object>} Tool execution result
  */
 export async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Gmail tool: ${toolName}`);
@@ -47,7 +47,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
   try {
     validateToolArguments(toolName, args);
   } catch (validationError) {
-    throw new Error(`Invalid arguments for ${toolName}: ${validationError.message}`);
+    throw new Error(`Invalid arguments for ${toolName}: ${validationError instanceof Error ? validationError.message : 'Validation failed'}`);
   }
 
   try {
@@ -138,11 +138,11 @@ export async function executeToolCall(toolName, args, bearerToken) {
     console.error(`❌ Tool ${toolName} execution failed:`, error);
     
     // Enhance error message with context
-    const errorMessage = error.message || 'Unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     const enhancedError = new Error(`Gmail ${toolName} failed: ${errorMessage}`);
     
     // Preserve original error stack if available
-    if (error.stack) {
+    if (error instanceof Error && error.stack) {
       enhancedError.stack = error.stack;
     }
     

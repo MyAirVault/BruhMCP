@@ -5,7 +5,7 @@
 
 import GmailOAuthHandler from '../oauth/oauth-handler.js';
 import { createMCPInstance } from '../../../db/queries/mcpInstances/creation.js';
-import { getMCPServiceByName } from '../../../db/queries/mcpServices/crud.js';
+import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/service-types.js').OAuthResult} OAuthResult
@@ -35,7 +35,7 @@ async function initiateOAuth(credentials, userId) {
 		const oauthHandler = new GmailOAuthHandler();
 
 		// Get MCP service ID for Gmail
-		const mcpService = await getMCPServiceByName('gmail');
+		const mcpService = await getMCPTypeByName('gmail');
 		if (!mcpService) {
 			return {
 				success: false,
@@ -46,7 +46,7 @@ async function initiateOAuth(credentials, userId) {
 		// First create a pending MCP instance to track the OAuth flow
 		const instanceRecord = await createMCPInstance({
 			userId,
-			mcpServiceId: mcpService.id,
+			mcpServiceId: mcpService.mcp_service_id,
 			customName: 'Gmail OAuth',
 			clientId: credentials.clientId,
 			clientSecret: credentials.clientSecret,
@@ -69,17 +69,12 @@ async function initiateOAuth(credentials, userId) {
 			authUrl: oauthResult.authUrl,
 			state: oauthResult.state,
 			message: 'Gmail OAuth flow initiated successfully',
-			data: {
-				instanceId: instanceRecord.instance_id,
-				authUrl: oauthResult.authUrl,
-				state: oauthResult.state
-			}
 		};
 	} catch (error) {
 		console.error('Gmail OAuth initiation error:', error);
 		return {
 			success: false,
-			message: `Failed to initiate Gmail OAuth: ${error.message}`
+			message: `Failed to initiate Gmail OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`
 		};
 	}
 }

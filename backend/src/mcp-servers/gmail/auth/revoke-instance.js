@@ -37,7 +37,7 @@ async function revokeInstance(instanceId, userId) {
 			};
 		}
 
-		if (instance.serviceName !== 'gmail') {
+		if (instance.mcp_service_name !== 'gmail') {
 			return {
 				success: false,
 				message: 'Instance is not a Gmail service'
@@ -51,7 +51,7 @@ async function revokeInstance(instanceId, userId) {
 		// Delete the instance from database
 		const deleteResult = await deleteMCPInstance(instanceId, userId);
 
-		if (deleteResult.success) {
+		if (deleteResult) {
 			console.log(`✅ Revoked Gmail instance: ${instanceId}`);
 			return {
 				success: true,
@@ -60,14 +60,14 @@ async function revokeInstance(instanceId, userId) {
 		} else {
 			return {
 				success: false,
-				message: deleteResult.message || 'Failed to revoke instance'
+				message: 'Failed to revoke instance'
 			};
 		}
 	} catch (error) {
 		console.error('Gmail instance revocation error:', error);
 		return {
 			success: false,
-			message: `Failed to revoke Gmail instance: ${error.message}`
+			message: `Failed to revoke Gmail instance: ${error instanceof Error ? error.message : 'Unknown error'}`
 		};
 	}
 }

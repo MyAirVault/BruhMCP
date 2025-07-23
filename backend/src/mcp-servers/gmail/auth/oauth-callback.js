@@ -3,11 +3,20 @@
  * Standardized function for handling Gmail OAuth callbacks
  */
 
-import GmailOAuthHandler from '../oauth/oauth-handler.js';
+import { default as GmailOAuthHandler } from '../oauth/oauth-handler.js';
 import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/service-types.js').ValidationResult} ValidationResult
+ * @typedef {import('../../../services/mcp-auth-registry/types/auth-types.js').OAuthCallbackResult} OAuthCallbackResult
+ * @typedef {import('../../../services/mcp-auth-registry/types/auth-types.js').OAuthStatusUpdate} OAuthStatusUpdate
+ */
+
+/**
+ * @typedef {Object} StateData
+ * @property {string} instanceId - MCP instance ID
+ * @property {number} timestamp - Timestamp when state was created
+ * @property {string} service - Service name
  */
 
 
@@ -38,18 +47,18 @@ async function oauthCallback(code, state) {
 		if (!callbackResult.success) {
 			// Update instance status to failed
 			try {
-				const stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+				const stateData = /** @type {StateData} */ (JSON.parse(Buffer.from(state, 'base64').toString('utf-8')));
 				if (stateData.instanceId) {
 					await updateOAuthStatus(stateData.instanceId, {
 						status: 'failed',
-						accessToken: null,
-						refreshToken: null,
-						tokenExpiresAt: null,
-						scope: null
+						accessToken: undefined,
+						refreshToken: undefined,
+						tokenExpiresAt: undefined,
+						scope: undefined
 					});
 				}
 			} catch (stateError) {
-				console.error('Failed to update instance status:', stateError);
+				console.error('Failed to update instance status:', stateError instanceof Error ? stateError.message : String(stateError));
 			}
 
 			return {
@@ -59,8 +68,16 @@ async function oauthCallback(code, state) {
 		}
 
 		// Parse state to get instance ID
-		const stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+		const stateData = /** @type {StateData} */ (JSON.parse(Buffer.from(state, 'base64').toString('utf-8')));
 		const { instanceId } = stateData;
+
+		// Ensure tokens exist
+		if (!callbackResult.tokens) {
+			return {
+				success: false,
+				message: 'OAuth callback succeeded but no tokens received'
+			};
+		}
 
 		// Update instance with OAuth tokens
 		await updateOAuthStatus(instanceId, {
@@ -69,7 +86,7 @@ async function oauthCallback(code, state) {
 			refreshToken: callbackResult.tokens.refresh_token,
 			tokenExpiresAt: callbackResult.tokens.expires_in 
 				? new Date(Date.now() + (callbackResult.tokens.expires_in * 1000))
-				: null,
+				: undefined,
 			scope: callbackResult.tokens.scope
 		});
 
@@ -88,7 +105,7 @@ async function oauthCallback(code, state) {
 		console.error('Gmail OAuth callback error:', error);
 		return {
 			success: false,
-			message: `OAuth callback failed: ${error.message}`
+			message: `OAuth callback failed: ${error instanceof Error ? error.message : String(error)}`
 		};
 	}
 }
