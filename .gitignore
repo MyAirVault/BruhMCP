@@ -10,7 +10,7 @@ logs/
 *.log
 
 # === Backend testing files ===
-cookies*.txt
+new-plan.txt
 backend/public/downloads/
 
 # === Build output ===

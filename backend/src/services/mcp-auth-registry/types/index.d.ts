@@ -2,101 +2,68 @@
  * @fileoverview TypeScript type definitions for MCP Auth Registry
  */
 
-export interface AuthCredentials {
-  client_id?: string;
-  client_secret?: string;
-  api_token?: string;
-  api_key?: string;
-  scopes?: string[];
-}
-
 export interface ValidationResult {
-  isValid: boolean;
-  error?: string;
-  userInfo?: {
-    id?: string;
-    email?: string;
-    name?: string;
-    handle?: string;
-  };
-}
-
-export interface OAuthFlowResult {
-  authUrl: string;
-  state: string;
-  instanceId: string;
-}
-
-export interface OAuthCallbackResult {
   success: boolean;
-  error?: string;
-  tokens?: {
-    access_token: string;
-    refresh_token?: string;
-    expires_in?: number;
-    scope?: string;
-  };
+  message: string;
+  data?: any;
 }
 
-export interface ServiceConfig {
-  name: string;
-  type: 'oauth' | 'apikey';
-  validator: CredentialValidator;
-  oauthHandler?: OAuthHandler;
-  requiredFields: string[];
+export interface InstanceResult {
+  success: boolean;
+  instanceId?: string;
+  message: string;
+  data?: any;
 }
 
-export interface CredentialValidator {
-  validateCredentials(credentials: AuthCredentials): Promise<ValidationResult>;
+export interface OAuthResult {
+  success: boolean;
+  authUrl?: string;
+  state?: string;
+  message: string;
 }
 
-export interface OAuthHandler {
-  initiateFlow(instanceId: string, credentials: AuthCredentials): Promise<OAuthFlowResult>;
-  handleCallback(code: string, state: string): Promise<OAuthCallbackResult>;
-  refreshToken?(refreshToken: string, credentials: AuthCredentials): Promise<any>;
+export interface RevokeResult {
+  success: boolean;
+  message: string;
 }
 
-export interface InstanceCreationData {
-  serviceName: string;
-  credentials: AuthCredentials;
-  userId: string;
-  metadata?: {
-    userEmail?: string;
-    createdVia?: string;
-    authType?: string;
-    validatedAt?: string;
-  };
+export type ServiceType = 'apikey' | 'oauth' | 'hybrid';
+
+export interface ServiceFunctions {
+  validateCredentials?: Function;
+  createInstance?: Function;
+  initiateOAuth?: Function;
+  oauthCallback?: Function;
+  revokeInstance?: Function;
 }
 
-export interface AuthRegistryConfig {
-  servicesPath: string;
-  baseUrl: string;
-  autoDiscovery: boolean;
-  discoveryInterval?: number;
+export interface ServiceRegistryEntry {
+  type: ServiceType;
+  functions: ServiceFunctions;
+  path: string;
+  isActive: boolean;
 }
 
-export interface MCPAuthRegistry {
-  oauthCoordinator: OAuthCoordinator;
-  apiKeyCoordinator: ApiKeyCoordinator;
-  initialize(config?: Partial<AuthRegistryConfig>): Promise<void>;
-  getRouter(): any;
-  hasService(serviceName: string): boolean;
+export type ServiceRegistry = Record<string, ServiceRegistryEntry>;
+
+export interface CredentialsData {
+  apiKey?: string;
+  apiToken?: string;
+  clientId?: string;
+  clientSecret?: string;
+  additionalData?: any;
 }
 
-export interface OAuthCoordinator {
-  hasService(serviceName: string): boolean;
-  validateCredentials(serviceName: string, credentials: AuthCredentials): Promise<ValidationResult>;
-  initiateOAuthFlow(serviceName: string, instanceId: string, credentials: AuthCredentials): Promise<OAuthFlowResult>;
-  handleOAuthCallback(serviceName: string, code: string, state: string): Promise<OAuthCallbackResult>;
+export interface InstanceData {
+  credentials: CredentialsData;
+  customName?: string;
+  metadata?: any;
 }
 
-export interface ApiKeyCoordinator {
-  hasService(serviceName: string): boolean;
-  validateCredentials(serviceName: string, credentials: AuthCredentials): Promise<ValidationResult>;
-  validateAndCreateInstance(serviceName: string, creationData: InstanceCreationData): Promise<{
-    success: boolean;
-    instanceId?: string;
-    error?: string;
-    userInfo?: any;
-  }>;
+export interface ServiceError {
+  code: string;
+  message: string;
+  serviceName?: string;
+  functionName?: string;
+  originalError?: Error;
 }

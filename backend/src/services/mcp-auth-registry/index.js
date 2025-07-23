@@ -1,28 +1,15 @@
 /**
  * @fileoverview MCP Auth Registry Main Entry Point
- * Central authentication registry that coordinates auth flows for all MCP services
+ * Central authentication registry using Service Registry pattern
  */
 
-import express from 'express';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { ServiceRegistry } from './core/registry.js';
+import { createAuthRoutes } from './routes/auth-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-import { discoverServices, registerService } from './utils/service-discovery.js';
-import OAuthCoordinator from './coordinators/oauth-coordinator.js';
-import ApiKeyCoordinator from './coordinators/apikey-coordinator.js';
-import { createAuthRoutes } from './routes/auth-routes.js';
-
-/**
- * @typedef {Object} ServiceConfig
- * @property {string} name - Service name
- * @property {'oauth'|'apikey'} type - Service authentication type
- * @property {any} validator - Credential validator
- * @property {any} [oauthHandler] - OAuth handler (for OAuth services)
- * @property {Array<string>} requiredFields - Required credential fields
- */
 
 /**
  * @typedef {Object} AuthRegistryConfig
@@ -34,275 +21,263 @@ import { createAuthRoutes } from './routes/auth-routes.js';
 
 
 /**
- * @typedef {Object} RegistryStatistics
- * @property {number} totalServices - Total number of services
- * @property {number} oauthServices - Number of OAuth services
- * @property {number} apiKeyServices - Number of API key services
- * @property {Object} servicesByType - Services grouped by type
- * @property {Array<string>} servicesByType.oauth - OAuth service names
- * @property {Array<string>} servicesByType.apikey - API key service names
- * @property {boolean} initialized - Whether registry is initialized
- */
-
-/**
  * MCP Authentication Registry Class
- * Manages authentication flows for all registered MCP services
+ * Manages service discovery and provides unified API for all MCP services
  */
-class AuthRegistryImpl {
-    constructor() {
-        /** @type {OAuthCoordinator} */
-        this.oauthCoordinator = new OAuthCoordinator();
-        
-        /** @type {ApiKeyCoordinator} */
-        this.apiKeyCoordinator = new ApiKeyCoordinator();
-        
-        /** @type {Map<string, ServiceConfig>} */
-        this.registeredServices = new Map();
-        
-        /** @type {boolean} */
-        this.initialized = false;
-        
-        /** @type {express.Router|null} */
-        this.router = null;
-    }
+class MCPAuthRegistry {
+	constructor() {
+		/** @type {ServiceRegistry} */
+		this.serviceRegistry = new ServiceRegistry();
+		
+		/** @type {boolean} */
+		this.initialized = false;
+		
+		/** @type {import('express').Router|null} */
+		this.router = null;
+		
+		/** @type {NodeJS.Timeout|null} */
+		this.discoveryInterval = null;
+	}
 
-    /**
-     * Initializes the auth registry with automatic service discovery
-     * @param {Partial<AuthRegistryConfig>} [config] - Registry configuration
-     * @returns {Promise<void>}
-     */
-    async initialize(config = {}) {
-        if (this.initialized) {
-            console.log('🔄 Auth registry already initialized');
-            return;
-        }
 
-        /** @type {AuthRegistryConfig} */
-        const defaultConfig = {
-            servicesPath: join(__dirname, '../../mcp-servers'),
-            baseUrl: process.env.BASE_URL || 'http://localhost:3000',
-            autoDiscovery: true,
-            discoveryInterval: 30000 // 30 seconds
-        };
+	/**
+	 * Initializes the auth registry with automatic service discovery
+	 * @param {Partial<AuthRegistryConfig>} [config] - Registry configuration
+	 * @returns {Promise<void>}
+	 */
+	async initialize(config = {}) {
+		if (this.initialized) {
+			console.log('🔄 Auth registry already initialized');
+			return;
+		}
 
-        /** @type {AuthRegistryConfig} */
-        const finalConfig = { 
-            servicesPath: config.servicesPath || defaultConfig.servicesPath,
-            baseUrl: config.baseUrl || defaultConfig.baseUrl,
-            autoDiscovery: config.autoDiscovery !== undefined ? config.autoDiscovery : defaultConfig.autoDiscovery,
-            discoveryInterval: config.discoveryInterval || defaultConfig.discoveryInterval
-        };
+		/** @type {AuthRegistryConfig} */
+		const defaultConfig = {
+			servicesPath: join(__dirname, '../../mcp-servers'),
+			baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+			autoDiscovery: true,
+			discoveryInterval: 30000 // 30 seconds
+		};
 
-        try {
-            console.log('🚀 Initializing MCP Auth Registry...');
+		/** @type {AuthRegistryConfig} */
+		const finalConfig = { 
+			servicesPath: config.servicesPath || defaultConfig.servicesPath,
+			baseUrl: config.baseUrl || defaultConfig.baseUrl,
+			autoDiscovery: config.autoDiscovery !== undefined ? config.autoDiscovery : defaultConfig.autoDiscovery,
+			discoveryInterval: config.discoveryInterval || defaultConfig.discoveryInterval
+		};
 
-            // Discover and register services
-            await this.discoverAndRegisterServices(finalConfig.servicesPath);
+		try {
+			console.log('🚀 Initializing MCP Auth Registry...');
 
-            // Create Express routes
-            this.router = this.createRoutes();
+			// Initialize service registry
+			await this.serviceRegistry.initialize(finalConfig.servicesPath);
 
-            this.initialized = true;
-            console.log('✅ MCP Auth Registry initialized successfully');
-            
-            // Log summary
-            this.logRegistrySummary();
+			// Create Express routes
+			this.router = createAuthRoutes(this.serviceRegistry);
 
-            // Set up auto-discovery if enabled
-            if (finalConfig.autoDiscovery && finalConfig.discoveryInterval && finalConfig.discoveryInterval > 0) {
-                this.startAutoDiscovery(finalConfig.servicesPath, finalConfig.discoveryInterval);
-            }
-        } catch (error) {
-            console.error('❌ Failed to initialize MCP Auth Registry:', error);
-            throw error;
-        }
-    }
+			this.initialized = true;
+			console.log('✅ MCP Auth Registry initialized successfully');
+			
+			// Log summary
+			this.logRegistrySummary();
 
-    /**
-     * Discovers and registers all available MCP services
-     * @param {string} servicesPath - Path to MCP services directory
-     * @returns {Promise<void>}
-     */
-    async discoverAndRegisterServices(servicesPath) {
-        try {
-            const discoveredServices = await discoverServices(servicesPath);
-            
-            for (const serviceInfo of discoveredServices) {
-                await this.registerDiscoveredService(serviceInfo);
-            }
+			// Set up auto-discovery if enabled
+			if (finalConfig.autoDiscovery && finalConfig.discoveryInterval && finalConfig.discoveryInterval > 0) {
+				this.startAutoDiscovery(finalConfig.servicesPath, finalConfig.discoveryInterval);
+			}
+		} catch (error) {
+			console.error('❌ Failed to initialize MCP Auth Registry:', error);
+			throw error;
+		}
+	}
 
-            console.log(`📝 Registered ${this.registeredServices.size} services total`);
-        } catch (error) {
-            console.error('Failed to discover and register services:', error);
-            throw error;
-        }
-    }
 
-    /**
-     * Registers a discovered service with appropriate coordinator
-     * @param {import('./utils/service-discovery.js').DiscoveredService} serviceInfo - Service information
-     * @returns {Promise<void>}
-     */
-    async registerDiscoveredService(serviceInfo) {
-        try {
-            const serviceConfig = await registerService(serviceInfo);
-            
-            if (!serviceConfig) {
-                console.warn(`⚠️  Failed to register service: ${serviceInfo.name}`);
-                return;
-            }
+	/**
+	 * Gets the Express router for the auth registry
+	 * @returns {import('express').Router|null} Express router or null if not initialized
+	 */
+	getRouter() {
+		if (!this.initialized) {
+			console.warn('⚠️  Auth registry not initialized. Call initialize() first.');
+			return null;
+		}
+		return this.router;
+	}
 
-            // Register with appropriate coordinator
-            if (serviceConfig.type === 'oauth') {
-                this.oauthCoordinator.registerService(serviceConfig);
-            } else if (serviceConfig.type === 'apikey') {
-                this.apiKeyCoordinator.registerService(serviceConfig);
-            }
 
-            // Store in registry
-            this.registeredServices.set(serviceConfig.name, serviceConfig);
-            
-            console.log(`✅ Registered ${serviceConfig.name} as ${serviceConfig.type} service`);
-        } catch (error) {
-            console.error(`Failed to register service ${serviceInfo.name}:`, error);
-            // Continue with other services
-        }
-    }
+	/**
+	 * Gets list of all available services
+	 * @returns {string[]} Array of service names
+	 */
+	getAvailableServices() {
+		if (!this.initialized) {
+			return [];
+		}
+		return this.serviceRegistry.getAvailableServices();
+	}
 
-    /**
-     * Creates Express routes for the auth registry
-     * @returns {express.Router} Express router
-     */
-    createRoutes() {
-        const coordinators = {
-            oauthCoordinator: this.oauthCoordinator,
-            apiKeyCoordinator: this.apiKeyCoordinator
-        };
 
-        return createAuthRoutes(coordinators);
-    }
+	/**
+	 * Checks if a service is available
+	 * @param {string} serviceName - Name of the service
+	 * @returns {boolean} True if service is available
+	 */
+	hasService(serviceName) {
+		if (!this.initialized) {
+			return false;
+		}
+		return this.serviceRegistry.hasService(serviceName);
+	}
 
-    /**
-     * Gets the Express router for the auth registry
-     * @returns {express.Router|null} Express router or null if not initialized
-     */
-    getRouter() {
-        if (!this.initialized) {
-            console.warn('⚠️  Auth registry not initialized. Call initialize() first.');
-            return null;
-        }
-        return this.router;
-    }
 
-    /**
-     * Gets list of all registered services
-     * @returns {Array<ServiceConfig>} Array of service configurations
-     */
-    getRegisteredServices() {
-        return Array.from(this.registeredServices.values());
-    }
+	/**
+	 * Gets service information by name
+	 * @param {string} serviceName - Name of the service
+	 * @returns {import('./types/service-types.js').ServiceRegistryEntry|null} Service entry or null if not found
+	 */
+	getService(serviceName) {
+		if (!this.initialized) {
+			return null;
+		}
+		return this.serviceRegistry.getService(serviceName);
+	}
 
-    /**
-     * Gets service configuration by name
-     * @param {string} serviceName - Name of the service
-     * @returns {ServiceConfig|null} Service configuration or null if not found
-     */
-    getServiceConfig(serviceName) {
-        return this.registeredServices.get(serviceName) || null;
-    }
 
-    /**
-     * Checks if a service is registered
-     * @param {string} serviceName - Name of the service
-     * @returns {boolean} True if service is registered
-     */
-    hasService(serviceName) {
-        return this.registeredServices.has(serviceName);
-    }
+	/**
+	 * Gets services by type
+	 * @param {import('./types/service-types.js').ServiceType} type - Service type
+	 * @returns {string[]} Array of service names matching type
+	 */
+	getServicesByType(type) {
+		if (!this.initialized) {
+			return [];
+		}
+		return this.serviceRegistry.getServicesByType(type);
+	}
 
-    /**
-     * Gets registry statistics
-     * @returns {RegistryStatistics} Registry statistics
-     */
-    getStatistics() {
-        const oauthServices = this.oauthCoordinator.getRegisteredServices();
-        const apiKeyServices = this.apiKeyCoordinator.getRegisteredServices();
-        
-        return {
-            totalServices: this.registeredServices.size,
-            oauthServices: oauthServices.length,
-            apiKeyServices: apiKeyServices.length,
-            servicesByType: {
-                oauth: oauthServices,
-                apikey: apiKeyServices
-            },
-            initialized: this.initialized
-        };
-    }
 
-    /**
-     * Logs registry summary
-     * @returns {void}
-     */
-    logRegistrySummary() {
-        const stats = this.getStatistics();
-        
-        console.log('📊 MCP Auth Registry Summary:');
-        console.log(`   Total Services: ${stats.totalServices}`);
-        console.log(`   OAuth Services: ${stats.oauthServices} (${stats.servicesByType.oauth.join(', ')})`);
-        console.log(`   API Key Services: ${stats.apiKeyServices} (${stats.servicesByType.apikey.join(', ')})`);
-    }
+	/**
+	 * Gets registry statistics
+	 * @returns {Object} Registry statistics
+	 */
+	getStatistics() {
+		if (!this.initialized) {
+			return {
+				initialized: false,
+				totalServices: 0,
+				activeServices: 0,
+				servicesByType: {}
+			};
+		}
+		return this.serviceRegistry.getStats();
+	}
 
-    /**
-     * Starts automatic service discovery at regular intervals
-     * @param {string} servicesPath - Path to MCP services directory
-     * @param {number} interval - Discovery interval in milliseconds
-     * @returns {void}
-     */
-    startAutoDiscovery(servicesPath, interval) {
-        console.log(`🔄 Starting auto-discovery every ${interval/1000} seconds`);
-        
-        setInterval(async () => {
-            try {
-                console.log('🔍 Running periodic service discovery...');
-                await this.discoverAndRegisterServices(servicesPath);
-            } catch (error) {
-                console.error('Periodic service discovery failed:', error);
-            }
-        }, interval);
-    }
 
-    /**
-     * Manually registers a service (for testing or custom services)
-     * @param {ServiceConfig} serviceConfig - Service configuration
-     * @returns {void}
-     */
-    manuallyRegisterService(serviceConfig) {
-        if (serviceConfig.type === 'oauth') {
-            this.oauthCoordinator.registerService(serviceConfig);
-        } else if (serviceConfig.type === 'apikey') {
-            this.apiKeyCoordinator.registerService(serviceConfig);
-        } else {
-            throw new Error(`Invalid service type: ${serviceConfig.type}`);
-        }
+	/**
+	 * Logs registry summary
+	 * @returns {void}
+	 */
+	logRegistrySummary() {
+		const stats = this.getStatistics();
+		
+		console.log('📊 MCP Auth Registry Summary:');
+		console.log(`   Initialized: ${stats.initialized}`);
+		console.log(`   Total Services: ${stats.totalServices}`);
+		console.log(`   Active Services: ${stats.activeServices}`);
+		console.log('   Services by Type:');
+		
+		for (const [type, count] of Object.entries(stats.servicesByType)) {
+			const services = this.getServicesByType(/** @type {import('./types/service-types.js').ServiceType} */ (type));
+			console.log(`     ${type}: ${count} (${services.join(', ')})`);
+		}
+	}
 
-        this.registeredServices.set(serviceConfig.name, serviceConfig);
-        console.log(`✅ Manually registered service: ${serviceConfig.name} (${serviceConfig.type})`);
-    }
 
-    /**
-     * Shuts down the auth registry
-     * @returns {void}
-     */
-    shutdown() {
-        console.log('🛑 Shutting down MCP Auth Registry...');
-        this.initialized = false;
-        this.registeredServices.clear();
-        console.log('✅ MCP Auth Registry shut down');
-    }
+	/**
+	 * Starts automatic service discovery at regular intervals
+	 * @param {string} servicesPath - Path to MCP services directory
+	 * @param {number} interval - Discovery interval in milliseconds
+	 * @returns {void}
+	 */
+	startAutoDiscovery(servicesPath, interval) {
+		console.log(`🔄 Starting auto-discovery every ${interval/1000} seconds`);
+		
+		this.discoveryInterval = setInterval(async () => {
+			try {
+				console.log('🔍 Running periodic service discovery...');
+				await this.serviceRegistry.initialize(servicesPath);
+				this.logRegistrySummary();
+			} catch (error) {
+				console.error('Periodic service discovery failed:', error);
+			}
+		}, interval);
+	}
+
+
+	/**
+	 * Stops automatic service discovery
+	 * @returns {void}
+	 */
+	stopAutoDiscovery() {
+		if (this.discoveryInterval) {
+			clearInterval(this.discoveryInterval);
+			this.discoveryInterval = null;
+			console.log('🛑 Stopped auto-discovery');
+		}
+	}
+
+
+	/**
+	 * Reloads a specific service
+	 * @param {string} serviceName - Service name to reload
+	 * @returns {Promise<boolean>} True if reload successful
+	 */
+	async reloadService(serviceName) {
+		if (!this.initialized) {
+			console.warn('⚠️  Auth registry not initialized');
+			return false;
+		}
+		return await this.serviceRegistry.reloadService(serviceName);
+	}
+
+
+	/**
+	 * Calls a service function
+	 * @param {string} serviceName - Service name
+	 * @param {string} functionName - Function name
+	 * @param {...*} args - Function arguments
+	 * @returns {Promise<*>} Function result
+	 */
+	async callServiceFunction(serviceName, functionName, ...args) {
+		if (!this.initialized) {
+			return {
+				success: false,
+				message: 'Auth registry not initialized'
+			};
+		}
+		return await this.serviceRegistry.callServiceFunction(serviceName, functionName, ...args);
+	}
+
+
+	/**
+	 * Shuts down the auth registry
+	 * @returns {void}
+	 */
+	shutdown() {
+		console.log('🛑 Shutting down MCP Auth Registry...');
+		
+		this.stopAutoDiscovery();
+		this.initialized = false;
+		this.router = null;
+		
+		console.log('✅ MCP Auth Registry shut down');
+	}
 }
 
-// Create singleton instance
-const authRegistry = new AuthRegistryImpl();
 
-export { AuthRegistryImpl as MCPAuthRegistry, authRegistry };
+// Create singleton instance
+const authRegistry = new MCPAuthRegistry();
+
+
+export { MCPAuthRegistry, authRegistry };
