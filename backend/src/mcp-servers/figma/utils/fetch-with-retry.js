@@ -10,8 +10,9 @@ import { Logger } from './logger.js';
 const execAsync = promisify(exec);
 
 /**
- * Fetch with retry and curl fallback * @param {string} url - URL to fetch
- * @param {Object} options - Request options
+ * Fetch with retry and curl fallback
+ * @param {string} url - URL to fetch
+ * @param {{ headers?: Record<string, string>, [key: string]: any }} options - Request options
  * @returns {Promise<any>} Response data
  */
 export async function fetchWithRetry(url, options = {}) {
@@ -23,8 +24,9 @@ export async function fetchWithRetry(url, options = {}) {
 		}
 		return await response.json();
 	} catch (fetchError) {
+		const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
 		Logger.log(
-			`[fetchWithRetry] Initial fetch failed for ${url}: ${fetchError.message}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
+			`[fetchWithRetry] Initial fetch failed for ${url}: ${errorMessage}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
 		);
 
 		const curlHeaders = formatHeadersForCurl(options.headers);
@@ -60,7 +62,8 @@ export async function fetchWithRetry(url, options = {}) {
 
 			return JSON.parse(stdout);
 		} catch (curlError) {
-			Logger.error(`[fetchWithRetry] Curl fallback also failed for ${url}: ${curlError.message}`);
+			const curlErrorMessage = curlError instanceof Error ? curlError.message : String(curlError);
+			Logger.error(`[fetchWithRetry] Curl fallback also failed for ${url}: ${curlErrorMessage}`);
 			// Re-throw the original fetch error to give context about the initial failure
 			throw fetchError;
 		}
@@ -68,7 +71,8 @@ export async function fetchWithRetry(url, options = {}) {
 }
 
 /**
- * Converts HeadersInit to an array of curl header arguments * @param {Object} headers - Headers to convert
+ * Converts HeadersInit to an array of curl header arguments
+ * @param {Record<string, string> | undefined} headers - Headers to convert
  * @returns {string[]} Array of strings, each a curl -H argument
  */
 function formatHeadersForCurl(headers) {

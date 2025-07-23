@@ -1,1 +1,1 @@
-{"version":3,"file":"fetch-with-retry.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/figma/utils/fetch-with-retry.js"],"names":[],"mappings":"AAWA;;;;GAIG;AACH,oCAJgD,MAAM,YAC3C,MAAM,GACJ,OAAO,CAAC,GAAG,CAAC,CAqDxB"}
+{"version":3,"file":"fetch-with-retry.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/figma/utils/fetch-with-retry.js"],"names":[],"mappings":"AAWA;;;;;GAKG;AACH,oCAJW,MAAM,YACN;IAAE,OAAO,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,MAAM,CAAC,CAAC;IAAC,CAAC,GAAG,EAAE,MAAM,GAAG,GAAG,CAAA;CAAE,GACtD,OAAO,CAAC,GAAG,CAAC,CAuDxB"}

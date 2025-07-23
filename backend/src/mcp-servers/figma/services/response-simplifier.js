@@ -2,25 +2,87 @@
  * Response Simplifier * Converts Figma API responses into simplified, usable data with global variables
  */
 
+/**
+ * @typedef {Object} GlobalVars
+ * @property {Record<string, unknown>} styles - Style variables
+ * @property {Record<string, unknown>} components - Component variables
+ * @property {Record<string, unknown>} componentSets - Component set variables
+ * @property {Record<string, unknown>} componentInstances - Component instance variables
+ */
+
+/**
+ * @typedef {Object} FigmaNode
+ * @property {string} id - Node ID
+ * @property {string} name - Node name
+ * @property {string} type - Node type
+ * @property {FigmaNode[]} [children] - Child nodes
+ * @property {string} [componentId] - Component ID
+ * @property {Record<string, unknown>} [componentProperties] - Component properties
+ * @property {Record<string, unknown>} [style] - Text style
+ * @property {unknown[]} [fills] - Fill paints
+ * @property {string} [characters] - Text content
+ * @property {number} [opacity] - Opacity value
+ * @property {number} [cornerRadius] - Corner radius
+ * @property {number[]} [rectangleCornerRadii] - Rectangle corner radii
+ */
+
+/**
+ * @typedef {Object} SimplifiedNode
+ * @property {string} id - Node ID
+ * @property {string} name - Node name
+ * @property {string} type - Node type
+ * @property {string} [componentId] - Component ID
+ * @property {Record<string, unknown>[]} [componentProperties] - Component properties
+ * @property {string} [textStyle] - Text style reference
+ * @property {string} [fills] - Fill reference
+ * @property {string} [strokes] - Stroke reference
+ * @property {string} [effects] - Effects reference
+ * @property {string} [layout] - Layout reference
+ * @property {string} [text] - Text content
+ * @property {number} [opacity] - Opacity value
+ * @property {string} [borderRadius] - Border radius
+ * @property {SimplifiedNode[]} [children] - Child nodes
+ */
+
+/**
+ * @typedef {Object} FigmaResponse
+ * @property {string} name - File name
+ * @property {string} lastModified - Last modified timestamp
+ * @property {string} [thumbnailUrl] - Thumbnail URL
+ * @property {Object} document - Document node
+ * @property {FigmaNode[]} [children] - Root children
+ * @property {Object} [components] - Components
+ * @property {Object} [componentSets] - Component sets
+ * @property {Object} [nodes] - Nodes (for GetFileNodesResponse)
+ */
+
+/**
+ * @typedef {Object} NodeResponse
+ * @property {FigmaNode} document - Document node
+ * @property {Object} [components] - Components
+ * @property {Object} [componentSets] - Component sets
+ */
+
 import { buildSimplifiedLayout } from '../transformers/layout.js';
 import { buildSimplifiedStrokes } from '../transformers/style.js';
 import { buildSimplifiedEffects } from '../transformers/effects.js';
 import { sanitizeComponents, sanitizeComponentSets } from '../utils/sanitization.js';
 import { 
-	hasValue, 
 	parsePaint, 
 	isVisible, 
 	removeEmptyKeys, 
 	generateVarId 
 } from '../utils/common.js';
 import { 
+	hasValue,
 	isTruthy, 
 	isRectangleCornerRadii 
 } from '../utils/identity.js';
 
 /**
- * Parse Figma API response * @param {any} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
- * @returns {any} Simplified design object with global variables
+ * Parse Figma API response
+ * @param {FigmaResponse} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
+ * @returns {Object} Simplified design object with global variables
  */
 export function parseFigmaResponse(data) {
 	// Validate input data
@@ -49,22 +111,26 @@ export function parseFigmaResponse(data) {
 		// GetFileResponse
 		Object.assign(aggregatedComponents, data.components);
 		Object.assign(aggregatedComponentSets, data.componentSets);
-		nodesToParse = data.document.children;
+		nodesToParse = /** @type {FigmaNode} */ (data.document)?.children || [];
 	}
 
-	const sanitizedComponents = sanitizeComponents(aggregatedComponents);
-	const sanitizedComponentSets = sanitizeComponentSets(aggregatedComponentSets);
+	/** @type {GlobalVars} */
+	let globalVars = {
+		styles: {},
+		components: {},
+		componentSets: {},
+		componentInstances: {}
+	};
+
+	const sanitizedComponents = sanitizeComponents(aggregatedComponents, globalVars);
+	const sanitizedComponentSets = sanitizeComponentSets(aggregatedComponentSets, globalVars);
 
 	const { name, lastModified, thumbnailUrl } = data;
 
-	let globalVars = {
-		styles: {},
-	};
-
 	const simplifiedNodes = (nodesToParse || [])
-		.filter(node => node && isVisible(node))
-		.map((n) => parseNode(globalVars, n))
-		.filter((child) => child !== null && child !== undefined);
+		.filter(/** @param {FigmaNode} node */ (node) => node && isVisible(/** @type {{ visible?: boolean }} */ (node)))
+		.map(/** @param {FigmaNode} n */ (n) => parseNode(globalVars, n))
+		.filter(/** @param {SimplifiedNode|null} child */ (child) => child !== null && child !== undefined);
 
 	const simplifiedDesign = {
 		name,
@@ -80,8 +146,9 @@ export function parseFigmaResponse(data) {
 }
 
 /**
- * Find or create global variables * @param {Object} globalVars - Global variables object
- * @param {any} value - Value to store
+ * Find or create global variables
+ * @param {GlobalVars} globalVars - Global variables object
+ * @param {unknown} value - Value to store
  * @param {string} prefix - Variable ID prefix
  * @returns {string} Variable ID
  */
@@ -102,10 +169,11 @@ function findOrCreateVar(globalVars, value, prefix) {
 }
 
 /**
- * Parse individual node * @param {Object} globalVars - Global variables object
- * @param {any} n - Figma node
- * @param {any} [parent] - Parent node
- * @returns {Object|null} Simplified node
+ * Parse individual node
+ * @param {GlobalVars} globalVars - Global variables object
+ * @param {FigmaNode} n - Figma node
+ * @param {FigmaNode} [parent] - Parent node
+ * @returns {SimplifiedNode|null} Simplified node
  */
 function parseNode(globalVars, n, parent) {
 	const { id, name, type } = n;
@@ -118,17 +186,20 @@ function parseNode(globalVars, n, parent) {
 
 	if (type === "INSTANCE") {
 		if (hasValue("componentId", n)) {
-			simplified.componentId = n.componentId;
+			/** @type {SimplifiedNode} */ (simplified).componentId = n.componentId;
 		}
 
 		// Add specific properties for instances of components
 		if (hasValue("componentProperties", n)) {
-			simplified.componentProperties = Object.entries(n.componentProperties ?? {}).map(
-				([name, { value, type }]) => ({
-					name,
-					value: value.toString(),
-					type,
-				})
+			/** @type {SimplifiedNode} */ (simplified).componentProperties = Object.entries(n.componentProperties ?? {}).map(
+				([name, prop]) => {
+					const propObj = /** @type {Record<string, unknown>} */ (prop);
+					return {
+						name,
+						value: String(propObj.value),
+						type: /** @type {string} */ (propObj.type),
+					};
+				}
 			);
 		}
 	}
@@ -141,68 +212,68 @@ function parseNode(globalVars, n, parent) {
 			fontWeight: style.fontWeight,
 			fontSize: style.fontSize,
 			lineHeight:
-				style.lineHeightPx && style.fontSize
-					? `${style.lineHeightPx / style.fontSize}em`
+				/** @type {number} */ (style.lineHeightPx) && /** @type {number} */ (style.fontSize)
+					? `${/** @type {number} */ (style.lineHeightPx) / /** @type {number} */ (style.fontSize)}em`
 					: undefined,
 			letterSpacing:
-				style.letterSpacing && style.letterSpacing !== 0 && style.fontSize
-					? `${(style.letterSpacing / style.fontSize) * 100}%`
+				/** @type {number} */ (style.letterSpacing) && /** @type {number} */ (style.letterSpacing) !== 0 && /** @type {number} */ (style.fontSize)
+					? `${(/** @type {number} */ (style.letterSpacing) / /** @type {number} */ (style.fontSize)) * 100}%`
 					: undefined,
 			textCase: style.textCase,
 			textAlignHorizontal: style.textAlignHorizontal,
 			textAlignVertical: style.textAlignVertical,
 		};
-		simplified.textStyle = findOrCreateVar(globalVars, textStyle, "style");
+		/** @type {SimplifiedNode} */ (simplified).textStyle = findOrCreateVar(globalVars, textStyle, "style");
 	}
 
 	// fills & strokes
 	if (hasValue("fills", n) && Array.isArray(n.fills) && n.fills && n.fills.length) {
-		const fills = n.fills.filter(Boolean).map(parsePaint);
-		simplified.fills = findOrCreateVar(globalVars, fills, "fill");
+		const fills = n.fills.filter(Boolean).map(fill => parsePaint(/** @type {Parameters<typeof parsePaint>[0]} */ (fill)));
+		/** @type {SimplifiedNode} */ (simplified).fills = findOrCreateVar(globalVars, fills, "fill");
 	}
 
-	const strokes = buildSimplifiedStrokes(n);
+	const strokes = buildSimplifiedStrokes(/** @type {import('../transformers/style.js').FigmaNode} */ (n));
 	if (strokes && strokes.colors && strokes.colors.length) {
-		simplified.strokes = findOrCreateVar(globalVars, strokes, "stroke");
+		/** @type {SimplifiedNode} */ (simplified).strokes = findOrCreateVar(globalVars, strokes, "stroke");
 	}
 
 	const effects = buildSimplifiedEffects(n);
 	if (effects && Object.keys(effects).length) {
-		simplified.effects = findOrCreateVar(globalVars, effects, "effect");
+		/** @type {SimplifiedNode} */ (simplified).effects = findOrCreateVar(globalVars, effects, "effect");
 	}
 
 	// Process layout
 	const layout = buildSimplifiedLayout(n, parent);
 	if (layout && Object.keys(layout).length > 1) {
-		simplified.layout = findOrCreateVar(globalVars, layout, "layout");
+		/** @type {SimplifiedNode} */ (simplified).layout = findOrCreateVar(globalVars, layout, "layout");
 	}
 
 	// Keep other simple properties directly
 	if (hasValue("characters", n, isTruthy)) {
-		simplified.text = n.characters;
+		/** @type {SimplifiedNode} */ (simplified).text = n.characters;
 	}
 
 	// opacity
 	if (hasValue("opacity", n) && typeof n.opacity === "number" && n.opacity !== 1) {
-		simplified.opacity = n.opacity;
+		/** @type {SimplifiedNode} */ (simplified).opacity = n.opacity;
 	}
 
 	if (hasValue("cornerRadius", n) && typeof n.cornerRadius === "number") {
-		simplified.borderRadius = `${n.cornerRadius}px`;
+		/** @type {SimplifiedNode} */ (simplified).borderRadius = `${n.cornerRadius}px`;
 	}
 	if (hasValue("rectangleCornerRadii", n, isRectangleCornerRadii) && n.rectangleCornerRadii && n.rectangleCornerRadii.length >= 4) {
-		simplified.borderRadius = `${n.rectangleCornerRadii[0]}px ${n.rectangleCornerRadii[1]}px ${n.rectangleCornerRadii[2]}px ${n.rectangleCornerRadii[3]}px`;
+		/** @type {SimplifiedNode} */ (simplified).borderRadius = `${n.rectangleCornerRadii[0]}px ${n.rectangleCornerRadii[1]}px ${n.rectangleCornerRadii[2]}px ${n.rectangleCornerRadii[3]}px`;
 	}
 
 	// Recursively process child nodes.
 	// Include children at the very end so all relevant configuration data for the element is output first and kept together for the AI.
 	if (hasValue("children", n) && Array.isArray(n.children) && n.children.length > 0) {
 		const children = (n.children || [])
-			.filter(child => child && isVisible(child))
-			.map((child) => parseNode(globalVars, child, n))
-			.filter((child) => child !== null && child !== undefined);
+			.filter(/** @param {FigmaNode} child */ (child) => child && isVisible(/** @type {{ visible?: boolean }} */ (child)))
+			.map(/** @param {FigmaNode} child */ (child) => parseNode(globalVars, child, n))
+			.filter(/** @param {SimplifiedNode|null} child */ (child) => child !== null && child !== undefined);
 		if (children && children.length) {
-			simplified.children = children;
+			/** @type {SimplifiedNode} */ (simplified).children = children;
 		}
 	}
 

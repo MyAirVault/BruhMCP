@@ -9,7 +9,6 @@ import { calculateExpirationDate } from '../utils.js';
 import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
 import { updateMCPServiceStats, createMCPInstanceWithLimitCheck } from '../../../db/queries/mcpInstances/index.js';
 import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
-import { pool } from '../../../db/config.js';
 import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
 import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
 // Import new MCP Auth Registry
@@ -360,92 +359,5 @@ export async function createMCP(req, res) {
 				details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
 			},
 		});
-	}
-}
-
-/**
- * Validate credentials against external service (optional)
- * This can be called before instance creation for real-time validation
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- */
-export async function validateMCPCredentials(req, res) {
-	try {
-		const { mcp_type } = req.body;
-		if (!mcp_type) {
-			res.status(400).json({
-				error: {
-					code: 'MISSING_PARAMETER',
-					message: 'mcp_type is required',
-				},
-			});
-			return;
-		}
-
-		// Get service configuration
-		const mcpServiceQuery = `
-			SELECT mcp_service_name, type, port
-			FROM mcp_table 
-			WHERE mcp_service_name = $1 AND is_active = true
-		`;
-
-		const mcpServiceResult = await pool.query(mcpServiceQuery, [mcp_type]);
-
-		if (mcpServiceResult.rows.length === 0) {
-			res.status(404).json({
-				error: {
-					code: 'SERVICE_NOT_FOUND',
-					message: `MCP service '${mcp_type}' not found or disabled`,
-				},
-			});
-			return;
-		}
-
-		/** @type {MCPService} */
-		const mcpService = mcpServiceResult.rows[0];
-
-		// Test credentials against the actual MCP service
-		// This makes a test call to verify the credentials work
-		try {
-			const serviceUrl = `http://localhost:${mcpService.port}/health`;
-			const testResponse = await fetch(serviceUrl, {
-				method: 'GET',
-			});
-
-			if (testResponse.ok) {
-				res.json({
-					valid: true,
-					message: 'Credentials validated successfully',
-					service: {
-						name: mcpService.mcp_service_name,
-						type: mcpService.type,
-					},
-				});
-				return;
-			} else {
-				res.status(400).json({
-					valid: false,
-					error: 'Service health check failed',
-				});
-				return;
-			}
-		} catch (serviceError) {
-			const errorMessage = serviceError instanceof Error ? serviceError.message : String(serviceError);
-			res.status(400).json({
-				valid: false,
-				error: 'Unable to validate credentials - service unavailable',
-				details: errorMessage,
-			});
-			return;
-		}
-	} catch (error) {
-		console.error('Error validating MCP credentials:', error);
-		res.status(500).json({
-			error: {
-				code: 'VALIDATION_ERROR',
-				message: 'Failed to validate credentials',
-			},
-		});
-		return;
 	}
 }

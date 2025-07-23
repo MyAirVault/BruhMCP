@@ -1,19 +1,82 @@
 /**
- * @typedef {Object} SimplifiedStroke
- * @property {Array} colors
- * @property {string} [strokeWeight]
- * @property {number[]} [strokeDashes]
- * @property {string} [strokeWeights]
+ * @typedef {Object} FigmaPaint
+ * @property {string} type
+ * @property {string} [imageRef]
+ * @property {string} [scaleMode]
+ * @property {{ r: number, g: number, b: number, a: number }} [color]
+ * @property {number} [opacity]
+ * @property {boolean} [visible]
+ * @property {any[]} [gradientHandlePositions]
+ * @property {Array<{ position: number, color: { r: number, g: number, b: number, a: number } }>} [gradientStops]
  */
 /**
- * Build simplified strokes * @param {any} n - Figma node
+ * @typedef {Object} FigmaNode
+ * @property {FigmaPaint[]} [strokes]
+ * @property {number} [strokeWeight]
+ * @property {number[]} [strokeDashes]
+ * @property {{ top: number, right: number, bottom: number, left: number }} [individualStrokeWeights]
+ */
+/**
+ * @typedef {Object} SimplifiedStroke
+ * @property {Array<string|{ type: string, imageRef?: string, scaleMode?: string, gradientHandlePositions?: any[], gradientStops?: Array<{ position: number, color: { hex: string, opacity: number } }> }>} colors
+ * @property {string} [strokeWeight]
+ * @property {number[]} [strokeDashes]
+ */
+/**
+ * Build simplified strokes
+ * @param {FigmaNode} n - Figma node
  * @returns {SimplifiedStroke}
  */
-export function buildSimplifiedStrokes(n: any): SimplifiedStroke;
+export function buildSimplifiedStrokes(n: FigmaNode): SimplifiedStroke;
+export type FigmaPaint = {
+    type: string;
+    imageRef?: string | undefined;
+    scaleMode?: string | undefined;
+    color?: {
+        r: number;
+        g: number;
+        b: number;
+        a: number;
+    } | undefined;
+    opacity?: number | undefined;
+    visible?: boolean | undefined;
+    gradientHandlePositions?: any[] | undefined;
+    gradientStops?: {
+        position: number;
+        color: {
+            r: number;
+            g: number;
+            b: number;
+            a: number;
+        };
+    }[] | undefined;
+};
+export type FigmaNode = {
+    strokes?: FigmaPaint[] | undefined;
+    strokeWeight?: number | undefined;
+    strokeDashes?: number[] | undefined;
+    individualStrokeWeights?: {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+    } | undefined;
+};
 export type SimplifiedStroke = {
-    colors: any[];
+    colors: Array<string | {
+        type: string;
+        imageRef?: string;
+        scaleMode?: string;
+        gradientHandlePositions?: any[];
+        gradientStops?: Array<{
+            position: number;
+            color: {
+                hex: string;
+                opacity: number;
+            };
+        }>;
+    }>;
     strokeWeight?: string | undefined;
     strokeDashes?: number[] | undefined;
-    strokeWeights?: string | undefined;
 };
 //# sourceMappingURL=style.d.ts.map

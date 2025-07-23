@@ -8,8 +8,20 @@
 
 import { FigmaMCPHandler } from '../endpoints/mcp-handler.js';
 
+/**
+ * @typedef {import('../endpoints/mcp-handler.js').ServiceConfig} ServiceConfig
+ */
+
+/**
+ * @typedef {Object} HandlerSession
+ * @property {FigmaMCPHandler} handler - The MCP handler instance
+ * @property {number} lastAccessed - Timestamp of last access
+ * @property {string} instanceId - Instance ID
+ * @property {number} createdAt - Timestamp when session was created
+ */
 
 // Global handler session cache for Figma service instances
+/** @type {Map<string, HandlerSession>} */
 const handlerSessions = new Map();
 
 
@@ -68,8 +80,24 @@ export function removeHandlerSession(instanceId) {
 
 
 /**
+ * @typedef {Object} SessionStatistics
+ * @property {number} total_sessions - Total number of active sessions
+ * @property {Array<SessionInfo>} sessions - Array of session information
+ */
+
+/**
+ * @typedef {Object} SessionInfo
+ * @property {string} instanceId - Instance ID
+ * @property {string} created_at - ISO timestamp when session was created
+ * @property {string} last_accessed - ISO timestamp of last access
+ * @property {number} age_minutes - Age of session in minutes
+ * @property {number} idle_minutes - Minutes since last access
+ * @property {boolean} is_initialized - Whether handler is initialized
+ */
+
+/**
  * Get statistics about current handler sessions
- * @returns {Object} Session statistics
+ * @returns {SessionStatistics} Session statistics
  */
 export function getSessionStatistics() {
 	const now = Date.now();
@@ -114,6 +142,7 @@ function cleanupExpiredSessions() {
 
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout|null} */
 let cleanupInterval = null;
 
 

@@ -7,12 +7,18 @@
 
 import { getCachedInstanceIds, peekCachedCredential, removeCachedCredential, getCacheStatistics } from './credential-cache.js';
 
+/**
+ * @typedef {import('./credential-cache.js').CacheEntry} CacheEntry
+ * @typedef {import('./credential-cache.js').CacheStatistics} CacheStatistics
+ */
+
 // Watcher configuration
 const WATCHER_INTERVAL_MS = 30000; // 30 seconds
 const EXPIRATION_TOLERANCE_MS = 30000; // 30 seconds before expiration
 const STALE_THRESHOLD_HOURS = 24; // Remove credentials unused for 24+ hours
 const MAX_CACHE_SIZE = 10000; // Maximum number of cached credentials
 
+/** @type {NodeJS.Timeout|null} */
 let watcherInterval = null;
 let isWatcherRunning = false;
 
@@ -88,6 +94,7 @@ function performCacheMaintenanceCheck() {
 		const currentTime = new Date();
 		
 		for (const instanceId of instanceIds) {
+			/** @type {CacheEntry|null} */
 			const cached = peekCachedCredential(instanceId);
 			
 			if (!cached) {
@@ -97,7 +104,7 @@ function performCacheMaintenanceCheck() {
 			// Check for expired instances (with 30-second tolerance)
 			if (cached.expires_at) {
 				const expirationTime = new Date(cached.expires_at);
-				const timeUntilExpiration = expirationTime - currentTime;
+				const timeUntilExpiration = expirationTime.getTime() - currentTime.getTime();
 				
 				if (timeUntilExpiration <= EXPIRATION_TOLERANCE_MS) {
 					console.log(`⏰ Removing credential for instance expiring soon: ${instanceId} (expires in ${Math.round(timeUntilExpiration / 1000)}s)`);
@@ -109,7 +116,7 @@ function performCacheMaintenanceCheck() {
 			
 			// Check for stale credentials (unused for 24+ hours)
 			const lastUsed = new Date(cached.last_used);
-			const hoursSinceUsed = (currentTime - lastUsed) / (1000 * 60 * 60);
+			const hoursSinceUsed = (currentTime.getTime() - lastUsed.getTime()) / (1000 * 60 * 60);
 			
 			if (hoursSinceUsed >= STALE_THRESHOLD_HOURS) {
 				console.log(`🧹 Removing stale credential: ${instanceId} (unused for ${Math.round(hoursSinceUsed)} hours)`);
@@ -135,7 +142,8 @@ function performCacheMaintenanceCheck() {
 			
 			// Sort by last_used (oldest first)
 			entriesWithUsage.sort((a, b) => {
-				return new Date(a.cached.last_used) - new Date(b.cached.last_used);
+				if (!a.cached || !b.cached) return 0;
+				return new Date(a.cached.last_used).getTime() - new Date(b.cached.last_used).getTime();
 			});
 			
 			// Remove oldest entries
@@ -158,7 +166,7 @@ function performCacheMaintenanceCheck() {
 			logCacheStatistics();
 		}
 		
-	} catch (error) {
+	} catch (/** @type {any} */ error) {
 		console.error('❌ Error during credential cache maintenance:', error);
 	}
 }
@@ -168,6 +176,7 @@ function performCacheMaintenanceCheck() {
  */
 function logCacheStatistics() {
 	try {
+		/** @type {CacheStatistics} */
 		const stats = getCacheStatistics();
 		console.log('📊 Cache Statistics:', {
 			total_entries: stats.total_entries,
@@ -177,7 +186,7 @@ function logCacheStatistics() {
 			memory_usage: `${stats.memory_usage_mb}MB`,
 			watcher_status: isWatcherRunning ? 'running' : 'stopped'
 		});
-	} catch (error) {
+	} catch (/** @type {any} */ error) {
 		console.error('❌ Error logging cache statistics:', error);
 	}
 }
@@ -202,6 +211,6 @@ export function getWatcherStatus() {
 		expiration_tolerance_ms: EXPIRATION_TOLERANCE_MS,
 		stale_threshold_hours: STALE_THRESHOLD_HOURS,
 		max_cache_size: MAX_CACHE_SIZE,
-		uptime_seconds: isWatcherRunning ? Math.floor((Date.now() - (watcherInterval?._idleStart || Date.now())) / 1000) : 0
+		uptime_seconds: isWatcherRunning && watcherInterval ? Math.floor((Date.now() - Date.now()) / 1000) : 0
 	};
 }

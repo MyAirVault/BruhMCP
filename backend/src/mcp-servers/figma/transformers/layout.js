@@ -7,6 +7,43 @@ import { isInAutoLayoutFlow, isFrame, isLayout, isRectangle } from '../utils/ide
 import { generateCSSShorthand, pixelRound } from '../utils/common.js';
 
 /**
+ * @typedef {Object} Point
+ * @property {number} x
+ * @property {number} y
+ */
+
+/**
+ * @typedef {Object} BoundingBox
+ * @property {number} x
+ * @property {number} y
+ * @property {number} width
+ * @property {number} height
+ */
+
+/**
+ * @typedef {Object} FigmaNode
+ * @property {string} [layoutMode]
+ * @property {string} [primaryAxisAlignItems]
+ * @property {string} [counterAxisAlignItems]
+ * @property {string} [layoutAlign]
+ * @property {string} [layoutWrap]
+ * @property {number} [itemSpacing]
+ * @property {number} [paddingTop]
+ * @property {number} [paddingBottom]
+ * @property {number} [paddingLeft]
+ * @property {number} [paddingRight]
+ * @property {string[]} [overflowDirection]
+ * @property {string} [layoutPositioning]
+ * @property {string} [layoutSizingHorizontal]
+ * @property {string} [layoutSizingVertical]
+ * @property {boolean} [layoutGrow]
+ * @property {BoundingBox} [absoluteBoundingBox]
+ * @property {boolean} [preserveRatio]
+ * @property {boolean} [clipsContent]
+ * @property {FigmaNode[]} [children]
+ */
+
+/**
  * @typedef {Object} SimplifiedLayout
  * @property {"none" | "row" | "column"} mode
  * @property {"flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch"} [justifyContent]
@@ -14,7 +51,7 @@ import { generateCSSShorthand, pixelRound } from '../utils/common.js';
  * @property {"flex-start" | "flex-end" | "center" | "stretch"} [alignSelf]
  * @property {boolean} [wrap]
  * @property {string} [gap]
- * @property {{x: number, y: number}} [locationRelativeToParent]
+ * @property {Point} [locationRelativeToParent]
  * @property {{width?: number, height?: number, aspectRatio?: number}} [dimensions]
  * @property {string} [padding]
  * @property {{horizontal?: "fixed" | "fill" | "hug", vertical?: "fixed" | "fill" | "hug"}} [sizing]
@@ -24,8 +61,8 @@ import { generateCSSShorthand, pixelRound } from '../utils/common.js';
 
 /**
  * Convert Figma's layout config into a more typical flex-like schema
- * @param {any} n - Figma node
- * @param {any} [parent] - Parent node
+ * @param {FigmaNode} n - Figma node
+ * @param {FigmaNode|undefined} [parent] - Parent node
  * @returns {SimplifiedLayout}
  */
 export function buildSimplifiedLayout(n, parent) {
@@ -36,10 +73,17 @@ export function buildSimplifiedLayout(n, parent) {
 }
 
 /**
+ * @typedef {Object} StretchInfo
+ * @property {FigmaNode[]} children
+ * @property {"none" | "row" | "column"} mode
+ * @property {"primary" | "counter"} axis
+ */
+
+/**
  * For flex layouts, process alignment and sizing
- * @param {any} axisAlign 
- * @param {Object} [stretch] 
- * @returns {string|undefined}
+ * @param {string} axisAlign 
+ * @param {StretchInfo} [stretch] 
+ * @returns {"flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch" | undefined}
  */
 function convertAlign(axisAlign, stretch) {
 	if (stretch && stretch.mode !== "none") {
@@ -48,13 +92,13 @@ function convertAlign(axisAlign, stretch) {
 		// Compute whether to check horizontally or vertically based on axis and direction
 		const direction = getDirection(axis, mode);
 
-		const shouldStretch = children && children.length > 0 && children.reduce((shouldStretch, c) => {
-			if (!shouldStretch) return false;
+		const shouldStretch = children && children.length > 0 && children.reduce((prevShouldStretch, c) => {
+			if (!prevShouldStretch) return false;
 			if (c.layoutPositioning && c.layoutPositioning === "ABSOLUTE") return true;
 			if (direction === "horizontal") {
-				return c.layoutSizingHorizontal && c.layoutSizingHorizontal === "FILL";
+				return Boolean(c.layoutSizingHorizontal && c.layoutSizingHorizontal === "FILL");
 			} else if (direction === "vertical") {
-				return c.layoutSizingVertical && c.layoutSizingVertical === "FILL";
+				return Boolean(c.layoutSizingVertical && c.layoutSizingVertical === "FILL");
 			}
 			return false;
 		}, true);
@@ -81,8 +125,8 @@ function convertAlign(axisAlign, stretch) {
 
 /**
  * Convert self alignment
- * @param {any} align 
- * @returns {string|undefined}
+ * @param {string} align 
+ * @returns {"flex-start" | "flex-end" | "center" | "stretch" | undefined}
  */
 function convertSelfAlign(align) {
 	switch (align) {
@@ -102,8 +146,8 @@ function convertSelfAlign(align) {
 
 /**
  * Interpret sizing
- * @param {any} s 
- * @returns {string|undefined}
+ * @param {string} s 
+ * @returns {"fixed" | "fill" | "hug" | undefined}
  */
 function convertSizing(s) {
 	if (s === "FIXED") return "fixed";
@@ -139,14 +183,15 @@ function getDirection(axis, mode) {
 
 /**
  * Build simplified frame values
- * @param {any} n 
- * @returns {SimplifiedLayout | {mode: "none"}}
+ * @param {FigmaNode} n 
+ * @returns {SimplifiedLayout}
  */
 function buildSimplifiedFrameValues(n) {
 	if (!isFrame(n)) {
 		return { mode: "none" };
 	}
 
+	/** @type {SimplifiedLayout} */
 	const frameValues = {
 		mode: !n.layoutMode || n.layoutMode === "NONE"
 			? "none"
@@ -155,6 +200,7 @@ function buildSimplifiedFrameValues(n) {
 				: "column",
 	};
 
+	/** @type {("x" | "y")[]} */
 	const overflowScroll = [];
 	if (n.overflowDirection?.includes("HORIZONTAL")) overflowScroll.push("x");
 	if (n.overflowDirection?.includes("VERTICAL")) overflowScroll.push("y");
@@ -166,16 +212,16 @@ function buildSimplifiedFrameValues(n) {
 
 	// TODO: convertAlign should be two functions, one for justifyContent and one for alignItems
 	frameValues.justifyContent = convertAlign(n.primaryAxisAlignItems ?? "MIN", {
-		children: n.children,
+		children: n.children || [],
 		axis: "primary",
 		mode: frameValues.mode,
 	});
 	frameValues.alignItems = convertAlign(n.counterAxisAlignItems ?? "MIN", {
-		children: n.children,
+		children: n.children || [],
 		axis: "counter",
 		mode: frameValues.mode,
 	});
-	frameValues.alignSelf = convertSelfAlign(n.layoutAlign);
+	frameValues.alignSelf = convertSelfAlign(n.layoutAlign ?? "MIN");
 
 	// Only include wrap if it's set to WRAP, since flex layouts don't default to wrapping
 	frameValues.wrap = n.layoutWrap === "WRAP" ? true : undefined;
@@ -196,25 +242,26 @@ function buildSimplifiedFrameValues(n) {
 
 /**
  * Build simplified layout values
- * @param {any} n 
- * @param {any} parent 
+ * @param {FigmaNode} n 
+ * @param {FigmaNode|undefined} parent 
  * @param {"row" | "column" | "none"} mode 
  * @returns {SimplifiedLayout|undefined}
  */
 function buildSimplifiedLayoutValues(n, parent, mode) {
 	if (!isLayout(n)) return undefined;
 
+	/** @type {SimplifiedLayout} */
 	const layoutValues = { mode };
 
 	layoutValues.sizing = {
-		horizontal: convertSizing(n.layoutSizingHorizontal),
-		vertical: convertSizing(n.layoutSizingVertical),
+		horizontal: convertSizing(n.layoutSizingHorizontal ?? "FIXED"),
+		vertical: convertSizing(n.layoutSizingVertical ?? "FIXED"),
 	};
 
 	// Only include positioning-related properties if parent layout isn't flex or if the node is absolute
 	if (
 		// If parent is a frame but not an AutoLayout, or if the node is absolute, include positioning-related properties
-		isFrame(parent) && !isInAutoLayoutFlow(n, parent)
+		parent && isFrame(parent) && !isInAutoLayoutFlow(n, parent)
 	) {
 		if (n.layoutPositioning === "ABSOLUTE") {
 			layoutValues.position = "absolute";
@@ -228,7 +275,8 @@ function buildSimplifiedLayoutValues(n, parent, mode) {
 	}
 
 	// Handle dimensions based on layout growth and alignment
-	if (isRectangle("absoluteBoundingBox", n)) {
+	if (isRectangle("absoluteBoundingBox", n) && n.absoluteBoundingBox) {
+		/** @type {{width?: number, height?: number, aspectRatio?: number}} */
 		const dimensions = {};
 
 		// Only include dimensions that aren't meant to stretch
@@ -245,8 +293,8 @@ function buildSimplifiedLayoutValues(n, parent, mode) {
 			if (!n.layoutGrow && n.layoutSizingVertical == "FIXED")
 				dimensions.height = n.absoluteBoundingBox.height;
 
-			if (n.preserveRatio) {
-				dimensions.aspectRatio = n.absoluteBoundingBox?.width / n.absoluteBoundingBox?.height;
+			if (n.preserveRatio && n.absoluteBoundingBox.width && n.absoluteBoundingBox.height) {
+				dimensions.aspectRatio = n.absoluteBoundingBox.width / n.absoluteBoundingBox.height;
 			}
 		} else {
 			// Node is not an AutoLayout. Include dimensions if the node is not growing (which it should never be)

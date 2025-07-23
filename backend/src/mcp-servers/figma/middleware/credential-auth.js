@@ -6,16 +6,53 @@
  */
 
 import { getCachedCredential, setCachedCredential } from '../services/credential-cache.js';
-import {
-	getInstanceCredentials,
-	validateInstanceAccess,
-	updateUsageTracking,
-	getApiKeyForInstance,
-} from '../services/database.js';
+import { validateInstanceAccess, getApiKeyForInstance, updateFigmaUsageTracking, getFigmaInstanceCredentials } from '../services/instance-utils.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /** @typedef {import('express').NextFunction} NextFunction */
+
+/**
+ * @typedef {Object} CachedCredential
+ * @property {string} credential - The Figma Personal Access Token
+ * @property {string} expires_at - Instance expiration timestamp
+ * @property {string} user_id - User ID who owns this instance
+ * @property {string} last_used - Last usage timestamp
+ * @property {number} refresh_attempts - Number of refresh attempts
+ * @property {string} cached_at - When it was cached
+ * @property {string} [status] - Optional instance status
+ * @property {string} [last_modified] - Optional last modified timestamp
+ */
+
+/**
+ * @typedef {Object} InstanceCredentials
+ * @property {string} instance_id - Instance ID
+ * @property {string} user_id - User ID
+ * @property {string} oauth_status - OAuth status
+ * @property {string} status - Instance status
+ * @property {string} expires_at - Expiration timestamp
+ * @property {string} last_used_at - Last used timestamp
+ * @property {number} usage_count - Usage count
+ * @property {string} custom_name - Custom name
+ * @property {string} mcp_service_name - Service name
+ * @property {string} display_name - Display name
+ * @property {string} auth_type - Auth type ('api_key' or 'oauth')
+ * @property {boolean} service_active - Service active status
+ * @property {string} [api_key] - API key
+ * @property {string} [client_id] - Client ID
+ * @property {string} [client_secret] - Client secret
+ * @property {string} [access_token] - Access token
+ * @property {string} [refresh_token] - Refresh token
+ * @property {string} [token_expires_at] - Token expiration
+ * @property {string} [oauth_completed_at] - OAuth completion time
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} isValid - Whether the instance is valid
+ * @property {string} [error] - Error message if invalid
+ * @property {number} [statusCode] - HTTP status code if invalid
+ */
 
 /**
  * Create credential authentication middleware with caching
@@ -47,7 +84,8 @@ export function createCredentialAuthMiddleware() {
 			}
 
 			// Step 1: Check credential cache first (fast path)
-			const cachedCredential = getCachedCredential(instanceId);
+			/** @type {CachedCredential|null} */
+			const cachedCredential = /** @type {CachedCredential|null} */ (getCachedCredential(instanceId));
 
 			if (cachedCredential) {
 				// Cache hit - use cached credential without database lookup
@@ -57,7 +95,7 @@ export function createCredentialAuthMiddleware() {
 				req.cacheHit = true;
 
 				// Update usage tracking asynchronously (non-blocking)
-				updateUsageTracking(instanceId).catch(error => {
+				updateFigmaUsageTracking(instanceId, cachedCredential.user_id).catch(error => {
 					console.error(`Failed to update usage tracking for cached credential ${instanceId}:`, error);
 				});
 
@@ -67,13 +105,14 @@ export function createCredentialAuthMiddleware() {
 			// Step 2: Cache miss - fall back to database lookup (slow path)
 			console.log(`🔍 Cache miss for instance: ${instanceId}, querying database`);
 
-			const instance = await getInstanceCredentials(instanceId);
+			/** @type {InstanceCredentials|null} */
+			const instance = /** @type {InstanceCredentials|null} */ (await getFigmaInstanceCredentials(instanceId));
 
 			// Validate instance access
 			const validation = validateInstanceAccess(instance);
 
 			if (!validation.isValid) {
-				res.status(validation.statusCode).json({
+				res.status(validation.statusCode ?? 400).json({
 					error: validation.error,
 					message: 'Instance access denied',
 					instanceId: instanceId,
@@ -81,8 +120,28 @@ export function createCredentialAuthMiddleware() {
 				return;
 			}
 
+			// Check if instance is null first
+			if (!instance) {
+				res.status(404).json({
+					error: 'Instance not found',
+					message: 'Instance not found or access denied',
+					instanceId: instanceId,
+				});
+				return;
+			}
+
 			// Get API key for external service calls
 			const apiKey = getApiKeyForInstance(instance);
+
+			// Check if API key is valid
+			if (!apiKey) {
+				res.status(400).json({
+					error: 'No API key available',
+					message: 'Instance has no valid API key configured',
+					instanceId: instanceId,
+				});
+				return;
+			}
 
 			// Step 3: Cache the credential for future requests
 			setCachedCredential(instanceId, {
@@ -99,7 +158,7 @@ export function createCredentialAuthMiddleware() {
 			req.cacheHit = false;
 
 			// Update usage tracking asynchronously (non-blocking)
-			updateUsageTracking(instanceId).catch(error => {
+			updateFigmaUsageTracking(instanceId, instance.user_id).catch(error => {
 				console.error(`Failed to update usage tracking for ${instanceId}:`, error);
 			});
 
@@ -131,14 +190,16 @@ export function createLightweightAuthMiddleware() {
 				// Validate UUID format
 				const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 				if (!uuidRegex.test(instanceId)) {
-					return res.status(400).json({
+					res.status(400).json({
 						error: 'Invalid instance ID format',
 						message: 'Instance ID must be a valid UUID',
 					});
+					return;
 				}
 
 				// Check cache first for basic validation
-				const cachedCredential = getCachedCredential(instanceId);
+				/** @type {CachedCredential|null} */
+				const cachedCredential = /** @type {CachedCredential|null} */ (getCachedCredential(instanceId));
 
 				if (cachedCredential) {
 					req.instanceId = instanceId;
@@ -148,13 +209,32 @@ export function createLightweightAuthMiddleware() {
 				}
 
 				// If not cached, do basic database check without caching the result
-				const instance = await getInstanceCredentials(instanceId);
+				if (!cachedCredential) {
+					res.status(500).json({
+						error: 'Internal error',
+						message: 'Cached credential is null',
+						instanceId: instanceId,
+					});
+					return;
+				}
+
+				/** @type {InstanceCredentials|null} */
+				const instance = /** @type {InstanceCredentials|null} */ (await getFigmaInstanceCredentials(instanceId));
 				const validation = validateInstanceAccess(instance);
 
 				if (!validation.isValid) {
-					res.status(validation.statusCode).json({
+					res.status(validation.statusCode ?? 400).json({
 						error: validation.error,
 						message: 'Instance access denied',
+						instanceId: instanceId,
+					});
+					return;
+				}
+
+				if (!instance) {
+					res.status(404).json({
+						error: 'Instance not found',
+						message: 'Instance not found or access denied',
 						instanceId: instanceId,
 					});
 					return;

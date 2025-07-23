@@ -49,13 +49,6 @@
  * @param {Response} res - Express response object
  */
 export function createMCP(req: Request, res: Response): Promise<void>;
-/**
- * Validate credentials against external service (optional)
- * This can be called before instance creation for real-time validation
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- */
-export function validateMCPCredentials(req: Request, res: Response): Promise<void>;
 export type Request = import("express").Request;
 export type Response = import("express").Response;
 export type MCPService = {

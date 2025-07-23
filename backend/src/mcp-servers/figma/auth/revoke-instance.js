@@ -9,7 +9,6 @@ import { deleteMCPInstance, getMCPInstanceById } from '../../../db/queries/mcpIn
  * @typedef {import('../../../services/mcp-auth-registry/types/service-types.js').RevokeResult} RevokeResult
  */
 
-
 /**
  * Revokes a Figma service instance
  * @param {string} instanceId - Instance ID to revoke
@@ -23,7 +22,7 @@ async function revokeInstance(instanceId, userId) {
 		if (!instanceId || !userId) {
 			return {
 				success: false,
-				message: 'Instance ID and User ID are required'
+				message: 'Instance ID and User ID are required',
 			};
 		}
 
@@ -33,40 +32,39 @@ async function revokeInstance(instanceId, userId) {
 		if (!instance) {
 			return {
 				success: false,
-				message: 'Instance not found or does not belong to user'
+				message: 'Instance not found or does not belong to user',
 			};
 		}
 
-		if (instance.serviceName !== 'figma') {
+		if (instance.mcp_service_name !== 'figma') {
 			return {
 				success: false,
-				message: 'Instance is not a Figma service'
+				message: 'Instance is not a Figma service',
 			};
 		}
 
 		// Delete the instance from database
 		const deleteResult = await deleteMCPInstance(instanceId, userId);
 
-		if (deleteResult.success) {
+		if (deleteResult) {
 			console.log(`✅ Revoked Figma instance: ${instanceId}`);
 			return {
 				success: true,
-				message: 'Figma instance revoked successfully'
+				message: 'Figma instance revoked successfully',
 			};
 		} else {
 			return {
 				success: false,
-				message: deleteResult.message || 'Failed to revoke instance'
+				message: 'Failed to revoke instance',
 			};
 		}
 	} catch (error) {
 		console.error('Figma instance revocation error:', error);
 		return {
 			success: false,
-			message: `Failed to revoke Figma instance: ${error.message}`
+			message: `Failed to revoke Figma instance: ${error instanceof Error ? error.message : 'Unknown error'}`,
 		};
 	}
 }
-
 
 export { revokeInstance };

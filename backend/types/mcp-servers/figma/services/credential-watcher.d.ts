@@ -22,4 +22,6 @@ export function forceMaintenanceCheck(): Promise<void>;
  * @returns {Object} Watcher status information
  */
 export function getWatcherStatus(): Object;
+export type CacheEntry = import("./credential-cache.js").CacheEntry;
+export type CacheStatistics = import("./credential-cache.js").CacheStatistics;
 //# sourceMappingURL=credential-watcher.d.ts.map

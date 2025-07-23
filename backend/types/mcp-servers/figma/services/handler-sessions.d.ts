@@ -13,10 +13,24 @@ export function getOrCreateHandler(instanceId: string, serviceConfig: ServiceCon
  */
 export function removeHandlerSession(instanceId: string): boolean;
 /**
- * Get statistics about current handler sessions
- * @returns {Object} Session statistics
+ * @typedef {Object} SessionStatistics
+ * @property {number} total_sessions - Total number of active sessions
+ * @property {Array<SessionInfo>} sessions - Array of session information
  */
-export function getSessionStatistics(): Object;
+/**
+ * @typedef {Object} SessionInfo
+ * @property {string} instanceId - Instance ID
+ * @property {string} created_at - ISO timestamp when session was created
+ * @property {string} last_accessed - ISO timestamp of last access
+ * @property {number} age_minutes - Age of session in minutes
+ * @property {number} idle_minutes - Minutes since last access
+ * @property {boolean} is_initialized - Whether handler is initialized
+ */
+/**
+ * Get statistics about current handler sessions
+ * @returns {SessionStatistics} Session statistics
+ */
+export function getSessionStatistics(): SessionStatistics;
 /**
  * Start the session cleanup service
  * Called when the server starts
@@ -33,5 +47,60 @@ export function stopSessionCleanup(): void;
  * @param {string} instanceId - UUID of the service instance
  */
 export function invalidateHandlerSession(instanceId: string): void;
+export type SessionStatistics = {
+    /**
+     * - Total number of active sessions
+     */
+    total_sessions: number;
+    /**
+     * - Array of session information
+     */
+    sessions: Array<SessionInfo>;
+};
+export type SessionInfo = {
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - ISO timestamp when session was created
+     */
+    created_at: string;
+    /**
+     * - ISO timestamp of last access
+     */
+    last_accessed: string;
+    /**
+     * - Age of session in minutes
+     */
+    age_minutes: number;
+    /**
+     * - Minutes since last access
+     */
+    idle_minutes: number;
+    /**
+     * - Whether handler is initialized
+     */
+    is_initialized: boolean;
+};
+export type ServiceConfig = import("../endpoints/mcp-handler.js").ServiceConfig;
+export type HandlerSession = {
+    /**
+     * - The MCP handler instance
+     */
+    handler: FigmaMCPHandler;
+    /**
+     * - Timestamp of last access
+     */
+    lastAccessed: number;
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - Timestamp when session was created
+     */
+    createdAt: number;
+};
 import { FigmaMCPHandler } from '../endpoints/mcp-handler.js';
 //# sourceMappingURL=handler-sessions.d.ts.map

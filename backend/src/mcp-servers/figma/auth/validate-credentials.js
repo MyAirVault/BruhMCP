@@ -8,6 +8,7 @@ import createFigmaValidator from '../validation/credential-validator.js';
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/service-types.js').ValidationResult} ValidationResult
  * @typedef {import('../../../services/mcp-auth-registry/types/service-types.js').CredentialsData} CredentialsData
+ * @typedef {import('../../../services/validation/base-validator.js').ValidationResult} BaseValidationResult
  */
 
 
@@ -37,6 +38,7 @@ async function validateCredentials(credentials, userId) {
 		const validator = createFigmaValidator(figmaCredentials);
 
 		// Test credentials against Figma API
+		/** @type {BaseValidationResult} */
 		const result = await validator.testCredentials(figmaCredentials);
 
 		// Convert validator result to our expected format
@@ -45,7 +47,7 @@ async function validateCredentials(credentials, userId) {
 				success: true,
 				message: 'Figma API key is valid',
 				data: {
-					userInfo: result.data,
+					userInfo: result.service_info,
 					service: 'figma',
 					authType: 'apikey',
 					validatedAt: new Date().toISOString()
@@ -57,11 +59,11 @@ async function validateCredentials(credentials, userId) {
 				message: result.error || 'Invalid Figma API key'
 			};
 		}
-	} catch (error) {
+	} catch (/** @type {any} */ error) {
 		console.error('Figma credential validation error:', error);
 		return {
 			success: false,
-			message: `Validation failed: ${error.message}`
+			message: `Validation failed: ${error?.message || 'Unknown error'}`
 		};
 	}
 }

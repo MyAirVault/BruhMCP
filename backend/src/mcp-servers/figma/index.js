@@ -81,7 +81,7 @@ app.get('/health', (_, res) => {
 // Instance-based endpoints with multi-tenant routing
 
 // OAuth well-known endpoint (return 404 as Figma uses API keys, not OAuth)
-app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
+app.get('/.well-known/oauth-authorization-server/:instanceId', (_, res) => {
   res.status(404).json({
     error: 'Not Found',
     message: 'This MCP server uses API key authentication, not OAuth'
@@ -111,9 +111,9 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
     const jsonRpcHandler = getOrCreateHandler(
-      req.instanceId,
+      /** @type {string} */ (req.instanceId),
       SERVICE_CONFIG,
-      req.figmaApiKey || ''
+      /** @type {string} */ (req.figmaApiKey) || ''
     );
     
     // Process the MCP message with persistent handler (using new signature)
@@ -141,9 +141,9 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
     const jsonRpcHandler = getOrCreateHandler(
-      req.instanceId,
+      /** @type {string} */ (req.instanceId),
       SERVICE_CONFIG,
-      req.figmaApiKey || ''
+      /** @type {string} */ (req.figmaApiKey) || ''
     );
     
     // Process the MCP message with persistent handler (using new signature)
@@ -196,12 +196,13 @@ if (process.env.NODE_ENV === 'development') {
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
 /**
- * @param {any} err
- * @param {any} req
- * @param {any} res
- * @param {any} next
+ * Error handling middleware with logging
+ * @param {Error} err - Error object
+ * @param {import('express').Request} _req - Express request object (unused)
+ * @param {import('express').Response} res - Express response object
+ * @param {import('express').NextFunction} _next - Express next function (unused)
  */
-app.use((err, req, res, next) => {
+app.use((/** @type {Error} */ err, /** @type {import('express').Request} */ _req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ _next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);
   ErrorResponses.internal(res, 'Internal server error', {

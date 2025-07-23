@@ -3,13 +3,62 @@
  * Reduces response size through variable extraction
  */
 
-import crypto from 'crypto';
+import { createHash } from 'crypto';
+
+/**
+ * @typedef {Object} VariableData
+ * @property {string} _hash - Hash of the variable value
+ * @property {string} _type - Type prefix of the variable
+ * @property {*} [key] - Other properties from the original value
+ */
+
+/**
+ * @typedef {Record<string, VariableData>} VariableCategory
+ */
+
+/**
+ * @typedef {Object} VariableCategories
+ * @property {VariableCategory} styles - Style variables
+ * @property {VariableCategory} fills - Fill variables
+ * @property {VariableCategory} strokes - Stroke variables
+ * @property {VariableCategory} effects - Effect variables
+ * @property {VariableCategory} layouts - Layout variables
+ * @property {VariableCategory} textStyles - Text style variables
+ */
+
+/**
+ * @typedef {Object} CounterCategories
+ * @property {number} style - Style counter
+ * @property {number} fill - Fill counter
+ * @property {number} stroke - Stroke counter
+ * @property {number} effect - Effect counter
+ * @property {number} layout - Layout counter
+ * @property {number} textStyle - Text style counter
+ */
+
+/**
+ * @typedef {Object} CategoryMap
+ * @property {string} style - Maps to textStyles
+ * @property {string} fill - Maps to fills
+ * @property {string} stroke - Maps to strokes
+ * @property {string} effect - Maps to effects
+ * @property {string} layout - Maps to layouts
+ * @property {string} textStyle - Maps to textStyles
+ */
+
+/**
+ * @typedef {Object} StatisticsResult
+ * @property {number} totalVariables - Total number of variables
+ * @property {Record<string, number>} categoryCounts - Count per category
+ * @property {number} estimatedSavings - Estimated space savings
+ */
 
 /**
  * Manages global variables for deduplicating repeated content in Figma responses
  */
 class GlobalVariableManager {
     constructor() {
+        /** @type {VariableCategories} */
         this.variables = {
             styles: {},
             fills: {},
@@ -18,6 +67,7 @@ class GlobalVariableManager {
             layouts: {},
             textStyles: {}
         };
+        /** @type {CounterCategories} */
         this.counters = {
             style: 0,
             fill: 0,
@@ -30,12 +80,12 @@ class GlobalVariableManager {
 
     /**
      * Find existing variable or create new one for given value
-     * @param {any} value - Value to store or find
-     * @param {string} prefix - Variable type prefix
-     * @returns {string} Variable ID
+     * @param {unknown} value - Value to store or find
+     * @param {keyof CounterCategories} prefix - Variable type prefix
+     * @returns {string|null} Variable ID
      */
     findOrCreateVariable(value, prefix) {
-        if (!value || (typeof value === 'object' && Object.keys(value).length === 0)) {
+        if (!value || (typeof value === 'object' && value !== null && Object.keys(value).length === 0)) {
             return null;
         }
 
@@ -58,12 +108,12 @@ class GlobalVariableManager {
     /**
      * Find existing variable by hash
      * @param {string} hash - Value hash
-     * @param {string} prefix - Variable type prefix
+     * @param {keyof CounterCategories} prefix - Variable type prefix
      * @returns {string|null} Variable ID if found
      */
     findExistingVariable(hash, prefix) {
         const categoryName = this.getCategoryName(prefix);
-        const category = this.variables[categoryName];
+        const category = /** @type {VariableCategory} */ (this.variables[/** @type {keyof VariableCategories} */ (categoryName)]);
         
         for (const [varId, data] of Object.entries(category)) {
             if (data._hash === hash) {
@@ -77,15 +127,15 @@ class GlobalVariableManager {
     /**
      * Store variable in appropriate category
      * @param {string} variableId - Variable ID
-     * @param {any} value - Value to store
-     * @param {string} prefix - Variable type prefix
+     * @param {unknown} value - Value to store
+     * @param {keyof CounterCategories} prefix - Variable type prefix
      * @param {string} hash - Value hash
      */
     storeVariable(variableId, value, prefix, hash) {
         const categoryName = this.getCategoryName(prefix);
         
-        this.variables[categoryName][variableId] = {
-            ...value,
+        /** @type {VariableCategory} */ (this.variables[/** @type {keyof VariableCategories} */ (categoryName)])[variableId] = {
+            ...(typeof value === 'object' && value !== null ? /** @type {Record<string, unknown>} */ (value) : {}),
             _hash: hash,
             _type: prefix
         };
@@ -93,7 +143,7 @@ class GlobalVariableManager {
 
     /**
      * Generate unique variable ID
-     * @param {string} prefix - Variable type prefix
+     * @param {keyof CounterCategories} prefix - Variable type prefix
      * @returns {string} Variable ID
      */
     generateVariableId(prefix) {
@@ -103,18 +153,18 @@ class GlobalVariableManager {
 
     /**
      * Generate hash for value deduplication
-     * @param {any} value - Value to hash
+     * @param {unknown} value - Value to hash
      * @returns {string} Hash string
      */
     generateHash(value) {
         const normalizedValue = this.normalizeValue(value);
-        return crypto.createHash('md5').update(JSON.stringify(normalizedValue)).digest('hex');
+        return createHash('md5').update(JSON.stringify(normalizedValue)).digest('hex');
     }
 
     /**
      * Normalize value for consistent hashing
-     * @param {any} value - Value to normalize
-     * @returns {any} Normalized value
+     * @param {unknown} value - Value to normalize
+     * @returns {unknown} Normalized value
      */
     normalizeValue(value) {
         if (Array.isArray(value)) {
@@ -122,11 +172,12 @@ class GlobalVariableManager {
         }
         
         if (value && typeof value === 'object') {
+            /** @type {Record<string, unknown>} */
             const normalized = {};
             // Sort keys for consistent hashing
-            Object.keys(value).sort().forEach(key => {
+            Object.keys(/** @type {Record<string, unknown>} */ (value)).sort().forEach(key => {
                 if (key.startsWith('_')) return; // Skip internal properties
-                normalized[key] = this.normalizeValue(value[key]);
+                normalized[key] = this.normalizeValue((/** @type {Record<string, unknown>} */ (value))[key]);
             });
             return normalized;
         }
@@ -136,10 +187,11 @@ class GlobalVariableManager {
 
     /**
      * Get category name for variable type
-     * @param {string} prefix - Variable type prefix
-     * @returns {string} Category name
+     * @param {keyof CounterCategories} prefix - Variable type prefix
+     * @returns {keyof VariableCategories} Category name
      */
     getCategoryName(prefix) {
+        /** @type {Record<keyof CounterCategories, keyof VariableCategories>} */
         const categoryMap = {
             'style': 'textStyles',
             'fill': 'fills',
@@ -154,7 +206,7 @@ class GlobalVariableManager {
     /**
      * Get variable by ID
      * @param {string} variableId - Variable ID
-     * @returns {any} Variable value
+     * @returns {Record<string, unknown>|null} Variable value
      */
     getVariable(variableId) {
         for (const category of Object.values(this.variables)) {
@@ -168,9 +220,10 @@ class GlobalVariableManager {
 
     /**
      * Get all variables organized by category
-     * @returns {object} All variables
+     * @returns {Record<string, Record<string, Record<string, unknown>>>} All variables
      */
     getAllVariables() {
+        /** @type {Record<string, Record<string, Record<string, unknown>>>} */
         const result = {};
         
         for (const [categoryName, category] of Object.entries(this.variables)) {
@@ -188,9 +241,10 @@ class GlobalVariableManager {
 
     /**
      * Get statistics about variable usage
-     * @returns {object} Usage statistics
+     * @returns {StatisticsResult} Usage statistics
      */
     getStatistics() {
+        /** @type {StatisticsResult} */
         const stats = {
             totalVariables: 0,
             categoryCounts: {},

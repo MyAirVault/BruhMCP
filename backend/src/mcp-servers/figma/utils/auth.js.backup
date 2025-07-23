@@ -1,0 +1,101 @@
+/**
+ * Authentication utilities for Figma service
+ */
+
+/**
+ * Extract API key from request headers
+ * @param {import('express').Request} req - Express request object
+ * @returns {string|null} API key if found, null otherwise
+ */
+export function extractApiKey(req) {
+	// Check X-API-Key header (standard)
+	const apiKeyHeader = req.headers['x-api-key'];
+	if (apiKeyHeader && typeof apiKeyHeader === 'string') {
+		return apiKeyHeader;
+	}
+
+	// Check Authorization header with Bearer token
+	const authHeader = req.headers.authorization;
+	if (authHeader && typeof authHeader === 'string') {
+		if (authHeader.startsWith('Bearer ')) {
+			return authHeader.substring(7);
+		}
+	}
+
+	// Check query parameter (less secure, for testing)
+	const apiKeyQuery = req.query.api_key;
+	if (apiKeyQuery && typeof apiKeyQuery === 'string') {
+		return apiKeyQuery;
+	}
+
+	return null;
+}
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} isValid - Whether the API key is valid
+ * @property {string|null} error - Error message if invalid, null if valid
+ */
+
+/**
+ * Validate API key format and structure
+ * @param {string} apiKey - API key to validate
+ * @returns {ValidationResult}
+ */
+export function validateApiKey(apiKey) {
+	if (!apiKey) {
+		return {
+			isValid: false,
+			error: 'API key is required',
+		};
+	}
+
+	if (typeof apiKey !== 'string') {
+		return {
+			isValid: false,
+			error: 'API key must be a string',
+		};
+	}
+
+	if (!apiKey.startsWith('figd_')) {
+		return {
+			isValid: false,
+			error: 'Invalid Figma API key format. Must start with "figd_"',
+		};
+	}
+
+	if (apiKey.length < 20) {
+		return {
+			isValid: false,
+			error: 'API key appears to be too short',
+		};
+	}
+
+	return {
+		isValid: true,
+		error: null,
+	};
+}
+
+/**
+ * Create authentication middleware for routes
+ * @returns {import('express').RequestHandler}
+ */
+export function createAuthMiddleware() {
+	return (/** @type {import('express').Request & {figmaApiKey?: string}} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
+		const apiKey = extractApiKey(req);
+		const validation = validateApiKey(apiKey || '');
+
+		if (!validation.isValid) {
+			res.status(401).json({
+				error: validation.error,
+				message: 'Valid Figma API key required',
+			});
+			return;
+		}
+
+		// Attach API key to request for use in handlers
+		req.figmaApiKey = /** @type {string} */ (apiKey);
+		next();
+	};
+}

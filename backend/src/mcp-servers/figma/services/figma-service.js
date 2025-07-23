@@ -16,6 +16,34 @@ const FIGMA_BASE_URL = 'https://api.figma.com/v1';
  * @property {boolean} useOAuth - Whether to use OAuth
  */
 
+/**
+ * @typedef {Object} NodeInfo
+ * @property {string} nodeId - Node ID
+ * @property {string} fileName - File name
+ * @property {string} fileType - File type (png, svg)
+ */
+
+/**
+ * @typedef {Object} ImageFillNode
+ * @property {string} imageRef - Image reference
+ * @property {string} fileName - File name
+ */
+
+/**
+ * @typedef {Object} SVGOptions
+ * @property {boolean} [outlineText] - Whether to outline text
+ * @property {boolean} [includeId] - Whether to include IDs
+ * @property {boolean} [simplifyStroke] - Whether to simplify strokes
+ */
+
+/**
+ * @typedef {Record<string, string>} HTTPHeaders
+ */
+
+/**
+ * @typedef {Record<string, string>} ImageFilesMap
+ */
+
 export class FigmaService {
 	/**
 	 * @param {FigmaAuthOptions} authOptions
@@ -36,6 +64,7 @@ export class FigmaService {
 			Logger.log(`Calling ${FIGMA_BASE_URL}${endpoint}`);
 
 			// Set auth headers based on authentication method
+			/** @type {HTTPHeaders} */
 			const headers = {};
 
 			if (this.useOAuth) {
@@ -122,10 +151,10 @@ export class FigmaService {
 	/**
 	 * Get image downloads
 	 * @param {string} fileKey - Figma file key
-	 * @param {Array<Object>} nodes - Nodes to download
+	 * @param {NodeInfo[]} nodes - Nodes to download
 	 * @param {string} localPath - Local path for downloads
 	 * @param {number} pngScale - PNG scale factor
-	 * @param {Object} svgOptions - SVG export options
+	 * @param {SVGOptions} svgOptions - SVG export options
 	 * @returns {Promise<string[]>} Array of download results
 	 */
 	async getImages(fileKey, nodes, localPath, pngScale = 2, svgOptions = {}) {
@@ -151,6 +180,7 @@ export class FigmaService {
 				.then(({ images = {} }) => images)
 			: {};
 
+		/** @type {ImageFilesMap} */
 		const files = await Promise.all([pngFiles, svgFiles]).then(([f, l]) => ({ ...f, ...l }));
 
 		const downloads = nodes
@@ -169,7 +199,7 @@ export class FigmaService {
 	/**
 	 * Get image fills
 	 * @param {string} fileKey - Figma file key
-	 * @param {Array<Object>} nodes - Nodes with image fills
+	 * @param {ImageFillNode[]} nodes - Nodes with image fills
 	 * @param {string} localPath - Local path for downloads
 	 * @returns {Promise<string[]>} Array of download results
 	 */
@@ -180,8 +210,10 @@ export class FigmaService {
 		const endpoint = `/files/${fileKey}/images`;
 		const file = await this.request(endpoint);
 		const { images = {} } = file.meta;
+		/** @type {ImageFilesMap} */
+		const imageFiles = images;
 		promises = nodes.map(async ({ imageRef, fileName }) => {
-			const imageUrl = images[imageRef];
+			const imageUrl = imageFiles[imageRef];
 			if (!imageUrl) {
 				return "";
 			}

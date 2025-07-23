@@ -1,22 +1,22 @@
 /**
  * Creates a successful MCP response with content
- * @param {any} data - Response data
- * @param {object} options - Response options
- * @returns {object} MCP-compliant response
+ * @param {unknown} data - Response data
+ * @param {Record<string, unknown>} options - Response options
+ * @returns {Record<string, unknown>} MCP-compliant response
  */
-export function createSuccessResponse(data: any, options?: object): object;
+export function createSuccessResponse(data: unknown, options?: Record<string, unknown>): Record<string, unknown>;
 /**
  * Creates an error MCP response
  * @param {string} message - Error message
- * @param {object} options - Error options
- * @returns {object} MCP-compliant error response
+ * @param {Record<string, unknown>} options - Error options
+ * @returns {Record<string, unknown>} MCP-compliant error response
  */
-export function createErrorResponse(message: string, options?: object): object;
+export function createErrorResponse(message: string, options?: Record<string, unknown>): Record<string, unknown>;
 /**
  * Create optimized Figma response with deduplication (enhanced version)
- * @param {object} figmaData - Raw Figma API response
- * @param {object} options - Response options
- * @returns {object} MCP-compliant response
+ * @param {Record<string, unknown>} figmaData - Raw Figma API response
+ * @param {Record<string, unknown>} options - Response options
+ * @returns {Record<string, unknown>} MCP-compliant response
  */
-export function createFigmaOptimizedResponse(figmaData: object, options?: object): object;
+export function createFigmaOptimizedResponse(figmaData: Record<string, unknown>, options?: Record<string, unknown>): Record<string, unknown>;
 //# sourceMappingURL=mcp-responses.d.ts.map

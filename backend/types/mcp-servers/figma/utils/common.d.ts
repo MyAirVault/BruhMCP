@@ -17,38 +17,99 @@ export function removeEmptyKeys(input: any): any;
  */
 export function hexToRgba(hex: string, opacity?: number): string;
 /**
- * Convert color from RGBA to { hex, opacity } * @param {Object} color - The color to convert, including alpha channel
+ * Convert color from RGBA to { hex, opacity }
+ * @param {{ r: number, g: number, b: number, a: number }} color - The color to convert, including alpha channel
  * @param {number} opacity - The opacity of the color, if not included in alpha channel
- * @returns {Object} The converted color
+ * @returns {{ hex: string, opacity: number }} The converted color
  */
-export function convertColor(color: Object, opacity?: number): Object;
+export function convertColor(color: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+}, opacity?: number): {
+    hex: string;
+    opacity: number;
+};
 /**
- * Convert color from Figma RGBA to rgba(#, #, #, #) CSS format * @param {Object} color - The color to convert, including alpha channel
+ * Convert color from Figma RGBA to rgba(#, #, #, #) CSS format
+ * @param {{ r: number, g: number, b: number, a: number }} color - The color to convert, including alpha channel
  * @param {number} opacity - The opacity of the color, if not included in alpha channel
  * @returns {string} The converted color
  */
-export function formatRGBAColor(color: Object, opacity?: number): string;
+export function formatRGBAColor(color: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+}, opacity?: number): string;
 /**
  * Generate a 6-character random variable ID * @param {string} prefix - ID prefix
  * @returns {string} A 6-character random ID string with prefix
  */
 export function generateVarId(prefix?: string): string;
 /**
- * Generate a CSS shorthand for values that come with top, right, bottom, and left * @param {Object} values - The values to generate the shorthand for
- * @param {Object} options - Options for generation
+ * Generate a CSS shorthand for values that come with top, right, bottom, and left
+ * @param {{ top: number, right: number, bottom: number, left: number }} values - The values to generate the shorthand for
+ * @param {{ ignoreZero?: boolean, suffix?: string }} options - Options for generation
  * @returns {string|undefined} The generated shorthand
  */
-export function generateCSSShorthand(values: Object, options?: Object): string | undefined;
+export function generateCSSShorthand(values: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+}, options?: {
+    ignoreZero?: boolean;
+    suffix?: string;
+}): string | undefined;
 /**
- * Convert a Figma paint (solid, image, gradient) to a SimplifiedFill * @param {Object} raw - The Figma paint to convert
- * @returns {any} The converted SimplifiedFill
+ * Convert a Figma paint (solid, image, gradient) to a SimplifiedFill
+ * @param {{ type: string, imageRef?: string, scaleMode?: string, color?: { r: number, g: number, b: number, a: number }, opacity?: number, gradientHandlePositions?: any[], gradientStops?: Array<{ position: number, color: { r: number, g: number, b: number, a: number } }> }} raw - The Figma paint to convert
+ * @returns {string | { type: string, imageRef?: string, scaleMode?: string, gradientHandlePositions?: any[], gradientStops?: Array<{ position: number, color: { hex: string, opacity: number } }> }} The converted SimplifiedFill
  */
-export function parsePaint(raw: Object): any;
+export function parsePaint(raw: {
+    type: string;
+    imageRef?: string;
+    scaleMode?: string;
+    color?: {
+        r: number;
+        g: number;
+        b: number;
+        a: number;
+    };
+    opacity?: number;
+    gradientHandlePositions?: any[];
+    gradientStops?: Array<{
+        position: number;
+        color: {
+            r: number;
+            g: number;
+            b: number;
+            a: number;
+        };
+    }>;
+}): string | {
+    type: string;
+    imageRef?: string;
+    scaleMode?: string;
+    gradientHandlePositions?: any[];
+    gradientStops?: Array<{
+        position: number;
+        color: {
+            hex: string;
+            opacity: number;
+        };
+    }>;
+};
 /**
- * Check if an element is visible * @param {Object} element - The item to check
+ * Check if an element is visible
+ * @param {{ visible?: boolean }} element - The item to check
  * @returns {boolean} True if the item is visible, false otherwise
  */
-export function isVisible(element: Object): boolean;
+export function isVisible(element: {
+    visible?: boolean;
+}): boolean;
 /**
  * Rounds a number to two decimal places, suitable for pixel value processing * @param {number} num - The number to be rounded
  * @returns {number} The rounded number with two decimal places

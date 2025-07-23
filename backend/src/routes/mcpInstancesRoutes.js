@@ -7,7 +7,7 @@
  */
 
 import { Router } from 'express';
-import { createMCP, validateMCPCredentials } from '../controllers/mcpInstances/crud/createMCP.js';
+import { createMCP } from '../controllers/mcpInstances/crud/createMCP.js';
 import { getMCPInstances } from '../controllers/mcpInstances/crud/getMCPInstances.js';
 import { getMCPInstance } from '../controllers/mcpInstances/crud/getMCPInstance.js';
 import { deleteMCP } from '../controllers/mcpInstances/crud/deleteMCP.js';
@@ -18,7 +18,10 @@ import { toggleInstanceStatus } from '../controllers/mcpInstances/lifecycle/togg
 import { renewInstance } from '../controllers/mcpInstances/lifecycle/renewInstance.js';
 // Instance editing
 import { updateInstanceName } from '../controllers/mcpInstances/editing/updateInstanceName.js';
-import { updateInstanceCredentials, validateInstanceCredentialsOnly } from '../controllers/mcpInstances/editing/updateInstanceCredentials.js';
+import {
+	updateInstanceCredentials,
+	validateInstanceCredentialsOnly,
+} from '../controllers/mcpInstances/editing/updateInstanceCredentials.js';
 import { updateInstance } from '../controllers/mcpInstances/editing/updateInstance.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
@@ -30,15 +33,12 @@ router.use(requireAuth);
 // POST /api/v1/mcps - Create new MCP instance
 router.post('/', createMCP);
 
-// POST /api/v1/mcps/validate-credentials - Validate MCP credentials
-router.post('/validate-credentials', validateMCPCredentials);
 
 // GET /api/v1/mcps - Get user's MCP instances
 router.get('/', getMCPInstances);
 
 // GET /api/v1/mcps/:id - Get specific MCP instance
 router.get('/:id', getMCPInstance);
-
 
 // DELETE /api/v1/mcps/:id - Delete MCP instance
 router.delete('/:id', deleteMCP);

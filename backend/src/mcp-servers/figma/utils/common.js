@@ -2,8 +2,8 @@
  * Common utilities * Handles color parsing, variable generation, validation, and common operations
  */
 
-import fs from 'fs';
-import path from 'path';
+import { promises as fs, existsSync, constants } from 'fs';
+import { join } from 'path';
 import fetch from 'node-fetch';
 
 /**
@@ -16,21 +16,23 @@ export async function downloadFigmaImage(fileName, localPath, imageUrl) {
 	try {
 		// Ensure local path exists with proper error handling
 		try {
-			if (!fs.existsSync(localPath)) {
-				await fs.promises.mkdir(localPath, { recursive: true });
+			if (!existsSync(localPath)) {
+				await fs.mkdir(localPath, { recursive: true });
 			}
 		} catch (dirError) {
-			throw new Error(`Failed to create directory ${localPath}: ${dirError.message}`);
+			const errorMessage = dirError instanceof Error ? dirError.message : String(dirError);
+			throw new Error(`Failed to create directory ${localPath}: ${errorMessage}`);
 		}
 
 		// Build the complete file path
-		const fullPath = path.join(localPath, fileName);
+		const fullPath = join(localPath, fileName);
 		
 		// Check if we can write to the directory
 		try {
-			await fs.promises.access(localPath, fs.constants.W_OK);
+			await fs.access(localPath, constants.W_OK);
 		} catch (accessError) {
-			throw new Error(`No write permission for directory ${localPath}: ${accessError.message}`);
+			const errorMessage = accessError instanceof Error ? accessError.message : String(accessError);
+			throw new Error(`No write permission for directory ${localPath}: ${errorMessage}`);
 		}
 
 		// Use fetch to download the image
@@ -44,7 +46,7 @@ export async function downloadFigmaImage(fileName, localPath, imageUrl) {
 		const buffer = await response.buffer();
 		
 		// Write the buffer to file
-		await fs.promises.writeFile(fullPath, buffer);
+		await fs.writeFile(fullPath, buffer);
 		
 		return fullPath;
 	} catch (error) {
@@ -69,6 +71,7 @@ export function removeEmptyKeys(input) {
 	}
 
 	// Handle object type
+	/** @type {Record<string, any>} */
 	const result = {};
 	for (const key in input) {
 		if (Object.prototype.hasOwnProperty.call(input, key)) {
@@ -121,9 +124,10 @@ export function hexToRgba(hex, opacity = 1) {
 }
 
 /**
- * Convert color from RGBA to { hex, opacity } * @param {Object} color - The color to convert, including alpha channel
+ * Convert color from RGBA to { hex, opacity }
+ * @param {{ r: number, g: number, b: number, a: number }} color - The color to convert, including alpha channel
  * @param {number} opacity - The opacity of the color, if not included in alpha channel
- * @returns {Object} The converted color
+ * @returns {{ hex: string, opacity: number }} The converted color
  */
 export function convertColor(color, opacity = 1) {
 	const r = Math.round(color.r * 255);
@@ -140,7 +144,8 @@ export function convertColor(color, opacity = 1) {
 }
 
 /**
- * Convert color from Figma RGBA to rgba(#, #, #, #) CSS format * @param {Object} color - The color to convert, including alpha channel
+ * Convert color from Figma RGBA to rgba(#, #, #, #) CSS format
+ * @param {{ r: number, g: number, b: number, a: number }} color - The color to convert, including alpha channel
  * @param {number} opacity - The opacity of the color, if not included in alpha channel
  * @returns {string} The converted color
  */
@@ -171,8 +176,9 @@ export function generateVarId(prefix = "var") {
 }
 
 /**
- * Generate a CSS shorthand for values that come with top, right, bottom, and left * @param {Object} values - The values to generate the shorthand for
- * @param {Object} options - Options for generation
+ * Generate a CSS shorthand for values that come with top, right, bottom, and left
+ * @param {{ top: number, right: number, bottom: number, left: number }} values - The values to generate the shorthand for
+ * @param {{ ignoreZero?: boolean, suffix?: string }} options - Options for generation
  * @returns {string|undefined} The generated shorthand
  */
 export function generateCSSShorthand(values, options = {}) {
@@ -195,8 +201,9 @@ export function generateCSSShorthand(values, options = {}) {
 }
 
 /**
- * Convert a Figma paint (solid, image, gradient) to a SimplifiedFill * @param {Object} raw - The Figma paint to convert
- * @returns {any} The converted SimplifiedFill
+ * Convert a Figma paint (solid, image, gradient) to a SimplifiedFill
+ * @param {{ type: string, imageRef?: string, scaleMode?: string, color?: { r: number, g: number, b: number, a: number }, opacity?: number, gradientHandlePositions?: any[], gradientStops?: Array<{ position: number, color: { r: number, g: number, b: number, a: number } }> }} raw - The Figma paint to convert
+ * @returns {string | { type: string, imageRef?: string, scaleMode?: string, gradientHandlePositions?: any[], gradientStops?: Array<{ position: number, color: { hex: string, opacity: number } }> }} The converted SimplifiedFill
  */
 export function parsePaint(raw) {
 	if (raw.type === "IMAGE") {
@@ -207,6 +214,9 @@ export function parsePaint(raw) {
 		};
 	} else if (raw.type === "SOLID") {
 		// treat as SOLID
+		if (!raw.color) {
+			throw new Error('SOLID paint missing color property');
+		}
 		const { hex, opacity } = convertColor(raw.color, raw.opacity);
 		if (opacity === 1) {
 			return hex;
@@ -219,6 +229,9 @@ export function parsePaint(raw) {
 		)
 	) {
 		// treat as GRADIENT_LINEAR
+		if (!raw.gradientStops) {
+			throw new Error('Gradient paint missing gradientStops property');
+		}
 		return {
 			type: raw.type,
 			gradientHandlePositions: raw.gradientHandlePositions,
@@ -233,7 +246,8 @@ export function parsePaint(raw) {
 }
 
 /**
- * Check if an element is visible * @param {Object} element - The item to check
+ * Check if an element is visible
+ * @param {{ visible?: boolean }} element - The item to check
  * @returns {boolean} True if the item is visible, false otherwise
  */
 export function isVisible(element) {

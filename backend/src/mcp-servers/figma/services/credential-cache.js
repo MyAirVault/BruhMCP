@@ -6,6 +6,40 @@
  * to reduce database hits and improve request performance.
  */
 
+/**
+ * @typedef {Object} CacheEntry
+ * @property {string} credential - The cached credential (API key)
+ * @property {string} expires_at - Expiration timestamp
+ * @property {string} user_id - User ID who owns this instance
+ * @property {string} last_used - Last used timestamp
+ * @property {number} refresh_attempts - Number of refresh attempts
+ * @property {string} cached_at - When the credential was cached
+ * @property {string} [status] - Instance status
+ * @property {string} [last_modified] - Last modified timestamp
+ */
+
+/**
+ * @typedef {Object} CacheStatistics
+ * @property {number} total_entries - Total number of cache entries
+ * @property {number} expired_entries - Number of expired entries
+ * @property {number} recently_used - Number of recently used entries
+ * @property {string} cache_hit_rate_last_hour - Cache hit rate percentage
+ * @property {string} memory_usage_mb - Memory usage in MB
+ */
+
+/**
+ * @typedef {Object} CredentialData
+ * @property {string} api_key - Figma Personal Access Token
+ * @property {string} expires_at - Instance expiration timestamp
+ * @property {string} user_id - User ID who owns this instance
+ */
+
+/**
+ * @typedef {Object} MetadataUpdates
+ * @property {string} [status] - New instance status
+ * @property {string} [expires_at] - New expiration timestamp
+ */
+
 // Global credential cache for Figma service instances
 const figmaCredentialCache = new Map();
 
@@ -22,7 +56,7 @@ export function initializeCredentialCache() {
 /**
  * Get cached credential for an instance
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cached credential data or null if not found/expired
+ * @returns {CacheEntry|null} Cached credential data or null if not found/expired
  */
 export function getCachedCredential(instanceId) {
 	const cached = figmaCredentialCache.get(instanceId);
@@ -48,10 +82,7 @@ export function getCachedCredential(instanceId) {
 /**
  * Store credential in cache
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} credentialData - Credential data to cache
- * @param {string} credentialData.api_key - Figma Personal Access Token
- * @param {string} credentialData.expires_at - Instance expiration timestamp
- * @param {string} credentialData.user_id - User ID who owns this instance
+ * @param {CredentialData} credentialData - Credential data to cache
  */
 export function setCachedCredential(instanceId, credentialData) {
 	const cacheEntry = {
@@ -81,7 +112,7 @@ export function removeCachedCredential(instanceId) {
 
 /**
  * Get cache statistics for monitoring
- * @returns {Object} Cache statistics
+ * @returns {CacheStatistics} Cache statistics
  */
 export function getCacheStatistics() {
 	const totalEntries = figmaCredentialCache.size;
@@ -94,7 +125,7 @@ export function getCacheStatistics() {
 	
 	const recentlyUsed = entries.filter(entry => {
 		const lastUsed = new Date(entry.last_used);
-		const hoursSinceUsed = (now - lastUsed) / (1000 * 60 * 60);
+		const hoursSinceUsed = (now.getTime() - lastUsed.getTime()) / (1000 * 60 * 60);
 		return hoursSinceUsed < 1;
 	}).length;
 	
@@ -102,7 +133,7 @@ export function getCacheStatistics() {
 		total_entries: totalEntries,
 		expired_entries: expiredCount,
 		recently_used: recentlyUsed,
-		cache_hit_rate_last_hour: recentlyUsed > 0 ? (recentlyUsed / totalEntries * 100).toFixed(2) : 0,
+		cache_hit_rate_last_hour: recentlyUsed > 0 ? (recentlyUsed / totalEntries * 100).toFixed(2) : '0.00',
 		memory_usage_mb: (JSON.stringify(Array.from(figmaCredentialCache.entries())).length / 1024 / 1024).toFixed(2)
 	};
 }
@@ -144,7 +175,7 @@ export function clearCredentialCache() {
 /**
  * Get cache entry without updating last_used (for monitoring)
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cache entry or null
+ * @returns {CacheEntry|null} Cache entry or null
  */
 export function peekCachedCredential(instanceId) {
 	return figmaCredentialCache.get(instanceId) || null;
@@ -154,9 +185,7 @@ export function peekCachedCredential(instanceId) {
  * Update cached credential metadata (status, expiration) without changing the credential itself
  * Used for status changes and renewals to keep cache in sync
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} updates - Updates to apply to cache entry
- * @param {string} [updates.status] - New instance status
- * @param {string} [updates.expires_at] - New expiration timestamp
+ * @param {MetadataUpdates} updates - Updates to apply to cache entry
  * @returns {boolean} True if cache entry was updated, false if not found
  */
 export function updateCachedCredentialMetadata(instanceId, updates) {
