@@ -51,6 +51,7 @@ function createAuthRoutes(serviceRegistry) {
 				userId
 			);
 
+			console.log(`📤 Sending validation response for ${serviceName}:`, result);
 			res.json(result);
 		} catch (error) {
 			console.error('Credential validation error:', error);

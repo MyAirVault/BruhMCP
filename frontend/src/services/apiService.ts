@@ -13,10 +13,14 @@ interface ApiError {
   };
 }
 
-const handleResponse = async <T>(response: Response): Promise<T> => {
+const handleResponse = async <T>(response: Response, endpoint?: string): Promise<T> => {
   if (!response.ok) {
-    const errorData: ApiError = await response.json();
-    throw new Error(`${errorData.error.code}: ${errorData.error.message}`);
+    try {
+      const errorData: ApiError = await response.json();
+      throw new Error(`${errorData.error.code}: ${errorData.error.message}`);
+    } catch (e) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
   }
   
   if (response.status === 204) {
@@ -24,6 +28,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   }
   
   const data = await response.json();
+  console.log(`🔍 Raw response from ${endpoint}:`, data);
   
   // For MCP creation responses, return the full response structure
   // to preserve both oauth and data fields
@@ -31,8 +36,16 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     return data as T;
   }
   
+  // Special handling for auth-registry validation responses
+  // These have { success, message, data } structure that we need to preserve
+  if (endpoint && endpoint.includes('/auth-registry/validate/')) {
+    console.log('🔐 Returning full auth validation response');
+    return data as T;
+  }
+  
   // Check if the response has a data field (most API responses)
   if (data.data !== undefined) {
+    console.log('📦 Extracting data field from response');
     return data.data as T;
   }
   
@@ -53,7 +66,7 @@ const makeRequest = async <T>(
     },
   });
   
-  return handleResponse<T>(response);
+  return handleResponse<T>(response, endpoint);
 };
 
 export const apiService = {
@@ -264,27 +277,48 @@ export const apiService = {
     const serviceName = mcpType.name.toLowerCase();
 
     // Use new auth registry validation endpoint
-    const result = await makeRequest<{
-      success: boolean;
-      message: string;
-      data?: {
-        userInfo?: any;
-        service?: string;
-        authType?: string;
-      };
-    }>(`/auth-registry/validate/${serviceName}`, {
-      method: 'POST',
-      body: JSON.stringify(data.credentials),
-    });
+    try {
+      console.log(`🔐 Sending validation request to /auth-registry/validate/${serviceName}`, data.credentials);
+      const result = await makeRequest<{
+        success: boolean;
+        message: string;
+        data?: {
+          userInfo?: any;
+          service?: string;
+          authType?: string;
+        };
+      }>(`/auth-registry/validate/${serviceName}`, {
+        method: 'POST',
+        body: JSON.stringify(data.credentials),
+      });
+      console.log(`✅ Received validation response:`, result);
 
-    return {
-      valid: result.success,
-      message: result.message,
-      api_info: result.data?.userInfo ? {
-        service: serviceName,
-        permissions: ['read', 'write'] // Default permissions
-      } : undefined
-    };
+      // The response structure from backend is { success, message, data }
+      // but makeRequest might have altered it
+      const validationResult = result as any;
+      const success = validationResult.success ?? validationResult.valid ?? false;
+      const responseData = validationResult.data || validationResult;
+      
+      const response = {
+        valid: success,
+        message: validationResult.message || 'Validation completed',
+        api_info: responseData.userInfo ? {
+          service: serviceName,
+          permissions: responseData.userInfo.permissions || ['read', 'write']
+        } : undefined
+      };
+      console.log(`📤 Returning formatted response:`, response);
+      return response;
+    } catch (error) {
+      // If the request fails with a 200 OK but validation failed (success: false),
+      // makeRequest will have already handled it. If we get here, it's a network/server error
+      console.error('Validation request failed:', error);
+      return {
+        valid: false,
+        message: error instanceof Error ? error.message : 'Validation failed',
+        api_info: undefined
+      };
+    }
   },
 
   deleteAPIKey: async (id: string): Promise<void> => {

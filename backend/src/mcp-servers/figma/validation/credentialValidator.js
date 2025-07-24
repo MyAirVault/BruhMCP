@@ -58,6 +58,7 @@ class FigmaAPIKeyValidator extends BaseValidator {
 
       if (response.ok) {
         const data = /** @type {any} */ (await response.json());
+        console.log('✅ Figma API validation successful:', { userId: data.id, email: data.email });
         return createValidationResult(true, null, null, {
           service: 'Figma API',
           auth_type: 'api_key',
@@ -68,6 +69,7 @@ class FigmaAPIKeyValidator extends BaseValidator {
           permissions: ['file_read', 'file_write'],
         });
       } else {
+        console.log('❌ Figma API validation failed:', response.status, response.statusText);
         return createValidationResult(false, 'Invalid Figma API token - API test failed', 'api_key');
       }
     } catch (/** @type {any} */ error) {

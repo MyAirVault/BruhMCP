@@ -269,7 +269,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, hasAllRequiredFields, buildCredentialsObject, validationState.isValidating, validationState.isValid, validationState.failureCount, validationState.lastFailedCredentials, getCredentialsHash]);
+  }, [selectedMcpType, formData.apiKey, formData.clientId, formData.clientSecret, formData.credentials, requiresCredentials, hasAllRequiredFields, buildCredentialsObject, getCredentialsHash]);
 
   // Check if form is valid for submission
   const isFormValid = useCallback(() => {

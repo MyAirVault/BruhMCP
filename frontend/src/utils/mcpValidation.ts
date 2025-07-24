@@ -100,10 +100,12 @@ export const useMCPValidation = () => {
     setValidationState(prev => ({ ...prev, isValidating: true, error: null }));
 
     try {
+      console.log('🔄 Validating credentials for:', mcpType.name, credentials);
       const result = await apiService.validateCredentials({
         mcp_type_id: mcpType.id,
         credentials
       });
+      console.log('📥 Validation result:', result);
 
       setValidationState({
         isValidating: false,
