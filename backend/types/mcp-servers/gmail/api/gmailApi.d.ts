@@ -1,0 +1,2 @@
+export { makeGmailRequest, sendEmail, fetchEmails, fetchMessageById, replyToEmail, deleteMessage, moveToTrash, searchEmails, createDraft, sendDraft, listDrafts, getThread, markAsRead, markAsUnread, downloadAttachment, listAttachments, sendEmailWithAttachments } from "./modules/index.js";
+//# sourceMappingURL=gmailApi.d.ts.map

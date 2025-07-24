@@ -1,16 +1,16 @@
 /**
- * @typedef {import('../api/modules/message-operations.js').SendEmailArgs} SendEmailArgs
- * @typedef {import('../api/modules/message-operations.js').FetchEmailsArgs} FetchEmailsArgs
- * @typedef {import('../api/modules/message-operations.js').FetchMessageByIdArgs} FetchMessageByIdArgs
- * @typedef {import('../api/modules/message-operations.js').ReplyToEmailArgs} ReplyToEmailArgs
- * @typedef {import('../api/modules/message-operations.js').MessageIdArgs} MessageIdArgs
- * @typedef {import('../api/modules/message-operations.js').SearchEmailsArgs} SearchEmailsArgs
- * @typedef {import('../api/modules/thread-operations.js').GetThreadArgs} GetThreadArgs
- * @typedef {import('../api/modules/draft-operations.js').CreateDraftArgs} CreateDraftArgs
- * @typedef {import('../api/modules/draft-operations.js').SendDraftArgs} SendDraftArgs
- * @typedef {import('../api/modules/draft-operations.js').ListDraftsArgs} ListDraftsArgs
- * @typedef {import('../api/label-operations.js').CreateLabelArgs} CreateLabelArgs
- * @typedef {import('../api/label-operations.js').ModifyLabelsArgs} ModifyLabelsArgs
+ * @typedef {import('../api/modules/messageOperations.js').SendEmailArgs} SendEmailArgs
+ * @typedef {import('../api/modules/messageOperations.js').FetchEmailsArgs} FetchEmailsArgs
+ * @typedef {import('../api/modules/messageOperations.js').FetchMessageByIdArgs} FetchMessageByIdArgs
+ * @typedef {import('../api/modules/messageOperations.js').ReplyToEmailArgs} ReplyToEmailArgs
+ * @typedef {import('../api/modules/messageOperations.js').MessageIdArgs} MessageIdArgs
+ * @typedef {import('../api/modules/messageOperations.js').SearchEmailsArgs} SearchEmailsArgs
+ * @typedef {import('../api/modules/threadOperations.js').GetThreadArgs} GetThreadArgs
+ * @typedef {import('../api/modules/draftOperations.js').CreateDraftArgs} CreateDraftArgs
+ * @typedef {import('../api/modules/draftOperations.js').SendDraftArgs} SendDraftArgs
+ * @typedef {import('../api/modules/draftOperations.js').ListDraftsArgs} ListDraftsArgs
+ * @typedef {import('../api/labelOperations.js').CreateLabelArgs} CreateLabelArgs
+ * @typedef {import('../api/labelOperations.js').ModifyLabelsArgs} ModifyLabelsArgs
  */
 /**
  * @typedef {Object} MarkAsReadArgs
@@ -35,18 +35,18 @@
  * @returns {Promise<Object>} Tool execution result
  */
 export function executeToolCall(toolName: string, args: ToolArgs, bearerToken: string): Promise<Object>;
-export type SendEmailArgs = import("../api/modules/message-operations.js").SendEmailArgs;
-export type FetchEmailsArgs = import("../api/modules/message-operations.js").FetchEmailsArgs;
-export type FetchMessageByIdArgs = import("../api/modules/message-operations.js").FetchMessageByIdArgs;
-export type ReplyToEmailArgs = import("../api/modules/message-operations.js").ReplyToEmailArgs;
-export type MessageIdArgs = import("../api/modules/message-operations.js").MessageIdArgs;
-export type SearchEmailsArgs = import("../api/modules/message-operations.js").SearchEmailsArgs;
-export type GetThreadArgs = import("../api/modules/thread-operations.js").GetThreadArgs;
-export type CreateDraftArgs = import("../api/modules/draft-operations.js").CreateDraftArgs;
-export type SendDraftArgs = import("../api/modules/draft-operations.js").SendDraftArgs;
-export type ListDraftsArgs = import("../api/modules/draft-operations.js").ListDraftsArgs;
-export type CreateLabelArgs = import("../api/label-operations.js").CreateLabelArgs;
-export type ModifyLabelsArgs = import("../api/label-operations.js").ModifyLabelsArgs;
+export type SendEmailArgs = import("../api/modules/messageOperations.js").SendEmailArgs;
+export type FetchEmailsArgs = import("../api/modules/messageOperations.js").FetchEmailsArgs;
+export type FetchMessageByIdArgs = import("../api/modules/messageOperations.js").FetchMessageByIdArgs;
+export type ReplyToEmailArgs = import("../api/modules/messageOperations.js").ReplyToEmailArgs;
+export type MessageIdArgs = import("../api/modules/messageOperations.js").MessageIdArgs;
+export type SearchEmailsArgs = import("../api/modules/messageOperations.js").SearchEmailsArgs;
+export type GetThreadArgs = import("../api/modules/threadOperations.js").GetThreadArgs;
+export type CreateDraftArgs = import("../api/modules/draftOperations.js").CreateDraftArgs;
+export type SendDraftArgs = import("../api/modules/draftOperations.js").SendDraftArgs;
+export type ListDraftsArgs = import("../api/modules/draftOperations.js").ListDraftsArgs;
+export type CreateLabelArgs = import("../api/labelOperations.js").CreateLabelArgs;
+export type ModifyLabelsArgs = import("../api/labelOperations.js").ModifyLabelsArgs;
 export type MarkAsReadArgs = {
     /**
      * - Array of message IDs to mark as read

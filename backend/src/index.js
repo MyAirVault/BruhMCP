@@ -88,10 +88,7 @@ app.use((req, res, next) => {
 	
 	res.on('finish', () => {
 		const responseTime = Date.now() - startTime;
-		loggingService.logAPIRequest({
-			...req,
-			ip: req.ip || 'unknown'
-		}, res, responseTime);
+		loggingService.logAPIRequest(req, res, responseTime);
 	});
 	
 	next();

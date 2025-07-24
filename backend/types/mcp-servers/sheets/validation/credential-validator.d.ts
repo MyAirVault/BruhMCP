@@ -44,5 +44,5 @@ export default createGoogleSheetsValidator;
  * @returns {BaseValidator} Validator instance
  */
 declare function createGoogleSheetsValidator(credentials: any): BaseValidator;
-import { BaseValidator } from '../../../services/validation/base-validator.js';
+import { BaseValidator } from '../../../services/validation/baseValidator.js';
 //# sourceMappingURL=credential-validator.d.ts.map

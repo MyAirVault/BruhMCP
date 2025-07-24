@@ -1,4 +1,4 @@
-import { getMCPTypeByName } from '../../db/queries/mcpTypesQueries.js';
+import { getMCPTypeByName, getMCPTypeById } from '../../db/queries/mcpTypesQueries.js';
 
 /**
  * @typedef {Object} MCPType
@@ -22,7 +22,16 @@ export async function getMCPTypeByNameHandler(req, res) {
 	try {
 		const { name } = req.params;
 
-		const mcpTypeRaw = await getMCPTypeByName(name);
+		// Check if the parameter is a UUID (36 characters with dashes)
+		const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(name);
+		
+		let mcpTypeRaw;
+		if (isUUID) {
+			mcpTypeRaw = await getMCPTypeById(name);
+		} else {
+			mcpTypeRaw = await getMCPTypeByName(name);
+		}
+		
 		/** @type {MCPType|null} */
 		const mcpType = /** @type {MCPType|null} */ (mcpTypeRaw);
 
@@ -62,11 +71,11 @@ export async function getMCPTypeByNameHandler(req, res) {
 		}
 
 		const formattedMcpType = {
-			id: mcpType.id,
-			name: mcpType.name,
+			id: mcpType.mcp_service_id,
+			name: mcpType.mcp_service_name,
 			display_name: mcpType.display_name,
 			description: mcpType.description,
-			icon_url: mcpType.icon_url,
+			icon_url: mcpType.icon_url_path,
 			config_template: mcpType.config_template,
 			resource_limits: mcpType.resource_limits,
 			is_active: mcpType.is_active,

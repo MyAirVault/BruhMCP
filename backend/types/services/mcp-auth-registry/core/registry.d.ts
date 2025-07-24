@@ -1,10 +1,10 @@
-export type ServiceRegistryMap = import("../types/service-types.js").ServiceRegistryMap;
-export type ServiceRegistryEntry = import("../types/service-types.js").ServiceRegistryEntry;
-export type ServiceError = import("../types/service-types.js").ServiceError;
+export type ServiceRegistryMap = import("../types/serviceTypes.js").ServiceRegistryMap;
+export type ServiceRegistryEntry = import("../types/serviceTypes.js").ServiceRegistryEntry;
+export type ServiceError = import("../types/serviceTypes.js").ServiceError;
 /**
- * @typedef {import('../types/service-types.js').ServiceRegistryMap} ServiceRegistryMap
- * @typedef {import('../types/service-types.js').ServiceRegistryEntry} ServiceRegistryEntry
- * @typedef {import('../types/service-types.js').ServiceError} ServiceError
+ * @typedef {import('../types/serviceTypes.js').ServiceRegistryMap} ServiceRegistryMap
+ * @typedef {import('../types/serviceTypes.js').ServiceRegistryEntry} ServiceRegistryEntry
+ * @typedef {import('../types/serviceTypes.js').ServiceError} ServiceError
  */
 /**
  * Main service registry class
@@ -35,10 +35,10 @@ export class ServiceRegistry {
     getAvailableServices(): string[];
     /**
      * Get services by type
-     * @param {import('../types/service-types.js').ServiceType} type - Service type
+     * @param {import('../types/serviceTypes.js').ServiceType} type - Service type
      * @returns {string[]} Array of service names matching type
      */
-    getServicesByType(type: import("../types/service-types.js").ServiceType): string[];
+    getServicesByType(type: import("../types/serviceTypes.js").ServiceType): string[];
     /**
      * Call service function
      * @param {string} serviceName - Service name

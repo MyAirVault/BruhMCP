@@ -61,15 +61,15 @@ export class MCPAuthRegistry {
     /**
      * Gets service information by name
      * @param {string} serviceName - Name of the service
-     * @returns {import('./types/service-types.js').ServiceRegistryEntry|null} Service entry or null if not found
+     * @returns {import('./types/serviceTypes.js').ServiceRegistryEntry|null} Service entry or null if not found
      */
-    getService(serviceName: string): import("./types/service-types.js").ServiceRegistryEntry | null;
+    getService(serviceName: string): import("./types/serviceTypes.js").ServiceRegistryEntry | null;
     /**
      * Gets services by type
-     * @param {import('./types/service-types.js').ServiceType} type - Service type
+     * @param {import('./types/serviceTypes.js').ServiceType} type - Service type
      * @returns {string[]} Array of service names matching type
      */
-    getServicesByType(type: import("./types/service-types.js").ServiceType): string[];
+    getServicesByType(type: import("./types/serviceTypes.js").ServiceType): string[];
     /**
      * Gets registry statistics
      * @returns {{initialized: boolean, totalServices: number, activeServices: number, servicesByType: Object.<string, number>, services?: string[]}} Registry statistics

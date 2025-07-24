@@ -5,5 +5,5 @@ export default createSlackValidator;
  * @returns {BaseValidator} Appropriate validator instance
  */
 declare function createSlackValidator(credentials: any): BaseValidator;
-import { BaseValidator } from '../../../services/validation/base-validator.js';
+import { BaseValidator } from '../../../services/validation/baseValidator.js';
 //# sourceMappingURL=credential-validator.d.ts.map

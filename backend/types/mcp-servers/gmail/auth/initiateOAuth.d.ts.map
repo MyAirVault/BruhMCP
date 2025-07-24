@@ -1,0 +1,1 @@
+{"version":3,"file":"initiateOAuth.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/gmail/auth/initiateOAuth.js"],"names":[],"mappings":"0BAUa,OAAO,2DAA2D,EAAE,WAAW;8BAC/E,OAAO,2DAA2D,EAAE,eAAe;AAFhG;;;GAGG;AAGH;;;;;GAKG;AACH,2CAJW,eAAe,UACf,MAAM,GACJ,OAAO,CAAC,WAAW,CAAC,CA4DhC"}
