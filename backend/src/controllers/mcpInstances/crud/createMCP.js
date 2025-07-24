@@ -241,7 +241,8 @@ export async function createMCP(req, res) {
 					mcpService.mcp_service_name.toLowerCase(),
 					'initiateOAuth',
 					credentials,
-					userId
+					userId,
+					createdInstance.instance_id
 				);
 
 				// Format instance to match frontend expectations

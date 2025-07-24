@@ -216,25 +216,195 @@ function createAuthRoutes(serviceRegistry) {
 			}
 
 			// Call service OAuth callback function
+			console.log(`📞 Calling ${serviceName} oauthCallback function`);
 			const result = await serviceRegistry.callServiceFunction(
 				serviceName,
 				'oauthCallback',
 				String(code),
 				String(state)
 			);
+			console.log(`📞 ${serviceName} oauthCallback returned:`, result);
 
 			if (result.success) {
 				console.log(`✅ OAuth callback successful for ${serviceName}`);
-				return res.redirect(`${frontendUrl}/dashboard?success=oauth_complete&service=${serviceName}`);
+				// Send HTML that closes the popup window
+				return res.send(`
+					<!DOCTYPE html>
+					<html>
+					<head>
+						<title>Authentication Complete</title>
+						<style>
+							body {
+								font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+								display: flex;
+								justify-content: center;
+								align-items: center;
+								height: 100vh;
+								margin: 0;
+								background-color: #f5f5f5;
+							}
+							.container {
+								text-align: center;
+								padding: 2rem;
+								background: white;
+								border-radius: 8px;
+								box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+							}
+							.success {
+								color: #10b981;
+								font-size: 48px;
+								margin-bottom: 1rem;
+							}
+						</style>
+					</head>
+					<body>
+						<div class="container">
+							<div class="success">✓</div>
+							<h2>Authentication Successful!</h2>
+							<p>You can close this window.</p>
+						</div>
+						<script>
+							// Notify parent window if available
+							if (window.opener && !window.opener.closed) {
+								window.opener.postMessage({
+									type: 'oauth-success',
+									service: '${serviceName}'
+								}, '${frontendUrl}');
+							}
+							// Close window after a brief delay
+							setTimeout(() => {
+								window.close();
+							}, 1500);
+						</script>
+					</body>
+					</html>
+				`);
 			} else {
 				console.error(`❌ OAuth callback failed for ${serviceName}: ${result.message}`);
-				return res.redirect(`${frontendUrl}/dashboard?error=${encodeURIComponent(result.message || 'oauth_failed')}`);
+				// Send HTML that shows error and closes the popup window
+				return res.send(`
+					<!DOCTYPE html>
+					<html>
+					<head>
+						<title>Authentication Failed</title>
+						<style>
+							body {
+								font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+								display: flex;
+								justify-content: center;
+								align-items: center;
+								height: 100vh;
+								margin: 0;
+								background-color: #f5f5f5;
+							}
+							.container {
+								text-align: center;
+								padding: 2rem;
+								background: white;
+								border-radius: 8px;
+								box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+								max-width: 400px;
+							}
+							.error {
+								color: #ef4444;
+								font-size: 48px;
+								margin-bottom: 1rem;
+							}
+							.message {
+								color: #6b7280;
+								margin-top: 1rem;
+							}
+						</style>
+					</head>
+					<body>
+						<div class="container">
+							<div class="error">✗</div>
+							<h2>Authentication Failed</h2>
+							<p class="message">${result.message || 'OAuth authentication failed'}</p>
+							<p>You can close this window and try again.</p>
+						</div>
+						<script>
+							// Notify parent window if available
+							if (window.opener && !window.opener.closed) {
+								window.opener.postMessage({
+									type: 'oauth-error',
+									error: '${result.message || 'OAuth authentication failed'}',
+									service: '${serviceName}'
+								}, '${frontendUrl}');
+							}
+							// Close window after a longer delay for errors
+							setTimeout(() => {
+								window.close();
+							}, 3000);
+						</script>
+					</body>
+					</html>
+				`);
 			}
 		} catch (error) {
 			console.error('OAuth callback processing error:', error);
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-			return res.redirect(`${frontendUrl}/dashboard?error=${encodeURIComponent(errorMessage)}`);
+			// Send HTML that shows error and closes the popup window
+			return res.send(`
+				<!DOCTYPE html>
+				<html>
+				<head>
+					<title>Authentication Error</title>
+					<style>
+						body {
+							font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+							display: flex;
+							justify-content: center;
+							align-items: center;
+							height: 100vh;
+							margin: 0;
+							background-color: #f5f5f5;
+						}
+						.container {
+							text-align: center;
+							padding: 2rem;
+							background: white;
+							border-radius: 8px;
+							box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+							max-width: 400px;
+						}
+						.error {
+							color: #ef4444;
+							font-size: 48px;
+							margin-bottom: 1rem;
+						}
+						.message {
+							color: #6b7280;
+							margin-top: 1rem;
+							word-break: break-word;
+						}
+					</style>
+				</head>
+				<body>
+					<div class="container">
+						<div class="error">⚠</div>
+						<h2>Authentication Error</h2>
+						<p class="message">${errorMessage}</p>
+						<p>You can close this window and try again.</p>
+					</div>
+					<script>
+						// Notify parent window if available
+						if (window.opener && !window.opener.closed) {
+							window.opener.postMessage({
+								type: 'oauth-error',
+								error: '${errorMessage.replace(/'/g, "\\'")}',
+								service: '${serviceName}'
+							}, '${frontendUrl}');
+						}
+						// Close window after a longer delay for errors
+						setTimeout(() => {
+							window.close();
+						}, 3000);
+					</script>
+				</body>
+				</html>
+			`);
 		}
 	});
 

@@ -41,6 +41,7 @@ export async function updateOAuthStatus(instanceId, oauthData) {
 		const credentialsParams = [status, completedAt, accessToken, refreshToken, tokenExpiresAt, scope, instanceId];
 
 		const updateResult = await client.query(credentialsQuery, credentialsParams);
+		console.log(`📝 Updated credentials table for instance ${instanceId}: ${updateResult.rowCount} rows affected`);
 
 		// If no rows were updated, the credentials record doesn't exist
 		// This should not happen for properly created OAuth instances
@@ -62,8 +63,10 @@ export async function updateOAuthStatus(instanceId, oauthData) {
 		`;
 
 		const instanceResult = await client.query(instanceQuery, [status, instanceId]);
+		console.log(`📝 Updated mcp_service_table for instance ${instanceId}: ${instanceResult.rowCount} rows affected, oauth_status = ${status}`);
 
 		await client.query('COMMIT');
+		console.log(`✅ Transaction committed for instance ${instanceId}`);
 		return instanceResult.rows[0];
 	} catch (error) {
 		await client.query('ROLLBACK');

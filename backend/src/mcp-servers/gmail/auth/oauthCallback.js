@@ -68,27 +68,42 @@ async function oauthCallback(code, state) {
 		}
 
 		// Parse state to get instance ID
+		console.log(`📋 Parsing state to get instance ID`);
 		const stateData = /** @type {StateData} */ (JSON.parse(Buffer.from(state, 'base64').toString('utf-8')));
 		const { instanceId } = stateData;
+		console.log(`📋 Extracted instanceId: ${instanceId}`);
 
 		// Ensure tokens exist
 		if (!callbackResult.tokens) {
+			console.error(`❌ No tokens received from OAuth callback`);
 			return {
 				success: false,
 				message: 'OAuth callback succeeded but no tokens received'
 			};
 		}
+		console.log(`✅ Tokens received:`, {
+			hasAccessToken: !!callbackResult.tokens.access_token,
+			hasRefreshToken: !!callbackResult.tokens.refresh_token,
+			expiresIn: callbackResult.tokens.expires_in
+		});
 
 		// Update instance with OAuth tokens
-		await updateOAuthStatus(instanceId, {
-			status: 'completed',
-			accessToken: callbackResult.tokens.access_token,
-			refreshToken: callbackResult.tokens.refresh_token,
-			tokenExpiresAt: callbackResult.tokens.expires_in 
-				? new Date(Date.now() + (callbackResult.tokens.expires_in * 1000))
-				: undefined,
-			scope: callbackResult.tokens.scope
-		});
+		try {
+			console.log(`🔄 Updating OAuth status for instance ${instanceId} to 'completed'`);
+			await updateOAuthStatus(instanceId, {
+				status: 'completed',
+				accessToken: callbackResult.tokens.access_token,
+				refreshToken: callbackResult.tokens.refresh_token,
+				tokenExpiresAt: callbackResult.tokens.expires_in 
+					? new Date(Date.now() + (callbackResult.tokens.expires_in * 1000))
+					: undefined,
+				scope: callbackResult.tokens.scope
+			});
+			console.log(`✅ OAuth status updated successfully for instance ${instanceId}`);
+		} catch (updateError) {
+			console.error(`❌ Failed to update OAuth status for instance ${instanceId}:`, updateError);
+			throw updateError;
+		}
 
 		console.log(`✅ Gmail OAuth callback completed for instance: ${instanceId}`);
 

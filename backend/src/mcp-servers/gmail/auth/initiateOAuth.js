@@ -4,8 +4,6 @@
  */
 
 import GmailOAuthHandler from '../oauth/oauthHandler.js';
-import { createMCPInstance } from '../../../db/queries/mcpInstances/creation.js';
-import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -17,11 +15,20 @@ import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
  * Initiates OAuth flow for Gmail service
  * @param {CredentialsData} credentials - OAuth credentials (clientId, clientSecret)
  * @param {string} userId - User ID initiating OAuth
+ * @param {string} instanceId - Existing MCP instance ID
  * @returns {Promise<OAuthResult>} OAuth initiation result
  */
-async function initiateOAuth(credentials, userId) {
+async function initiateOAuth(credentials, userId, instanceId) {
 	try {
-		console.log(`🚀 Initiating Gmail OAuth for user: ${userId}`);
+		console.log(`🚀 Initiating Gmail OAuth for user: ${userId}, instance: ${instanceId}`);
+
+		// Validate required parameters
+		if (!instanceId) {
+			return {
+				success: false,
+				message: 'Instance ID is required for Gmail OAuth'
+			};
+		}
 
 		// Validate required credentials
 		if (!credentials || !credentials.clientId || !credentials.clientSecret) {
@@ -34,28 +41,9 @@ async function initiateOAuth(credentials, userId) {
 		// Create OAuth handler instance
 		const oauthHandler = new GmailOAuthHandler();
 
-		// Get MCP service ID for Gmail
-		const mcpService = await getMCPTypeByName('gmail');
-		if (!mcpService) {
-			return {
-				success: false,
-				message: 'Gmail service not found in MCP services table'
-			};
-		}
-
-		// First create a pending MCP instance to track the OAuth flow
-		const instanceRecord = await createMCPInstance({
-			userId,
-			mcpServiceId: mcpService.mcp_service_id,
-			customName: 'Gmail OAuth',
-			clientId: credentials.clientId,
-			clientSecret: credentials.clientSecret,
-			serviceType: 'oauth'
-		});
-
-		// Initiate OAuth flow using the instance ID and user ID
+		// Initiate OAuth flow using the existing instance ID
 		const oauthResult = await oauthHandler.initiateFlow(
-			instanceRecord.instance_id,
+			instanceId,
 			userId,
 			{
 				client_id: credentials.clientId,
@@ -63,12 +51,13 @@ async function initiateOAuth(credentials, userId) {
 			}
 		);
 
-		console.log(`✅ Gmail OAuth initiated for instance: ${instanceRecord.instance_id}`);
+		console.log(`✅ Gmail OAuth initiated for instance: ${instanceId}`);
 
 		return {
 			success: true,
 			authUrl: oauthResult.authUrl,
 			state: oauthResult.state,
+			instanceId: instanceId, // Return the same instance ID
 			message: 'Gmail OAuth flow initiated successfully',
 		};
 	} catch (error) {

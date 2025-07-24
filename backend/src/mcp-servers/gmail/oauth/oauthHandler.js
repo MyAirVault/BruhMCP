@@ -109,7 +109,7 @@ class GmailOAuthHandler {
 			const oauth2Client = new google.auth.OAuth2(client_id, client_secret, this.redirectUri);
 
 			// Exchange code for tokens
-			const { tokens } = await oauth2Client.getTokens(code);
+			const { tokens } = await oauth2Client.getToken(code);
 
 			if (!tokens.access_token) {
 				throw new Error('Failed to obtain access token');

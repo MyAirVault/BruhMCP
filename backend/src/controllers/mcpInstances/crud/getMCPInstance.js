@@ -76,6 +76,11 @@ export async function getMCPInstance(req, res) {
 
 		// Format response
 		const instanceData = /** @type {any} */ (instance);
+		console.log('🔍 getMCPInstance - Raw instance data:', {
+			instance_id: instanceData.instance_id,
+			oauth_status: instanceData.oauth_status,
+			status: instanceData.status
+		});
 		const formattedInstance = {
 			id: instanceData.instance_id,
 			custom_name: instanceData.custom_name,
