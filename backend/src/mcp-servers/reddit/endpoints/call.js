@@ -23,7 +23,7 @@ import {
   getSubscriptions,
   subscribeToSubreddit,
   unsubscribeFromSubreddit
-} from '../api/reddit-api.js';
+} from '../api/redditApi.js';
 
 import { validateToolArguments } from '../utils/validation.js';
 

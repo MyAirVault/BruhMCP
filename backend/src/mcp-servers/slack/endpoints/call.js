@@ -23,7 +23,7 @@ import {
   createReminder,
   getTeamInfo,
   testAuth
-} from '../api/slack-api.js';
+} from '../api/slackApi.js';
 
 import { validateToolArguments } from '../utils/validation.js';
 

@@ -26,6 +26,9 @@
  * @typedef {Request & {airtableApiKey?: string, instanceId?: string, userId?: string, instance?: InstanceData, cacheHit?: boolean}} AuthenticatedRequest
  */
 /**
+ * @typedef {import('http').IncomingMessage & {headers: Record<string, string | undefined>}} RequestWithHeaders
+ */
+/**
  * Create credential authentication middleware with caching
  * This is the new primary middleware that replaces instance-auth for better performance
  * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | Response>} Express middleware function
@@ -105,5 +108,8 @@ export type AuthenticatedRequest = Request & {
     userId?: string;
     instance?: InstanceData;
     cacheHit?: boolean;
+};
+export type RequestWithHeaders = import("http").IncomingMessage & {
+    headers: Record<string, string | undefined>;
 };
 //# sourceMappingURL=credentialAuth.d.ts.map

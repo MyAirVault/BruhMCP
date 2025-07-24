@@ -11,17 +11,31 @@ const logger = createLogger('ErrorHandler');
  * Custom error classes
  */
 export class AirtableError extends Error {
+	/**
+	 * @param {string} message - Error message
+	 * @param {string} code - Error code
+	 * @param {number} statusCode - HTTP status code
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, code, statusCode, details = {}) {
 		super(message);
 		this.name = 'AirtableError';
+		/** @type {string} */
 		this.code = code;
+		/** @type {number} */
 		this.statusCode = statusCode;
+		/** @type {Record<string, string | number | boolean | Object>} */
 		this.details = details;
+		/** @type {string} */
 		this.timestamp = new Date().toISOString();
 	}
 }
 
 export class ValidationError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'VALIDATION_ERROR', 400, details);
 		this.name = 'ValidationError';
@@ -29,6 +43,10 @@ export class ValidationError extends AirtableError {
 }
 
 export class AuthenticationError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'AUTHENTICATION_ERROR', 401, details);
 		this.name = 'AuthenticationError';
@@ -36,6 +54,10 @@ export class AuthenticationError extends AirtableError {
 }
 
 export class AuthorizationError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'AUTHORIZATION_ERROR', 403, details);
 		this.name = 'AuthorizationError';
@@ -43,6 +65,10 @@ export class AuthorizationError extends AirtableError {
 }
 
 export class NotFoundError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'NOT_FOUND_ERROR', 404, details);
 		this.name = 'NotFoundError';
@@ -50,14 +76,24 @@ export class NotFoundError extends AirtableError {
 }
 
 export class RateLimitError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {number} retryAfter - Retry after seconds
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, retryAfter, details = {}) {
 		super(message, 'RATE_LIMIT_ERROR', 429, { retryAfter, ...details });
 		this.name = 'RateLimitError';
+		/** @type {number} */
 		this.retryAfter = retryAfter;
 	}
 }
 
 export class UnprocessableEntityError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'UNPROCESSABLE_ENTITY_ERROR', 422, details);
 		this.name = 'UnprocessableEntityError';
@@ -65,6 +101,10 @@ export class UnprocessableEntityError extends AirtableError {
 }
 
 export class InternalServerError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'INTERNAL_SERVER_ERROR', 500, details);
 		this.name = 'InternalServerError';
@@ -72,6 +112,10 @@ export class InternalServerError extends AirtableError {
 }
 
 export class ServiceUnavailableError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'SERVICE_UNAVAILABLE_ERROR', 503, details);
 		this.name = 'ServiceUnavailableError';
@@ -79,6 +123,10 @@ export class ServiceUnavailableError extends AirtableError {
 }
 
 export class NetworkError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'NETWORK_ERROR', 0, details);
 		this.name = 'NetworkError';
@@ -86,6 +134,10 @@ export class NetworkError extends AirtableError {
 }
 
 export class TimeoutError extends AirtableError {
+	/**
+	 * @param {string} message - Error message
+	 * @param {Record<string, string | number | boolean | Object>} details - Error details
+	 */
 	constructor(message, details = {}) {
 		super(message, 'TIMEOUT_ERROR', 408, details);
 		this.name = 'TimeoutError';
@@ -102,6 +154,7 @@ export class AirtableErrorHandler {
 	 * @returns {Promise<AirtableError>}
 	 */
 	static async fromResponse(response) {
+		/** @type {Record<string, string | number | boolean | Object>} */
 		let errorData = {};
 		
 		try {
@@ -110,12 +163,13 @@ export class AirtableErrorHandler {
 				errorData = JSON.parse(text);
 			}
 		} catch (parseError) {
-			logger.warn('Failed to parse error response', { parseError: parseError.message });
+			logger.warn('Failed to parse error response', { parseError: parseError instanceof Error ? parseError.message : String(parseError) });
 		}
 
 		const { status, statusText, url } = response;
-		const message = errorData.error?.message || statusText || 'Unknown error';
+		const message = /** @type {Record<string, Record<string, string>>} */ (errorData).error?.message || statusText || 'Unknown error';
 		// Convert headers to object - compatible with older environments
+		/** @type {Record<string, string>} */
 		const headers = {};
 		if (response.headers.forEach) {
 			response.headers.forEach((value, key) => {
@@ -386,15 +440,15 @@ export class AirtableErrorHandler {
 /**
  * Error middleware for Express
  * @param {Error} err - Error object
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next middleware
+ * @param {import('express').Request} req - Request object
+ * @param {import('express').Response} res - Response object
+ * @param {import('express').NextFunction} next - Next middleware
  */
 export function errorMiddleware(err, req, res, next) {
 	const error = AirtableErrorHandler.handle(err, {
 		method: req.method,
 		url: req.url,
-		instanceId: req.instanceId,
+		instanceId: /** @type {import('express').Request & {instanceId?: string}} */ (req).instanceId,
 		userAgent: req.get('User-Agent')
 	});
 
@@ -405,8 +459,8 @@ export function errorMiddleware(err, req, res, next) {
 
 /**
  * Async error wrapper
- * @param {Function} fn - Async function to wrap
- * @returns {Function}
+ * @param {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} fn - Async function to wrap
+ * @returns {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => void}
  */
 export function asyncErrorHandler(fn) {
 	return (req, res, next) => {
@@ -416,9 +470,10 @@ export function asyncErrorHandler(fn) {
 
 /**
  * Error recovery helper
- * @param {Function} operation - Operation to execute
- * @param {Object} options - Recovery options
- * @returns {Promise}
+ * @template T
+ * @param {() => Promise<T>} operation - Operation to execute
+ * @param {{maxRetries?: number, retryDelay?: number, context?: Record<string, string | number | boolean>}} options - Recovery options
+ * @returns {Promise<T>}
  */
 export async function withErrorRecovery(operation, options = {}) {
 	const { maxRetries = 3, retryDelay = 1000, context = {} } = options;

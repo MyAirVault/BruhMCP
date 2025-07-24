@@ -20,7 +20,7 @@ export async function listBases(apiKey) {
 	await handleApiError(response, 'Bases list');
 	
 	const data = await response.json();
-	const formattedResponse = formatApiResponse(data, 'list_bases');
+	const formattedResponse = formatApiResponse(/** @type {Object} */ (data), 'list_bases');
 	if (!formattedResponse || typeof formattedResponse !== 'object') {
 		throw new Error('Invalid response from Airtable API');
 	}
@@ -44,7 +44,7 @@ export async function getBaseSchema(baseId, apiKey) {
 	await handleApiError(response, `Base schema for ${baseId}`);
 	
 	const data = await response.json();
-	const formattedResponse = formatApiResponse(data, 'get_base_schema');
+	const formattedResponse = formatApiResponse(/** @type {Object} */ (data), 'get_base_schema');
 	if (!formattedResponse || typeof formattedResponse !== 'object') {
 		throw new Error('Invalid response from Airtable API');
 	}

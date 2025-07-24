@@ -172,7 +172,7 @@ import systemLogger from './systemLogger.js';
  * @typedef {Object} ExpressRequest
  * @property {string} method - HTTP method
  * @property {string} originalUrl - Original URL
- * @property {string} ip - Client IP (guaranteed to be string, not undefined)
+ * @property {string|undefined} ip - Client IP
  * @property {{id?: string|number}|null} [user] - User object (can be null)
  * @property {Function} get - Get header function
  */
@@ -302,7 +302,7 @@ class LoggingService {
 			statusCode: res.statusCode,
 			responseTime,
 			userId: req.user?.id ? String(req.user.id) : undefined,
-			ip: req.ip,
+			ip: req.ip || 'unknown',
 			userAgent: req.get('User-Agent'),
 			timestamp: new Date().toISOString()
 		};

@@ -18,14 +18,14 @@ dotenv.config({ path: join(backendRoot, '.env') });
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
-import { createRedditApiRateLimitMiddleware, createStrictRateLimitMiddleware, getRateLimitStatistics } from './middleware/rate-limit.js';
-import { createResponseCacheMiddleware, createCacheInvalidationMiddleware } from './middleware/response-cache.js';
-import { createResponseSizeLimitMiddleware, getSizeLimits } from './middleware/response-size-limit.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
-import { initializeResponseCache, getCacheStatistics as getResponseCacheStatistics } from './services/response-cache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
+import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
+import { createRedditApiRateLimitMiddleware, createStrictRateLimitMiddleware, getRateLimitStatistics } from './middleware/rateLimit.js';
+import { createResponseCacheMiddleware, createCacheInvalidationMiddleware } from './middleware/responseCache.js';
+import { createResponseSizeLimitMiddleware, getSizeLimits } from './middleware/responseSizeLimit.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
+import { initializeResponseCache, getCacheStatistics as getResponseCacheStatistics } from './services/responseCache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
+import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
@@ -93,7 +93,7 @@ app.post('/cache-tokens', async (req, res) => {
     }
 
     // Cache tokens using existing credential cache
-    const { setCachedCredential } = await import('./services/credential-cache.js');
+    const { setCachedCredential } = await import('./services/credentialCache.js');
     
     setCachedCredential(instance_id, {
       bearerToken: tokens.access_token,
@@ -241,8 +241,8 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
       req.bearerToken || ''
     );
     
-    // Process the MCP message with persistent handler
-    await mcpHandler.handleMCPRequest(req, res);
+    // Process the MCP message with persistent handler (using new SDK signature)
+    await mcpHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -271,8 +271,8 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
       req.bearerToken || ''
     );
     
-    // Process the MCP message with persistent handler
-    await mcpHandler.handleMCPRequest(req, res);
+    // Process the MCP message with persistent handler (using new SDK signature)
+    await mcpHandler.handleMCPRequest(req, res, req.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

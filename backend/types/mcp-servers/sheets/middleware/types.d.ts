@@ -141,7 +141,7 @@ export type ValidationResult = {
     /**
      * - Error response if validation failed
      */
-    errorResponse?: any;
+    errorResponse?: import("../types/index.js").ErrorResponse | undefined;
 };
 export type OAuthTokens = {
     /**

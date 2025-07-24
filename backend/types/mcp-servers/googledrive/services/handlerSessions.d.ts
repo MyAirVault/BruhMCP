@@ -40,4 +40,5 @@ export function invalidateHandlerSession(instanceId: string): void;
  * @param {string} newBearerToken - New bearer token
  */
 export function updateSessionBearerToken(instanceId: string, newBearerToken: string): boolean;
+import { GoogleDriveMCPHandler } from '../endpoints/mcpHandler.js';
 //# sourceMappingURL=handlerSessions.d.ts.map

@@ -16,9 +16,9 @@ import {
   getSharedLinks,
   createSharedLink,
   getSpaceUsage
-} from '../api/dropbox-api.js';
+} from '../api/dropboxApi.js';
 import { validateToolArguments } from '../utils/validation.js';
-import { formatDropboxResponse, formatDropboxError } from '../utils/dropbox-formatting.js';
+import { formatDropboxResponse, formatDropboxError } from '../utils/dropboxFormatting.js';
 
 /**
  * Execute a Dropbox tool call
@@ -124,7 +124,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
     const enhancedError = new Error(formattedError);
     
     // Preserve original error stack if available
-    if (error.stack) {
+    if (error instanceof Error && error.stack) {
       enhancedError.stack = error.stack;
     }
     

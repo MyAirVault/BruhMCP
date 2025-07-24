@@ -71,8 +71,9 @@ export async function retry(fn, options = {}) {
 }
 
 /**
+ * @template T
  * @typedef {Object} ExecutionResult
- * @property {any} result - Function result
+ * @property {T} result - Function result
  * @property {number} duration - Execution duration in milliseconds
  */
 
@@ -80,7 +81,7 @@ export async function retry(fn, options = {}) {
  * Measure execution time of a function
  * @template T
  * @param {() => Promise<T>} fn - Function to measure
- * @returns {Promise<ExecutionResult>}
+ * @returns {Promise<ExecutionResult<T>>}
  */
 export async function measureExecutionTime(fn) {
 	const startTime = Date.now();
@@ -116,7 +117,7 @@ export async function withTimeout(promise, timeoutMs, timeoutMessage = 'Operatio
 
 /**
  * Debounce function execution
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  * @param {T} func - Function to debounce
  * @param {number} wait - Wait time in milliseconds
  * @param {boolean} [immediate] - Execute immediately on first call
@@ -126,23 +127,26 @@ export function debounce(func, wait, immediate = false) {
 	/** @type {NodeJS.Timeout | null} */
 	let timeout = null;
 	
-	return /** @this {any} */ function executedFunction(...args) {
+	/** @type {T} */
+	const debouncedFunction = function(...args) {
 		const later = () => {
 			timeout = null;
-			if (!immediate) func.apply(this, args);
+			if (!immediate) func(...args);
 		};
 		
 		const callNow = immediate && !timeout;
 		if (timeout) clearTimeout(timeout);
 		timeout = setTimeout(later, wait);
 		
-		if (callNow) func.apply(this, args);
+		if (callNow) func(...args);
 	};
+	
+	return debouncedFunction;
 }
 
 /**
  * Throttle function execution
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  * @param {T} func - Function to throttle
  * @param {number} limit - Time limit in milliseconds
  * @returns {T} Throttled function
@@ -151,13 +155,16 @@ export function throttle(func, limit) {
 	/** @type {boolean} */
 	let inThrottle = false;
 	
-	return /** @this {any} */ function executedFunction(...args) {
+	/** @type {T} */
+	const throttledFunction = function(...args) {
 		if (!inThrottle) {
-			func.apply(this, args);
+			func(...args);
 			inThrottle = true;
 			setTimeout(() => inThrottle = false, limit);
 		}
 	};
+	
+	return throttledFunction;
 }
 
 /**
@@ -176,13 +183,11 @@ export async function parallelLimit(items, fn, concurrency = 5) {
 
 	for (const item of items) {
 		const promise = fn(item).then(result => {
-			results.push(result);
 			const index = executing.indexOf(promise);
 			if (index > -1) executing.splice(index, 1);
 			return result;
 		});
 
-		results.push(promise);
 		executing.push(promise);
 
 		if (executing.length >= concurrency) {
@@ -203,7 +208,7 @@ export async function parallelLimit(items, fn, concurrency = 5) {
 
 /**
  * Create a circuit breaker
- * @template {(...args: any[]) => Promise<any>} T
+ * @template {(...args: unknown[]) => Promise<unknown>} T
  * @param {T} fn - Function to wrap
  * @param {CircuitBreakerOptions} [options] - Circuit breaker options
  * @returns {T} Circuit breaker wrapped function
@@ -211,19 +216,17 @@ export async function parallelLimit(items, fn, concurrency = 5) {
 export function circuitBreaker(fn, options = {}) {
 	const {
 		failureThreshold = 5,
-		resetTimeout = 60000,
-		monitoringPeriod = 10000
+		resetTimeout = 60000
 	} = options;
 
 	/** @type {'CLOSED' | 'OPEN' | 'HALF_OPEN'} */
 	let state = 'CLOSED';
 	let failureCount = 0;
 	/** @type {number | null} */
-	let lastFailureTime = null;
-	/** @type {number | null} */
 	let nextAttempt = null;
 
-	return /** @this {any} */ async function circuitBreakerWrapper(...args) {
+	/** @type {T} */
+	const circuitBreakerWrapper = async function(...args) {
 		if (state === 'OPEN') {
 			if (nextAttempt !== null && Date.now() > nextAttempt) {
 				state = 'HALF_OPEN';
@@ -233,7 +236,7 @@ export function circuitBreaker(fn, options = {}) {
 		}
 
 		try {
-			const result = await fn.apply(this, args);
+			const result = await fn(...args);
 			
 			if (state === 'HALF_OPEN') {
 				state = 'CLOSED';
@@ -243,7 +246,6 @@ export function circuitBreaker(fn, options = {}) {
 			return result;
 		} catch (error) {
 			failureCount++;
-			lastFailureTime = Date.now();
 
 			if (failureCount >= failureThreshold) {
 				state = 'OPEN';
@@ -253,4 +255,6 @@ export function circuitBreaker(fn, options = {}) {
 			throw error;
 		}
 	};
+	
+	return circuitBreakerWrapper;
 }

@@ -18,10 +18,10 @@ dotenv.config({ path: join(backendRoot, '.env') });
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
+import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
+import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
@@ -84,7 +84,7 @@ app.post('/cache-tokens', async (req, res) => {
     }
 
     // Cache tokens using existing credential cache
-    const { setCachedCredential } = await import('./services/credential-cache.js');
+    const { setCachedCredential } = await import('./services/credentialCache.js');
     
     setCachedCredential(instance_id, {
       bearerToken: tokens.access_token,
@@ -258,10 +258,10 @@ if (process.env.NODE_ENV === 'development') {
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
 /**
- * @param {any} err
- * @param {any} req
- * @param {any} res
- * @param {any} next
+ * @param {Error} err
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
  */
 app.use((err, req, res, next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);

@@ -3,6 +3,8 @@
  * Returns service status and configuration
  */
 
+import { ServiceConfig } from '../../../types/dropbox.js';
+
 /**
  * Health check for Dropbox service
  * @param {Object} config - Service configuration

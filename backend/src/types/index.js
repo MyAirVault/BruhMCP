@@ -13,13 +13,16 @@
 
 /**
  * @typedef {Object} MCPType
- * @property {string} id
- * @property {string} name
+ * @property {string} mcp_service_id
+ * @property {string} mcp_service_name
  * @property {string} display_name
  * @property {string} [description]
- * @property {string} [icon_url]
- * @property {string} server_script
- * @property {Object} config_template
+ * @property {string} [icon_url_path]
+ * @property {number} port
+ * @property {string} type
+ * @property {boolean} is_active
+ * @property {number} total_instances_created
+ * @property {number} active_instances_count
  * @property {Date} created_at
  * @property {Date} updated_at
  */

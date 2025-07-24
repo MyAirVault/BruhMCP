@@ -67,7 +67,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
 /**
  * Update instance usage tracking
  * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
 export async function updateInstanceUsage(instanceId) {
   try {
@@ -147,7 +147,7 @@ export async function getInstanceStatistics(instanceId) {
  * Update instance status
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newStatus - New status (active, inactive, expired)
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
 export async function updateInstanceStatus(instanceId, newStatus) {
   try {
@@ -220,7 +220,7 @@ export async function getActiveSlackInstances() {
  * Validate instance exists and is accessible
  * @param {string} instanceId - UUID of the service instance
  * @param {string} userId - UUID of the user (for additional security)
- * @returns {boolean} True if instance is valid and accessible
+ * @returns {Promise<boolean>} Promise that resolves to true if instance is valid and accessible
  */
 export async function validateInstanceAccess(instanceId, userId) {
   try {
@@ -330,7 +330,7 @@ export async function getSlackWorkspaceInfo(instanceId) {
  * Update Slack team information
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} teamInfo - Team information object
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
 export async function updateSlackTeamInfo(instanceId, teamInfo) {
   try {

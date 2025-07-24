@@ -18,10 +18,10 @@ dotenv.config({ path: join(backendRoot, '.env') });
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
+import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
+import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
@@ -74,7 +74,7 @@ app.post('/cache-tokens', async (req, res) => {
     }
 
     // Cache tokens using existing credential cache
-    const { setCachedCredential } = await import('./services/credential-cache.js');
+    const { setCachedCredential } = await import('./services/credentialCache.js');
     
     setCachedCredential(instance_id, {
       bearerToken: tokens.access_token,
@@ -119,16 +119,22 @@ app.get('/health', (_, res) => {
 
 // Instance-based endpoints with multi-tenant routing
 
-// OAuth well-known endpoint for OAuth 2.0 discovery
-app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
+/**
+ * OAuth well-known endpoint for OAuth 2.0 discovery
+ * @param {import('express').Request} _ - Express request object with instanceId param (unused)
+ * @param {import('express').Response} res - Express response object
+ */
+app.get('/.well-known/oauth-authorization-server/:instanceId', (_, res) => {
   res.json({
     issuer: `https://oauth.dropbox.com`,
-    authorization_endpoint: 'https://oauth.dropbox.com/authorize',
-    token_endpoint: 'https://oauth.dropbox.com/token',
+    authorization_endpoint: 'https://dropbox.com/oauth2/authorize',
+    token_endpoint: 'https://api.dropboxapi.com/oauth2/token',
+    userinfo_endpoint: 'https://api.dropboxapi.com/2/users/get_current_account',
+    revocation_endpoint: 'https://api.dropboxapi.com/oauth2/token/revoke',
     scopes_supported: SERVICE_CONFIG.scopes,
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
-    token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic']
+    token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic'],
   });
 });
 

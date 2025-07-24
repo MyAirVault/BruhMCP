@@ -8,13 +8,16 @@ export type User = {
     deleted_at?: Date | undefined;
 };
 export type MCPType = {
-    id: string;
-    name: string;
+    mcp_service_id: string;
+    mcp_service_name: string;
     display_name: string;
     description?: string | undefined;
-    icon_url?: string | undefined;
-    server_script: string;
-    config_template: Object;
+    icon_url_path?: string | undefined;
+    port: number;
+    type: string;
+    is_active: boolean;
+    total_instances_created: number;
+    active_instances_count: number;
     created_at: Date;
     updated_at: Date;
 };

@@ -3,8 +3,8 @@
  * Provides service health status and metrics
  */
 
-import { getCacheStatistics } from '../services/credential-cache.js';
-import { getAggregatedTokenMetrics } from '../utils/token-metrics.js';
+import { getCacheStatistics } from '../services/credentialCache.js';
+import { getAggregatedTokenMetrics } from '../utils/tokenMetrics.js';
 import { getActiveSlackInstances } from '../services/database.js';
 
 /**

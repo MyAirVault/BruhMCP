@@ -1,64 +1,121 @@
 /**
  * Error middleware for Express
  * @param {Error} err - Error object
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- * @param {Function} next - Next middleware
+ * @param {import('express').Request} req - Request object
+ * @param {import('express').Response} res - Response object
+ * @param {import('express').NextFunction} next - Next middleware
  */
-export function errorMiddleware(err: Error, req: Object, res: Object, next: Function): void;
+export function errorMiddleware(err: Error, req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): void;
 /**
  * Async error wrapper
- * @param {Function} fn - Async function to wrap
- * @returns {Function}
+ * @param {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} fn - Async function to wrap
+ * @returns {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => void}
  */
-export function asyncErrorHandler(fn: Function): Function;
+export function asyncErrorHandler(fn: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>): (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => void;
 /**
  * Error recovery helper
- * @param {Function} operation - Operation to execute
- * @param {Object} options - Recovery options
- * @returns {Promise}
+ * @template T
+ * @param {() => Promise<T>} operation - Operation to execute
+ * @param {{maxRetries?: number, retryDelay?: number, context?: Record<string, string | number | boolean>}} options - Recovery options
+ * @returns {Promise<T>}
  */
-export function withErrorRecovery(operation: Function, options?: Object): Promise<any>;
+export function withErrorRecovery<T>(operation: () => Promise<T>, options?: {
+    maxRetries?: number;
+    retryDelay?: number;
+    context?: Record<string, string | number | boolean>;
+}): Promise<T>;
 /**
  * Custom error classes
  */
 export class AirtableError extends Error {
-    constructor(message: any, code: any, statusCode: any, details?: {});
-    code: any;
-    statusCode: any;
-    details: {};
+    /**
+     * @param {string} message - Error message
+     * @param {string} code - Error code
+     * @param {number} statusCode - HTTP status code
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, code: string, statusCode: number, details?: Record<string, string | number | boolean | Object>);
+    /** @type {string} */
+    code: string;
+    /** @type {number} */
+    statusCode: number;
+    /** @type {Record<string, string | number | boolean | Object>} */
+    details: Record<string, string | number | boolean | Object>;
+    /** @type {string} */
     timestamp: string;
 }
 export class ValidationError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class AuthenticationError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class AuthorizationError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class NotFoundError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class RateLimitError extends AirtableError {
-    constructor(message: any, retryAfter: any, details?: {});
-    retryAfter: any;
+    /**
+     * @param {string} message - Error message
+     * @param {number} retryAfter - Retry after seconds
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, retryAfter: number, details?: Record<string, string | number | boolean | Object>);
+    /** @type {number} */
+    retryAfter: number;
 }
 export class UnprocessableEntityError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class InternalServerError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class ServiceUnavailableError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class NetworkError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 export class TimeoutError extends AirtableError {
-    constructor(message: any, details?: {});
+    /**
+     * @param {string} message - Error message
+     * @param {Record<string, string | number | boolean | Object>} details - Error details
+     */
+    constructor(message: string, details?: Record<string, string | number | boolean | Object>);
 }
 /**
  * Error handler class

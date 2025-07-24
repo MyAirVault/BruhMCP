@@ -21,17 +21,18 @@ export function sleep(ms: number): Promise<void>;
  */
 export function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T>;
 /**
+ * @template T
  * @typedef {Object} ExecutionResult
- * @property {any} result - Function result
+ * @property {T} result - Function result
  * @property {number} duration - Execution duration in milliseconds
  */
 /**
  * Measure execution time of a function
  * @template T
  * @param {() => Promise<T>} fn - Function to measure
- * @returns {Promise<ExecutionResult>}
+ * @returns {Promise<ExecutionResult<T>>}
  */
-export function measureExecutionTime<T>(fn: () => Promise<T>): Promise<ExecutionResult>;
+export function measureExecutionTime<T>(fn: () => Promise<T>): Promise<ExecutionResult<T>>;
 /**
  * Execute function with timeout
  * @template T
@@ -43,21 +44,21 @@ export function measureExecutionTime<T>(fn: () => Promise<T>): Promise<Execution
 export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage?: string): Promise<T>;
 /**
  * Debounce function execution
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  * @param {T} func - Function to debounce
  * @param {number} wait - Wait time in milliseconds
  * @param {boolean} [immediate] - Execute immediately on first call
  * @returns {T} Debounced function
  */
-export function debounce<T extends (...args: any[]) => any>(func: T, wait: number, immediate?: boolean): T;
+export function debounce<T extends (...args: unknown[]) => unknown>(func: T, wait: number, immediate?: boolean): T;
 /**
  * Throttle function execution
- * @template {(...args: any[]) => any} T
+ * @template {(...args: unknown[]) => unknown} T
  * @param {T} func - Function to throttle
  * @param {number} limit - Time limit in milliseconds
  * @returns {T} Throttled function
  */
-export function throttle<T extends (...args: any[]) => any>(func: T, limit: number): T;
+export function throttle<T extends (...args: unknown[]) => unknown>(func: T, limit: number): T;
 /**
  * Execute functions in parallel with concurrency limit
  * @template T, R
@@ -75,12 +76,12 @@ export function parallelLimit<T, R>(items: Array<T>, fn: (item: T) => Promise<R>
  */
 /**
  * Create a circuit breaker
- * @template {(...args: any[]) => Promise<any>} T
+ * @template {(...args: unknown[]) => Promise<unknown>} T
  * @param {T} fn - Function to wrap
  * @param {CircuitBreakerOptions} [options] - Circuit breaker options
  * @returns {T} Circuit breaker wrapped function
  */
-export function circuitBreaker<T extends (...args: any[]) => Promise<any>>(fn: T, options?: CircuitBreakerOptions): T;
+export function circuitBreaker<T extends (...args: unknown[]) => Promise<unknown>>(fn: T, options?: CircuitBreakerOptions): T;
 export type RetryOptions = {
     /**
      * - Maximum number of attempts
@@ -103,11 +104,11 @@ export type RetryOptions = {
      */
     jitter?: boolean | undefined;
 };
-export type ExecutionResult = {
+export type ExecutionResult<T> = {
     /**
      * - Function result
      */
-    result: any;
+    result: T;
     /**
      * - Execution duration in milliseconds
      */

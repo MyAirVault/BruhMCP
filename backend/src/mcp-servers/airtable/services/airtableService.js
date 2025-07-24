@@ -197,16 +197,19 @@ export class AirtableService {
 					'List records operation timed out'
 				);
 			});
+			
+			// Type assertion for the result
+			const typedResult = /** @type {{records: Array<AirtableRecord>, offset?: string}} */ (result);
 
 			logger.info('Records listed successfully', {
 				baseId,
 				tableId,
 				duration,
-				recordCount: result.records?.length || 0,
-				hasMore: !!result.offset
+				recordCount: typedResult.records?.length || 0,
+				hasMore: !!typedResult.offset
 			});
 
-			return result;
+			return typedResult;
 		} catch (error) {
 			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'listRecords',
@@ -253,11 +256,11 @@ export class AirtableService {
 						break;
 					}
 
-					const response = await withTimeout(
+					const response = /** @type {{records: Array<AirtableRecord>, offset?: string}} */ (await withTimeout(
 						AirtableAPI.listRecords(baseId, tableId, this.config.apiKey, { ...sanitizedOptions, offset }),
 						this.config.timeout,
 						'Get all records pagination timed out'
-					);
+					));
 					
 					allRecords = allRecords.concat(response.records);
 					offset = response.offset;

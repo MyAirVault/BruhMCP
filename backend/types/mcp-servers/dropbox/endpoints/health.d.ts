@@ -1,8 +1,4 @@
 /**
- * Dropbox service health check endpoint
- * Returns service status and configuration
- */
-/**
  * Health check for Dropbox service
  * @param {Object} config - Service configuration
  * @returns {Object} Health status object

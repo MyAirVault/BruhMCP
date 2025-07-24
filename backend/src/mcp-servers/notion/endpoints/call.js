@@ -4,8 +4,8 @@
  */
 
 import { executeToolCall } from './tools.js';
-import { handleNotionError } from '../utils/error-handler.js';
-import { Logger } from '../utils/logger.js';
+import { handleNotionError } from '../utils/oauthErrorHandler.js';
+import { Logger } from '../utils/validation.js';
 
 /**
  * Handle call endpoint - provides direct API access and tool execution

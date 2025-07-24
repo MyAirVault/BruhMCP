@@ -82,4 +82,24 @@ export function sanitizeSearchQuery(query: string): string;
  * @returns {string} Sanitized page ID
  */
 export function sanitizePageId(pageId: string): string;
+export namespace Logger {
+    /**
+     * Log info message
+     * @param {string} message - Log message
+     * @param {Object} [metadata] - Additional metadata
+     */
+    function info(message: string, metadata?: Object): void;
+    /**
+     * Log error message
+     * @param {string} message - Log message
+     * @param {Error|Object} [error] - Error object or metadata
+     */
+    function error(message: string, error?: Error | Object): void;
+    /**
+     * Log general message
+     * @param {string} message - Log message
+     * @param {Object} [metadata] - Additional metadata
+     */
+    function log(message: string, metadata?: Object): void;
+}
 //# sourceMappingURL=validation.d.ts.map

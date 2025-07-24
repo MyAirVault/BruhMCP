@@ -122,7 +122,7 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
     );
     
     // Process the MCP message with persistent handler (using new signature)
-    await mcpHandler.handleMCPRequest(authReq, res, authReq.body);
+    await mcpHandler.handleMCPRequest(/** @type {import('./middleware/credentialAuth.js').RequestWithHeaders} */ (authReq), res, authReq.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -153,7 +153,7 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
     );
     
     // Process the MCP message with persistent handler (using new signature)
-    await mcpHandler.handleMCPRequest(authReq, res, authReq.body);
+    await mcpHandler.handleMCPRequest(/** @type {import('./middleware/credentialAuth.js').RequestWithHeaders} */ (authReq), res, authReq.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

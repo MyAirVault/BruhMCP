@@ -41,6 +41,10 @@ import { validateInstanceAccess, getApiKeyForInstance, updateAirtableUsageTracki
  */
 
 /**
+ * @typedef {import('http').IncomingMessage & {headers: Record<string, string | undefined>}} RequestWithHeaders
+ */
+
+/**
  * Create credential authentication middleware with caching
  * This is the new primary middleware that replaces instance-auth for better performance
  * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | Response>} Express middleware function

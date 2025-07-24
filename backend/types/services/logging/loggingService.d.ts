@@ -425,9 +425,9 @@ export type ExpressRequest = {
      */
     originalUrl: string;
     /**
-     * - Client IP (guaranteed to be string, not undefined)
+     * - Client IP
      */
-    ip: string;
+    ip: string | undefined;
     /**
      * - User object (can be null)
      */
@@ -600,7 +600,7 @@ declare const loggingService: LoggingService;
  * @typedef {Object} ExpressRequest
  * @property {string} method - HTTP method
  * @property {string} originalUrl - Original URL
- * @property {string} ip - Client IP (guaranteed to be string, not undefined)
+ * @property {string|undefined} ip - Client IP
  * @property {{id?: string|number}|null} [user] - User object (can be null)
  * @property {Function} get - Get header function
  */

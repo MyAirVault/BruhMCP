@@ -3,7 +3,7 @@
  * Provides structured logging with different levels and context
  */
 
-import { recordTokenRefreshMetrics } from './token-metrics.js';
+import { recordTokenRefreshMetrics } from './tokenMetrics.js';
 
 /**
  * Log levels

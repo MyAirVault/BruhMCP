@@ -213,3 +213,35 @@ export function sanitizePageId(pageId) {
 	// Remove non-alphanumeric characters except dashes
 	return pageId.replace(/[^a-zA-Z0-9-]/g, '');
 }
+
+/**
+ * Simple Logger utility for MCP service
+ */
+export const Logger = {
+	/**
+	 * Log info message
+	 * @param {string} message - Log message
+	 * @param {Object} [metadata] - Additional metadata
+	 */
+	info(message, metadata = {}) {
+		console.log(`[INFO] ${message}`, metadata);
+	},
+
+	/**
+	 * Log error message
+	 * @param {string} message - Log message
+	 * @param {Error|Object} [error] - Error object or metadata
+	 */
+	error(message, error = {}) {
+		console.error(`[ERROR] ${message}`, error);
+	},
+
+	/**
+	 * Log general message
+	 * @param {string} message - Log message
+	 * @param {Object} [metadata] - Additional metadata
+	 */
+	log(message, metadata = {}) {
+		console.log(`[LOG] ${message}`, metadata);
+	}
+};

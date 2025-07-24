@@ -1,19 +1,9 @@
 /**
- * Handle MCP request
- * @param {import('express').Request} req - Express request
- * @param {import('express').Response} res - Express response
- * @param {SheetsMCPHandler} handler - MCP handler instance
- */
-export default function handleMCPRequest(req: import("express").Request, res: import("express").Response, handler: SheetsMCPHandler): Promise<void>;
-/**
  * @typedef {Object} ServiceConfig
  * @property {string} name
  * @property {string} displayName
  * @property {string} version
  * @property {string[]} scopes
- */
-/**
- * Google Sheets MCP Handler Class
  */
 export class SheetsMCPHandler {
     /**
@@ -24,8 +14,13 @@ export class SheetsMCPHandler {
     serviceConfig: ServiceConfig;
     bearerToken: string;
     server: McpServer;
-    transports: {};
+    /** @type {Record<string, StreamableHTTPServerTransport>} */
+    transports: Record<string, StreamableHTTPServerTransport>;
     initialized: boolean;
+    /**
+     * Setup MCP tools using Zod schemas
+     */
+    setupTools(): void;
     /**
      * Get or create transport for a session
      * @param {string} sessionId - Session identifier
@@ -33,31 +28,17 @@ export class SheetsMCPHandler {
      */
     getTransport(sessionId: string): StreamableHTTPServerTransport;
     /**
+     * Handle MCP request using new SDK signature
+     * @param {import('express').Request} req - Express request object
+     * @param {import('express').Response} res - Express response object
+     * @param {Object} message - MCP message body
+     */
+    handleMCPRequest(req: import("express").Request, res: import("express").Response, message: Object): Promise<void>;
+    /**
      * Clean up transport for a session
      * @param {string} sessionId - Session identifier
      */
     cleanupTransport(sessionId: string): void;
-    /**
-     * Handle MCP request
-     * @param {Object} message - MCP message
-     * @param {string} sessionId - Session identifier
-     * @returns {Promise<Object>} Response
-     */
-    handleRequest(message: Object, sessionId: string): Promise<Object>;
-    /**
-     * Check if handler is initialized
-     * @returns {boolean} Initialization status
-     */
-    isInitialized(): boolean;
-    /**
-     * Update bearer token
-     * @param {string} newToken - New bearer token
-     */
-    updateBearerToken(newToken: string): void;
-    /**
-     * Cleanup all resources
-     */
-    cleanup(): void;
 }
 export type ServiceConfig = {
     name: string;

@@ -35,6 +35,7 @@ const MAX_CACHE_SIZE = 10000; // Maximum number of cached credentials
 /** @type {NodeJS.Timeout | null} */
 let watcherInterval = null;
 let isWatcherRunning = false;
+let watcherStartTime = 0;
 
 /**
  * Start the credential watcher background process
@@ -46,7 +47,9 @@ export function startCredentialWatcher() {
 		return;
 	}
 
-	console.log('🚀 Starting Figma credential watcher (30-second intervals)');
+	console.log('🚀 Starting Airtable credential watcher (30-second intervals)');
+	
+	watcherStartTime = Date.now();
 	
 	// Run initial cleanup
 	performCacheMaintenanceCheck();
@@ -75,6 +78,7 @@ export function stopCredentialWatcher() {
 	}
 	
 	isWatcherRunning = false;
+	watcherStartTime = 0;
 	console.log('📴 Credential watcher stopped');
 }
 
@@ -157,7 +161,10 @@ function performCacheMaintenanceCheck() {
 					instanceId: id,
 					cached: /** @type {CachedCredentialEntry | null} */ (rawCached)
 				};
-			}).filter(entry => entry.cached !== null);
+			}).filter((entry) => entry.cached !== null).map(entry => ({
+				instanceId: entry.instanceId,
+				cached: /** @type {CachedCredentialEntry} */ (entry.cached)
+			}));
 			
 			// Sort by last_used (oldest first)
 			entriesWithUsage.sort((a, b) => {
@@ -240,6 +247,6 @@ export function getWatcherStatus() {
 		expiration_tolerance_ms: EXPIRATION_TOLERANCE_MS,
 		stale_threshold_hours: STALE_THRESHOLD_HOURS,
 		max_cache_size: MAX_CACHE_SIZE,
-		uptime_seconds: isWatcherRunning ? Math.floor((Date.now() - (watcherInterval?._idleStart || Date.now())) / 1000) : 0
+		uptime_seconds: isWatcherRunning ? Math.floor((Date.now() - watcherStartTime) / 1000) : 0
 	};
 }

@@ -119,10 +119,10 @@ export function getTokenType(token) {
 
 /**
  * Extract token scopes from API response
- * @param {Response} response - API response
+ * @param {Response} _response - API response (currently unused)
  * @returns {Promise<Array<string>>} Token scopes
  */
-async function extractTokenScopes(response) {
+async function extractTokenScopes(_response) {
 	try {
 		// For now, assume full access for validated tokens
 		// In the future, this could be extracted from response headers or a dedicated endpoint
@@ -135,10 +135,10 @@ async function extractTokenScopes(response) {
 
 /**
  * Extract user ID from API response
- * @param {Response} response - API response
+ * @param {Response} _response - API response (currently unused)
  * @returns {Promise<string>} User ID
  */
-async function extractUserId(response) {
+async function extractUserId(_response) {
 	try {
 		// This would typically come from a user info endpoint
 		// For now, return a placeholder
@@ -196,20 +196,25 @@ export function createAuthHeader(token) {
 /**
  * Create authentication middleware
  * @param {AuthMiddlewareOptions} [options] - Middleware options
- * @returns {(req: any, res: any, next: any) => Promise<void>} Express middleware
+ * @returns {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} Express middleware
  */
 export function createAuthMiddleware(options = {}) {
 	const {
 		tokenHeader = 'authorization',
 		tokenPrefix = 'Bearer ',
-		validateToken: shouldValidate = true,
-		cacheValidation = true
+		validateToken: shouldValidate = true
 	} = options;
 
 	return async (req, res, next) => {
 		try {
 			// Extract token from header
-			const authHeader = req.headers[tokenHeader.toLowerCase()];
+			const authHeaderValue = req.headers[tokenHeader.toLowerCase()];
+			if (!authHeaderValue) {
+				throw new AuthenticationError('Authorization header is required');
+			}
+
+			// Handle case where header might be an array
+			const authHeader = Array.isArray(authHeaderValue) ? authHeaderValue[0] : authHeaderValue;
 			if (!authHeader) {
 				throw new AuthenticationError('Authorization header is required');
 			}
@@ -224,12 +229,12 @@ export function createAuthMiddleware(options = {}) {
 			// Validate token if requested
 			if (shouldValidate) {
 				const validation = await validateToken(token);
-				req.tokenValidation = validation;
+				/** @type {import('express').Request & {tokenValidation?: TokenValidationResult}} */ (req).tokenValidation = validation;
 			}
 
 			// Attach token to request
-			req.apiToken = token;
-			req.authHeader = createAuthHeader(token);
+			/** @type {import('express').Request & {apiToken?: string}} */ (req).apiToken = token;
+			/** @type {import('express').Request & {authHeader?: AuthHeader}} */ (req).authHeader = createAuthHeader(token);
 
 			next();
 		} catch (error) {
@@ -311,7 +316,12 @@ export function isTokenExpired(tokenValidation) {
 		return false; // Airtable tokens don't expire
 	}
 	
-	return Date.now() > tokenValidation.expiresAt;
+	// Convert to number if it's a string
+	const expiresAt = typeof tokenValidation.expiresAt === 'string' 
+		? parseInt(tokenValidation.expiresAt, 10) 
+		: tokenValidation.expiresAt;
+	
+	return Date.now() > expiresAt;
 }
 
 /**

@@ -76,9 +76,10 @@ export async function getMCPTypeByNameHandler(req, res) {
 			display_name: mcpType.display_name,
 			description: mcpType.description,
 			icon_url: mcpType.icon_url_path,
-			config_template: mcpType.config_template,
-			resource_limits: mcpType.resource_limits,
+			port: mcpType.port,
+			type: mcpType.type,
 			is_active: mcpType.is_active,
+			active_instances_count: mcpType.active_instances_count,
 			required_fields: requiredFields,
 		};
 

@@ -6,26 +6,26 @@
  * @param {number} params.rows - Number of rows
  * @param {number} params.cols - Number of columns
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Created worksheet details
+ * @returns {Promise<Record<string, any>>} Created worksheet details
  */
 export function addWorksheet(params: {
     spreadsheetId: string;
     title: string;
     rows: number;
     cols: number;
-}, bearerToken: string): Promise<Object>;
+}, bearerToken: string): Promise<Record<string, any>>;
 /**
  * Delete a worksheet from a spreadsheet
  * @param {Object} params - Delete parameters
  * @param {string} params.spreadsheetId - Spreadsheet ID
  * @param {number} params.sheetId - Sheet ID to delete
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Delete result
+ * @returns {Promise<Record<string, any>>} Delete result
  */
 export function deleteWorksheet(params: {
     spreadsheetId: string;
     sheetId: number;
-}, bearerToken: string): Promise<Object>;
+}, bearerToken: string): Promise<Record<string, any>>;
 /**
  * Copy a worksheet
  * @param {Object} params - Copy parameters
@@ -33,13 +33,13 @@ export function deleteWorksheet(params: {
  * @param {number} params.sheetId - Sheet ID to copy
  * @param {string} params.destinationSpreadsheetId - Destination spreadsheet ID
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Copy result
+ * @returns {Promise<Record<string, any>>} Copy result
  */
 export function copySheet(params: {
     spreadsheetId: string;
     sheetId: number;
     destinationSpreadsheetId: string;
-}, bearerToken: string): Promise<Object>;
+}, bearerToken: string): Promise<Record<string, any>>;
 /**
  * Insert rows into a worksheet
  * @param {Object} params - Insert parameters
@@ -48,14 +48,14 @@ export function copySheet(params: {
  * @param {number} params.startIndex - Start row index
  * @param {number} params.endIndex - End row index
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Insert result
+ * @returns {Promise<Record<string, any>>} Insert result
  */
 export function insertRows(params: {
     spreadsheetId: string;
     sheetId: number;
     startIndex: number;
     endIndex: number;
-}, bearerToken: string): Promise<Object>;
+}, bearerToken: string): Promise<Record<string, any>>;
 /**
  * Delete rows from a worksheet
  * @param {Object} params - Delete parameters
@@ -64,12 +64,12 @@ export function insertRows(params: {
  * @param {number} params.startIndex - Start row index
  * @param {number} params.endIndex - End row index
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Delete result
+ * @returns {Promise<Record<string, any>>} Delete result
  */
 export function deleteRows(params: {
     spreadsheetId: string;
     sheetId: number;
     startIndex: number;
     endIndex: number;
-}, bearerToken: string): Promise<Object>;
+}, bearerToken: string): Promise<Record<string, any>>;
 //# sourceMappingURL=worksheetOperations.d.ts.map
