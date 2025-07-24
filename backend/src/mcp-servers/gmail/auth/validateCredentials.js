@@ -20,9 +20,13 @@ import createGmailValidator from '../validation/credentialValidator.js';
 async function validateCredentials(credentials, userId) {
 	try {
 		console.log(`🔍 Validating Gmail credentials for user: ${userId}`);
+		console.log('📨 Received credentials:', Object.keys(credentials));
 
-		// Check required fields
-		if (!credentials || (!credentials.clientId || !credentials.clientSecret)) {
+		// Check required fields - handle both formats
+		const clientId = credentials.client_id || credentials.clientId;
+		const clientSecret = credentials.client_secret || credentials.clientSecret;
+		
+		if (!credentials || !clientId || !clientSecret) {
 			return {
 				success: false,
 				message: 'Client ID and Client Secret are required for Gmail OAuth'
@@ -31,8 +35,8 @@ async function validateCredentials(credentials, userId) {
 
 		// Convert our credentials format to what the existing validator expects
 		const gmailCredentials = {
-			client_id: credentials.clientId,
-			client_secret: credentials.clientSecret
+			client_id: clientId,
+			client_secret: clientSecret
 		};
 
 		// Create validator instance
@@ -42,24 +46,30 @@ async function validateCredentials(credentials, userId) {
 		const result = await validator.validateFormat(gmailCredentials);
 
 		// Convert validator result to our expected format
+		console.log('🔄 Gmail validator result:', { valid: result.valid, error: result.error });
+		
 		if (result.valid) {
-			return {
+			const response = {
 				success: true,
 				message: 'Gmail OAuth credentials format is valid',
 				data: {
-					serviceInfo: result.service_info,
+					userInfo: result.service_info,  // Changed from serviceInfo to userInfo
 					service: 'gmail',
 					authType: 'oauth',
-					clientId: credentials.clientId,
+					clientId: clientId,  // Use the parsed clientId
 					validatedAt: new Date().toISOString(),
 					note: 'OAuth flow required for full authentication'
 				}
 			};
+			console.log('✅ Returning success response:', response);
+			return response;
 		} else {
-			return {
+			const response = {
 				success: false,
 				message: result.error || 'Invalid Gmail OAuth credentials format'
 			};
+			console.log('❌ Returning failure response:', response);
+			return response;
 		}
 	} catch (error) {
 		console.error('Gmail credential validation error:', error);
