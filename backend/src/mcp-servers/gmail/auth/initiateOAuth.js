@@ -53,9 +53,10 @@ async function initiateOAuth(credentials, userId) {
 			serviceType: 'oauth'
 		});
 
-		// Initiate OAuth flow using the instance ID
+		// Initiate OAuth flow using the instance ID and user ID
 		const oauthResult = await oauthHandler.initiateFlow(
 			instanceRecord.instance_id,
+			userId,
 			{
 				client_id: credentials.clientId,
 				client_secret: credentials.clientSecret
