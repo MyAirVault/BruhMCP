@@ -1,0 +1,1874 @@
+{
+  "services": [
+    {
+      "service": "ably",
+      "port": 49160,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "accelo",
+      "port": 49161,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "accredible",
+      "port": 49162,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "acculynx",
+      "port": 49163,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "activecampaign",
+      "port": 49164,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "adobe",
+      "port": 49165,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "adyntel",
+      "port": 49166,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "aeroworkflow",
+      "port": 49167,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "affinity",
+      "port": 49168,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "agencyzoom",
+      "port": 49169,
+      "auth_type": "bearer_token"
+    },
+    {
+      "service": "ahrefs",
+      "port": 49170,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "airtable",
+      "port": 49171,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "alchemy",
+      "port": 49172,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "algolia",
+      "port": 49173,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "altoviz",
+      "port": 49174,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "amazon",
+      "port": 49175,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "amcards",
+      "port": 49176,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "amplitude",
+      "port": 49177,
+      "auth_type": "basic"
+    },
+    {
+      "service": "anthropicadministrator",
+      "port": 49178,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "apaleo",
+      "port": 49179,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "apify",
+      "port": 49180,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "apollo",
+      "port": 49181,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "appdrag",
+      "port": 49182,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "appsflyer",
+      "port": 49183,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "asana",
+      "port": 49184,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "ashby",
+      "port": 49185,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "atlassian",
+      "port": 49186,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "attio",
+      "port": 49187,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "auth0",
+      "port": 49188,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "axonaut",
+      "port": 49189,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bamboohr",
+      "port": 49190,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bannerbear",
+      "port": 49191,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bart",
+      "port": 49192,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "baserow",
+      "port": 49193,
+      "auth_type": "basic"
+    },
+    {
+      "service": "battlenet",
+      "port": 49194,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "beeminder",
+      "port": 49195,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "benchmarkemail",
+      "port": 49196,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "betterproposals",
+      "port": 49197,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bigmailer",
+      "port": 49198,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bigml",
+      "port": 49199,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bill",
+      "port": 49200,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bitbucket",
+      "port": 49201,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "bitwarden",
+      "port": 49202,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "blackbaud",
+      "port": 49203,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "blackboard",
+      "port": 49204,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "boldsign",
+      "port": 49205,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bolna",
+      "port": 49206,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "borneo",
+      "port": 49207,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "botbaba",
+      "port": 49208,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "box",
+      "port": 49209,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "braintree",
+      "port": 49210,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "brandfetch",
+      "port": 49211,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "breezyhr",
+      "port": 49212,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "brevo",
+      "port": 49213,
+      "auth_type": "mixed"
+    },
+    {
+      "service": "brex",
+      "port": 49214,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "brexstaging",
+      "port": 49215,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "brightpearl",
+      "port": 49216,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "brilliantdirectories",
+      "port": 49217,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "browseai",
+      "port": 49218,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "browserbase",
+      "port": 49219,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "browserbasetool",
+      "port": 49220,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "browserhub",
+      "port": 49221,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "browserless",
+      "port": 49222,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bubble",
+      "port": 49223,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "bugbug",
+      "port": 49224,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "builtwith",
+      "port": 49225,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "cal",
+      "port": 49226,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "calendly",
+      "port": 49227,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "canva",
+      "port": 49228,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "canvas",
+      "port": 49229,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "certifier",
+      "port": 49230,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "chatwork",
+      "port": 49231,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "chmeetings",
+      "port": 49232,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "clickup",
+      "port": 49233,
+      "auth_type": "mixed"
+    },
+    {
+      "service": "clockify",
+      "port": 49234,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "close",
+      "port": 49235,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "cloudconvert",
+      "port": 49236,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "cloudflare",
+      "port": 49237,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "cloudinary",
+      "port": 49238,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "coda",
+      "port": 49239,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "codeinterpreter",
+      "port": 49240,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "coinbase",
+      "port": 49241,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "coinmarketcal",
+      "port": 49242,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "composio",
+      "port": 49243,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "composiosearch",
+      "port": 49244,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "confluence",
+      "port": 49245,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "connecteam",
+      "port": 49246,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "contentful",
+      "port": 49247,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "crustdata",
+      "port": 49248,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "customerio",
+      "port": 49249,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "cuttly",
+      "port": 49250,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "d2lbrightspace",
+      "port": 49251,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "dailybot",
+      "port": 49252,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "datadog",
+      "port": 49253,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "datagma",
+      "port": 49254,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "datarobot",
+      "port": 49255,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "deel",
+      "port": 49256,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "demio",
+      "port": 49257,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "dialpad",
+      "port": 49258,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "digicert",
+      "port": 49259,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "discord",
+      "port": 49260,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "discordbot",
+      "port": 49261,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "docmosis",
+      "port": 49262,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "docusign",
+      "port": 49263,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "dropbox",
+      "port": 49264,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "dropboxsign",
+      "port": 49265,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "dynamics365",
+      "port": 49266,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "echtpost",
+      "port": 49267,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "elasticsearch",
+      "port": 49268,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "elevenlabs",
+      "port": 49269,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "emailoctopus",
+      "port": 49270,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "enigma",
+      "port": 49271,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "entelligence",
+      "port": 49272,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "epicgames",
+      "port": 49273,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "eventbrite",
+      "port": 49274,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "exa",
+      "port": 49275,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "excel",
+      "port": 49276,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "exist",
+      "port": 49277,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "facebook",
+      "port": 49278,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "factorial",
+      "port": 49279,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "figma",
+      "port": 49280,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "finage",
+      "port": 49281,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "findymail",
+      "port": 49282,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "firecrawl",
+      "port": 49283,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "fireflies",
+      "port": 49284,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "fitbit",
+      "port": 49285,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "flutterwave",
+      "port": 49286,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "fomo",
+      "port": 49287,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "formcarry",
+      "port": 49288,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "formsite",
+      "port": 49289,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "foursquare",
+      "port": 49290,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "freshbooks",
+      "port": 49291,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "freshdesk",
+      "port": 49292,
+      "auth_type": "basic"
+    },
+    {
+      "service": "front",
+      "port": 49293,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "github",
+      "port": 49294,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "gitlab",
+      "port": 49295,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "gmail",
+      "port": 49296,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "gong",
+      "port": 49297,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "googleads",
+      "port": 49298,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "googleanalytics",
+      "port": 49299,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googlebigquery",
+      "port": 49300,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googlecalendar",
+      "port": 49301,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "googledocs",
+      "port": 49302,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googledrive",
+      "port": 49303,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googlemaps",
+      "port": 49304,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "googlemeet",
+      "port": 49305,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googlephotos",
+      "port": 49306,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googlesheets",
+      "port": 49307,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googleslides",
+      "port": 49308,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "googlesuper",
+      "port": 49309,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "googletasks",
+      "port": 49310,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "gorgias",
+      "port": 49311,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "gotowebinar",
+      "port": 49312,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "gumroad",
+      "port": 49313,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "guru",
+      "port": 49314,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "hackernews",
+      "port": 49315,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "hackerrankwork",
+      "port": 49316,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "harvest",
+      "port": 49317,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "helcim",
+      "port": 49318,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "heygen",
+      "port": 49319,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "highlevel",
+      "port": 49320,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "hubspot",
+      "port": 49321,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "humanloop",
+      "port": 49322,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "hunter",
+      "port": 49323,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "icimstalencloud",
+      "port": 49324,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "ideascale",
+      "port": 49325,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "insightoai",
+      "port": 49326,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "intercom",
+      "port": 49327,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "interzoid",
+      "port": 49328,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "jira",
+      "port": 49329,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "jobnimbus",
+      "port": 49330,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "jotform",
+      "port": 49331,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "junglescout",
+      "port": 49332,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "keap",
+      "port": 49333,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "kibana",
+      "port": 49334,
+      "auth_type": "basic"
+    },
+    {
+      "service": "kit",
+      "port": 49335,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "klaviyo",
+      "port": 49336,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "klipfolio",
+      "port": 49337,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "kommo",
+      "port": 49338,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "landbot",
+      "port": 49339,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "lastpass",
+      "port": 49340,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "launchdarkly",
+      "port": 49341,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "leadfeeder",
+      "port": 49342,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "leadoku",
+      "port": 49343,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "lemlist",
+      "port": 49344,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "lemonsqueezy",
+      "port": 49345,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "lever",
+      "port": 49346,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "leversandbox",
+      "port": 49347,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "lexoffice",
+      "port": 49348,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "linear",
+      "port": 49349,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "linkedin",
+      "port": 49350,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "linkhut",
+      "port": 49351,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "linkup",
+      "port": 49352,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "listennotes",
+      "port": 49353,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "lmnt",
+      "port": 49354,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "lodgify",
+      "port": 49355,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "mailchimp",
+      "port": 49356,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "mailerlite",
+      "port": 49357,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "maintainx",
+      "port": 49358,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "make",
+      "port": 49359,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "mboum",
+      "port": 49360,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "mem0",
+      "port": 49361,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "memberspot",
+      "port": 49362,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "memberstack",
+      "port": 49363,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "membervault",
+      "port": 49364,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "metaads",
+      "port": 49365,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "metatextai",
+      "port": 49366,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "microsoftclarity",
+      "port": 49367,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "microsoftteams",
+      "port": 49368,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "microsofttenant",
+      "port": 49369,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "miro",
+      "port": 49370,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "missive",
+      "port": 49371,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "mixpanel",
+      "port": 49372,
+      "auth_type": "basic"
+    },
+    {
+      "service": "mocean",
+      "port": 49373,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "moco",
+      "port": 49374,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "monday",
+      "port": 49375,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "moneybird",
+      "port": 49376,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "moonclerk",
+      "port": 49377,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "mopinion",
+      "port": 49378,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "moretrees",
+      "port": 49379,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "moxie",
+      "port": 49380,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "moz",
+      "port": 49381,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "mural",
+      "port": 49382,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "nasa",
+      "port": 49383,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "nasdaq",
+      "port": 49384,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "ncscale",
+      "port": 49385,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "neon",
+      "port": 49386,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "netsuite",
+      "port": 49387,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "neverbounce",
+      "port": 49388,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "nextdns",
+      "port": 49389,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "ngrok",
+      "port": 49390,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "notion",
+      "port": 49391,
+      "auth_type": "mixed"
+    },
+    {
+      "service": "omnisend",
+      "port": 49392,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "oncehub",
+      "port": 49393,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "onedrive",
+      "port": 49394,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "onepage",
+      "port": 49395,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "openai",
+      "port": 49396,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "openrouter",
+      "port": 49397,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "opensea",
+      "port": 49398,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "outlook",
+      "port": 49399,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "pagerduty",
+      "port": 49400,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "pandadoc",
+      "port": 49401,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "parseur",
+      "port": 49402,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "payhip",
+      "port": 49403,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "paypal",
+      "port": 49404,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "peopledatalabs",
+      "port": 49405,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "perplexityai",
+      "port": 49406,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "phantombuster",
+      "port": 49407,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "piggy",
+      "port": 49408,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "pipedrive",
+      "port": 49409,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "placekey",
+      "port": 49410,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "posthog",
+      "port": 49411,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "precoro",
+      "port": 49412,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "printnode",
+      "port": 49413,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "processstreet",
+      "port": 49414,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "productboard",
+      "port": 49415,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "pushbullet",
+      "port": 49416,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "qualaroo",
+      "port": 49417,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "quickbooks",
+      "port": 49418,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "rafflys",
+      "port": 49419,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "ragic",
+      "port": 49420,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "ramp",
+      "port": 49421,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "ravenseotools",
+      "port": 49422,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "recallai",
+      "port": 49423,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "recruitee",
+      "port": 49424,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "reddit",
+      "port": 49425,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "refiner",
+      "port": 49426,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "reply",
+      "port": 49427,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "resend",
+      "port": 49428,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "respondio",
+      "port": 49429,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "retellai",
+      "port": 49430,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "retently",
+      "port": 49431,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "ringcentral",
+      "port": 49432,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "rippling",
+      "port": 49433,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "rocketlane",
+      "port": 49434,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "rocketreach",
+      "port": 49435,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "rootly",
+      "port": 49436,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "rosettetextanalytics",
+      "port": 49437,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "sage",
+      "port": 49438,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "salesforce",
+      "port": 49439,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "salesmate",
+      "port": 49440,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "scrapedo",
+      "port": 49441,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "scrapingant",
+      "port": 49442,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "screenshotone",
+      "port": 49443,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "seismic",
+      "port": 49444,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "semanticscholar",
+      "port": 49445,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "semrush",
+      "port": 49446,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "sendgrid",
+      "port": 49447,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "sentry",
+      "port": 49448,
+      "auth_type": "bearer"
+    },
+    {
+      "service": "serpapi",
+      "port": 49449,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "servicem8",
+      "port": 49450,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "servicenow",
+      "port": 49451,
+      "auth_type": "basic"
+    },
+    {
+      "service": "sharepoint",
+      "port": 49452,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "sheets",
+      "port": 49307,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "shopify",
+      "port": 49453,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "shortcut",
+      "port": 49454,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "shortio",
+      "port": 49455,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "signwell",
+      "port": 49456,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "simplesat",
+      "port": 49457,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "slack",
+      "port": 49458,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "slackbot",
+      "port": 49459,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "smartrecruiters",
+      "port": 49460,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "smugmug",
+      "port": 49461,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "snowflake",
+      "port": 49462,
+      "auth_type": "basic"
+    },
+    {
+      "service": "sourcegraph",
+      "port": 49463,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "splitwise",
+      "port": 49464,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "spoki",
+      "port": 49465,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "spondyr",
+      "port": 49466,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "square",
+      "port": 49467,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "stackexchange",
+      "port": 49468,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "starton",
+      "port": 49469,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "storeganise",
+      "port": 49470,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "streamtime",
+      "port": 49471,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "stripe",
+      "port": 49472,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "supabase",
+      "port": 49473,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "superchat",
+      "port": 49474,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "surveymonkey",
+      "port": 49475,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "synthflowai",
+      "port": 49476,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "tally",
+      "port": 49477,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "tapfiliate",
+      "port": 49478,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "tapform",
+      "port": 49479,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "tavily",
+      "port": 49480,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "telegram",
+      "port": 49481,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "terminus",
+      "port": 49482,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "textrazor",
+      "port": 49483,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "texttopdf",
+      "port": 49484,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "timecamp",
+      "port": 49485,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "timekit",
+      "port": 49486,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "timely",
+      "port": 49487,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "tinypng",
+      "port": 49488,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "tinyurl",
+      "port": 49489,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "tisane",
+      "port": 49490,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "todoist",
+      "port": 49491,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "toneden",
+      "port": 49492,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "tpscheck",
+      "port": 49493,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "trello",
+      "port": 49494,
+      "auth_type": "oauth1"
+    },
+    {
+      "service": "twitch",
+      "port": 49495,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "twitter",
+      "port": 49496,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "twittermedia",
+      "port": 49497,
+      "auth_type": "oauth1"
+    },
+    {
+      "service": "typefully",
+      "port": 49498,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "venly",
+      "port": 49499,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "vercel",
+      "port": 49500,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "vero",
+      "port": 49501,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "visme",
+      "port": 49502,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "waboxapp",
+      "port": 49503,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "wakatime",
+      "port": 49504,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "wati",
+      "port": 49505,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "wave",
+      "port": 49506,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "waveaccounting",
+      "port": 49507,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "weathermap",
+      "port": 49508,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "webex",
+      "port": 49509,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "webflow",
+      "port": 49510,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "whatsapp",
+      "port": 49511,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "wiz",
+      "port": 49512,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "workiom",
+      "port": 49513,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "wrike",
+      "port": 49514,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "xero",
+      "port": 49515,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "yandex",
+      "port": 49516,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "ynab",
+      "port": 49517,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "yousearch",
+      "port": 49518,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "youtube",
+      "port": 49519,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "zendesk",
+      "port": 49520,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "zenrows",
+      "port": 49521,
+      "auth_type": "basic"
+    },
+    {
+      "service": "zenserp",
+      "port": 49522,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "zerobounce",
+      "port": 49523,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "zoho",
+      "port": 49524,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "zohobigin",
+      "port": 49525,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "zohobooks",
+      "port": 49526,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "zohodesk",
+      "port": 49527,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "zohoinventory",
+      "port": 49528,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "zohoinvoice",
+      "port": 49529,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "zohomail",
+      "port": 49530,
+      "auth_type": "apikey"
+    },
+    {
+      "service": "zoom",
+      "port": 49531,
+      "auth_type": "oauth"
+    },
+    {
+      "service": "zoominfo",
+      "port": 49532,
+      "auth_type": "bearer_token"
+    }
+  ]
+}

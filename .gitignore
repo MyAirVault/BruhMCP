@@ -1,6 +1,5 @@
 # === Node modules ===
 node_modules/
-mcp-ports/
 
 # === Logs ===
 npm-debug.log*

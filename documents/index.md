@@ -1,102 +1,25 @@
 # Documentation Index
 
-This directory contains comprehensive documentation for the MCP (Model Context Protocol) service ecosystem, organized into specialized folders for different aspects of the project.
+## Project Structure Documentation
 
-## 📁 Documentation Structure
+### MCP Server Architecture
+- **[OAuth MCP Servers](project-structure/oauth-mcp-servers.md)** - Complete implementation guide for OAuth-based MCP servers including Gmail, Google Sheets, Discord, and other third-party integrations
+- **[API Key MCP Servers](project-structure/apikey-based-mcp-servers.md)** - Implementation guide for API key-based MCP servers
+- **[MCP Auth Registry](project-structure/mcp-auth-registry.md)** - Central authentication registry system for MCP servers
+- **[Database Architecture](project-structure/database-architecture.md)** - Database schema and integration patterns
 
-### 🏗️ Project Structure (`Project_structure/`)
-**Core architecture and implementation documentation**
+## Implementation Guides
 
-Complete multi-tenant MCP service architecture including database design, authentication flows, and service management. Contains detailed implementation guides for the overall system architecture.
+### Complete Project Structure
+- **[Complete Project Structure](project-structure/complete-project-structure.md)** - Comprehensive overview of the entire full-stack MCP Registry application including frontend, backend, database, and infrastructure components
 
-**Key Documents:**
-- Phase 1 implementation with multi-tenant architecture
-- Database schema and credential management
-- OAuth and API key integration guides
-- MCP protocol specification and development guides
-- Handler session management and troubleshooting
+## MCP Service Templates
 
-### 📚 MCP Documentation (`mcp_documentation/`)
-**Service-specific documentation for implemented MCP services**
+### API Key-Based Services
+- **[API Key-Based MCP Services](mcp-template/apikey-based.md)** - Step-by-step checklist for implementing API key-based MCP services with exact file structure, naming conventions, and integration requirements
 
-Documentation for each MCP service implementation including endpoints, tools, and integration guides.
+### OAuth-Based Services
+- **[OAuth-Based MCP Services](mcp-template/oauth-based.md)** - Comprehensive checklist for implementing OAuth 2.0 MCP services with sophisticated token management, caching, refresh mechanisms, and multi-tenant architecture
 
-**Available Services:**
-- **Gmail**: Email management and automation
-- **Google Drive**: File storage and sharing
-- **Slack**: Team communication and workflows
-- **Notion**: Knowledge management and databases
-- **Reddit**: Social media and community management
-- **Dropbox**: File storage and synchronization
-- **Discord**: Community and server management
-- **Figma**: Design collaboration and assets
-- **Airtable**: Database and project management
-
-### 🛠️ Implementation Templates (`template_for_mcp_implementation/`)
-**Templates and guides for creating new MCP services**
-
-Complete templates and step-by-step guides for implementing new MCP services from scratch.
-
-**Includes:**
-- `MCP_SERVICE_TEMPLATE.md`: Complete code template based on Gmail implementation
-- `MCP_SERVICE_IMPLEMENTATION_GUIDE.md`: Step-by-step implementation walkthrough
-
-## 🚀 Quick Start Guides
-
-### For New Service Development
-1. **Planning**: Review `Project_structure/mcp-server-development-guide.md` for architecture overview
-2. **Template**: Use `template_for_mcp_implementation/MCP_SERVICE_TEMPLATE.md`
-3. **Implementation**: Follow `template_for_mcp_implementation/MCP_SERVICE_IMPLEMENTATION_GUIDE.md`
-4. **Reference**: Check existing service docs in `mcp_documentation/` for patterns
-
-### For Architecture Understanding
-1. **System Overview**: Start with `Project_structure/index.md`
-2. **Database Design**: Review `Project_structure/database-design.md`
-3. **Authentication**: Study `Project_structure/centralized-oauth-flow.md`
-4. **Request Flow**: Understand `Project_structure/multi-tenant-mcp-flow.md`
-
-### For Troubleshooting
-1. **MCP Issues**: Check `Project_structure/mcp-troubleshooting-guide.md`
-2. **Service Specific**: Reference individual service docs in `mcp_documentation/`
-3. **Protocol Questions**: Review `Project_structure/mcp-protocol-specification.md`
-
-## 🏛️ Architecture Highlights
-
-### Multi-Tenant Design
-- **Service Independence**: Services start without database dependencies
-- **Complete User Isolation**: Instance-based credential and data separation
-- **Dynamic Scalability**: One service handles unlimited users through routing
-- **Security & Compliance**: Instance-level credential management and expiration
-
-### MCP Protocol Compliance
-- **JSON-RPC 2.0**: Full specification compliance following MCP 2024-11-05
-- **Error Handling**: Comprehensive error codes and response formats
-- **Authentication**: Built-in OAuth 2.0 and API key management
-- **Session Management**: Persistent handler instances for stateful operations
-
-### Development Features
-- **24 core files** across standardized directory structure
-- **OAuth 2.0 authentication** with intelligent token caching
-- **Comprehensive logging** and monitoring capabilities
-- **Testing frameworks** for unit, integration, and load testing
-
-## 📋 Implementation Status
-
-### ✅ Completed Services
-- Figma, Gmail, Google Drive, Slack, Notion, Reddit, Dropbox, Discord, Airtable
-
-### 🔄 In Progress
-- Database schema deployment and nginx configuration updates
-
-### 📋 Planned
-- Additional MCP services and centralized OAuth service implementation
-
-## 💡 Support
-
-For implementation questions or issues:
-- **Architecture Questions**: Reference `Project_structure/` documentation
-- **Service Implementation**: Use templates in `template_for_mcp_implementation/`
-- **Specific Services**: Check relevant docs in `mcp_documentation/`
-- **Troubleshooting**: Follow guides in `Project_structure/mcp-troubleshooting-guide.md`
-
-Last updated: 2025-07-21
+### OAuth MCP Servers
+The OAuth MCP servers documentation provides a comprehensive guide for implementing secure, multi-tenant OAuth 2.0 authentication for third-party services through the Model Context Protocol. It covers the complete architecture including required files, functionality specifications, security requirements, and best practices for services like Gmail, Google Sheets, Discord, Slack, and others.
