@@ -7,6 +7,7 @@
 - **[API Key MCP Servers](project-structure/apikey-based-mcp-servers.md)** - Implementation guide for API key-based MCP servers
 - **[MCP Auth Registry](project-structure/mcp-auth-registry.md)** - Central authentication registry system for MCP servers
 - **[Database Architecture](project-structure/database-architecture.md)** - Database schema and integration patterns
+- **[Logging and Monitoring](project-structure/logging-and-monitoring.md)** - Comprehensive logging infrastructure with Winston, circuit breakers, performance monitoring, and user-specific logging systems
 
 ## Implementation Guides
 

@@ -146,18 +146,29 @@ This checklist provides step-by-step instructions for adding a new API key-based
 **File:** `utils/fetchWithRetry.js`
 - [ ] Implement HTTP retry logic with exponential backoff
 - [ ] Handle service-specific rate limiting
+- [ ] Integration with circuit breaker pattern
 
 **File:** `utils/logger.js`
-- [ ] Service-specific logging utilities
-- [ ] Integrate with main logging system
+- [ ] Service-specific logging utilities with credential sanitization
+- [ ] Integrate with main logging system (`/services/logging/loggingService.js`)
+- [ ] Implement structured logging methods:
+  - `logger.info(message, metadata)` - General information logging
+  - `logger.error(message, error, metadata)` - Error event logging
+  - `logger.apiCall(method, endpoint, status, timing)` - API operation logging
+  - `logger.mcpOperation(operation, metadata)` - MCP protocol logging
+  - `logger.performance(operation, duration)` - Performance metrics
+- [ ] Include automatic credential sanitization for API keys and sensitive data
+- [ ] Integration with user-specific logging (`/logs/users/user_{userId}/mcp_{instanceId}/`)
 
 **File:** `utils/mcpResponses.js`
 - [ ] MCP response formatting utilities
 - [ ] Standardized error response formats
+- [ ] Response logging integration
 
 **File:** `utils/sanitization.js`
-- [ ] Data sanitization utilities
+- [ ] Data sanitization utilities for API keys and credentials
 - [ ] Input validation helpers
+- [ ] Logging data sanitization functions
 
 ### 9. Main Service Entry Point (`index.js`)
 
@@ -182,7 +193,54 @@ This checklist provides step-by-step instructions for adding a new API key-based
 - [ ] Import and use `lightweightAuthMiddleware` for health endpoints
 - [ ] Include proper error handling middleware
 
-### 10. Integration Requirements
+### 10. Logging and Monitoring Integration
+
+**Required Logging Components:**
+- [ ] Initialize service-specific logger with `mcpInstanceLogger.initializeLogger(instanceId, userId)`
+- [ ] Implement user-specific log directories: `/logs/users/user_{userId}/mcp_{instanceId}/`
+- [ ] Create log files: `app.log`, `access.log`, `error.log`
+- [ ] Integrate with system-wide logging categories: application, security, performance, audit
+
+**Circuit Breaker Integration:**
+- [ ] Import and configure circuit breaker from `/utils/circuitBreaker.js`
+- [ ] Wrap external API calls with circuit breaker protection
+- [ ] Configure failure thresholds and reset timeouts
+- [ ] Monitor circuit breaker states and metrics
+
+**Performance Monitoring:**
+- [ ] Implement request timing and performance logging
+- [ ] Track API response times and error rates
+- [ ] Monitor memory usage and connection pooling
+- [ ] Log slow operations (>1 second for database, >5 seconds for API)
+
+**Health Check Implementation:**
+- [ ] Implement health check endpoint returning service status
+- [ ] Include API connectivity verification
+- [ ] Monitor credential cache health
+- [ ] Report circuit breaker status and metrics
+
+**Example Logging Implementation:**
+```javascript
+// Initialize logger for instance
+const logger = mcpInstanceLogger.initializeLogger(instanceId, userId);
+
+// Log service startup
+logger.info('Service started', { service: 'notion', port: 49280 });
+
+// Log API operations with sanitization
+logger.apiCall('GET', '/databases', 200, { duration: 150 });
+
+// Log MCP operations
+logger.mcpOperation('list-databases', { count: 5, duration: 200 });
+
+// Error logging with context
+logger.error('API request failed', error, { 
+  operation: 'fetch-database',
+  apiKey: '[REDACTED]' // Automatic sanitization
+});
+```
+
+### 11. Integration Requirements
 
 **PM2 Configuration:**
 - [ ] Add service to `/backend/ecosystem.config.js` apps array

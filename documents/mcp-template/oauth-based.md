@@ -236,11 +236,13 @@ This checklist provides step-by-step instructions for adding a new OAuth-based M
 - [ ] OAuth-specific error handling utilities
 - [ ] Provider error code mapping
 - [ ] Retry logic for transient failures
+- [ ] Integration with logging system for OAuth errors
 
 **File:** `utils/{serviceName}Formatting.js`
 - [ ] Service-specific data formatting utilities
 - [ ] API response transformation helpers
 - [ ] MCP response formatting functions
+- [ ] Data sanitization for logging
 
 ### 10. Main Service Entry Point (`index.js`)
 
@@ -268,21 +270,112 @@ This checklist provides step-by-step instructions for adding a new OAuth-based M
 - [ ] Include OAuth-specific error handling middleware
 - [ ] Integration with audit logging system
 
-### 11. Multi-Tenant Architecture Requirements
+### 11. Logging and Monitoring Integration
+
+**Required Logging Components:**
+- [ ] Initialize service-specific logger with `mcpInstanceLogger.initializeLogger(instanceId, userId)`
+- [ ] Implement user-specific log directories: `/logs/users/user_{userId}/mcp_{instanceId}/`
+- [ ] Create log files: `app.log`, `access.log`, `error.log`
+- [ ] Integrate with system-wide logging categories: application, security, performance, audit
+
+**OAuth-Specific Logging:**
+- [ ] Token refresh attempt logging with success/failure tracking
+- [ ] OAuth flow event logging (initiation, callback, completion)
+- [ ] Provider-specific error logging with sanitization
+- [ ] Authentication state change logging
+- [ ] Token expiration and renewal logging
+
+**Token Management Monitoring:**
+- [ ] Cache hit/miss ratio tracking for credential cache
+- [ ] Token refresh frequency and success rate monitoring
+- [ ] Background credential watcher performance monitoring
+- [ ] Session management metrics and statistics
+
+**Circuit Breaker Integration:**
+- [ ] Import and configure circuit breaker from `/utils/circuitBreaker.js`
+- [ ] Wrap OAuth provider API calls with circuit breaker protection
+- [ ] Configure failure thresholds specific to OAuth operations
+- [ ] Monitor OAuth service availability and recovery
+- [ ] Track token refresh circuit breaker metrics
+
+**Performance Monitoring:**
+- [ ] OAuth flow timing (initiation to callback completion)
+- [ ] Token refresh operation timing and performance
+- [ ] API request timing with bearer token authentication
+- [ ] Database query performance for token operations
+- [ ] Cache synchronization performance monitoring
+
+**Security Event Logging:**
+- [ ] OAuth state parameter validation events
+- [ ] Token storage and encryption events
+- [ ] Authentication failure and retry attempts
+- [ ] Suspicious activity detection and logging
+- [ ] CSRF protection validation events
+
+**Health Check Implementation:**
+- [ ] OAuth provider connectivity verification
+- [ ] Token cache health and synchronization status
+- [ ] Background service status (credential watcher)
+- [ ] Circuit breaker status for OAuth operations
+- [ ] Session handler health and active session count
+
+**Example OAuth Logging Implementation:**
+```javascript
+// Initialize logger for OAuth instance
+const logger = mcpInstanceLogger.initializeLogger(instanceId, userId);
+
+// OAuth flow logging
+logger.info('OAuth flow initiated', { 
+  provider: 'google', 
+  scopes: ['email', 'profile'],
+  state: 'sanitized-state-id'
+});
+
+// Token refresh logging
+logger.info('Token refresh successful', {
+  provider: 'google',
+  instanceId: instanceId,
+  refreshAttempt: 1,
+  duration: 250,
+  expiresIn: 3600
+});
+
+// Circuit breaker logging
+logger.warn('OAuth provider circuit breaker opened', {
+  provider: 'google',
+  failureCount: 5,
+  lastError: 'Connection timeout'
+});
+
+// Performance monitoring
+logger.performance('oauth-callback', callbackDuration);
+logger.performance('token-refresh', refreshDuration);
+
+// Security event logging
+logger.security('OAuth state validation failed', {
+  provided: 'state-hash',
+  expected: 'expected-hash',
+  ip: req.ip
+});
+```
+
+### 12. Multi-Tenant Architecture Requirements
 
 **Instance Isolation:**
 - [ ] Per-instance token caching with namespace isolation
 - [ ] User-instance ownership validation
 - [ ] Separate MCP sessions per instance
 - [ ] Independent token refresh cycles
+- [ ] Isolated logging per instance
 
 **Scalability Features:**
 - [ ] Database connection pooling integration
 - [ ] Background service coordination
 - [ ] Circuit breaker pattern implementation
 - [ ] Rate limiting with user quotas
+- [ ] Performance monitoring across tenants
 
-### 12. Integration Requirements
+### 13. Integration Requirements
 
 **PM2 Configuration:**
 - [ ] Add service to `/backend/ecosystem.config.js` apps array
