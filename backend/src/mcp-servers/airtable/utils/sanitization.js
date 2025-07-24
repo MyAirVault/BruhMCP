@@ -169,8 +169,8 @@ export function sanitizeFieldName(fieldName) {
 
 /**
  * Sanitize Airtable record fields
- * @param {Object} fields - Record fields to sanitize
- * @returns {Object}
+ * @param {Record<string, any>} fields - Record fields to sanitize
+ * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
  */
 export function sanitizeRecordFields(fields) {
 	if (!fields || typeof fields !== 'object') {
@@ -396,8 +396,8 @@ export function sanitizeFormula(formula) {
 
 /**
  * Sanitize query parameters
- * @param {Object} params - Query parameters to sanitize
- * @returns {Object}
+ * @param {Record<string, any>} params - Query parameters to sanitize
+ * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
  */
 export function sanitizeQueryParams(params) {
 	if (!params || typeof params !== 'object') {

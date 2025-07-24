@@ -103,14 +103,35 @@ export function formatDuration(ms) {
 }
 
 /**
+ * @typedef {Object} CacheEntry
+ * @property {any} value - Cached value
+ * @property {number} expires - Expiration timestamp
+ */
+
+/**
+ * @typedef {Object} SimpleCache
+ * @property {(key: string) => any} get - Get value from cache
+ * @property {(key: string, value: any) => void} set - Set value in cache
+ * @property {(key: string) => boolean} delete - Delete value from cache
+ * @property {() => void} clear - Clear cache
+ * @property {() => number} size - Get cache size
+ * @property {() => Array<string>} keys - Get cache keys
+ */
+
+/**
  * Create a simple cache with TTL
  * @param {number} [ttl] - Time to live in milliseconds
- * @returns {Object} Cache instance
+ * @returns {SimpleCache} Cache instance
  */
 export function createCache(ttl = 300000) { // 5 minutes default
+	/** @type {Map<string, CacheEntry>} */
 	const cache = new Map();
 	
 	return {
+		/**
+		 * @param {string} key
+		 * @returns {any}
+		 */
 		get(key) {
 			const entry = cache.get(key);
 			if (!entry) return undefined;
@@ -123,6 +144,10 @@ export function createCache(ttl = 300000) { // 5 minutes default
 			return entry.value;
 		},
 		
+		/**
+		 * @param {string} key
+		 * @param {any} value
+		 */
 		set(key, value) {
 			cache.set(key, {
 				value,
@@ -130,6 +155,10 @@ export function createCache(ttl = 300000) { // 5 minutes default
 			});
 		},
 		
+		/**
+		 * @param {string} key
+		 * @returns {boolean}
+		 */
 		delete(key) {
 			return cache.delete(key);
 		},

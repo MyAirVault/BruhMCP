@@ -8,7 +8,8 @@ export type CredentialsData = import("../../../services/mcp-auth-registry/types/
  * Initiates OAuth flow for Gmail service
  * @param {CredentialsData} credentials - OAuth credentials (clientId, clientSecret)
  * @param {string} userId - User ID initiating OAuth
+ * @param {string} instanceId - Existing MCP instance ID
  * @returns {Promise<OAuthResult>} OAuth initiation result
  */
-export function initiateOAuth(credentials: CredentialsData, userId: string): Promise<OAuthResult>;
+export function initiateOAuth(credentials: CredentialsData, userId: string, instanceId: string): Promise<OAuthResult>;
 //# sourceMappingURL=initiateOAuth.d.ts.map

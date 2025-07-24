@@ -10,17 +10,27 @@ const logger = createLogger('AsyncUtils');
 /**
  * Sleep for specified milliseconds
  * @param {number} ms - Milliseconds to sleep
- * @returns {Promise}
+ * @returns {Promise<void>}
  */
 export function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
+ * @typedef {Object} RetryOptions
+ * @property {number} [maxAttempts] - Maximum number of attempts
+ * @property {number} [baseDelay] - Base delay in milliseconds
+ * @property {number} [maxDelay] - Maximum delay in milliseconds
+ * @property {number} [backoffFactor] - Backoff multiplier
+ * @property {boolean} [jitter] - Add jitter to delays
+ */
+
+/**
  * Retry function with exponential backoff
- * @param {Function} fn - Function to retry
- * @param {Object} options - Retry options
- * @returns {Promise}
+ * @template T
+ * @param {() => Promise<T>} fn - Function to retry
+ * @param {RetryOptions} [options] - Retry options
+ * @returns {Promise<T>}
  */
 export async function retry(fn, options = {}) {
 	const {
@@ -50,7 +60,7 @@ export async function retry(fn, options = {}) {
 				attempt,
 				maxAttempts,
 				delay: jitterDelay,
-				error: error.message
+				error: error instanceof Error ? error.message : String(error)
 			});
 
 			await sleep(jitterDelay);
@@ -61,9 +71,16 @@ export async function retry(fn, options = {}) {
 }
 
 /**
+ * @typedef {Object} ExecutionResult
+ * @property {any} result - Function result
+ * @property {number} duration - Execution duration in milliseconds
+ */
+
+/**
  * Measure execution time of a function
- * @param {Function} fn - Function to measure
- * @returns {Promise<{result: any, duration: number}>}
+ * @template T
+ * @param {() => Promise<T>} fn - Function to measure
+ * @returns {Promise<ExecutionResult>}
  */
 export async function measureExecutionTime(fn) {
 	const startTime = Date.now();
@@ -73,17 +90,21 @@ export async function measureExecutionTime(fn) {
 		return { result, duration };
 	} catch (error) {
 		const duration = Date.now() - startTime;
-		error.duration = duration;
+		if (error instanceof Error) {
+			// @ts-ignore - adding custom property
+			error.duration = duration;
+		}
 		throw error;
 	}
 }
 
 /**
  * Execute function with timeout
- * @param {Promise} promise - Promise to execute
+ * @template T
+ * @param {Promise<T>} promise - Promise to execute
  * @param {number} timeoutMs - Timeout in milliseconds
  * @param {string} [timeoutMessage] - Custom timeout message
- * @returns {Promise}
+ * @returns {Promise<T>}
  */
 export async function withTimeout(promise, timeoutMs, timeoutMessage = 'Operation timed out') {
 	const timeoutPromise = new Promise((_, reject) => {
@@ -95,22 +116,24 @@ export async function withTimeout(promise, timeoutMs, timeoutMessage = 'Operatio
 
 /**
  * Debounce function execution
- * @param {Function} func - Function to debounce
+ * @template {(...args: any[]) => any} T
+ * @param {T} func - Function to debounce
  * @param {number} wait - Wait time in milliseconds
  * @param {boolean} [immediate] - Execute immediately on first call
- * @returns {Function} Debounced function
+ * @returns {T} Debounced function
  */
 export function debounce(func, wait, immediate = false) {
-	let timeout;
+	/** @type {NodeJS.Timeout | null} */
+	let timeout = null;
 	
-	return function executedFunction(...args) {
+	return /** @this {any} */ function executedFunction(...args) {
 		const later = () => {
 			timeout = null;
 			if (!immediate) func.apply(this, args);
 		};
 		
 		const callNow = immediate && !timeout;
-		clearTimeout(timeout);
+		if (timeout) clearTimeout(timeout);
 		timeout = setTimeout(later, wait);
 		
 		if (callNow) func.apply(this, args);
@@ -119,14 +142,16 @@ export function debounce(func, wait, immediate = false) {
 
 /**
  * Throttle function execution
- * @param {Function} func - Function to throttle
+ * @template {(...args: any[]) => any} T
+ * @param {T} func - Function to throttle
  * @param {number} limit - Time limit in milliseconds
- * @returns {Function} Throttled function
+ * @returns {T} Throttled function
  */
 export function throttle(func, limit) {
-	let inThrottle;
+	/** @type {boolean} */
+	let inThrottle = false;
 	
-	return function executedFunction(...args) {
+	return /** @this {any} */ function executedFunction(...args) {
 		if (!inThrottle) {
 			func.apply(this, args);
 			inThrottle = true;
@@ -137,19 +162,23 @@ export function throttle(func, limit) {
 
 /**
  * Execute functions in parallel with concurrency limit
- * @param {Array} items - Items to process
- * @param {Function} fn - Function to execute for each item
+ * @template T, R
+ * @param {Array<T>} items - Items to process
+ * @param {(item: T) => Promise<R>} fn - Function to execute for each item
  * @param {number} [concurrency] - Maximum concurrent executions
- * @returns {Promise<Array>} Results array
+ * @returns {Promise<Array<R>>} Results array
  */
 export async function parallelLimit(items, fn, concurrency = 5) {
+	/** @type {Array<R>} */
 	const results = [];
+	/** @type {Array<Promise<R>>} */
 	const executing = [];
 
 	for (const item of items) {
 		const promise = fn(item).then(result => {
 			results.push(result);
-			executing.splice(executing.indexOf(promise), 1);
+			const index = executing.indexOf(promise);
+			if (index > -1) executing.splice(index, 1);
 			return result;
 		});
 
@@ -166,10 +195,18 @@ export async function parallelLimit(items, fn, concurrency = 5) {
 }
 
 /**
+ * @typedef {Object} CircuitBreakerOptions
+ * @property {number} [failureThreshold] - Number of failures before opening circuit
+ * @property {number} [resetTimeout] - Time before attempting to close circuit
+ * @property {number} [monitoringPeriod] - Period for monitoring failures
+ */
+
+/**
  * Create a circuit breaker
- * @param {Function} fn - Function to wrap
- * @param {Object} options - Circuit breaker options
- * @returns {Function} Circuit breaker wrapped function
+ * @template {(...args: any[]) => Promise<any>} T
+ * @param {T} fn - Function to wrap
+ * @param {CircuitBreakerOptions} [options] - Circuit breaker options
+ * @returns {T} Circuit breaker wrapped function
  */
 export function circuitBreaker(fn, options = {}) {
 	const {
@@ -178,14 +215,17 @@ export function circuitBreaker(fn, options = {}) {
 		monitoringPeriod = 10000
 	} = options;
 
-	let state = 'CLOSED'; // CLOSED, OPEN, HALF_OPEN
+	/** @type {'CLOSED' | 'OPEN' | 'HALF_OPEN'} */
+	let state = 'CLOSED';
 	let failureCount = 0;
+	/** @type {number | null} */
 	let lastFailureTime = null;
+	/** @type {number | null} */
 	let nextAttempt = null;
 
-	return async function circuitBreakerWrapper(...args) {
+	return /** @this {any} */ async function circuitBreakerWrapper(...args) {
 		if (state === 'OPEN') {
-			if (Date.now() > nextAttempt) {
+			if (nextAttempt !== null && Date.now() > nextAttempt) {
 				state = 'HALF_OPEN';
 			} else {
 				throw new Error('Circuit breaker is OPEN');

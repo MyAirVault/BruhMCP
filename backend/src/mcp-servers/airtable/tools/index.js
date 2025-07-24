@@ -15,11 +15,23 @@ import { setupSearchRecordsTool } from './searchRecords.js';
 import { setupGetServiceStatsTool } from './getServiceStats.js';
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ * @property {string} [version] - Service version
+ */
+
+/**
  * Setup all MCP tools
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupAllTools(server, airtableService, measurePerformance, serviceConfig) {
 	// Base operations

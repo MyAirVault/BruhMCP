@@ -11,11 +11,27 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('GetBaseSchemaTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ */
+
+/**
+ * @typedef {Object} GetBaseSchemaParams
+ * @property {string} baseId - The ID of the Airtable base
+ */
+
+/**
  * Setup get_base_schema tool
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupGetBaseSchemaTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
@@ -24,7 +40,7 @@ export function setupGetBaseSchemaTool(server, airtableService, measurePerforman
 		{
 			baseId: z.string().describe('The ID of the Airtable base'),
 		},
-		measurePerformance('get_base_schema', async ({ baseId }) => {
+		measurePerformance('get_base_schema', async (/** @type {GetBaseSchemaParams} */ { baseId }) => {
 			logger.info(`Tool call: get_base_schema for ${serviceConfig.name}`, { baseId });
 			
 			try {
@@ -41,7 +57,7 @@ export function setupGetBaseSchemaTool(server, airtableService, measurePerforman
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'get_base_schema',
 					tool: 'get_base_schema',

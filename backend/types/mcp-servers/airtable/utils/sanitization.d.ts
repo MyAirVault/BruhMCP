@@ -19,10 +19,10 @@ export function escapeHtml(input: string): string;
 export function sanitizeFieldName(fieldName: string): string;
 /**
  * Sanitize Airtable record fields
- * @param {Object} fields - Record fields to sanitize
- * @returns {Object}
+ * @param {Record<string, any>} fields - Record fields to sanitize
+ * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
  */
-export function sanitizeRecordFields(fields: Object): Object;
+export function sanitizeRecordFields(fields: Record<string, any>): Record<string, string | number | boolean | string[] | null | undefined>;
 /**
  * Sanitize object recursively
  * @param {Object} obj - Object to sanitize
@@ -62,10 +62,10 @@ export function sanitizePhoneNumber(phone: string): string;
 export function sanitizeFormula(formula: string): string;
 /**
  * Sanitize query parameters
- * @param {Object} params - Query parameters to sanitize
- * @returns {Object}
+ * @param {Record<string, any>} params - Query parameters to sanitize
+ * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
  */
-export function sanitizeQueryParams(params: Object): Object;
+export function sanitizeQueryParams(params: Record<string, any>): Record<string, string | number | boolean | string[] | null | undefined>;
 /**
  * Check if input contains malicious patterns
  * @param {string} input - Input to check

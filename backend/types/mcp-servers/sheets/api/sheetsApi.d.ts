@@ -1,0 +1,2 @@
+export { makeSheetsRequest, makeDriveRequest, createSpreadsheet, getSpreadsheet, listSpreadsheets, getSheetMetadata, getCells, updateCells, appendValues, clearCells, addWorksheet, deleteWorksheet, copySheet, insertRows, deleteRows, formatCells, batchUpdate } from "./modules/index.js";
+//# sourceMappingURL=sheetsApi.d.ts.map

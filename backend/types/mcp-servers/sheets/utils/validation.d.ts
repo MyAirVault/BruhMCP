@@ -1,37 +1,153 @@
-/**
- * Input validation utilities for Google Sheets MCP service
- * Validates parameters for Google Sheets API operations
- * Based on Gmail MCP implementation patterns
- */
-/**
- * Validate input parameters for Google Sheets operations
- * @param {string} operation - Operation name
- * @param {Object} params - Parameters to validate
- * @throws {Error} If validation fails
- */
-export function validateSheetsInput(operation: string, params: Object): void;
-/**
- * Validate spreadsheet ID
- */
-export function validateSpreadsheetId(spreadsheetId: any, fieldName?: string): void;
-/**
- * Validate A1 notation range
- */
-export function validateA1Range(range: any): void;
-/**
- * Check if spreadsheet ID format is valid
- */
-export function isValidSpreadsheetId(id: any): boolean;
-/**
- * Check if A1 notation range is valid
- */
-export function isValidA1Range(range: any): boolean;
-/**
- * Sanitize string input
- */
-export function sanitizeString(input: any, maxLength?: number): string;
-/**
- * Validate email address format
- */
-export function validateEmail(email: any): boolean;
+export namespace validateSheetsInput {
+    /**
+     * Validate create spreadsheet parameters
+     */
+    function createSpreadsheet(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate get spreadsheet parameters
+     */
+    function getSpreadsheet(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate list spreadsheets parameters
+     */
+    function listSpreadsheets(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate get cells parameters
+     */
+    function getCells(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate update cells parameters
+     */
+    function updateCells(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate append values parameters
+     */
+    function appendValues(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate clear cells parameters
+     */
+    function clearCells(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate add worksheet parameters
+     */
+    function addWorksheet(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate delete worksheet parameters
+     */
+    function deleteWorksheet(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate format cells parameters
+     */
+    function formatCells(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate batch update parameters
+     */
+    function batchUpdate(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate copy sheet parameters
+     */
+    function copySheet(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate insert rows parameters
+     */
+    function insertRows(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate delete rows parameters
+     */
+    function deleteRows(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+    /**
+     * Validate get sheet metadata parameters
+     */
+    function getSheetMetadata(params: any): {
+        valid: boolean;
+        error: string;
+    } | {
+        valid: boolean;
+        error?: undefined;
+    };
+}
 //# sourceMappingURL=validation.d.ts.map

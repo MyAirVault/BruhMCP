@@ -11,11 +11,30 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('UpdateRecordTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ */
+
+/**
+ * @typedef {Object} UpdateRecordParams
+ * @property {string} baseId - The ID of the Airtable base
+ * @property {string} tableId - The ID or name of the table
+ * @property {string} recordId - The ID of the record to update
+ * @property {Record<string, any>} fields - Object containing field names and their updated values
+ */
+
+/**
  * Setup update_record tool
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupUpdateRecordTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
@@ -27,7 +46,7 @@ export function setupUpdateRecordTool(server, airtableService, measurePerformanc
 			recordId: z.string().describe('The ID of the record to update'),
 			fields: z.record(z.any()).describe('Object containing field names and their updated values'),
 		},
-		measurePerformance('update_record', async ({ baseId, tableId, recordId, fields }) => {
+		measurePerformance('update_record', async (/** @type {UpdateRecordParams} */ { baseId, tableId, recordId, fields }) => {
 			logger.info(`Tool call: update_record for ${serviceConfig.name}`, { 
 				baseId, tableId, recordId, fieldCount: Object.keys(fields).length 
 			});
@@ -46,7 +65,7 @@ export function setupUpdateRecordTool(server, airtableService, measurePerformanc
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'update_record',
 					tool: 'update_record',

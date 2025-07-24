@@ -11,11 +11,29 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('GetRecordTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ */
+
+/**
+ * @typedef {Object} GetRecordParams
+ * @property {string} baseId - The ID of the Airtable base
+ * @property {string} tableId - The ID or name of the table
+ * @property {string} recordId - The ID of the record to retrieve
+ */
+
+/**
  * Setup get_record tool
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupGetRecordTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
@@ -26,7 +44,7 @@ export function setupGetRecordTool(server, airtableService, measurePerformance, 
 			tableId: z.string().describe('The ID or name of the table'),
 			recordId: z.string().describe('The ID of the record to retrieve'),
 		},
-		measurePerformance('get_record', async ({ baseId, tableId, recordId }) => {
+		measurePerformance('get_record', async (/** @type {GetRecordParams} */ { baseId, tableId, recordId }) => {
 			logger.info(`Tool call: get_record for ${serviceConfig.name}`, { 
 				baseId, tableId, recordId 
 			});
@@ -45,7 +63,7 @@ export function setupGetRecordTool(server, airtableService, measurePerformance, 
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'get_record',
 					tool: 'get_record',

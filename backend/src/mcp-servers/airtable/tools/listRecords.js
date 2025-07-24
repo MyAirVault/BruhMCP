@@ -11,11 +11,34 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('ListRecordsTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ */
+
+/**
+ * @typedef {Object} ListRecordsParams
+ * @property {string} baseId - The ID of the Airtable base
+ * @property {string} tableId - The ID or name of the table
+ * @property {string} [view] - The name or ID of a view
+ * @property {string[]} [fields] - Array of field names to retrieve
+ * @property {number} [maxRecords] - Maximum number of records to return
+ * @property {Array<{field: string, direction?: 'asc' | 'desc'}>} [sort] - Array of sort objects
+ * @property {string} [filterByFormula] - Formula to filter records
+ * @property {boolean} [getAllRecords] - Get all records with automatic pagination
+ */
+
+/**
  * Setup list_records tool
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupListRecordsTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
@@ -45,7 +68,7 @@ export function setupListRecordsTool(server, airtableService, measurePerformance
 			filterByFormula: z.string().optional().describe('Formula to filter records'),
 			getAllRecords: z.boolean().optional().default(false).describe('Get all records with automatic pagination'),
 		},
-		measurePerformance('list_records', async ({ baseId, tableId, view, fields, maxRecords, sort, filterByFormula, getAllRecords }) => {
+		measurePerformance('list_records', async (/** @type {ListRecordsParams} */ { baseId, tableId, view, fields, maxRecords, sort, filterByFormula, getAllRecords }) => {
 			logger.info(`Tool call: list_records for ${serviceConfig.name}`, { 
 				baseId, tableId, maxRecords, getAllRecords 
 			});
@@ -80,7 +103,7 @@ export function setupListRecordsTool(server, airtableService, measurePerformance
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'list_records',
 					tool: 'list_records',

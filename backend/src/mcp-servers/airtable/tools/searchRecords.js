@@ -11,11 +11,31 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('SearchRecordsTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ */
+
+/**
+ * @typedef {Object} SearchRecordsParams
+ * @property {string} baseId - The ID of the Airtable base
+ * @property {string} query - Search query to find in records
+ * @property {string[]} [tables] - Array of table IDs to search
+ * @property {string[]} [fields] - Array of field names to search in
+ * @property {number} [maxRecords] - Maximum number of records to return
+ */
+
+/**
  * Setup search_records tool
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupSearchRecordsTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
@@ -28,7 +48,7 @@ export function setupSearchRecordsTool(server, airtableService, measurePerforman
 			fields: z.array(z.string()).optional().describe('Array of field names to search in (searches all text fields if not specified)'),
 			maxRecords: z.number().min(1).max(100).optional().default(50).describe('Maximum number of records to return'),
 		},
-		measurePerformance('search_records', async ({ baseId, query, tables, fields, maxRecords }) => {
+		measurePerformance('search_records', async (/** @type {SearchRecordsParams} */ { baseId, query, tables, fields, maxRecords }) => {
 			logger.info(`Tool call: search_records for ${serviceConfig.name}`, { 
 				baseId, query, tableCount: tables?.length || 0, maxRecords 
 			});
@@ -47,10 +67,11 @@ export function setupSearchRecordsTool(server, airtableService, measurePerforman
 						const tableSchema = schema.tables.find(t => t.id === tableId);
 						if (!tableSchema) continue;
 						
+						/** @type {string[]} */
 						const searchFields = fields || 
 							tableSchema.fields
-								.filter(f => ['singleLineText', 'multilineText', 'richText'].includes(f.type))
-								.map(f => f.name);
+								.filter((/** @type {any} */ f) => ['singleLineText', 'multilineText', 'richText'].includes(f.type))
+								.map((/** @type {any} */ f) => f.name);
 						
 						if (searchFields.length === 0) continue;
 						
@@ -62,7 +83,7 @@ export function setupSearchRecordsTool(server, airtableService, measurePerforman
 						
 						const records = await airtableService.listRecords(baseId, tableId, {
 							filterByFormula: formula,
-							maxRecords: Math.ceil(maxRecords / tablesToSearch.length)
+							maxRecords: Math.ceil((maxRecords || 50) / tablesToSearch.length)
 						});
 
 						if (records.records && records.records.length > 0) {
@@ -72,7 +93,7 @@ export function setupSearchRecordsTool(server, airtableService, measurePerforman
 								records: records.records
 							});
 						}
-					} catch (error) {
+					} catch (/** @type {any} */ error) {
 						logger.warn('Search failed for table', { tableId, error: error.message });
 					}
 				}
@@ -95,7 +116,7 @@ export function setupSearchRecordsTool(server, airtableService, measurePerforman
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'search_records',
 					tool: 'search_records',

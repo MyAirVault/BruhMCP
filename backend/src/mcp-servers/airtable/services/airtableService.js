@@ -8,7 +8,7 @@ import { createLogger } from '../utils/logger.js';
 import { AirtableErrorHandler } from '../utils/errorHandler.js';
 import { validateAirtableId, validateRecordFields, validateQueryParams, validateBatchRecords } from '../utils/validation.js';
 import { sanitizeRecordFields, sanitizeQueryParams } from '../utils/sanitization.js';
-import { deepClone, chunkArray, measureExecutionTime, withTimeout } from '../utils/common.js';
+import { chunkArray, measureExecutionTime, withTimeout } from '../utils/common.js';
 
 /**
  * @typedef {Object} ServiceConfig
@@ -52,7 +52,7 @@ import { deepClone, chunkArray, measureExecutionTime, withTimeout } from '../uti
 
 /**
  * @typedef {Object} SchemaCache
- * @property {Object} data - Cached schema data
+ * @property {{tables: Array<AirtableTable>}} data - Cached schema data
  * @property {number} timestamp - Cache timestamp
  */
 
@@ -351,17 +351,26 @@ export class AirtableService {
 		}
 
 		const sanitizedFields = sanitizeRecordFields(fields);
+		
+		// Filter out null/undefined values for API compatibility
+		/** @type {Record<string, string | number | boolean | string[]>} */
+		const cleanFields = {};
+		for (const [key, value] of Object.entries(sanitizedFields)) {
+			if (value !== null && value !== undefined) {
+				cleanFields[key] = value;
+			}
+		}
 
 		logger.info('Creating record', {
 			baseId,
 			tableId,
-			fieldCount: Object.keys(sanitizedFields).length
+			fieldCount: Object.keys(cleanFields).length
 		});
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
 				return await withTimeout(
-					AirtableAPI.createRecord(baseId, tableId, sanitizedFields, this.config.apiKey),
+					AirtableAPI.createRecord(baseId, tableId, cleanFields, this.config.apiKey),
 					this.config.timeout,
 					'Create record operation timed out'
 				);
@@ -409,18 +418,27 @@ export class AirtableService {
 		}
 
 		const sanitizedFields = sanitizeRecordFields(fields);
+		
+		// Filter out null/undefined values for API compatibility
+		/** @type {Record<string, string | number | boolean | string[]>} */
+		const cleanFields = {};
+		for (const [key, value] of Object.entries(sanitizedFields)) {
+			if (value !== null && value !== undefined) {
+				cleanFields[key] = value;
+			}
+		}
 
 		logger.info('Updating record', {
 			baseId,
 			tableId,
 			recordId,
-			fieldCount: Object.keys(sanitizedFields).length
+			fieldCount: Object.keys(cleanFields).length
 		});
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
 				return await withTimeout(
-					AirtableAPI.updateRecord(baseId, tableId, recordId, sanitizedFields, this.config.apiKey),
+					AirtableAPI.updateRecord(baseId, tableId, recordId, cleanFields, this.config.apiKey),
 					this.config.timeout,
 					'Update record operation timed out'
 				);
@@ -509,10 +527,22 @@ export class AirtableService {
 		}
 
 		// Sanitize all records
-		const sanitizedRecords = records.map(record => ({
-			...record,
-			fields: sanitizeRecordFields(record.fields)
-		}));
+		/** @type {Array<{fields: Record<string, string | number | boolean | string[]>}>} */
+		const sanitizedRecords = records.map(record => {
+			const sanitizedFields = sanitizeRecordFields(record.fields);
+			// Filter out null/undefined values for API compatibility
+			/** @type {Record<string, string | number | boolean | string[]>} */
+			const cleanFields = {};
+			for (const [key, value] of Object.entries(sanitizedFields)) {
+				if (value !== null && value !== undefined) {
+					cleanFields[key] = value;
+				}
+			}
+			return {
+				...record,
+				fields: cleanFields
+			};
+		});
 
 		logger.info('Creating multiple records', {
 			baseId,

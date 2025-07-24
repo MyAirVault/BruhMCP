@@ -11,11 +11,29 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('CreateMultipleRecordsTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ */
+
+/**
+ * @typedef {Object} CreateMultipleRecordsParams
+ * @property {string} baseId - The ID of the Airtable base
+ * @property {string} tableId - The ID or name of the table
+ * @property {Array<{fields: Record<string, any>}>} records - Array of record objects
+ */
+
+/**
  * Setup create_multiple_records tool
- * @param {Object} server - MCP server instance  
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance  
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupCreateMultipleRecordsTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
@@ -33,7 +51,7 @@ export function setupCreateMultipleRecordsTool(server, airtableService, measureP
 				.max(100)
 				.describe('Array of record objects to create (max 100, automatically batched)'),
 		},
-		measurePerformance('create_multiple_records', async ({ baseId, tableId, records }) => {
+		measurePerformance('create_multiple_records', async (/** @type {CreateMultipleRecordsParams} */ { baseId, tableId, records }) => {
 			logger.info(`Tool call: create_multiple_records for ${serviceConfig.name}`, { 
 				baseId, tableId, recordCount: records.length 
 			});
@@ -52,7 +70,7 @@ export function setupCreateMultipleRecordsTool(server, airtableService, measureP
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'create_multiple_records',
 					tool: 'create_multiple_records',

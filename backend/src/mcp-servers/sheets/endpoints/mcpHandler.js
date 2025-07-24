@@ -1,0 +1,96 @@
+/**
+ * Google Sheets MCP JSON-RPC protocol handler using official SDK
+ * Multi-tenant OAuth implementation with credential caching
+ */
+
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { randomUUID } from 'node:crypto';
+import { setupSheetsTools } from './tools.js';
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name
+ * @property {string} displayName
+ * @property {string} version
+ * @property {string[]} scopes
+ */
+
+export class SheetsMCPHandler {
+	/**
+	 * @param {ServiceConfig} serviceConfig
+	 * @param {string} bearerToken
+	 */
+	constructor(serviceConfig, bearerToken) {
+		this.serviceConfig = serviceConfig;
+		this.bearerToken = bearerToken;
+		this.server = new McpServer({
+			name: `${serviceConfig.displayName} MCP Server`,
+			version: serviceConfig.version,
+		});
+		// Store transports by session
+		/** @type {Record<string, StreamableHTTPServerTransport>} */
+		this.transports = {};
+		this.initialized = false;
+		
+		this.setupTools();
+	}
+
+	/**
+	 * Setup MCP tools using Zod schemas
+	 */
+	setupTools() {
+		setupSheetsTools(this.server, this, this.serviceConfig.name);
+	}
+
+	/**
+	 * Get or create transport for a session
+	 * @param {string} sessionId - Session identifier
+	 * @returns {StreamableHTTPServerTransport} Transport instance
+	 */
+	getTransport(sessionId) {
+		if (!this.transports[sessionId]) {
+			console.log(`📡 Creating new transport for session: ${sessionId}`);
+			this.transports[sessionId] = new StreamableHTTPServerTransport();
+		}
+		return this.transports[sessionId];
+	}
+
+	/**
+	 * Handle MCP request using new SDK signature
+	 * @param {import('express').Request} req - Express request object
+	 * @param {import('express').Response} res - Express response object
+	 * @param {Object} message - MCP message body
+	 */
+	async handleMCPRequest(req, res, message) {
+		const sessionId = req.headers['x-session-id']?.toString() || randomUUID();
+		const transport = this.getTransport(sessionId);
+		
+		// Connect server to transport if not connected
+		if (!transport.server) {
+			await this.server.connect(transport);
+		}
+		
+		// Handle initialize requests specially
+		if (isInitializeRequest(message)) {
+			console.log(`🔧 Handling initialize request for session: ${sessionId}`);
+			this.initialized = true;
+		}
+		
+		// Send request and get response
+		const response = await transport.handleRequest(message);
+		res.json(response);
+	}
+
+	/**
+	 * Clean up transport for a session
+	 * @param {string} sessionId - Session identifier
+	 */
+	cleanupTransport(sessionId) {
+		if (this.transports[sessionId]) {
+			console.log(`🧹 Cleaning up transport for session: ${sessionId}`);
+			delete this.transports[sessionId];
+		}
+	}
+}

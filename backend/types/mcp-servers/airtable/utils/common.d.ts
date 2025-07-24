@@ -1,207 +1,94 @@
 /**
- * Sleep for specified milliseconds
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise}
- */
-export function sleep(ms: number): Promise<any>;
-/**
- * Retry function with exponential backoff
- * @param {Function} fn - Function to retry
- * @param {Object} options - Retry options
- * @returns {Promise}
- */
-export function retry(fn: Function, options?: Object): Promise<any>;
-/**
- * Deep clone object
- * @param {any} obj - Object to clone
- * @returns {any}
- */
-export function deepClone(obj: any): any;
-/**
- * Deep merge objects
- * @param {Object} target - Target object
- * @param {Object} source - Source object
- * @returns {Object}
- */
-export function deepMerge(target: Object, source: Object): Object;
-/**
- * Check if object is empty
- * @param {Object} obj - Object to check
- * @returns {boolean}
- */
-export function isEmpty(obj: Object): boolean;
-/**
  * Generate UUID v4
- * @returns {string}
+ * @returns {string} UUID
  */
 export function generateUUID(): string;
 /**
+ * Check if running in development mode
+ * @returns {boolean} True if development
+ */
+export function isDevelopment(): boolean;
+/**
+ * Check if running in production mode
+ * @returns {boolean} True if production
+ */
+export function isProduction(): boolean;
+/**
+ * Get environment variable with default
+ * @param {string} key - Environment variable key
+ * @param {string} defaultValue - Default value
+ * @returns {string} Environment variable value or default
+ */
+export function getEnv(key: string, defaultValue?: string): string;
+/**
  * Format bytes to human readable string
  * @param {number} bytes - Bytes to format
- * @param {number} decimals - Number of decimals
- * @returns {string}
+ * @param {number} [decimals] - Number of decimal places
+ * @returns {string} Formatted string
  */
 export function formatBytes(bytes: number, decimals?: number): string;
 /**
- * Format duration to human readable string
+ * Format duration in milliseconds to human readable string
  * @param {number} ms - Duration in milliseconds
- * @returns {string}
+ * @returns {string} Formatted duration
  */
 export function formatDuration(ms: number): string;
 /**
- * Debounce function
- * @param {Function} func - Function to debounce
- * @param {number} wait - Wait time in milliseconds
- * @param {boolean} immediate - Execute immediately
- * @returns {Function}
+ * @typedef {Object} CacheEntry
+ * @property {any} value - Cached value
+ * @property {number} expires - Expiration timestamp
  */
-export function debounce(func: Function, wait: number, immediate?: boolean): Function;
 /**
- * Throttle function
- * @param {Function} func - Function to throttle
- * @param {number} limit - Limit in milliseconds
- * @returns {Function}
+ * @typedef {Object} SimpleCache
+ * @property {(key: string) => any} get - Get value from cache
+ * @property {(key: string, value: any) => void} set - Set value in cache
+ * @property {(key: string) => boolean} delete - Delete value from cache
+ * @property {() => void} clear - Clear cache
+ * @property {() => number} size - Get cache size
+ * @property {() => Array<string>} keys - Get cache keys
  */
-export function throttle(func: Function, limit: number): Function;
 /**
- * Chunk array into smaller arrays
- * @param {Array} array - Array to chunk
- * @param {number} size - Chunk size
- * @returns {Array}
+ * Create a simple cache with TTL
+ * @param {number} [ttl] - Time to live in milliseconds
+ * @returns {SimpleCache} Cache instance
  */
-export function chunkArray(array: any[], size: number): any[];
-/**
- * Get nested property from object
- * @param {Object} obj - Object to search
- * @param {string} path - Property path (e.g., 'a.b.c')
- * @param {any} defaultValue - Default value if property not found
- * @returns {any}
- */
-export function getNestedProperty(obj: Object, path: string, defaultValue?: any): any;
-/**
- * Set nested property in object
- * @param {Object} obj - Object to modify
- * @param {string} path - Property path (e.g., 'a.b.c')
- * @param {any} value - Value to set
- * @returns {Object}
- */
-export function setNestedProperty(obj: Object, path: string, value: any): Object;
-/**
- * Remove undefined properties from object
- * @param {Object} obj - Object to clean
- * @returns {Object}
- */
-export function removeUndefined(obj: Object): Object;
-/**
- * Convert string to camelCase
- * @param {string} str - String to convert
- * @returns {string}
- */
-export function toCamelCase(str: string): string;
-/**
- * Convert string to snake_case
- * @param {string} str - String to convert
- * @returns {string}
- */
-export function toSnakeCase(str: string): string;
-/**
- * Convert string to kebab-case
- * @param {string} str - String to convert
- * @returns {string}
- */
-export function toKebabCase(str: string): string;
-/**
- * Truncate string to specified length
- * @param {string} str - String to truncate
- * @param {number} maxLength - Maximum length
- * @param {string} suffix - Suffix to add
- * @returns {string}
- */
-export function truncateString(str: string, maxLength: number, suffix?: string): string;
-/**
- * Parse JSON safely
- * @param {string} jsonString - JSON string to parse
- * @param {any} defaultValue - Default value if parsing fails
- * @returns {any}
- */
-export function safeJsonParse(jsonString: string, defaultValue?: any): any;
-/**
- * Stringify JSON safely
- * @param {any} obj - Object to stringify
- * @param {string} defaultValue - Default value if stringifying fails
- * @returns {string}
- */
-export function safeJsonStringify(obj: any, defaultValue?: string): string;
-/**
- * Create timeout promise
- * @param {number} ms - Timeout in milliseconds
- * @param {string} message - Timeout message
- * @returns {Promise}
- */
-export function createTimeout(ms: number, message?: string): Promise<any>;
-/**
- * Race promise with timeout
- * @param {Promise} promise - Promise to race
- * @param {number} timeoutMs - Timeout in milliseconds
- * @param {string} timeoutMessage - Timeout message
- * @returns {Promise}
- */
-export function withTimeout(promise: Promise<any>, timeoutMs: number, timeoutMessage?: string): Promise<any>;
-/**
- * Measure execution time
- * @param {Function} fn - Function to measure
- * @returns {Promise<{result: any, duration: number}>}
- */
-export function measureExecutionTime(fn: Function): Promise<{
-    result: any;
-    duration: number;
-}>;
-/**
- * Create rate limiter
- * @param {number} maxRequests - Maximum requests
- * @param {number} windowMs - Window in milliseconds
- * @returns {Function}
- */
-export function createRateLimiter(maxRequests: number, windowMs: number): Function;
-/**
- * Hash string using simple hash function
- * @param {string} str - String to hash
- * @returns {number}
- */
-export function hashString(str: string): number;
-/**
- * Create LRU cache
- * @param {number} maxSize - Maximum cache size
- * @returns {Object}
- */
-export function createLRUCache(maxSize: number): Object;
-declare namespace _default {
-    export { sleep };
-    export { retry };
-    export { deepClone };
-    export { deepMerge };
-    export { isEmpty };
-    export { generateUUID };
-    export { formatBytes };
-    export { formatDuration };
-    export { debounce };
-    export { throttle };
-    export { chunkArray };
-    export { getNestedProperty };
-    export { setNestedProperty };
-    export { removeUndefined };
-    export { toCamelCase };
-    export { toSnakeCase };
-    export { toKebabCase };
-    export { truncateString };
-    export { safeJsonParse };
-    export { safeJsonStringify };
-    export { createTimeout };
-    export { withTimeout };
-    export { measureExecutionTime };
-    export { createRateLimiter };
-    export { hashString };
-    export { createLRUCache };
-}
-export default _default;
+export function createCache(ttl?: number): SimpleCache;
+export type CacheEntry = {
+    /**
+     * - Cached value
+     */
+    value: any;
+    /**
+     * - Expiration timestamp
+     */
+    expires: number;
+};
+export type SimpleCache = {
+    /**
+     * - Get value from cache
+     */
+    get: (key: string) => any;
+    /**
+     * - Set value in cache
+     */
+    set: (key: string, value: any) => void;
+    /**
+     * - Delete value from cache
+     */
+    delete: (key: string) => boolean;
+    /**
+     * - Clear cache
+     */
+    clear: () => void;
+    /**
+     * - Get cache size
+     */
+    size: () => number;
+    /**
+     * - Get cache keys
+     */
+    keys: () => Array<string>;
+};
+export { sleep, retry, measureExecutionTime, withTimeout, debounce, throttle, parallelLimit, circuitBreaker } from "./async.js";
+export { deepClone, deepMerge, isObject, chunkArray, flattenArray, uniqueArray, groupBy, multiSort, pick, omit, get, set, transformKeys, camelToSnake, snakeToCamel } from "./data.js";
 //# sourceMappingURL=common.d.ts.map

@@ -64,7 +64,7 @@ function validateObject(obj, schema, context) {
 
 /**
  * Validate individual property
- * @param {any} value - Value to validate
+ * @param {string|number|boolean|Array|Object|null|undefined} value - Value to validate
  * @param {Object} schema - Property schema
  * @param {string} context - Context for error messages
  */
@@ -101,7 +101,7 @@ function validateProperty(value, schema, context) {
 
 /**
  * Validate value type
- * @param {any} value - Value to validate
+ * @param {string|number|boolean|Array|Object|null|undefined} value - Value to validate
  * @param {string} expectedType - Expected type
  * @returns {boolean} True if type is valid
  */

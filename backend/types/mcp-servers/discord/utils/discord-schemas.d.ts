@@ -12,9 +12,6 @@ export function validateMessageContent(content: any): {
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -24,6 +21,9 @@ export function validateMessageContent(content: any): {
         footer?: {
             text: string;
             iconUrl?: string | undefined;
+        } | undefined;
+        image?: {
+            url: string;
         } | undefined;
         thumbnail?: {
             url: string;
@@ -46,9 +46,6 @@ export function validateEmbed(embed: any): {
         inline: boolean;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -58,6 +55,9 @@ export function validateEmbed(embed: any): {
     footer?: {
         text: string;
         iconUrl?: string | undefined;
+    } | undefined;
+    image?: {
+        url: string;
     } | undefined;
     thumbnail?: {
         url: string;
@@ -183,9 +183,6 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         inline: boolean;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -195,6 +192,9 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     footer?: {
         text: string;
         iconUrl?: string | undefined;
+    } | undefined;
+    image?: {
+        url: string;
     } | undefined;
     thumbnail?: {
         url: string;
@@ -209,9 +209,6 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         inline?: boolean | undefined;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -221,6 +218,9 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     footer?: {
         text: string;
         iconUrl?: string | undefined;
+    } | undefined;
+    image?: {
+        url: string;
     } | undefined;
     thumbnail?: {
         url: string;
@@ -235,9 +235,6 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         inline: boolean;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -247,6 +244,9 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     footer?: {
         text: string;
         iconUrl?: string | undefined;
+    } | undefined;
+    image?: {
+        url: string;
     } | undefined;
     thumbnail?: {
         url: string;
@@ -261,9 +261,6 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
         inline?: boolean | undefined;
     }[] | undefined;
     title?: string | undefined;
-    image?: {
-        url: string;
-    } | undefined;
     author?: {
         name: string;
         url?: string | undefined;
@@ -273,6 +270,9 @@ export const embedSchema: z.ZodEffects<z.ZodObject<{
     footer?: {
         text: string;
         iconUrl?: string | undefined;
+    } | undefined;
+    image?: {
+        url: string;
     } | undefined;
     thumbnail?: {
         url: string;
@@ -362,9 +362,6 @@ export const messageContentSchema: z.ZodObject<{
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -374,6 +371,9 @@ export const messageContentSchema: z.ZodObject<{
         footer?: {
             text: string;
             iconUrl?: string | undefined;
+        } | undefined;
+        image?: {
+            url: string;
         } | undefined;
         thumbnail?: {
             url: string;
@@ -388,9 +388,6 @@ export const messageContentSchema: z.ZodObject<{
             inline?: boolean | undefined;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -400,6 +397,9 @@ export const messageContentSchema: z.ZodObject<{
         footer?: {
             text: string;
             iconUrl?: string | undefined;
+        } | undefined;
+        image?: {
+            url: string;
         } | undefined;
         thumbnail?: {
             url: string;
@@ -414,9 +414,6 @@ export const messageContentSchema: z.ZodObject<{
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -426,6 +423,9 @@ export const messageContentSchema: z.ZodObject<{
         footer?: {
             text: string;
             iconUrl?: string | undefined;
+        } | undefined;
+        image?: {
+            url: string;
         } | undefined;
         thumbnail?: {
             url: string;
@@ -440,9 +440,6 @@ export const messageContentSchema: z.ZodObject<{
             inline?: boolean | undefined;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -452,6 +449,9 @@ export const messageContentSchema: z.ZodObject<{
         footer?: {
             text: string;
             iconUrl?: string | undefined;
+        } | undefined;
+        image?: {
+            url: string;
         } | undefined;
         thumbnail?: {
             url: string;
@@ -487,9 +487,6 @@ export const messageContentSchema: z.ZodObject<{
             inline: boolean;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -499,6 +496,9 @@ export const messageContentSchema: z.ZodObject<{
         footer?: {
             text: string;
             iconUrl?: string | undefined;
+        } | undefined;
+        image?: {
+            url: string;
         } | undefined;
         thumbnail?: {
             url: string;
@@ -523,9 +523,6 @@ export const messageContentSchema: z.ZodObject<{
             inline?: boolean | undefined;
         }[] | undefined;
         title?: string | undefined;
-        image?: {
-            url: string;
-        } | undefined;
         author?: {
             name: string;
             url?: string | undefined;
@@ -535,6 +532,9 @@ export const messageContentSchema: z.ZodObject<{
         footer?: {
             text: string;
             iconUrl?: string | undefined;
+        } | undefined;
+        image?: {
+            url: string;
         } | undefined;
         thumbnail?: {
             url: string;

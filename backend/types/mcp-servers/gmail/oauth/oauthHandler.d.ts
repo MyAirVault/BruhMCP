@@ -17,10 +17,11 @@ declare class GmailOAuthHandler {
     /**
      * Initiates OAuth flow for Gmail
      * @param {string} instanceId - MCP instance ID
+     * @param {string} userId - User ID for authentication
      * @param {AuthCredentials} credentials - OAuth credentials (client_id, client_secret)
      * @returns {Promise<OAuthFlowResult>} OAuth flow result with auth URL
      */
-    initiateFlow(instanceId: string, credentials: AuthCredentials): Promise<OAuthFlowResult>;
+    initiateFlow(instanceId: string, userId: string, credentials: AuthCredentials): Promise<OAuthFlowResult>;
     /**
      * Handles OAuth callback and exchanges code for tokens
      * @param {string} code - OAuth authorization code

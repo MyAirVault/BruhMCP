@@ -12,9 +12,26 @@ const logger = createLogger('FetchWithRetry');
 const execAsync = promisify(exec);
 
 /**
- * Fetch with retry and curl fallback * @param {string} url - URL to fetch
- * @param {Object} options - Request options
- * @returns {Promise<any>} Response data
+ * @typedef {Object} FetchOptions
+ * @property {Record<string, string>} [headers] - Request headers
+ * @property {string} [method] - HTTP method
+ * @property {string | Buffer} [body] - Request body
+ */
+
+/**
+ * @typedef {Object} MockResponse
+ * @property {boolean} ok - Whether request succeeded
+ * @property {number} status - HTTP status code
+ * @property {string} statusText - Status text
+ * @property {Map<string, string>} headers - Response headers
+ * @property {() => Promise<any>} json - JSON parser function
+ */
+
+/**
+ * Fetch with retry and curl fallback
+ * @param {string} url - URL to fetch
+ * @param {FetchOptions} [options] - Request options
+ * @returns {Promise<Response | MockResponse>} Response data
  */
 export async function fetchWithRetry(url, options = {}) {
 	try {
@@ -22,7 +39,7 @@ export async function fetchWithRetry(url, options = {}) {
 		return response;
 	} catch (fetchError) {
 		logger.warn(
-			`Initial fetch failed for ${url}: ${fetchError.message}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
+			`Initial fetch failed for ${url}: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
 		);
 
 		const curlHeaders = formatHeadersForCurl(options.headers);
@@ -66,7 +83,7 @@ export async function fetchWithRetry(url, options = {}) {
 				json: () => Promise.resolve(jsonData)
 			};
 		} catch (curlError) {
-			logger.error(`Curl fallback also failed for ${url}: ${curlError.message}`);
+			logger.error(`Curl fallback also failed for ${url}: ${curlError instanceof Error ? curlError.message : String(curlError)}`);
 			// Re-throw the original fetch error to give context about the initial failure
 			throw fetchError;
 		}
@@ -74,7 +91,8 @@ export async function fetchWithRetry(url, options = {}) {
 }
 
 /**
- * Converts HeadersInit to an array of curl header arguments * @param {Object} headers - Headers to convert
+ * Converts HeadersInit to an array of curl header arguments
+ * @param {Record<string, string> | undefined} headers - Headers to convert
  * @returns {string[]} Array of strings, each a curl -H argument
  */
 function formatHeadersForCurl(headers) {

@@ -1,134 +1,209 @@
 /**
- * Google Sheets MCP Server
- *
- * Multi-tenant Google Sheets service with OAuth authentication
- * Following Gmail MCP implementation patterns
+ * Google Sheets MCP Service Entry Point
+ * OAuth 2.0 Implementation following Multi-Tenant Architecture
  */
+
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Load .env from backend root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const backendRoot = join(__dirname, '../../..');
+dotenv.config({ path: join(backendRoot, '.env') });
 
 import express from 'express';
 import cors from 'cors';
-import { createHandlerSession, getHandlerSession } from './services/handler-sessions.js';
-import credentialAuth from './middleware/credential-auth.js';
-import callEndpoint from './endpoints/call.js';
-import healthEndpoint from './endpoints/health.js';
-import { setCachedCredential } from './services/credential-cache.js';
+import {
+	createCredentialAuthMiddleware,
+	createLightweightAuthMiddleware,
+	createCachePerformanceMiddleware,
+} from './middleware/credentialAuth.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
+import { startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
+import { setupRoutes } from './routes.js';
+import {
+	createMCPLoggingMiddleware,
+	createMCPErrorMiddleware,
+	createMCPOperationMiddleware,
+	createMCPServiceLogger,
+} from '../../middleware/mcpLoggingMiddleware.js';
 
+// Service configuration (from mcp-ports/sheets/config.json)
+const SERVICE_CONFIG = {
+	name: 'sheets',
+	displayName: 'Google Sheets',
+	port: 49307,
+	authType: 'oauth',
+	description: 'Spreadsheet service for managing Google Sheets',
+	version: '1.0.0',
+	iconPath: '/mcp-logos/sheets.svg',
+	scopes: [
+		'https://www.googleapis.com/auth/spreadsheets',
+		'https://www.googleapis.com/auth/drive.readonly',
+		'https://www.googleapis.com/auth/userinfo.profile',
+		'https://www.googleapis.com/auth/userinfo.email',
+	],
+};
+
+console.log(`🚀 Starting ${SERVICE_CONFIG.displayName} service on port ${SERVICE_CONFIG.port}`);
+
+// Initialize Phase 2 credential caching system
+initializeCredentialCache();
+
+// Initialize logging system
+const serviceLogger = createMCPServiceLogger(SERVICE_CONFIG.name, SERVICE_CONFIG);
+
+// Initialize Express app
 const app = express();
-const PORT = 49307;
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Logging middleware
-app.use((req, res, next) => {
-	const timestamp = new Date().toISOString();
-	console.log(`[${timestamp}] ${req.method} ${req.url}`);
-	next();
-});
+// Add MCP logging middleware for all instance-based routes
+app.use('/:instanceId/*', createMCPLoggingMiddleware(SERVICE_CONFIG.name));
+app.use('/:instanceId/*', createMCPOperationMiddleware(SERVICE_CONFIG.name));
 
-// Global health endpoint
-app.get('/health', (req, res) => {
-	res.json({
-		status: 'healthy',
-		service: 'sheets-mcp',
-		timestamp: new Date().toISOString(),
-	});
-});
+// Add cache performance monitoring in development
+if (process.env.NODE_ENV === 'development') {
+	app.use(createCachePerformanceMiddleware());
+}
 
-// OAuth token caching endpoint (for OAuth service integration)
+/**
+ * OAuth token caching endpoint for OAuth service integration
+ */
 app.post('/cache-tokens', async (req, res) => {
 	try {
 		const { instance_id, tokens } = req.body;
 
 		if (!instance_id || !tokens) {
-			return res.status(400).json({
-				error: 'Instance ID and tokens are required'
+			res.status(400).json({
+				error: 'Instance ID and tokens are required',
 			});
+			return;
 		}
 
 		// Cache tokens using existing credential cache
+		const { setCachedCredential } = await import('./services/credentialCache.js');
+
 		setCachedCredential(instance_id, {
 			bearerToken: tokens.access_token,
 			refreshToken: tokens.refresh_token,
-			expiresAt: tokens.expires_at || (Date.now() + (tokens.expires_in * 1000)),
-			user_id: tokens.user_id || 'unknown'
+			expiresAt: tokens.expires_at || Date.now() + tokens.expires_in * 1000,
+			user_id: tokens.user_id || 'unknown',
 		});
 
 		console.log(`✅ OAuth tokens cached for instance: ${instance_id}`);
-		
+
 		res.json({
 			success: true,
 			message: 'Tokens cached successfully',
-			instance_id
+			instance_id,
 		});
-
 	} catch (error) {
-		console.error('Token caching error:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Token caching error:', errorMessage);
 		res.status(500).json({
 			error: 'Failed to cache tokens',
-			details: error.message
+			details: errorMessage,
 		});
 	}
 });
 
-// Instance-specific routes with credential authentication
-app.use('/:instanceId', credentialAuth);
+// Create authentication middleware (Phase 2 with OAuth caching)
+const credentialAuthMiddleware = createCredentialAuthMiddleware();
+const lightweightAuthMiddleware = createLightweightAuthMiddleware();
 
-// Instance-specific health endpoint
-app.get('/:instanceId/health', healthEndpoint);
+// Setup all routes
+setupRoutes(app, SERVICE_CONFIG, credentialAuthMiddleware, lightweightAuthMiddleware);
 
-// MCP JSON-RPC endpoint at base instance URL for Claude Code compatibility
-app.post('/:instanceId', callEndpoint);
+// Debug endpoint for cache monitoring (development only)
+if (process.env.NODE_ENV === 'development') {
+	app.get('/debug/cache-status', (_, res) => {
+		try {
+			const cacheStats = getCacheStatistics();
+			const watcherStatus = getWatcherStatus();
+			const sessionStats = getSessionStatistics();
 
-// Main MCP call endpoint
-app.post('/:instanceId/call', callEndpoint);
-
-// Initialize handler session on first request
-app.use('/:instanceId', async (req, res, next) => {
-	const { instanceId } = req.params;
-
-	try {
-		let session = getHandlerSession(instanceId);
-		if (!session) {
-			session = await createHandlerSession(instanceId, req.oauth);
-			console.log(`Created new handler session for instance: ${instanceId}`);
+			res.json({
+				service: SERVICE_CONFIG.name,
+				cache_statistics: cacheStats,
+				watcher_status: watcherStatus,
+				session_statistics: sessionStats,
+				oauth_scopes: SERVICE_CONFIG.scopes,
+				timestamp: new Date().toISOString(),
+			});
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			res.status(500).json({
+				error: 'Failed to get cache status',
+				message: errorMessage,
+			});
 		}
+	});
+}
 
-		req.handlerSession = session;
-		next();
-	} catch (error) {
-		console.error(`Failed to initialize handler session for ${instanceId}:`, error);
-		res.status(500).json({
-			error: 'Failed to initialize MCP handler session',
-			details: error.message,
-		});
-	}
-});
+// Error handling middleware with logging
+app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
-// Error handling middleware
-app.use((error, req, res, next) => {
-	console.error('Unhandled error:', error);
+/**
+ * Global error handler middleware
+ */
+app.use((err, _req, res, _next) => {
+	console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
+	const errorMessage = err instanceof Error ? err.message : String(err);
 	res.status(500).json({
 		error: 'Internal server error',
-		message: error.message,
-		timestamp: new Date().toISOString(),
+		message: errorMessage,
+		service: SERVICE_CONFIG.name,
 	});
 });
 
-// 404 handler
-app.use((req, res) => {
-	res.status(404).json({
-		error: 'Endpoint not found',
-		path: req.path,
-		method: req.method,
+// Start the server
+const server = app.listen(SERVICE_CONFIG.port, () => {
+	console.log(`✅ ${SERVICE_CONFIG.displayName} service running on port ${SERVICE_CONFIG.port}`);
+	console.log(`🔗 Global Health: http://localhost:${SERVICE_CONFIG.port}/health`);
+	console.log(`🏠 Instance Health: http://localhost:${SERVICE_CONFIG.port}/:instanceId/health`);
+	console.log(`🔧 MCP SDK: POST http://localhost:${SERVICE_CONFIG.port}/:instanceId/mcp`);
+	console.log(`🌐 Multi-tenant architecture enabled with instance-based routing`);
+	console.log(`🚀 Phase 2: OAuth Bearer token caching system enabled`);
+	console.log(`📋 MCP Protocol: JSON-RPC 2.0 via MCP SDK`);
+	console.log(`📝 Instance logging system enabled`);
+	console.log(`🔐 OAuth Scopes: ${SERVICE_CONFIG.scopes.join(', ')}`);
+
+	// Initialize logging for service
+	serviceLogger.logServiceStartup();
+
+	// Start Phase 2 credential watcher for background maintenance
+	startCredentialWatcher();
+
+	// Start handler session cleanup service
+	startSessionCleanup();
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+	console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
+	stopCredentialWatcher();
+	stopSessionCleanup();
+	server.close(() => {
+		console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
+		process.exit(0);
 	});
 });
 
-app.listen(PORT, () => {
-	console.log(`Google Sheets MCP Server running on port ${PORT}`);
-	console.log(`Health check: http://localhost:${PORT}/health`);
-	console.log(`Instance endpoint: http://localhost:${PORT}/:instanceId/call`);
+process.on('SIGINT', () => {
+	console.log(`📴 Shutting down ${SERVICE_CONFIG.displayName} service...`);
+	stopCredentialWatcher();
+	stopSessionCleanup();
+	server.close(() => {
+		console.log(`✅ ${SERVICE_CONFIG.displayName} service stopped gracefully`);
+		process.exit(0);
+	});
 });
 
 export default app;

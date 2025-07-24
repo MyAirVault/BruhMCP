@@ -24,9 +24,18 @@ export const TOKEN_TYPES = {
 };
 
 /**
+ * @typedef {Object} TokenValidationResult
+ * @property {boolean} valid - Whether token is valid
+ * @property {string} type - Token type
+ * @property {string | null} expiresAt - Expiration time
+ * @property {Array<string>} scopes - Token scopes
+ * @property {string} userId - User ID
+ */
+
+/**
  * Validate API token
  * @param {string} token - Token to validate
- * @returns {Promise<Object>} Validation result
+ * @returns {Promise<TokenValidationResult>} Validation result
  */
 export async function validateToken(token) {
 	if (!token) {
@@ -86,7 +95,7 @@ export async function validateToken(token) {
 		return result;
 	} catch (error) {
 		const authError = error instanceof AuthenticationError ? error : 
-			new AuthenticationError(`Token validation failed: ${error.message}`);
+			new AuthenticationError(`Token validation failed: ${error instanceof Error ? error.message : String(error)}`);
 		
 		logger.error('Token validation failed', { error: authError.message });
 		throw authError;
@@ -111,7 +120,7 @@ export function getTokenType(token) {
 /**
  * Extract token scopes from API response
  * @param {Response} response - API response
- * @returns {Promise<Array>} Token scopes
+ * @returns {Promise<Array<string>>} Token scopes
  */
 async function extractTokenScopes(response) {
 	try {
@@ -119,7 +128,7 @@ async function extractTokenScopes(response) {
 		// In the future, this could be extracted from response headers or a dedicated endpoint
 		return ['bases:read', 'bases:write', 'schema:read'];
 	} catch (error) {
-		logger.warn('Failed to extract token scopes', { error: error.message });
+		logger.warn('Failed to extract token scopes', { error: error instanceof Error ? error.message : String(error) });
 		return [];
 	}
 }
@@ -135,7 +144,7 @@ async function extractUserId(response) {
 		// For now, return a placeholder
 		return 'unknown';
 	} catch (error) {
-		logger.warn('Failed to extract user ID', { error: error.message });
+		logger.warn('Failed to extract user ID', { error: error instanceof Error ? error.message : String(error) });
 		return 'unknown';
 	}
 }
@@ -149,17 +158,22 @@ async function extractUserId(response) {
 export async function hasScope(token, scope) {
 	try {
 		const validation = await validateToken(token);
-		return Array.isArray(validation.scopes) && validation.scopes.includes(scope);
+		return validation.scopes.includes(scope);
 	} catch (error) {
-		logger.error('Scope check failed', { scope, error: error.message });
+		logger.error('Scope check failed', { scope, error: error instanceof Error ? error.message : String(error) });
 		return false;
 	}
 }
 
 /**
+ * @typedef {Object} AuthHeader
+ * @property {string} Authorization - Bearer token
+ */
+
+/**
  * Create authorization header
  * @param {string} token - API token
- * @returns {Object} Authorization header
+ * @returns {AuthHeader} Authorization header
  */
 export function createAuthHeader(token) {
 	if (!token) {
@@ -172,9 +186,17 @@ export function createAuthHeader(token) {
 }
 
 /**
+ * @typedef {Object} AuthMiddlewareOptions
+ * @property {string} [tokenHeader] - Header containing token
+ * @property {string} [tokenPrefix] - Token prefix
+ * @property {boolean} [validateToken] - Whether to validate token
+ * @property {boolean} [cacheValidation] - Whether to cache validation
+ */
+
+/**
  * Create authentication middleware
- * @param {Object} options - Middleware options
- * @returns {Function} Express middleware
+ * @param {AuthMiddlewareOptions} [options] - Middleware options
+ * @returns {(req: any, res: any, next: any) => Promise<void>} Express middleware
  */
 export function createAuthMiddleware(options = {}) {
 	const {
@@ -211,7 +233,7 @@ export function createAuthMiddleware(options = {}) {
 
 			next();
 		} catch (error) {
-			const authError = AirtableErrorHandler.handle(error, {
+			const authError = AirtableErrorHandler.handle(error instanceof Error ? error : new Error(String(error)), {
 				middleware: 'auth',
 				method: req.method,
 				url: req.url
@@ -281,7 +303,7 @@ export function getTokenCacheStats() {
 
 /**
  * Check if token is expired (placeholder for future use)
- * @param {Object} tokenValidation - Token validation result
+ * @param {TokenValidationResult} tokenValidation - Token validation result
  * @returns {boolean} True if expired
  */
 export function isTokenExpired(tokenValidation) {
@@ -293,9 +315,17 @@ export function isTokenExpired(tokenValidation) {
 }
 
 /**
+ * @typedef {Object} TokenInfo
+ * @property {string} type - Token type
+ * @property {string} prefix - Token prefix
+ * @property {number} length - Token length
+ * @property {number} created - Creation timestamp
+ */
+
+/**
  * Create token info object
  * @param {string} token - API token
- * @returns {Object} Token info
+ * @returns {TokenInfo} Token info
  */
 export function createTokenInfo(token) {
 	return {
@@ -307,9 +337,16 @@ export function createTokenInfo(token) {
 }
 
 /**
+ * @typedef {Object} TokenValidationResultWithInfo
+ * @property {TokenInfo} token - Token info
+ * @property {TokenValidationResult} [validation] - Validation result
+ * @property {string} [error] - Error message
+ */
+
+/**
  * Validate multiple tokens
- * @param {Array} tokens - Array of tokens
- * @returns {Promise<Array>} Validation results
+ * @param {Array<string>} tokens - Array of tokens
+ * @returns {Promise<Array<TokenValidationResultWithInfo>>} Validation results
  */
 export async function validateMultipleTokens(tokens) {
 	const results = [];
@@ -321,7 +358,7 @@ export async function validateMultipleTokens(tokens) {
 		} catch (error) {
 			results.push({ 
 				token: createTokenInfo(token), 
-				error: error.message 
+				error: error instanceof Error ? error.message : String(error)
 			});
 		}
 	}

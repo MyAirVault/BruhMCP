@@ -1,1 +1,1 @@
-{"version":3,"file":"list-bases.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/airtable/tools/list-bases.js"],"names":[],"mappings":"AAWA;;;;;;GAMG;AACH,2CALW,MAAM,mBACN,MAAM,+CAEN,MAAM,QAoChB"}
+{"version":3,"file":"list-bases.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/airtable/tools/list-bases.js"],"names":[],"mappings":"AAWA;;;GAGG;AAEH;;;;GAIG;AAEH;;;;;;GAMG;AACH,2CALW,SAAS,mBACT,OAAO,gCAAgC,EAAE,eAAe,sBACxD,CAAC,SAAS,EAAE,MAAM,EAAE,EAAE,UAAU,aAAa,iBAC7C,aAAa,QAoCvB;;;;;;;;;;;UA7Ca,MAAM;;;;iBACN,MAAM"}

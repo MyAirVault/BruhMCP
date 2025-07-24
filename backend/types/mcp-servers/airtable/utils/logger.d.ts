@@ -50,6 +50,8 @@ declare class Logger {
      */
     constructor(component: string);
     component: string;
+    /** @type {Object} */
+    context: Object;
     /**
      * Log debug message
      * @param {string} message - Message to log

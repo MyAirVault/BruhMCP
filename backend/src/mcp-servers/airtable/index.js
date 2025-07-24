@@ -80,8 +80,10 @@ app.get('/health', (_, res) => {
 
 // Instance-based endpoints with multi-tenant routing
 
+/** @typedef {import('./middleware/credentialAuth.js').AuthenticatedRequest} AuthenticatedRequest */
+
 // OAuth well-known endpoint (return 404 as Airtable uses API keys, not OAuth)
-app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
+app.get('/.well-known/oauth-authorization-server/:instanceId', (_req, res) => {
   res.status(404).json({
     error: 'Not Found',
     message: 'This MCP server uses API key authentication, not OAuth'
@@ -90,10 +92,11 @@ app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
 
 // Instance health endpoint (using lightweight auth - no credential caching needed)
 app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
+  const authReq = /** @type {AuthenticatedRequest} */ (req);
   try {
     const healthStatus = {
       ...healthCheck(SERVICE_CONFIG),
-      instanceId: req.instanceId,
+      instanceId: authReq.instanceId,
       message: 'Instance-specific health check',
       authType: 'api_key'
     };
@@ -101,7 +104,7 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     ErrorResponses.internal(res, `${SERVICE_CONFIG.displayName} instance health check failed`, {
-      instanceId: req.instanceId,
+      instanceId: authReq.instanceId,
       metadata: { service: SERVICE_CONFIG.name, errorMessage }
     });
   }
@@ -109,16 +112,17 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
 
 // MCP JSON-RPC endpoint at base instance URL for Claude Code compatibility
 app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
+  const authReq = /** @type {AuthenticatedRequest} */ (req);
   try {
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
-      /** @type {string} */ (req.instanceId),
+      /** @type {string} */ (authReq.instanceId),
       SERVICE_CONFIG,
-      /** @type {string} */ (req.airtableApiKey) || ''
+      /** @type {string} */ (authReq.airtableApiKey) || ''
     );
     
     // Process the MCP message with persistent handler (using new signature)
-    await mcpHandler.handleMCPRequest(req, res, req.body);
+    await mcpHandler.handleMCPRequest(authReq, res, authReq.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -127,7 +131,7 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
     // Return proper MCP JSON-RPC error response
     res.json({
       jsonrpc: '2.0',
-      id: req.body?.id || null,
+      id: authReq.body?.id || null,
       error: {
         code: -32603,
         message: 'Internal error',
@@ -139,16 +143,17 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
 
 // MCP JSON-RPC endpoint at /mcp path (requires full credential authentication with caching)
 app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
+  const authReq = /** @type {AuthenticatedRequest} */ (req);
   try {
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
-      /** @type {string} */ (req.instanceId),
+      /** @type {string} */ (authReq.instanceId),
       SERVICE_CONFIG,
-      /** @type {string} */ (req.airtableApiKey) || ''
+      /** @type {string} */ (authReq.airtableApiKey) || ''
     );
     
     // Process the MCP message with persistent handler (using new signature)
-    await mcpHandler.handleMCPRequest(req, res, req.body);
+    await mcpHandler.handleMCPRequest(authReq, res, authReq.body);
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -157,7 +162,7 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
     // Return proper MCP JSON-RPC error response
     res.json({
       jsonrpc: '2.0',
-      id: req.body?.id || null,
+      id: authReq.body?.id || null,
       error: {
         code: -32603,
         message: 'Internal error',
@@ -195,7 +200,12 @@ if (process.env.NODE_ENV === 'development') {
 // Error handling middleware with logging
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
-app.use((err, req, res, next) => {
+app.use((
+  /** @type {Error} */ err,
+  /** @type {import('express').Request} */ _req,
+  /** @type {import('express').Response} */ res,
+  /** @type {import('express').NextFunction} */ _next
+) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);
   ErrorResponses.internal(res, 'Internal server error', {

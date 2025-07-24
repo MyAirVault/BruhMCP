@@ -10,11 +10,23 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('GetServiceStatsTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ * @property {string} [version] - Service version
+ */
+
+/**
  * Setup get_service_stats tool
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupGetServiceStatsTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
@@ -51,7 +63,7 @@ export function setupGetServiceStatsTool(server, airtableService, measurePerform
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'get_service_stats',
 					tool: 'get_service_stats'

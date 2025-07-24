@@ -10,11 +10,22 @@ import { AirtableErrorHandler } from '../utils/errorHandler.js';
 const logger = createLogger('ListBasesTool');
 
 /**
+ * @typedef {Object} MCPServer
+ * @property {Function} tool - Tool registration function
+ */
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ */
+
+/**
  * Setup list_bases tool
- * @param {Object} server - MCP server instance
- * @param {Object} airtableService - Airtable service instance
- * @param {Function} measurePerformance - Performance measurement function
- * @param {Object} serviceConfig - Service configuration
+ * @param {MCPServer} server - MCP server instance
+ * @param {import('../services/airtableService.js').AirtableService} airtableService - Airtable service instance
+ * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
+ * @param {ServiceConfig} serviceConfig - Service configuration
  */
 export function setupListBasesTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool('list_bases', 'List all accessible Airtable bases', {}, 
@@ -35,7 +46,7 @@ export function setupListBasesTool(server, airtableService, measurePerformance, 
 				return {
 					content: [{ type: 'text', text: formattedResult }],
 				};
-			} catch (error) {
+			} catch (/** @type {any} */ error) {
 				const airtableError = AirtableErrorHandler.handle(error, {
 					operation: 'list_bases',
 					tool: 'list_bases'
