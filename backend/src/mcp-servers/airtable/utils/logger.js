@@ -19,7 +19,7 @@ const LOG_LEVELS = {
 /**
  * Current log level (set via environment variable)
  */
-const CURRENT_LOG_LEVEL = LOG_LEVELS[process.env.LOG_LEVEL?.toLowerCase()] ?? LOG_LEVELS.info;
+const CURRENT_LOG_LEVEL = /** @type {Record<string, number>} */ (LOG_LEVELS)[process.env.LOG_LEVEL?.toLowerCase() || 'info'] ?? LOG_LEVELS.info;
 
 /**
  * Color codes for console output
@@ -45,32 +45,6 @@ function formatTimestamp() {
 	return new Date().toISOString();
 }
 
-/**
- * Format log message
- * @param {string} level - Log level
- * @param {string} component - Component name
- * @param {string} message - Log message
- * @param {Object} metadata - Additional metadata
- * @returns {string}
- */
-function formatMessage(level, component, message, metadata = {}) {
-	const timestamp = formatTimestamp();
-	const baseMessage = `[${timestamp}] [${level.toUpperCase()}] [${component}] ${message}`;
-	
-	if (Object.keys(metadata).length > 0) {
-		// Sanitize metadata to prevent credential exposure
-		const sanitizedMetadata = sanitizeForLogging(metadata);
-		const metadataStr = inspect(sanitizedMetadata, { 
-			depth: 3, 
-			compact: true, 
-			breakLength: 100,
-			colors: false 
-		});
-		return `${baseMessage} ${metadataStr}`;
-	}
-	
-	return baseMessage;
-}
 
 /**
  * Format colored message for console
@@ -89,7 +63,7 @@ function formatColoredMessage(level, component, message, metadata = {}) {
 		error: COLORS.red
 	};
 	
-	const color = colors[level] || COLORS.white;
+	const color = /** @type {Record<string, string>} */ (colors)[level] || COLORS.white;
 	const baseMessage = `${COLORS.dim}[${timestamp}]${COLORS.reset} ${color}[${level.toUpperCase()}]${COLORS.reset} ${COLORS.cyan}[${component}]${COLORS.reset} ${message}`;
 	
 	if (Object.keys(metadata).length > 0) {
@@ -305,13 +279,18 @@ class Logger {
 
 	/**
 	 * Log with additional context
-	 * @param {string} level - Log level
+	 * @param {'debug' | 'info' | 'warn' | 'error'} level - Log level
 	 * @param {string} message - Message
 	 * @param {Object} metadata - Metadata
 	 */
 	withContext(level, message, metadata = {}) {
 		const combinedMetadata = { ...this.context, ...metadata };
-		this[level](message, combinedMetadata);
+		switch(level) {
+			case 'debug': this.debug(message, combinedMetadata); break;
+			case 'info': this.info(message, combinedMetadata); break;
+			case 'warn': this.warn(message, combinedMetadata); break;
+			case 'error': this.error(message, combinedMetadata); break;
+		}
 	}
 }
 
@@ -337,7 +316,7 @@ export const serviceLogger = createLogger('AirtableService');
 export function createRequestLogger(instanceId) {
 	const logger = createLogger(`Request:${instanceId}`);
 	
-	return (req, res, next) => {
+	return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
 		const startTime = Date.now();
 		const { method, url, headers } = req;
 		
@@ -350,10 +329,20 @@ export function createRequestLogger(instanceId) {
 
 		// Log response
 		const originalSend = res.send;
-		res.send = function(data) {
+		res.send = function(/** @type {string | Buffer | Object} */ data) {
 			const duration = Date.now() - startTime;
+			let responseSize = 0;
+			if (data) {
+				if (typeof data === 'string') {
+					responseSize = data.length;
+				} else if (Buffer.isBuffer(data)) {
+					responseSize = data.length;
+				} else {
+					responseSize = JSON.stringify(data).length;
+				}
+			}
 			logger.apiCall(method, url, duration, res.statusCode, {
-				responseSize: data ? data.length : 0
+				responseSize
 			});
 			return originalSend.call(this, data);
 		};
@@ -384,12 +373,14 @@ export function logError(error, context = {}) {
  * @returns {Function}
  */
 export function measurePerformance(operation, fn) {
-	return async function(...args) {
+	return async function() {
+		/** @type {Object[]} */
+		const args = Array.from(arguments);
 		const logger = createLogger('Performance');
 		const startTime = Date.now();
 		
 		try {
-			const result = await fn.apply(this, args);
+			const result = await fn.apply(/** @type {Object} */ (fn), args);
 			const duration = Date.now() - startTime;
 			
 			logger.performance(operation, {
@@ -405,7 +396,7 @@ export function measurePerformance(operation, fn) {
 			logger.performance(operation, {
 				duration,
 				success: false,
-				error: error.message,
+				error: error instanceof Error ? error.message : String(error),
 				args: args.length
 			});
 			
@@ -418,14 +409,14 @@ export function measurePerformance(operation, fn) {
  * Log level utilities
  */
 export const logLevel = {
-	setLevel(level) {
-		if (LOG_LEVELS[level] !== undefined) {
+	setLevel(/** @type {string} */ level) {
+		if (/** @type {Record<string, number>} */ (LOG_LEVELS)[level] !== undefined) {
 			process.env.LOG_LEVEL = level;
 		}
 	},
 	
 	getLevel() {
-		return Object.keys(LOG_LEVELS).find(key => LOG_LEVELS[key] === CURRENT_LOG_LEVEL);
+		return Object.keys(LOG_LEVELS).find(key => /** @type {Record<string, number>} */ (LOG_LEVELS)[key] === CURRENT_LOG_LEVEL);
 	},
 	
 	isDebugEnabled() {

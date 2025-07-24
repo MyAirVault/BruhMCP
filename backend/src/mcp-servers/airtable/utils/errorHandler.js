@@ -228,7 +228,7 @@ export class AirtableErrorHandler {
 
 		const details = {
 			originalError: error.message,
-			stack: error.stack,
+			stack: error.stack || '',
 			name: error.name
 		};
 
@@ -276,7 +276,7 @@ export class AirtableErrorHandler {
 	/**
 	 * Create MCP error response
 	 * @param {AirtableError} error - Airtable error
-	 * @param {string|number} id - Request ID
+	 * @param {string|number|null} id - Request ID
 	 * @returns {Object}
 	 */
 	static toMCPError(error, id = null) {
@@ -297,11 +297,15 @@ export class AirtableErrorHandler {
 
 		// Add additional details for specific error types
 		if (error instanceof RateLimitError) {
-			mcpError.error.data.retryAfter = error.retryAfter;
+			/** @type {Object & {retryAfter?: number}} */
+			const errorData = mcpError.error.data;
+			errorData.retryAfter = error.retryAfter;
 		}
 
 		if (error instanceof ValidationError) {
-			mcpError.error.data.validationDetails = error.details;
+			/** @type {Object & {validationDetails?: Record<string, string | number | boolean | Object>}} */
+			const errorData = mcpError.error.data;
+			errorData.validationDetails = error.details;
 		}
 
 		return mcpError;
@@ -326,13 +330,13 @@ export class AirtableErrorHandler {
 			'INTERNAL_SERVER_ERROR': -32603
 		};
 
-		return errorCodeMap[error.code] || -32603; // Default to internal error
+		return /** @type {Record<string, number>} */ (errorCodeMap)[error.code] || -32603; // Default to internal error
 	}
 
 	/**
 	 * Create HTTP error response
 	 * @param {AirtableError} error - Airtable error
-	 * @returns {Object}
+	 * @returns {{status: number, body: Object}}
 	 */
 	static toHTTPError(error) {
 		return {
@@ -404,7 +408,7 @@ export class AirtableErrorHandler {
 			'INTERNAL_SERVER_ERROR': 'server'
 		};
 
-		return categories[error.code] || 'unknown';
+		return /** @type {Record<string, string>} */ (categories)[error.code] || 'unknown';
 	}
 
 	/**
@@ -442,9 +446,9 @@ export class AirtableErrorHandler {
  * @param {Error} err - Error object
  * @param {import('express').Request} req - Request object
  * @param {import('express').Response} res - Response object
- * @param {import('express').NextFunction} next - Next middleware
+ * @param {import('express').NextFunction} _next - Next middleware
  */
-export function errorMiddleware(err, req, res, next) {
+export function errorMiddleware(err, req, res, _next) {
 	const error = AirtableErrorHandler.handle(err, {
 		method: req.method,
 		url: req.url,
@@ -476,13 +480,13 @@ export function asyncErrorHandler(fn) {
  * @returns {Promise<T>}
  */
 export async function withErrorRecovery(operation, options = {}) {
-	const { maxRetries = 3, retryDelay = 1000, context = {} } = options;
+	const { maxRetries = 3, context = {} } = options;
 	
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
 		try {
 			return await operation();
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, { ...context, attempt });
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */ (error), { ...context, attempt });
 			
 			if (attempt === maxRetries || !AirtableErrorHandler.isRetryable(airtableError)) {
 				throw airtableError;
@@ -499,6 +503,9 @@ export async function withErrorRecovery(operation, options = {}) {
 			await new Promise(resolve => setTimeout(resolve, delay));
 		}
 	}
+	
+	// This should never be reached, but satisfies TypeScript
+	throw new Error('Unexpected end of retry loop');
 }
 
 /**

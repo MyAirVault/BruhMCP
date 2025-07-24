@@ -21,7 +21,7 @@ export function createTextResponse(text, options = {}) {
 /**
  * Create error response
  * @param {string} message - Error message
- * @param {Object} [context] - Error context
+ * @param {{operation?: string}} [context] - Error context
  * @returns {Object} MCP error response
  */
 export function createErrorResponse(message, context = {}) {
@@ -36,7 +36,7 @@ export function createErrorResponse(message, context = {}) {
 
 /**
  * Create YAML formatted response
- * @param {any} data - Data to format
+ * @param {Object} data - Data to format
  * @param {Object} [options] - YAML formatting options
  * @returns {Object} MCP response with YAML content
  */
@@ -58,7 +58,7 @@ export function createYamlResponse(data, options = {}) {
 
 /**
  * Create JSON formatted response
- * @param {any} data - Data to format
+ * @param {Object} data - Data to format
  * @param {number} [indent] - JSON indentation
  * @returns {Object} MCP response with JSON content
  */
@@ -72,11 +72,11 @@ export function createJsonResponse(data, indent = 2) {
 
 /**
  * Create table formatted response
- * @param {Array} data - Array of objects to format as table
- * @param {Array} [columns] - Column names to include
+ * @param {Array<Record<string, string>>} data - Array of objects to format as table
+ * @param {Array<string>} [columns] - Column names to include
  * @returns {Object} MCP response with table content
  */
-export function createTableResponse(data, columns = null) {
+export function createTableResponse(data, columns) {
 	if (!Array.isArray(data) || data.length === 0) {
 		return createTextResponse('No data to display');
 	}
@@ -102,7 +102,7 @@ export function createTableResponse(data, columns = null) {
 
 /**
  * Create list formatted response
- * @param {Array} items - Array of items to format as list
+ * @param {Array<string>} items - Array of items to format as list
  * @param {boolean} [numbered] - Whether to use numbered list
  * @returns {Object} MCP response with list content
  */
@@ -125,7 +125,7 @@ export function createListResponse(items, numbered = false) {
 
 /**
  * Create summary response with statistics
- * @param {any} data - Data to summarize
+ * @param {Object} data - Data to summarize
  * @param {Object} stats - Statistics object
  * @returns {Object} MCP response with summary
  */
@@ -151,8 +151,8 @@ export function createSummaryResponse(data, stats) {
 
 /**
  * Create paginated response
- * @param {Array} data - Data array
- * @param {Object} pagination - Pagination info
+ * @param {Array<Object>} data - Data array
+ * @param {{page?: number, hasMore?: boolean, total?: number}} pagination - Pagination info
  * @returns {Object} MCP response with pagination info
  */
 export function createPaginatedResponse(data, pagination) {
@@ -178,7 +178,7 @@ export function createPaginatedResponse(data, pagination) {
 /**
  * Format Airtable error for MCP response
  * @param {Error} error - Error object
- * @param {Object} context - Error context
+ * @param {{operation?: string}} context - Error context
  * @returns {Object} MCP error response
  */
 export function formatAirtableError(error, context = {}) {

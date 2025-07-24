@@ -117,54 +117,48 @@ export async function withTimeout(promise, timeoutMs, timeoutMessage = 'Operatio
 
 /**
  * Debounce function execution
- * @template {(...args: unknown[]) => unknown} T
- * @param {T} func - Function to debounce
+ * @param {Function} func - Function to debounce
  * @param {number} wait - Wait time in milliseconds
  * @param {boolean} [immediate] - Execute immediately on first call
- * @returns {T} Debounced function
+ * @returns {Function} Debounced function
  */
 export function debounce(func, wait, immediate = false) {
 	/** @type {NodeJS.Timeout | null} */
 	let timeout = null;
 	
-	/** @type {T} */
-	const debouncedFunction = function(...args) {
+	return function() {
+		const args = Array.prototype.slice.call(arguments);
 		const later = () => {
 			timeout = null;
-			if (!immediate) func(...args);
+			if (!immediate) func.apply(null, args);
 		};
 		
 		const callNow = immediate && !timeout;
 		if (timeout) clearTimeout(timeout);
 		timeout = setTimeout(later, wait);
 		
-		if (callNow) func(...args);
+		if (callNow) func.apply(null, args);
 	};
-	
-	return debouncedFunction;
 }
 
 /**
  * Throttle function execution
- * @template {(...args: unknown[]) => unknown} T
- * @param {T} func - Function to throttle
+ * @param {Function} func - Function to throttle
  * @param {number} limit - Time limit in milliseconds
- * @returns {T} Throttled function
+ * @returns {Function} Throttled function
  */
 export function throttle(func, limit) {
 	/** @type {boolean} */
 	let inThrottle = false;
 	
-	/** @type {T} */
-	const throttledFunction = function(...args) {
+	return function() {
+		const args = Array.prototype.slice.call(arguments);
 		if (!inThrottle) {
-			func(...args);
+			func.apply(null, args);
 			inThrottle = true;
 			setTimeout(() => inThrottle = false, limit);
 		}
 	};
-	
-	return throttledFunction;
 }
 
 /**
@@ -208,10 +202,9 @@ export async function parallelLimit(items, fn, concurrency = 5) {
 
 /**
  * Create a circuit breaker
- * @template {(...args: unknown[]) => Promise<unknown>} T
- * @param {T} fn - Function to wrap
+ * @param {Function} fn - Function to wrap
  * @param {CircuitBreakerOptions} [options] - Circuit breaker options
- * @returns {T} Circuit breaker wrapped function
+ * @returns {Function} Circuit breaker wrapped function
  */
 export function circuitBreaker(fn, options = {}) {
 	const {
@@ -225,8 +218,8 @@ export function circuitBreaker(fn, options = {}) {
 	/** @type {number | null} */
 	let nextAttempt = null;
 
-	/** @type {T} */
-	const circuitBreakerWrapper = async function(...args) {
+	return async function() {
+		const args = Array.prototype.slice.call(arguments);
 		if (state === 'OPEN') {
 			if (nextAttempt !== null && Date.now() > nextAttempt) {
 				state = 'HALF_OPEN';
@@ -236,7 +229,7 @@ export function circuitBreaker(fn, options = {}) {
 		}
 
 		try {
-			const result = await fn(...args);
+			const result = await fn.apply(null, args);
 			
 			if (state === 'HALF_OPEN') {
 				state = 'CLOSED';
@@ -255,6 +248,4 @@ export function circuitBreaker(fn, options = {}) {
 			throw error;
 		}
 	};
-	
-	return circuitBreakerWrapper;
 }

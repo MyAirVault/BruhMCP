@@ -14,8 +14,8 @@ function cloneDate(obj) {
 
 /**
  * Deep clone an array
- * @param {Array} obj - Array to clone
- * @returns {Array} Cloned array
+ * @param {Object[]} obj - Array to clone
+ * @returns {Object[]} Cloned array
  */
 function cloneArray(obj) {
 	return obj.map(item => deepClone(item));
@@ -56,7 +56,7 @@ export function deepClone(obj) {
 		const cloned = {};
 		for (const key in obj) {
 			if (obj.hasOwnProperty(key)) {
-				cloned[key] = deepClone(obj[key]);
+				(/** @type {Record<string, Object>} */ (cloned))[key] = deepClone(obj[key]);
 			}
 		}
 		return cloned;
@@ -78,11 +78,11 @@ export function deepMerge(target, ...sources) {
 
 	if (isObject(target) && isObject(source)) {
 		for (const key in source) {
-			if (isObject(source[key])) {
-				if (!target[key]) Object.assign(target, { [key]: {} });
-				deepMerge(target[key], source[key]);
+			if (isObject((/** @type {Record<string, Object>} */ (source))[key])) {
+				if (!(/** @type {Record<string, Object>} */ (target))[key]) Object.assign(target, { [key]: {} });
+				deepMerge((/** @type {Record<string, Object>} */ (target))[key], (/** @type {Record<string, Object>} */ (source))[key]);
 			} else {
-				Object.assign(target, { [key]: source[key] });
+				Object.assign(target, { [key]: (/** @type {Record<string, Object>} */ (source))[key] });
 			}
 		}
 	}
@@ -96,7 +96,7 @@ export function deepMerge(target, ...sources) {
  * @returns {boolean} True if object
  */
 export function isObject(item) {
-	return item && typeof item === 'object' && !Array.isArray(item);
+	return !!(item && typeof item === 'object' && !Array.isArray(item));
 }
 
 /**
@@ -116,18 +116,18 @@ export function chunkArray(array, size) {
 
 /**
  * Flatten nested array
- * @param {Array} arr - Array to flatten
+ * @param {Object[]} arr - Array to flatten
  * @param {number} [depth] - Depth to flatten (default: Infinity)
- * @returns {Array} Flattened array
+ * @returns {Object[]} Flattened array
  */
 export function flattenArray(arr, depth = Infinity) {
-	return depth > 0 ? arr.reduce((acc, val) => {
+	return depth > 0 ? arr.reduce((/** @type {Object[]} */ acc, val) => {
 		if (Array.isArray(val)) {
 			return acc.concat(flattenArray(val, depth - 1));
 		} else {
 			return acc.concat([val]);
 		}
-	}, []) : arr.slice();
+	}, /** @type {Object[]} */ ([])) : arr.slice();
 }
 
 /**
@@ -155,22 +155,21 @@ export function uniqueArray(array, keyFn = null) {
 
 /**
  * Group array items by key
- * @template T
- * @param {Array<T>} array - Array to group
- * @param {((item: T) => string) | string} keyFn - Key function or property name
- * @returns {Record<string, Array<T>>} Grouped object
+ * @param {Object[]} array - Array to group
+ * @param {((item: Object) => string) | string} keyFn - Key function or property name
+ * @returns {Record<string, Object[]>} Grouped object
  */
 export function groupBy(array, keyFn) {
-	const getKey = typeof keyFn === 'function' ? keyFn : (/** @type {Record<string, string>} */ item) => item[keyFn];
+	const getKey = typeof keyFn === 'function' ? keyFn : (/** @type {Object} */ item) => (/** @type {Record<string, string>} */ (item))[/** @type {string} */ (keyFn)];
 	
-	return array.reduce((groups, item) => {
+	return array.reduce((/** @type {Record<string, Object[]>} */ groups, item) => {
 		const key = getKey(item);
 		if (!groups[key]) {
 			groups[key] = [];
 		}
 		groups[key].push(item);
 		return groups;
-	}, /** @type {Record<string, Array<T>>} */ ({}));
+	}, /** @type {Record<string, Object[]>} */ ({}));
 }
 
 /**
@@ -189,8 +188,8 @@ export function groupBy(array, keyFn) {
 export function multiSort(array, sortKeys) {
 	return array.sort((a, b) => {
 		for (const { key, direction = 'asc' } of sortKeys) {
-			const aVal = typeof key === 'function' ? key(a) : (/** @type {Record<string, string | number>} */ (a))[/** @type {string} */ (key)];
-			const bVal = typeof key === 'function' ? key(b) : (/** @type {Record<string, string | number>} */ (b))[/** @type {string} */ (key)];
+			const aVal = typeof key === 'function' ? key(/** @type {Object} */ (a)) : (/** @type {Record<string, string | number>} */ (a))[/** @type {string} */ (key)];
+			const bVal = typeof key === 'function' ? key(/** @type {Object} */ (b)) : (/** @type {Record<string, string | number>} */ (b))[/** @type {string} */ (key)];
 			
 			if (aVal < bVal) return direction === 'asc' ? -1 : 1;
 			if (aVal > bVal) return direction === 'asc' ? 1 : -1;
@@ -236,20 +235,20 @@ export function omit(obj, keys) {
 
 /**
  * Get nested property value safely
- * @param {Record<string, string | number | boolean | Object>} obj - Source object
+ * @param {Record<string, Object>} obj - Source object
  * @param {string} path - Property path (e.g., 'a.b.c')
- * @param {string | number | boolean | Object | null} defaultValue - Default value if path not found
- * @returns {string | number | boolean | Object | null | undefined} Property value or default
+ * @param {Object | null} [defaultValue] - Default value if path not found
+ * @returns {Object | null | undefined} Property value or default
  */
-export function get(obj, path, defaultValue = undefined) {
+export function get(obj, path, defaultValue) {
 	const keys = path.split('.');
-	let result = obj;
+	let result = /** @type {Object} */ (obj);
 	
 	for (const key of keys) {
 		if (result == null || typeof result !== 'object') {
 			return defaultValue;
 		}
-		result = (/** @type {Record<string, string | number | boolean | Object>} */ (result))[key];
+		result = /** @type {Object} */ ((/** @type {Record<string, Object>} */ (result))[key]);
 	}
 	
 	return result !== undefined ? result : defaultValue;
@@ -257,22 +256,22 @@ export function get(obj, path, defaultValue = undefined) {
 
 /**
  * Set nested property value safely
- * @param {Record<string, string | number | boolean | Object>} obj - Target object
+ * @param {Record<string, Object>} obj - Target object
  * @param {string} path - Property path (e.g., 'a.b.c')
- * @param {string | number | boolean | Object} value - Value to set
- * @returns {Record<string, string | number | boolean | Object>} Modified object
+ * @param {Object} value - Value to set
+ * @returns {Record<string, Object>} Modified object
  */
 export function set(obj, path, value) {
 	const keys = path.split('.');
 	const lastKey = keys.pop();
-	/** @type {Record<string, string | number | boolean | Object>} */
+	/** @type {Record<string, Object>} */
 	let current = obj;
 	
 	for (const key of keys) {
 		if (!(key in current) || typeof current[key] !== 'object') {
 			current[key] = {};
 		}
-		current = current[key];
+		current = /** @type {Record<string, Object>} */ (current[key]);
 	}
 	
 	if (lastKey) {
@@ -283,9 +282,9 @@ export function set(obj, path, value) {
 
 /**
  * Transform object keys
- * @param {string | number | boolean | Object | Array<string | number | boolean | Object>} obj - Source object
+ * @param {Object | Object[]} obj - Source object
  * @param {(key: string) => string} transformFn - Key transformation function
- * @returns {string | number | boolean | Object | Array<string | number | boolean | Object>} Object with transformed keys
+ * @returns {Object | Object[]} Object with transformed keys
  */
 export function transformKeys(obj, transformFn) {
 	if (Array.isArray(obj)) {
@@ -293,7 +292,7 @@ export function transformKeys(obj, transformFn) {
 	}
 	
 	if (obj !== null && typeof obj === 'object') {
-		/** @type {Record<string, string | number | boolean | Object>} */
+		/** @type {Record<string, Object>} */
 		const result = {};
 		for (const [key, value] of Object.entries(obj)) {
 			const newKey = transformFn(key);

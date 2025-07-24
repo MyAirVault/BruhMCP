@@ -9,6 +9,7 @@ const logger = createLogger('Validation');
 
 /**
  * Airtable ID patterns
+ * @type {Record<string, RegExp>}
  */
 const ID_PATTERNS = {
 	base: /^app[a-zA-Z0-9]{14}$/,
@@ -23,6 +24,7 @@ const ID_PATTERNS = {
 
 /**
  * API token patterns
+ * @type {Record<string, RegExp>}
  */
 const TOKEN_PATTERNS = {
 	personalAccessToken: /^pat[a-zA-Z0-9]{14}\.[a-zA-Z0-9]{32,64}$/,
@@ -31,6 +33,7 @@ const TOKEN_PATTERNS = {
 
 /**
  * Field type validation patterns
+ * @type {Record<string, Function | null>}
  */
 const FIELD_TYPES = {
 	singleLineText: String,
@@ -135,10 +138,22 @@ export function validateFieldName(fieldName) {
 }
 
 /**
+ * @typedef {Object} Collaborator
+ * @property {string} email - Collaborator email
+ *
+ * @typedef {Object} Attachment
+ * @property {string} url - Attachment URL
+ *
+ * @typedef {Object} Barcode
+ * @property {string} text - Barcode text
+ *
+ * @typedef {Object} FieldOptions
+ * @property {string[]} [choices] - Available choices for select fields
+ *
  * Validate field value based on field type
- * @param {any} value - Value to validate
+ * @param {string | number | boolean | Collaborator | Collaborator[] | Attachment[] | Barcode | string[] | null | undefined} value - Value to validate
  * @param {string} fieldType - Field type
- * @param {Object} fieldOptions - Field options
+ * @param {FieldOptions} fieldOptions - Field options
  * @returns {boolean}
  */
 export function validateFieldValue(value, fieldType, fieldOptions = {}) {
@@ -187,7 +202,7 @@ export function validateFieldValue(value, fieldType, fieldOptions = {}) {
 			if (typeof value !== 'string') {
 				throw new Error('Single select must be a string');
 			}
-			if (fieldOptions.choices && !fieldOptions.choices.includes(value)) {
+			if (fieldOptions.choices && Array.isArray(fieldOptions.choices) && !fieldOptions.choices.includes(value)) {
 				throw new Error(`Single select value '${value}' is not in allowed choices`);
 			}
 			break;
@@ -196,9 +211,9 @@ export function validateFieldValue(value, fieldType, fieldOptions = {}) {
 			if (!Array.isArray(value)) {
 				throw new Error('Multiple select must be an array');
 			}
-			if (fieldOptions.choices) {
+			if (fieldOptions.choices && Array.isArray(fieldOptions.choices)) {
 				for (const item of value) {
-					if (!fieldOptions.choices.includes(item)) {
+					if (typeof item === 'string' && !fieldOptions.choices.includes(item)) {
 						throw new Error(`Multiple select value '${item}' is not in allowed choices`);
 					}
 				}
@@ -221,14 +236,15 @@ export function validateFieldValue(value, fieldType, fieldOptions = {}) {
 				throw new Error('Multiple attachments must be an array');
 			}
 			for (const attachment of value) {
-				if (!attachment.url || typeof attachment.url !== 'string') {
+				const typedAttachment = /** @type {Attachment} */(attachment);
+				if (typeof attachment !== 'object' || attachment === null || !typedAttachment.url || typeof typedAttachment.url !== 'string') {
 					throw new Error('Attachment must have a valid URL');
 				}
 			}
 			break;
 
 		case 'singleCollaborator':
-			if (typeof value !== 'object' || !value.email) {
+			if (typeof value !== 'object' || value === null || !(/** @type {Collaborator} */(value)).email) {
 				throw new Error('Single collaborator must be an object with email property');
 			}
 			break;
@@ -238,7 +254,7 @@ export function validateFieldValue(value, fieldType, fieldOptions = {}) {
 				throw new Error('Multiple collaborators must be an array');
 			}
 			for (const collaborator of value) {
-				if (typeof collaborator !== 'object' || !collaborator.email) {
+				if (typeof collaborator !== 'object' || collaborator === null || !(/** @type {Collaborator} */(collaborator)).email) {
 					throw new Error('Collaborator must be an object with email property');
 				}
 			}
@@ -257,7 +273,7 @@ export function validateFieldValue(value, fieldType, fieldOptions = {}) {
 			break;
 
 		case 'barcode':
-			if (typeof value !== 'object' || !value.text) {
+			if (typeof value !== 'object' || value === null || !(/** @type {Barcode} */(value)).text) {
 				throw new Error('Barcode must be an object with text property');
 			}
 			break;
@@ -271,9 +287,18 @@ export function validateFieldValue(value, fieldType, fieldOptions = {}) {
 }
 
 /**
+ * @typedef {Object} FieldSchema
+ * @property {string} name - Field name
+ * @property {string} type - Field type
+ * @property {Object} [options] - Field options
+ * @property {string[]} [options.choices] - Available choices for select fields
+ *
+ * @typedef {Object} TableSchema
+ * @property {FieldSchema[]} [fields] - Schema fields array
+ *
  * Validate record fields
- * @param {Object} fields - Record fields
- * @param {Object} schema - Table schema
+ * @param {Record<string, string | number | boolean | string[] | Collaborator | Collaborator[] | Attachment[] | Barcode>} fields - Record fields
+ * @param {TableSchema} schema - Table schema
  * @returns {boolean}
  */
 export function validateRecordFields(fields, schema = {}) {
@@ -290,10 +315,13 @@ export function validateRecordFields(fields, schema = {}) {
 		validateFieldName(fieldName);
 
 		// If schema is provided, validate against it
-		if (schema.fields) {
-			const fieldSchema = schema.fields.find(f => f.name === fieldName);
+		if (schema.fields && Array.isArray(schema.fields)) {
+			const fieldSchema = schema.fields.find(f => f && (/** @type {FieldSchema} */(f)).name === fieldName);
 			if (fieldSchema) {
-				validateFieldValue(value, fieldSchema.type, fieldSchema.options);
+				const typedFieldSchema = /** @type {FieldSchema} */(fieldSchema);
+				if (typedFieldSchema.type) {
+					validateFieldValue(value, typedFieldSchema.type, typedFieldSchema.options || {});
+				}
 			}
 		}
 	}
@@ -302,8 +330,19 @@ export function validateRecordFields(fields, schema = {}) {
 }
 
 /**
+ * @typedef {Object} SortItem
+ * @property {string} field - Field name to sort by
+ * @property {'asc' | 'desc'} [direction] - Sort direction
+ *
+ * @typedef {Object} QueryParams
+ * @property {number} [maxRecords] - Maximum number of records
+ * @property {string[]} [fields] - Fields to include
+ * @property {SortItem[]} [sort] - Sort configuration
+ * @property {string} [view] - View name
+ * @property {string} [filterByFormula] - Filter formula
+ *
  * Validate query parameters
- * @param {Object} params - Query parameters
+ * @param {QueryParams} params - Query parameters
  * @returns {boolean}
  */
 export function validateQueryParams(params) {
@@ -334,10 +373,11 @@ export function validateQueryParams(params) {
 			throw new Error('sort must be an array');
 		}
 		for (const sortItem of params.sort) {
-			if (!sortItem.field || typeof sortItem.field !== 'string') {
+			const typedSortItem = /** @type {SortItem} */(sortItem);
+			if (typeof sortItem !== 'object' || sortItem === null || !typedSortItem.field || typeof typedSortItem.field !== 'string') {
 				throw new Error('sort item must have a field property');
 			}
-			if (sortItem.direction && !['asc', 'desc'].includes(sortItem.direction)) {
+			if (typedSortItem.direction && !['asc', 'desc'].includes(typedSortItem.direction)) {
 				throw new Error('sort direction must be "asc" or "desc"');
 			}
 		}
@@ -361,9 +401,12 @@ export function validateQueryParams(params) {
 }
 
 /**
+ * @typedef {Object} RecordData
+ * @property {Record<string, string | number | boolean | string[] | Collaborator | Collaborator[] | Attachment[] | Barcode>} fields - Record fields
+ *
  * Validate batch records
- * @param {Array} records - Array of records
- * @param {Object} schema - Table schema
+ * @param {RecordData[]} records - Array of records
+ * @param {TableSchema} schema - Table schema
  * @returns {boolean}
  */
 export function validateBatchRecords(records, schema = {}) {
@@ -381,10 +424,11 @@ export function validateBatchRecords(records, schema = {}) {
 
 	for (let i = 0; i < records.length; i++) {
 		const record = records[i];
-		if (!record.fields || typeof record.fields !== 'object') {
+		const typedRecord = /** @type {RecordData} */(record);
+		if (typeof record !== 'object' || record === null || !typedRecord.fields || typeof typedRecord.fields !== 'object' || typedRecord.fields === null) {
 			throw new Error(`Record at index ${i} must have a fields property`);
 		}
-		validateRecordFields(record.fields, schema);
+		validateRecordFields(typedRecord.fields, schema);
 	}
 
 	return true;
@@ -428,9 +472,9 @@ export function validateEmail(email) {
 
 /**
  * Sanitize and validate input
- * @param {any} input - Input to validate
- * @param {string} type - Type of input
- * @returns {any}
+ * @param {string} input - Input to validate
+ * @param {string} type - Type of input ('baseId' | 'tableId' | 'recordId' | 'apiToken' | 'email' | 'url' | 'fieldName')
+ * @returns {string}
  */
 export function sanitizeAndValidate(input, type) {
 	switch (type) {
@@ -479,7 +523,7 @@ export function getValidationErrorMessage(error) {
 /**
  * Create validation error
  * @param {string} message - Error message
- * @param {Object} details - Error details
+ * @param {Record<string, string | number | boolean>} details - Error details
  * @returns {Error}
  */
 export function createValidationError(message, details = {}) {

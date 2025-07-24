@@ -5,8 +5,20 @@
 
 // Simple logging for sanitization to avoid circular dependency
 const logger = {
+  /**
+   * @param {string} msg
+   * @param {Object} [meta={}]
+   */
   debug: (msg, meta = {}) => console.log(`🔍 AirtableSanitize: ${msg}`, meta),
+  /**
+   * @param {string} msg
+   * @param {Object} [meta={}]
+   */
   warn: (msg, meta = {}) => console.warn(`⚠️ AirtableSanitize: ${msg}`, meta),
+  /**
+   * @param {string} msg
+   * @param {Object} [meta={}]
+   */
   error: (msg, meta = {}) => console.error(`❌ AirtableSanitize: ${msg}`, meta)
 };
 
@@ -60,7 +72,7 @@ const DANGEROUS_EXTENSIONS = [
 /**
  * Sanitize string input
  * @param {string} input - Input string to sanitize
- * @param {Object} options - Sanitization options
+ * @param {{removeHtml?: boolean, removeSqlInjection?: boolean, removeXss?: boolean, trimWhitespace?: boolean, maxLength?: number, allowedChars?: string|null}} [options] - Sanitization options
  * @returns {string}
  */
 export function sanitizeInput(input, options = {}) {
@@ -141,7 +153,7 @@ export function escapeHtml(input) {
 		return input;
 	}
 
-	return input.replace(/[&<>"'\/]/g, char => HTML_ENTITIES[char] || char);
+	return input.replace(/[&<>"'\/]/g, char => HTML_ENTITIES[/** @type {keyof typeof HTML_ENTITIES} */ (char)] || char);
 }
 
 /**
@@ -169,14 +181,15 @@ export function sanitizeFieldName(fieldName) {
 
 /**
  * Sanitize Airtable record fields
- * @param {Record<string, any>} fields - Record fields to sanitize
- * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
+ * @param {Object.<string, string|number|boolean|string[]|Object|null|undefined>} fields - Record fields to sanitize
+ * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
 export function sanitizeRecordFields(fields) {
 	if (!fields || typeof fields !== 'object') {
 		throw new Error('Fields must be an object');
 	}
 
+	/** @type {Object.<string, string|number|boolean|string[]|Object|null|undefined>} */
 	const sanitizedFields = {};
 
 	for (const [key, value] of Object.entries(fields)) {
@@ -215,9 +228,9 @@ export function sanitizeRecordFields(fields) {
 
 /**
  * Sanitize object recursively
- * @param {Object} obj - Object to sanitize
- * @param {number} depth - Current depth (to prevent infinite recursion)
- * @returns {Object}
+ * @param {string|number|boolean|Object|null|undefined} obj - Object to sanitize
+ * @param {number} [depth=0] - Current depth (to prevent infinite recursion)
+ * @returns {string|number|boolean|Object|null|undefined}
  */
 export function sanitizeObject(obj, depth = 0) {
 	if (depth > 5) {
@@ -229,6 +242,7 @@ export function sanitizeObject(obj, depth = 0) {
 		return obj;
 	}
 
+	/** @type {Object.<string, string|number|boolean|Object|null|undefined>} */
 	const sanitized = {};
 
 	for (const [key, value] of Object.entries(obj)) {
@@ -279,7 +293,8 @@ export function sanitizeUrl(url) {
 		}
 		return urlObj.toString();
 	} catch (error) {
-		throw new Error(`Invalid URL: ${error.message}`);
+		const err = /** @type {Error} */ (error);
+		throw new Error(`Invalid URL: ${err.message}`);
 	}
 }
 
@@ -396,14 +411,15 @@ export function sanitizeFormula(formula) {
 
 /**
  * Sanitize query parameters
- * @param {Record<string, any>} params - Query parameters to sanitize
- * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
+ * @param {Object.<string, string|number|boolean|string[]|Object|null|undefined>} params - Query parameters to sanitize
+ * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
 export function sanitizeQueryParams(params) {
 	if (!params || typeof params !== 'object') {
 		return params;
 	}
 
+	/** @type {Object.<string, string|number|boolean|string[]|Object|null|undefined>} */
 	const sanitized = {};
 
 	for (const [key, value] of Object.entries(params)) {
@@ -420,7 +436,7 @@ export function sanitizeQueryParams(params) {
 		}
 	}
 
-	return sanitized;
+	return /** @type {Record<string, any>} */ (sanitized);
 }
 
 /**
@@ -454,8 +470,8 @@ export function containsMaliciousPatterns(input) {
 
 /**
  * Sanitize for logging (remove sensitive information)
- * @param {any} data - Data to sanitize for logging
- * @returns {any}
+ * @param {string|number|boolean|Object|null|undefined} data - Data to sanitize for logging
+ * @returns {string|number|boolean|Object|null|undefined}
  */
 export function sanitizeForLogging(data) {
 	if (typeof data !== 'object' || data === null) {
@@ -463,6 +479,7 @@ export function sanitizeForLogging(data) {
 	}
 
 	const sensitiveFields = ['password', 'token', 'key', 'secret', 'auth', 'credential'];
+	/** @type {(string|number|boolean|Object|null|undefined)[]|Object.<string, string|number|boolean|Object|null|undefined>} */
 	const sanitized = Array.isArray(data) ? [] : {};
 
 	for (const [key, value] of Object.entries(data)) {
@@ -470,11 +487,11 @@ export function sanitizeForLogging(data) {
 		const isSensitive = sensitiveFields.some(field => lowerKey.includes(field));
 
 		if (isSensitive) {
-			sanitized[key] = '[REDACTED]';
+			/** @type {Object.<string, string|number|boolean|Object|null|undefined>} */ (sanitized)[key] = '[REDACTED]';
 		} else if (typeof value === 'object' && value !== null) {
-			sanitized[key] = sanitizeForLogging(value);
+			/** @type {Object.<string, string|number|boolean|Object|null|undefined>} */ (sanitized)[key] = sanitizeForLogging(value);
 		} else {
-			sanitized[key] = value;
+			/** @type {Object.<string, string|number|boolean|Object|null|undefined>} */ (sanitized)[key] = value;
 		}
 	}
 
@@ -499,11 +516,11 @@ export function createSanitizationReport(original, sanitized) {
 
 /**
  * Batch sanitize multiple inputs
- * @param {Array} inputs - Array of inputs to sanitize
- * @param {Function} sanitizer - Sanitization function
- * @returns {Array}
+ * @param {(string|number|boolean|Object|null|undefined)[]} inputs - Array of inputs to sanitize
+ * @param {function(string|number|boolean|Object|null|undefined): (string|number|boolean|Object|null|undefined)} [sanitizer=sanitizeInput] - Sanitization function
+ * @returns {(string|number|boolean|Object|null|undefined|null)[]}
  */
-export function batchSanitize(inputs, sanitizer = sanitizeInput) {
+export function batchSanitize(inputs, sanitizer = /** @type {function(string|number|boolean|Object|null|undefined): (string|number|boolean|Object|null|undefined)} */ (sanitizeInput)) {
 	if (!Array.isArray(inputs)) {
 		throw new Error('Inputs must be an array');
 	}
@@ -515,7 +532,8 @@ export function batchSanitize(inputs, sanitizer = sanitizeInput) {
 		try {
 			results.push(sanitizer(inputs[i]));
 		} catch (error) {
-			errors.push({ index: i, error: error.message });
+			const err = /** @type {Error} */ (error);
+			errors.push({ index: i, error: err.message });
 			results.push(null);
 		}
 	}

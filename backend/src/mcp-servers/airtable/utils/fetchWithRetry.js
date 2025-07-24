@@ -31,12 +31,12 @@ const execAsync = promisify(exec);
  * Fetch with retry and curl fallback
  * @param {string} url - URL to fetch
  * @param {FetchOptions} [options] - Request options
- * @returns {Promise<Response | MockResponse>} Response data
+ * @returns {Promise<import('node-fetch').Response | MockResponse>} Response data
  */
 export async function fetchWithRetry(url, options = {}) {
 	try {
 		const response = await fetch(url, options);
-		return response;
+		return /** @type {import('node-fetch').Response | MockResponse} */ (response);
 	} catch (fetchError) {
 		logger.warn(
 			`Initial fetch failed for ${url}: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
