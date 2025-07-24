@@ -6,7 +6,9 @@
  * required by the MCP protocol specification.
  */
 
-import { AirtableMCPHandler } from '../../endpoints/mcp-handler.js';
+/// <reference path="../../../types/airtable.d.ts" />
+
+import { AirtableMCPHandler } from '../endpoints/mcpHandler.js';
 
 
 // Global handler session cache for Airtable service instances
@@ -21,7 +23,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {ServiceConfig} serviceConfig - Service configuration object
+ * @param {import('../../../types/airtable.d.ts').ServiceConfig} serviceConfig - Service configuration object
  * @param {string} apiKey - Airtable API key for this instance
  * @returns {AirtableMCPHandler} Persistent handler instance
  */
@@ -114,6 +116,7 @@ function cleanupExpiredSessions() {
 
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout|null} */
 let cleanupInterval = null;
 
 

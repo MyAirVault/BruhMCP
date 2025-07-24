@@ -5,7 +5,7 @@
 
 /// <reference path="../../types/airtable.d.ts" />
 
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -18,10 +18,10 @@ dotenv.config({ path: join(backendRoot, '.env') });
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/auth/credential-cache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/auth/credential-watcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/session/handler-sessions.js';
+import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
+import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 
@@ -112,9 +112,9 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
-      req.instanceId,
+      /** @type {string} */ (req.instanceId),
       SERVICE_CONFIG,
-      req.airtableApiKey || ''
+      /** @type {string} */ (req.airtableApiKey) || ''
     );
     
     // Process the MCP message with persistent handler (using new signature)
@@ -142,9 +142,9 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
-      req.instanceId,
+      /** @type {string} */ (req.instanceId),
       SERVICE_CONFIG,
-      req.airtableApiKey || ''
+      /** @type {string} */ (req.airtableApiKey) || ''
     );
     
     // Process the MCP message with persistent handler (using new signature)

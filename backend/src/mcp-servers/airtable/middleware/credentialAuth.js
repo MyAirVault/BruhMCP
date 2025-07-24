@@ -5,22 +5,45 @@
  * Primary middleware that checks credential cache first, falls back to database lookup
  */
 
-import { getCachedCredential, setCachedCredential } from '../services/auth/credential-cache.js';
-import {
-	getInstanceCredentials,
-	validateInstanceAccess,
-	updateUsageTracking,
-	getApiKeyForInstance,
-} from '../services/database.js';
+import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
+import { validateInstanceAccess, getApiKeyForInstance, updateAirtableUsageTracking, getAirtableInstanceCredentials } from '../services/instanceUtils.js';
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /** @typedef {import('express').NextFunction} NextFunction */
 
 /**
+ * @typedef {Object} CachedCredential
+ * @property {string} api_key - API key
+ * @property {string} expires_at - Expiration timestamp
+ * @property {string} user_id - User ID
+ */
+
+/**
+ * @typedef {Object} InstanceData
+ * @property {string} user_id - User ID
+ * @property {string} [expires_at] - Expiration timestamp
+ * @property {string} [api_key] - API key
+ * @property {string} status - Instance status
+ * @property {string} [client_id] - Client ID for OAuth
+ * @property {string} [client_secret] - Client secret for OAuth
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} isValid - Whether validation passed
+ * @property {string} [error] - Error message if validation failed
+ * @property {number} [statusCode] - HTTP status code for error
+ */
+
+/**
+ * @typedef {Request & {airtableApiKey?: string, instanceId?: string, userId?: string, instance?: InstanceData, cacheHit?: boolean}} AuthenticatedRequest
+ */
+
+/**
  * Create credential authentication middleware with caching
  * This is the new primary middleware that replaces instance-auth for better performance
- * @returns {(req: Request, res: Response, next: NextFunction) => Promise<void>} Express middleware function
+ * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | Response>} Express middleware function
  */
 export function createCredentialAuthMiddleware() {
 	return async (req, res, next) => {
@@ -45,17 +68,19 @@ export function createCredentialAuthMiddleware() {
 			}
 
 			// Step 1: Check credential cache first (fast path)
-			const cachedCredential = getCachedCredential(instanceId);
+			const rawCachedCredential = getCachedCredential(instanceId);
+			/** @type {CachedCredential | null} */
+			const cachedCredential = /** @type {CachedCredential | null} */ (rawCachedCredential);
 
 			if (cachedCredential) {
 				// Cache hit - use cached credential without database lookup
-				req.airtableApiKey = cachedCredential.credential;
+				req.airtableApiKey = cachedCredential.api_key;
 				req.instanceId = instanceId;
 				req.userId = cachedCredential.user_id;
 				req.cacheHit = true;
 
 				// Update usage tracking asynchronously (non-blocking)
-				updateUsageTracking(instanceId).catch(error => {
+				updateAirtableUsageTracking(instanceId, cachedCredential.user_id).catch(/** @param {Error} error */ error => {
 					console.error(`Failed to update usage tracking for cached credential ${instanceId}:`, error);
 				});
 
@@ -65,40 +90,66 @@ export function createCredentialAuthMiddleware() {
 			// Step 2: Cache miss - fall back to database lookup (slow path)
 			console.log(`🔍 Cache miss for instance: ${instanceId}, querying database`);
 
-			const instance = await getInstanceCredentials(instanceId);
+			const rawInstance = await getAirtableInstanceCredentials(instanceId);
+			/** @type {InstanceData | null} */
+			const instance = /** @type {InstanceData | null} */ (rawInstance);
 
 			// Validate instance access
 			const validation = validateInstanceAccess(instance);
 
 			if (!validation.isValid) {
-				return res.status(validation.statusCode).json({
+				return res.status(validation.statusCode || 400).json({
 					error: validation.error,
 					message: 'Instance access denied',
 					instanceId: instanceId,
 				});
 			}
 
+			if (!instance) {
+				return res.status(404).json({
+					error: 'Instance not found',
+					message: 'Instance not found in database',
+					instanceId: instanceId,
+				});
+			}
+
 			// Get API key for external service calls
-			const apiKey = getApiKeyForInstance(instance);
+			const rawApiKey = getApiKeyForInstance(instance);
+			/** @type {string | null} */
+			const apiKey = /** @type {string | null} */ (rawApiKey);
+
+			if (!apiKey) {
+				return res.status(500).json({
+					error: 'No API key found',
+					message: 'Instance has no valid API key',
+					instanceId: instanceId,
+				});
+			}
 
 			// Step 3: Cache the credential for future requests
-			setCachedCredential(instanceId, {
-				api_key: apiKey,
-				expires_at: instance.expires_at,
-				user_id: instance.user_id,
-			});
+			if (instance && apiKey) {
+				setCachedCredential(instanceId, {
+					api_key: apiKey,
+					expires_at: instance.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Default 24h expiry
+					user_id: instance.user_id,
+				});
+			}
 
 			// Attach instance data to request for use in handlers
 			req.airtableApiKey = apiKey;
 			req.instanceId = instanceId;
-			req.userId = instance.user_id;
-			req.instance = instance;
+			if (instance) {
+				req.userId = instance.user_id;
+				req.instance = instance;
+			}
 			req.cacheHit = false;
 
 			// Update usage tracking asynchronously (non-blocking)
-			updateUsageTracking(instanceId).catch(error => {
-				console.error(`Failed to update usage tracking for ${instanceId}:`, error);
-			});
+			if (instance) {
+				updateAirtableUsageTracking(instanceId, instance.user_id).catch(/** @param {Error} error */ error => {
+					console.error(`Failed to update usage tracking for ${instanceId}:`, error);
+				});
+			}
 
 			next();
 		} catch (error) {
@@ -115,7 +166,7 @@ export function createCredentialAuthMiddleware() {
 /**
  * Create middleware for endpoints that require instance validation but not credential caching
  * Used for health checks and discovery endpoints that don't need API keys
- * @returns {(req: Request, res: Response, next: NextFunction) => Promise<void>} Express middleware function
+ * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | Response>} Express middleware function
  */
 export function createLightweightAuthMiddleware() {
 	return async (req, res, next) => {
@@ -134,7 +185,9 @@ export function createLightweightAuthMiddleware() {
 				}
 
 				// Check cache first for basic validation
-				const cachedCredential = getCachedCredential(instanceId);
+				const rawCachedCredential = getCachedCredential(instanceId);
+				/** @type {CachedCredential | null} */
+				const cachedCredential = /** @type {CachedCredential | null} */ (rawCachedCredential);
 
 				if (cachedCredential) {
 					req.instanceId = instanceId;
@@ -144,19 +197,31 @@ export function createLightweightAuthMiddleware() {
 				}
 
 				// If not cached, do basic database check without caching the result
-				const instance = await getInstanceCredentials(instanceId);
+				const rawInstance = await getAirtableInstanceCredentials(instanceId);
+				/** @type {InstanceData | null} */
+				const instance = /** @type {InstanceData | null} */ (rawInstance);
 				const validation = validateInstanceAccess(instance);
 
 				if (!validation.isValid) {
-					return res.status(validation.statusCode).json({
+					return res.status(validation.statusCode || 400).json({
 						error: validation.error,
 						message: 'Instance access denied',
 						instanceId: instanceId,
 					});
 				}
 
+				if (!instance) {
+					return res.status(404).json({
+						error: 'Instance not found',
+						message: 'Instance not found in database',
+						instanceId: instanceId,
+					});
+				}
+
 				req.instanceId = instanceId;
-				req.userId = instance.user_id;
+				if (instance) {
+					req.userId = instance.user_id;
+				}
 				req.cacheHit = false;
 			}
 
@@ -174,15 +239,16 @@ export function createLightweightAuthMiddleware() {
 
 /**
  * Create debugging middleware that logs cache performance
- * @returns {(req: Request, res: Response, next: NextFunction) => void} Express middleware function
+ * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => void} Express middleware function
  */
 export function createCachePerformanceMiddleware() {
 	return (req, res, next) => {
 		const startTime = Date.now();
 
 		// Override res.json to capture response timing
+		/** @type {Function} */
 		const originalJson = res.json;
-		res.json = function (data) {
+		res.json = function (/** @type {Object} */ data) {
 			const duration = Date.now() - startTime;
 			const cacheStatus = req.cacheHit ? 'HIT' : 'MISS';
 

@@ -94,7 +94,7 @@ export function getCacheStatistics() {
 	
 	const recentlyUsed = entries.filter(entry => {
 		const lastUsed = new Date(entry.last_used);
-		const hoursSinceUsed = (now - lastUsed) / (1000 * 60 * 60);
+		const hoursSinceUsed = (now.getTime() - lastUsed.getTime()) / (1000 * 60 * 60);
 		return hoursSinceUsed < 1;
 	}).length;
 	

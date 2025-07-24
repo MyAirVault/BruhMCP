@@ -5,6 +5,14 @@
 
 import { setupListBasesTool } from './list-bases.js';
 import { setupGetBaseSchemaTool } from './get-base-schema.js';
+import { setupListRecordsTool } from './listRecords.js';
+import { setupGetRecordTool } from './getRecord.js';
+import { setupCreateRecordTool } from './createRecord.js';
+import { setupUpdateRecordTool } from './updateRecord.js';
+import { setupDeleteRecordTool } from './deleteRecord.js';
+import { setupCreateMultipleRecordsTool } from './createMultipleRecords.js';
+import { setupSearchRecordsTool } from './searchRecords.js';
+import { setupGetServiceStatsTool } from './getServiceStats.js';
 
 /**
  * Setup all MCP tools
@@ -14,17 +22,19 @@ import { setupGetBaseSchemaTool } from './get-base-schema.js';
  * @param {Object} serviceConfig - Service configuration
  */
 export function setupAllTools(server, airtableService, measurePerformance, serviceConfig) {
-	// Setup individual tools
+	// Base operations
 	setupListBasesTool(server, airtableService, measurePerformance, serviceConfig);
 	setupGetBaseSchemaTool(server, airtableService, measurePerformance, serviceConfig);
 	
-	// TODO: Add remaining tools here as they are converted
-	// setupListRecordsTool(server, airtableService, measurePerformance, serviceConfig);
-	// setupGetRecordTool(server, airtableService, measurePerformance, serviceConfig);
-	// setupCreateRecordTool(server, airtableService, measurePerformance, serviceConfig);
-	// setupUpdateRecordTool(server, airtableService, measurePerformance, serviceConfig);
-	// setupDeleteRecordTool(server, airtableService, measurePerformance, serviceConfig);
-	// setupBatchOperationsTool(server, airtableService, measurePerformance, serviceConfig);
-	// setupSearchRecordsTool(server, airtableService, measurePerformance, serviceConfig);
-	// setupGetStatisticsTool(server, airtableService, measurePerformance, serviceConfig);
+	// Record operations
+	setupListRecordsTool(server, airtableService, measurePerformance, serviceConfig);
+	setupGetRecordTool(server, airtableService, measurePerformance, serviceConfig);
+	setupCreateRecordTool(server, airtableService, measurePerformance, serviceConfig);
+	setupUpdateRecordTool(server, airtableService, measurePerformance, serviceConfig);
+	setupDeleteRecordTool(server, airtableService, measurePerformance, serviceConfig);
+	setupCreateMultipleRecordsTool(server, airtableService, measurePerformance, serviceConfig);
+	
+	// Advanced operations
+	setupSearchRecordsTool(server, airtableService, measurePerformance, serviceConfig);
+	setupGetServiceStatsTool(server, airtableService, measurePerformance, serviceConfig);
 }

@@ -116,6 +116,8 @@ class Logger {
 	 */
 	constructor(component) {
 		this.component = component;
+		/** @type {Object} */
+		this.context = {};
 	}
 
 	/**

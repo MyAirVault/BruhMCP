@@ -3,9 +3,9 @@
  * Enhanced with optimization and YAML formatting
  */
 
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/error-handler.js';
+import { AirtableErrorHandler } from '../utils/errorHandler.js';
 
 const logger = createLogger('ListBasesTool');
 

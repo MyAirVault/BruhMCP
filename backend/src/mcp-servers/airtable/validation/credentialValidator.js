@@ -3,7 +3,7 @@ import { BaseValidator, createValidationResult } from '../../../services/validat
 import fetch from 'node-fetch';
 
 /**
- * Airtable API key validator - simplified version
+ * Airtable API key validator
  */
 class AirtableAPIKeyValidator extends BaseValidator {
   constructor() {
@@ -11,7 +11,7 @@ class AirtableAPIKeyValidator extends BaseValidator {
   }
 
   /**
-   * Validate Airtable API key format - minimal validation
+   * Validate Airtable API key format
    * @param {any} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
@@ -20,16 +20,18 @@ class AirtableAPIKeyValidator extends BaseValidator {
       return createValidationResult(false, 'Credentials must be a valid object', 'credentials');
     }
 
-    // Check for api_key or apiKey
-    const apiKey = credentials.api_key || credentials.apiKey;
-    
-    if (!apiKey) {
+    if (!credentials.api_key) {
       return createValidationResult(false, 'API key is required', 'api_key');
     }
 
-    // Skip format validation - just check if it's a non-empty string
-    if (typeof apiKey !== 'string' || apiKey.trim() === '') {
-      return createValidationResult(false, 'API key must be a non-empty string', 'api_key');
+    // Airtable Personal Access Tokens start with 'pat'
+    if (!credentials.api_key.startsWith('pat')) {
+      return createValidationResult(false, 'Invalid Airtable API key format - must start with "pat"', 'api_key');
+    }
+
+    // Basic length validation for PATs
+    if (credentials.api_key.length < 40 || credentials.api_key.length > 100) {
+      return createValidationResult(false, 'Airtable API key length appears invalid', 'api_key');
     }
 
     return createValidationResult(true, null, null, this.getServiceInfo(credentials));
@@ -41,38 +43,36 @@ class AirtableAPIKeyValidator extends BaseValidator {
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
-    // First validate basic format
+    // First validate format
     const formatResult = await this.validateFormat(credentials);
     if (!formatResult.valid) {
       return formatResult;
     }
 
-    const apiKey = credentials.api_key || credentials.apiKey;
-
     try {
       const response = await fetch('https://api.airtable.com/v0/meta/bases', {
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${credentials.api_key}`,
           'Content-Type': 'application/json'
         },
       });
 
       if (response.ok) {
         const data = /** @type {any} */ (await response.json());
+        console.log('✅ Airtable API validation successful:', { basesCount: data.bases?.length || 0 });
         return createValidationResult(true, null, null, {
           service: 'Airtable API',
           auth_type: 'api_key',
-          validation_type: 'api_test',
           bases_count: data.bases?.length || 0,
+          validation_type: 'api_test',
           permissions: ['read', 'write'],
         });
-      } else if (response.status === 401) {
-        return createValidationResult(false, 'Invalid API key - authentication failed', 'api_key');
       } else {
-        return createValidationResult(false, `API test failed with status: ${response.status}`, 'api_key');
+        console.log('❌ Airtable API validation failed:', response.status, response.statusText);
+        return createValidationResult(false, 'Invalid Airtable API token - API test failed', 'api_key');
       }
     } catch (/** @type {any} */ error) {
-      return createValidationResult(false, `Failed to test Airtable API key: ${error.message}`, 'api_key');
+      return createValidationResult(false, `Failed to test Airtable API token: ${error.message}`, 'api_key');
     }
   }
 

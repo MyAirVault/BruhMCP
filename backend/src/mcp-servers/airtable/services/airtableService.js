@@ -3,21 +3,70 @@
  * Core business logic for Airtable operations with response optimization
  */
 
-import { AirtableAPI } from '../api/airtable-api.js';
+import * as AirtableAPI from '../api/index.js';
 import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/error-handler.js';
+import { AirtableErrorHandler } from '../utils/errorHandler.js';
 import { validateAirtableId, validateRecordFields, validateQueryParams, validateBatchRecords } from '../utils/validation.js';
 import { sanitizeRecordFields, sanitizeQueryParams } from '../utils/sanitization.js';
 import { deepClone, chunkArray, measureExecutionTime, withTimeout } from '../utils/common.js';
-import { ResponseOptimizer } from './cache/response-optimizer.js';
-import { ResponseSimplifier } from './cache/response-simplifier.js';
-import { GlobalVariableManager } from './session/global-variable-manager.js';
+
+/**
+ * @typedef {Object} ServiceConfig
+ * @property {string} airtableApiKey - API key for Airtable
+ * @property {number} [timeout=30000] - Request timeout in milliseconds
+ * @property {number} [retryAttempts=3] - Number of retry attempts
+ * @property {boolean} [useOptimization=true] - Enable response optimization
+ * @property {boolean} [useSimplification=true] - Enable response simplification
+ */
+
+/**
+ * @typedef {Object} AirtableRecord
+ * @property {string} id - Record ID
+ * @property {Object} fields - Record fields
+ * @property {string} [createdTime] - Created timestamp
+ */
+
+/**
+ * @typedef {Object} AirtableBase
+ * @property {string} id - Base ID
+ * @property {string} name - Base name
+ * @property {string} permissionLevel - Permission level
+ */
+
+/**
+ * @typedef {Object} AirtableTable
+ * @property {string} id - Table ID
+ * @property {string} name - Table name
+ * @property {Array<Object>} fields - Table fields
+ */
+
+/**
+ * @typedef {Object} QueryOptions
+ * @property {number} [maxRecords] - Maximum number of records to return
+ * @property {Array<string>} [fields] - Fields to include
+ * @property {string} [filterByFormula] - Formula to filter records
+ * @property {Array<Object>} [sort] - Sort configuration
+ * @property {string} [view] - View ID or name
+ * @property {string} [offset] - Pagination offset
+ */
+
+/**
+ * @typedef {Object} SchemaCache
+ * @property {Object} data - Cached schema data
+ * @property {number} timestamp - Cache timestamp
+ */
+
+/**
+ * @typedef {Object} BatchResult
+ * @property {Array<AirtableRecord>} records - Created records
+ * @property {Array<Object>} [errors] - Batch errors if any
+ */
 
 const logger = createLogger('AirtableService');
 
 export class AirtableService {
 	/**
-	 * @param {Object} config - Service configuration
+	 * @param {ServiceConfig} config - Service configuration
 	 */
 	constructor(config) {
 		this.config = {
@@ -29,19 +78,10 @@ export class AirtableService {
 			...config
 		};
 
-		// Initialize API client
-		this.api = new AirtableAPI(this.config.apiKey, {
-			timeout: this.config.timeout,
-			retryAttempts: this.config.retryAttempts
-		});
-
-		// Initialize optimization services
-		this.responseOptimizer = new ResponseOptimizer();
-		this.responseSimplifier = new ResponseSimplifier();
-		this.globalVariableManager = new GlobalVariableManager();
-
 		// Cache for schemas
+		/** @type {Map<string, SchemaCache>} */
 		this.schemaCache = new Map();
+		/** @type {number} */
 		this.schemaCacheTimeout = 3600000; // 1 hour
 
 		logger.info('AirtableService initialized', {
@@ -53,24 +93,18 @@ export class AirtableService {
 
 	/**
 	 * List all accessible bases
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<{bases: Array<AirtableBase>}>}
 	 */
 	async listBases() {
 		logger.info('Listing bases');
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
-				const response = await withTimeout(
-					this.api.listBases(),
+				return await withTimeout(
+					AirtableAPI.listBases(this.config.apiKey),
 					this.config.timeout,
 					'List bases operation timed out'
 				);
-
-				if (this.config.useOptimization) {
-					return this.responseOptimizer.optimizeBasesResponse(response);
-				}
-
-				return response;
 			});
 
 			logger.info('Bases listed successfully', {
@@ -80,7 +114,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'listBases'
 			});
 			throw airtableError;
@@ -90,7 +124,7 @@ export class AirtableService {
 	/**
 	 * Get base schema with caching
 	 * @param {string} baseId - Base ID
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<{tables: Array<AirtableTable>}>}
 	 */
 	async getBaseSchema(baseId) {
 		validateAirtableId(baseId, 'base');
@@ -106,17 +140,11 @@ export class AirtableService {
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
-				const response = await withTimeout(
-					this.api.getBaseSchema(baseId),
+				return await withTimeout(
+					AirtableAPI.getBaseSchema(baseId, this.config.apiKey),
 					this.config.timeout,
 					'Get base schema operation timed out'
 				);
-
-				if (this.config.useOptimization) {
-					return this.responseOptimizer.optimizeSchemaResponse(response);
-				}
-
-				return response;
 			});
 
 			// Cache the result
@@ -133,7 +161,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'getBaseSchema',
 				baseId
 			});
@@ -145,8 +173,8 @@ export class AirtableService {
 	 * List records with optimization
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
-	 * @param {Object} options - Query options
-	 * @returns {Promise<Object>}
+	 * @param {QueryOptions} options - Query options
+	 * @returns {Promise<{records: Array<AirtableRecord>, offset?: string}>}
 	 */
 	async listRecords(baseId, tableId, options = {}) {
 		validateAirtableId(baseId, 'base');
@@ -163,25 +191,11 @@ export class AirtableService {
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
-				const response = await withTimeout(
-					this.api.listRecords(baseId, tableId, sanitizedOptions),
+				return await withTimeout(
+					AirtableAPI.listRecords(baseId, tableId, this.config.apiKey, sanitizedOptions),
 					this.config.timeout,
 					'List records operation timed out'
 				);
-
-				let optimizedResponse = response;
-
-				// Apply optimization if enabled
-				if (this.config.useOptimization) {
-					optimizedResponse = this.responseOptimizer.optimizeRecordsResponse(optimizedResponse);
-				}
-
-				// Apply simplification if enabled
-				if (this.config.useSimplification) {
-					optimizedResponse = this.responseSimplifier.simplifyRecordsResponse(optimizedResponse);
-				}
-
-				return optimizedResponse;
 			});
 
 			logger.info('Records listed successfully', {
@@ -194,7 +208,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'listRecords',
 				baseId,
 				tableId,
@@ -208,8 +222,8 @@ export class AirtableService {
 	 * Get all records with automatic pagination
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
-	 * @param {Object} options - Query options
-	 * @returns {Promise<Array>}
+	 * @param {QueryOptions} options - Query options
+	 * @returns {Promise<Array<AirtableRecord>>}
 	 */
 	async getAllRecords(baseId, tableId, options = {}) {
 		validateAirtableId(baseId, 'base');
@@ -226,24 +240,33 @@ export class AirtableService {
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
-				const allRecords = await withTimeout(
-					this.api.getAllRecords(baseId, tableId, sanitizedOptions),
-					this.config.timeout * 3, // Extended timeout for pagination
-					'Get all records operation timed out'
-				);
+				/** @type {Array<AirtableRecord>} */
+				let allRecords = [];
+				/** @type {string|undefined} */
+				let offset = undefined;
+				let requestCount = 0;
+				const maxRequests = 50; // Prevent infinite loops
 
-				// Apply optimization and simplification
-				let optimizedRecords = allRecords;
+				do {
+					if (requestCount >= maxRequests) {
+						logger.warn('Maximum pagination requests reached', { baseId, tableId });
+						break;
+					}
 
-				if (this.config.useOptimization) {
-					optimizedRecords = this.responseOptimizer.optimizeRecordsArray(optimizedRecords);
-				}
+					const response = await withTimeout(
+						AirtableAPI.listRecords(baseId, tableId, this.config.apiKey, { ...sanitizedOptions, offset }),
+						this.config.timeout,
+						'Get all records pagination timed out'
+					);
+					
+					allRecords = allRecords.concat(response.records);
+					offset = response.offset;
+					requestCount++;
 
-				if (this.config.useSimplification) {
-					optimizedRecords = this.responseSimplifier.simplifyRecordsArray(optimizedRecords);
-				}
+					logger.debug('Paginated request', { requestCount, recordCount: response.records.length, hasMore: !!offset });
+				} while (offset);
 
-				return optimizedRecords;
+				return allRecords;
 			});
 
 			logger.info('All records retrieved successfully', {
@@ -255,7 +278,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'getAllRecords',
 				baseId,
 				tableId,
@@ -270,7 +293,7 @@ export class AirtableService {
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
 	 * @param {string} recordId - Record ID
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<AirtableRecord>}
 	 */
 	async getRecord(baseId, tableId, recordId) {
 		validateAirtableId(baseId, 'base');
@@ -281,25 +304,11 @@ export class AirtableService {
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
-				const response = await withTimeout(
-					this.api.getRecord(baseId, tableId, recordId),
+				return await withTimeout(
+					AirtableAPI.getRecord(baseId, tableId, recordId, this.config.apiKey),
 					this.config.timeout,
 					'Get record operation timed out'
 				);
-
-				let optimizedResponse = response;
-
-				// Apply optimization if enabled
-				if (this.config.useOptimization) {
-					optimizedResponse = this.responseOptimizer.optimizeRecordResponse(optimizedResponse);
-				}
-
-				// Apply simplification if enabled
-				if (this.config.useSimplification) {
-					optimizedResponse = this.responseSimplifier.simplifyRecordResponse(optimizedResponse);
-				}
-
-				return optimizedResponse;
 			});
 
 			logger.info('Record retrieved successfully', {
@@ -311,7 +320,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'getRecord',
 				baseId,
 				tableId,
@@ -325,8 +334,8 @@ export class AirtableService {
 	 * Create record with validation
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
-	 * @param {Object} fields - Record fields
-	 * @returns {Promise<Object>}
+	 * @param {Record<string, any>} fields - Record fields
+	 * @returns {Promise<AirtableRecord>}
 	 */
 	async createRecord(baseId, tableId, fields) {
 		validateAirtableId(baseId, 'base');
@@ -334,6 +343,7 @@ export class AirtableService {
 
 		// Get schema for validation
 		const schema = await this.getBaseSchema(baseId);
+		/** @type {AirtableTable|undefined} */
 		const tableSchema = schema.tables.find(t => t.id === tableId || t.name === tableId);
 
 		if (tableSchema) {
@@ -350,25 +360,11 @@ export class AirtableService {
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
-				const response = await withTimeout(
-					this.api.createRecord(baseId, tableId, sanitizedFields),
+				return await withTimeout(
+					AirtableAPI.createRecord(baseId, tableId, sanitizedFields, this.config.apiKey),
 					this.config.timeout,
 					'Create record operation timed out'
 				);
-
-				let optimizedResponse = response;
-
-				// Apply optimization if enabled
-				if (this.config.useOptimization) {
-					optimizedResponse = this.responseOptimizer.optimizeRecordResponse(optimizedResponse);
-				}
-
-				// Apply simplification if enabled
-				if (this.config.useSimplification) {
-					optimizedResponse = this.responseSimplifier.simplifyRecordResponse(optimizedResponse);
-				}
-
-				return optimizedResponse;
 			});
 
 			logger.info('Record created successfully', {
@@ -380,7 +376,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'createRecord',
 				baseId,
 				tableId,
@@ -395,8 +391,8 @@ export class AirtableService {
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
 	 * @param {string} recordId - Record ID
-	 * @param {Object} fields - Updated fields
-	 * @returns {Promise<Object>}
+	 * @param {Record<string, any>} fields - Updated fields
+	 * @returns {Promise<AirtableRecord>}
 	 */
 	async updateRecord(baseId, tableId, recordId, fields) {
 		validateAirtableId(baseId, 'base');
@@ -405,6 +401,7 @@ export class AirtableService {
 
 		// Get schema for validation
 		const schema = await this.getBaseSchema(baseId);
+		/** @type {AirtableTable|undefined} */
 		const tableSchema = schema.tables.find(t => t.id === tableId || t.name === tableId);
 
 		if (tableSchema) {
@@ -422,25 +419,11 @@ export class AirtableService {
 
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
-				const response = await withTimeout(
-					this.api.updateRecord(baseId, tableId, recordId, sanitizedFields),
+				return await withTimeout(
+					AirtableAPI.updateRecord(baseId, tableId, recordId, sanitizedFields, this.config.apiKey),
 					this.config.timeout,
 					'Update record operation timed out'
 				);
-
-				let optimizedResponse = response;
-
-				// Apply optimization if enabled
-				if (this.config.useOptimization) {
-					optimizedResponse = this.responseOptimizer.optimizeRecordResponse(optimizedResponse);
-				}
-
-				// Apply simplification if enabled
-				if (this.config.useSimplification) {
-					optimizedResponse = this.responseSimplifier.simplifyRecordResponse(optimizedResponse);
-				}
-
-				return optimizedResponse;
 			});
 
 			logger.info('Record updated successfully', {
@@ -452,7 +435,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'updateRecord',
 				baseId,
 				tableId,
@@ -468,7 +451,7 @@ export class AirtableService {
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
 	 * @param {string} recordId - Record ID
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<{deleted: boolean, id: string}>}
 	 */
 	async deleteRecord(baseId, tableId, recordId) {
 		validateAirtableId(baseId, 'base');
@@ -480,7 +463,7 @@ export class AirtableService {
 		try {
 			const { result, duration } = await measureExecutionTime(async () => {
 				return await withTimeout(
-					this.api.deleteRecord(baseId, tableId, recordId),
+					AirtableAPI.deleteRecord(baseId, tableId, recordId, this.config.apiKey),
 					this.config.timeout,
 					'Delete record operation timed out'
 				);
@@ -495,7 +478,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'deleteRecord',
 				baseId,
 				tableId,
@@ -509,8 +492,8 @@ export class AirtableService {
 	 * Create multiple records with batching
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
-	 * @param {Array} records - Array of record objects
-	 * @returns {Promise<Object>}
+	 * @param {Array<{fields: Record<string, any>}>} records - Array of record objects
+	 * @returns {Promise<BatchResult>}
 	 */
 	async createMultipleRecords(baseId, tableId, records) {
 		validateAirtableId(baseId, 'base');
@@ -518,6 +501,7 @@ export class AirtableService {
 
 		// Get schema for validation
 		const schema = await this.getBaseSchema(baseId);
+		/** @type {AirtableTable|undefined} */
 		const tableSchema = schema.tables.find(t => t.id === tableId || t.name === tableId);
 
 		if (tableSchema) {
@@ -540,25 +524,11 @@ export class AirtableService {
 			const { result, duration } = await measureExecutionTime(async () => {
 				// Handle batching if more than 10 records
 				if (sanitizedRecords.length <= 10) {
-					const response = await withTimeout(
-						this.api.createMultipleRecords(baseId, tableId, sanitizedRecords),
+					return await withTimeout(
+						AirtableAPI.createMultipleRecords(baseId, tableId, sanitizedRecords, this.config.apiKey),
 						this.config.timeout,
 						'Create multiple records operation timed out'
 					);
-
-					let optimizedResponse = response;
-
-					// Apply optimization if enabled
-					if (this.config.useOptimization) {
-						optimizedResponse = this.responseOptimizer.optimizeMultipleRecordsResponse(optimizedResponse);
-					}
-
-					// Apply simplification if enabled
-					if (this.config.useSimplification) {
-						optimizedResponse = this.responseSimplifier.simplifyMultipleRecordsResponse(optimizedResponse);
-					}
-
-					return optimizedResponse;
 				} else {
 					// Batch processing for more than 10 records
 					return await this.batchCreateRecords(baseId, tableId, sanitizedRecords);
@@ -574,7 +544,7 @@ export class AirtableService {
 
 			return result;
 		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
+			const airtableError = AirtableErrorHandler.handle(/** @type {Error} */(error), {
 				operation: 'createMultipleRecords',
 				baseId,
 				tableId,
@@ -588,12 +558,14 @@ export class AirtableService {
 	 * Batch create records (internal method)
 	 * @param {string} baseId - Base ID
 	 * @param {string} tableId - Table ID
-	 * @param {Array} records - Array of record objects
-	 * @returns {Promise<Object>}
+	 * @param {Array<{fields: Record<string, any>}>} records - Array of record objects
+	 * @returns {Promise<BatchResult>}
 	 */
 	async batchCreateRecords(baseId, tableId, records) {
 		const batches = chunkArray(records, 10);
+		/** @type {Array<AirtableRecord>} */
 		const allResults = [];
+		/** @type {Array<{batch: number, error: string, records: Array<{fields: Record<string, any>}>}>} */
 		const errors = [];
 
 		logger.info('Processing batched record creation', {
@@ -609,28 +581,18 @@ export class AirtableService {
 				logger.debug('Processing batch', { batchIndex: i, recordCount: batch.length });
 
 				const batchResult = await withTimeout(
-					this.api.createMultipleRecords(baseId, tableId, batch),
+					AirtableAPI.createMultipleRecords(baseId, tableId, batch, this.config.apiKey),
 					this.config.timeout,
 					`Batch ${i + 1} operation timed out`
 				);
 
-				// Apply optimization and simplification
-				let optimizedResult = batchResult;
-
-				if (this.config.useOptimization) {
-					optimizedResult = this.responseOptimizer.optimizeMultipleRecordsResponse(optimizedResult);
-				}
-
-				if (this.config.useSimplification) {
-					optimizedResult = this.responseSimplifier.simplifyMultipleRecordsResponse(optimizedResult);
-				}
-
-				allResults.push(...optimizedResult.records);
+				allResults.push(...batchResult.records);
 			} catch (error) {
-				logger.error('Batch creation failed', { batchIndex: i, error: error.message });
+				const errorMessage = error instanceof Error ? error.message : String(error);
+				logger.error('Batch creation failed', { batchIndex: i, error: errorMessage });
 				errors.push({
 					batch: i,
-					error: error.message,
+					error: errorMessage,
 					records: batches[i]
 				});
 			}
@@ -647,114 +609,11 @@ export class AirtableService {
 	}
 
 	/**
-	 * Search records across multiple tables
-	 * @param {string} baseId - Base ID
-	 * @param {string} query - Search query
-	 * @param {Object} options - Search options
-	 * @returns {Promise<Object>}
-	 */
-	async searchRecords(baseId, query, options = {}) {
-		validateAirtableId(baseId, 'base');
-
-		const {
-			tables = [],
-			fields = [],
-			maxRecords = 100
-		} = options;
-
-		logger.info('Searching records', {
-			baseId,
-			query,
-			tableCount: tables.length,
-			fieldCount: fields.length,
-			maxRecords
-		});
-
-		try {
-			const { result, duration } = await measureExecutionTime(async () => {
-				const schema = await this.getBaseSchema(baseId);
-				const tablesToSearch = tables.length > 0 ? tables : schema.tables.map(t => t.id);
-
-				const searchResults = [];
-
-				for (const tableId of tablesToSearch) {
-					try {
-						const formula = this.buildSearchFormula(query, fields, schema, tableId);
-						const records = await this.listRecords(baseId, tableId, {
-							filterByFormula: formula,
-							maxRecords: Math.ceil(maxRecords / tablesToSearch.length)
-						});
-
-						searchResults.push({
-							tableId,
-							records: records.records || []
-						});
-					} catch (error) {
-						logger.warn('Search failed for table', { tableId, error: error.message });
-					}
-				}
-
-				return {
-					query,
-					results: searchResults,
-					totalRecords: searchResults.reduce((total, result) => total + result.records.length, 0)
-				};
-			});
-
-			logger.info('Search completed successfully', {
-				baseId,
-				query,
-				duration,
-				totalRecords: result.totalRecords
-			});
-
-			return result;
-		} catch (error) {
-			const airtableError = AirtableErrorHandler.handle(error, {
-				operation: 'searchRecords',
-				baseId,
-				query,
-				options
-			});
-			throw airtableError;
-		}
-	}
-
-	/**
-	 * Build search formula for Airtable
-	 * @param {string} query - Search query
-	 * @param {Array} fields - Fields to search
-	 * @param {Object} schema - Base schema
-	 * @param {string} tableId - Table ID
-	 * @returns {string}
-	 */
-	buildSearchFormula(query, fields, schema, tableId) {
-		const table = schema.tables.find(t => t.id === tableId);
-		if (!table) {
-			throw new Error(`Table ${tableId} not found in schema`);
-		}
-
-		const searchFields = fields.length > 0 ? fields : 
-			table.fields.filter(f => ['singleLineText', 'multilineText', 'richText'].includes(f.type)).map(f => f.name);
-
-		if (searchFields.length === 0) {
-			throw new Error('No searchable fields found');
-		}
-
-		const searchConditions = searchFields.map(field => 
-			`SEARCH(LOWER("${query}"), LOWER({${field}}))`
-		).join(', ');
-
-		return `OR(${searchConditions})`;
-	}
-
-	/**
 	 * Get service statistics
-	 * @returns {Object}
+	 * @returns {{schemaCacheSize: number, config: {useOptimization: boolean, useSimplification: boolean, timeout: number}}}
 	 */
 	getStatistics() {
 		return {
-			apiStats: this.api.getCacheStats(),
 			schemaCacheSize: this.schemaCache.size,
 			config: {
 				useOptimization: this.config.useOptimization,
@@ -768,22 +627,18 @@ export class AirtableService {
 	 * Clear all caches
 	 */
 	clearCaches() {
-		this.api.clearCache();
 		this.schemaCache.clear();
-		this.responseOptimizer.clearCache();
-		this.responseSimplifier.clearCache();
-		
 		logger.info('All caches cleared');
 	}
 
 	/**
 	 * Health check
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<{status: string, apiConnectivity: boolean, responseTime?: number, error?: string, timestamp: string}>}
 	 */
 	async healthCheck() {
 		try {
 			const startTime = Date.now();
-			await this.api.listBases();
+			await AirtableAPI.listBases(this.config.apiKey);
 			const duration = Date.now() - startTime;
 
 			return {
@@ -793,10 +648,11 @@ export class AirtableService {
 				timestamp: new Date().toISOString()
 			};
 		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
 			return {
 				status: 'unhealthy',
 				apiConnectivity: false,
-				error: error.message,
+				error: errorMessage,
 				timestamp: new Date().toISOString()
 			};
 		}

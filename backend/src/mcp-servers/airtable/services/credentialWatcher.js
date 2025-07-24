@@ -5,7 +5,7 @@
  * Runs every 30 seconds to monitor cached credentials and perform cleanup
  */
 
-import { getCachedInstanceIds, peekCachedCredential, removeCachedCredential, getCacheStatistics } from './credential-cache.js';
+import { getCachedInstanceIds, peekCachedCredential, removeCachedCredential, getCacheStatistics } from './credentialCache.js';
 
 // Watcher configuration
 const WATCHER_INTERVAL_MS = 30000; // 30 seconds
@@ -97,7 +97,7 @@ function performCacheMaintenanceCheck() {
 			// Check for expired instances (with 30-second tolerance)
 			if (cached.expires_at) {
 				const expirationTime = new Date(cached.expires_at);
-				const timeUntilExpiration = expirationTime - currentTime;
+				const timeUntilExpiration = expirationTime.getTime() - currentTime.getTime();
 				
 				if (timeUntilExpiration <= EXPIRATION_TOLERANCE_MS) {
 					console.log(`⏰ Removing credential for instance expiring soon: ${instanceId} (expires in ${Math.round(timeUntilExpiration / 1000)}s)`);
@@ -109,7 +109,7 @@ function performCacheMaintenanceCheck() {
 			
 			// Check for stale credentials (unused for 24+ hours)
 			const lastUsed = new Date(cached.last_used);
-			const hoursSinceUsed = (currentTime - lastUsed) / (1000 * 60 * 60);
+			const hoursSinceUsed = (currentTime.getTime() - lastUsed.getTime()) / (1000 * 60 * 60);
 			
 			if (hoursSinceUsed >= STALE_THRESHOLD_HOURS) {
 				console.log(`🧹 Removing stale credential: ${instanceId} (unused for ${Math.round(hoursSinceUsed)} hours)`);
@@ -135,7 +135,7 @@ function performCacheMaintenanceCheck() {
 			
 			// Sort by last_used (oldest first)
 			entriesWithUsage.sort((a, b) => {
-				return new Date(a.cached.last_used) - new Date(b.cached.last_used);
+				return new Date(a.cached.last_used).getTime() - new Date(b.cached.last_used).getTime();
 			});
 			
 			// Remove oldest entries

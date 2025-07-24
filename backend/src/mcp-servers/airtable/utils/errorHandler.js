@@ -99,7 +99,7 @@ export class AirtableErrorHandler {
 	/**
 	 * Create error from HTTP response
 	 * @param {Response} response - HTTP response
-	 * @returns {AirtableError}
+	 * @returns {Promise<AirtableError>}
 	 */
 	static async fromResponse(response) {
 		let errorData = {};
@@ -115,12 +115,20 @@ export class AirtableErrorHandler {
 
 		const { status, statusText, url } = response;
 		const message = errorData.error?.message || statusText || 'Unknown error';
+		// Convert headers to object - compatible with older environments
+		const headers = {};
+		if (response.headers.forEach) {
+			response.headers.forEach((value, key) => {
+				headers[key] = value;
+			});
+		}
+		
 		const details = {
 			status,
 			statusText,
 			url,
 			response: errorData,
-			headers: Object.fromEntries(response.headers.entries())
+			headers
 		};
 
 		switch (status) {

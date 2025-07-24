@@ -485,6 +485,12 @@ export function getValidationErrorMessage(error) {
 export function createValidationError(message, details = {}) {
 	const error = new Error(message);
 	error.name = 'ValidationError';
-	error.details = details;
+	// Add details property to error object
+	Object.defineProperty(error, 'details', {
+		value: details,
+		writable: true,
+		enumerable: true,
+		configurable: true
+	});
 	return error;
 }

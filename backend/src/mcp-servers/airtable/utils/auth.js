@@ -5,7 +5,7 @@
 
 import { createLogger } from './logger.js';
 import { validateApiToken } from './validation.js';
-import { AirtableErrorHandler, AuthenticationError } from './error-handler.js';
+import { AirtableErrorHandler, AuthenticationError } from './errorHandler.js';
 
 const logger = createLogger('AuthUtils');
 
