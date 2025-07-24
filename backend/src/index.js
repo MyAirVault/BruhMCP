@@ -28,7 +28,7 @@ import { authRegistry } from './services/mcp-auth-registry/index.js';
 // Port validation removed - no longer using dynamic port allocation
 
 // Import expiration monitor
-import expirationMonitor from './services/expiration-monitor.js';
+import expirationMonitor from './services/expirationMonitor.js';
 
 // OAuth service removed - now handled per service
 

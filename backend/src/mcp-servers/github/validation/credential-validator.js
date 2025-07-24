@@ -1,5 +1,5 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/base-validator.js';
+import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 import fetch from 'node-fetch';
 
 /**
@@ -13,7 +13,7 @@ class GitHubPATValidator extends BaseValidator {
   /**
    * Validate GitHub personal access token format
    * @param {any} credentials - Credentials to validate
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
     if (!credentials || typeof credentials !== 'object') {
@@ -40,7 +40,7 @@ class GitHubPATValidator extends BaseValidator {
   /**
    * Test GitHub personal access token (format validation only)
    * @param {any} credentials - Credentials to test
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
     // For development/testing, format validation is sufficient

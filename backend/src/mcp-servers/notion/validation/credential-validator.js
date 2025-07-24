@@ -3,7 +3,7 @@
  * Updated to support OAuth Bearer token authentication
  */
 
-import { BaseValidator, createValidationResult } from '../../../services/validation/base-validator.js';
+import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 import { validateBearerToken } from '../utils/oauth-validation.js';
 import { NotionService } from '../api/notion-api.js';
 import { Logger } from '../utils/logger.js';
@@ -193,7 +193,7 @@ class NotionOAuthValidator extends BaseValidator {
   /**
    * Validate Notion OAuth credentials format
    * @param {any} credentials - Credentials to validate
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
     if (!credentials || typeof credentials !== 'object') {
@@ -211,7 +211,7 @@ class NotionOAuthValidator extends BaseValidator {
   /**
    * Test Notion OAuth credentials
    * @param {any} credentials - Credentials to test
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
     const formatResult = await this.validateFormat(credentials);
@@ -256,7 +256,7 @@ class NotionBearerTokenValidator extends BaseValidator {
   /**
    * Validate Notion Bearer token format
    * @param {any} credentials - Credentials to validate
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
     if (!credentials || typeof credentials !== 'object') {
@@ -278,7 +278,7 @@ class NotionBearerTokenValidator extends BaseValidator {
   /**
    * Test Notion Bearer token against actual API
    * @param {any} credentials - Credentials to test
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
     const formatResult = await this.validateFormat(credentials);

@@ -19,29 +19,29 @@ import {
   getThread,
   markAsRead,
   markAsUnread
-} from '../api/gmail-api.js';
+} from '../api/gmailApi.js';
 
 import { 
   listLabels, 
   createLabel, 
   modifyLabels 
-} from '../api/label-operations.js';
+} from '../api/labelOperations.js';
 
 import { validateToolArguments } from '../utils/validation.js';
 
 /**
- * @typedef {import('../api/modules/message-operations.js').SendEmailArgs} SendEmailArgs
- * @typedef {import('../api/modules/message-operations.js').FetchEmailsArgs} FetchEmailsArgs
- * @typedef {import('../api/modules/message-operations.js').FetchMessageByIdArgs} FetchMessageByIdArgs
- * @typedef {import('../api/modules/message-operations.js').ReplyToEmailArgs} ReplyToEmailArgs
- * @typedef {import('../api/modules/message-operations.js').MessageIdArgs} MessageIdArgs
- * @typedef {import('../api/modules/message-operations.js').SearchEmailsArgs} SearchEmailsArgs
- * @typedef {import('../api/modules/thread-operations.js').GetThreadArgs} GetThreadArgs
- * @typedef {import('../api/modules/draft-operations.js').CreateDraftArgs} CreateDraftArgs
- * @typedef {import('../api/modules/draft-operations.js').SendDraftArgs} SendDraftArgs
- * @typedef {import('../api/modules/draft-operations.js').ListDraftsArgs} ListDraftsArgs
- * @typedef {import('../api/label-operations.js').CreateLabelArgs} CreateLabelArgs
- * @typedef {import('../api/label-operations.js').ModifyLabelsArgs} ModifyLabelsArgs
+ * @typedef {import('../api/modules/messageOperations.js').SendEmailArgs} SendEmailArgs
+ * @typedef {import('../api/modules/messageOperations.js').FetchEmailsArgs} FetchEmailsArgs
+ * @typedef {import('../api/modules/messageOperations.js').FetchMessageByIdArgs} FetchMessageByIdArgs
+ * @typedef {import('../api/modules/messageOperations.js').ReplyToEmailArgs} ReplyToEmailArgs
+ * @typedef {import('../api/modules/messageOperations.js').MessageIdArgs} MessageIdArgs
+ * @typedef {import('../api/modules/messageOperations.js').SearchEmailsArgs} SearchEmailsArgs
+ * @typedef {import('../api/modules/threadOperations.js').GetThreadArgs} GetThreadArgs
+ * @typedef {import('../api/modules/draftOperations.js').CreateDraftArgs} CreateDraftArgs
+ * @typedef {import('../api/modules/draftOperations.js').SendDraftArgs} SendDraftArgs
+ * @typedef {import('../api/modules/draftOperations.js').ListDraftsArgs} ListDraftsArgs
+ * @typedef {import('../api/labelOperations.js').CreateLabelArgs} CreateLabelArgs
+ * @typedef {import('../api/labelOperations.js').ModifyLabelsArgs} ModifyLabelsArgs
  */
 
 /**

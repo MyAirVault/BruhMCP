@@ -1,5 +1,5 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/base-validator.js';
+import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 
 /**
  * Discord Bot Token validator
@@ -12,7 +12,7 @@ class DiscordBotTokenValidator extends BaseValidator {
 	/**
 	 * Validate Discord bot token format
 	 * @param {any} credentials - Credentials to validate
-	 * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+	 * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
 	 */
 	async validateFormat(credentials) {
 		if (!credentials || typeof credentials !== 'object') {
@@ -43,7 +43,7 @@ class DiscordBotTokenValidator extends BaseValidator {
 	/**
 	 * Test Discord bot token (OAuth flow - no API test needed)
 	 * @param {any} credentials - Credentials to test
-	 * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+	 * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
 	 */
 	async testCredentials(credentials) {
 		// For OAuth flow, format validation is sufficient
@@ -90,7 +90,7 @@ class DiscordOAuthValidator extends BaseValidator {
 	/**
 	 * Validate Discord OAuth credentials format
 	 * @param {any} credentials - Credentials to validate
-	 * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+	 * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
 	 */
 	async validateFormat(credentials) {
 		if (!credentials || typeof credentials !== 'object') {
@@ -127,7 +127,7 @@ class DiscordOAuthValidator extends BaseValidator {
 	/**
 	 * Test Discord OAuth credentials
 	 * @param {any} credentials - Credentials to test
-	 * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+	 * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
 	 */
 	async testCredentials(credentials) {
 		// For OAuth flow, format validation is sufficient

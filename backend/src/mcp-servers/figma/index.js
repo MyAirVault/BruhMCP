@@ -18,10 +18,10 @@ dotenv.config({ path: join(backendRoot, '.env') });
 import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credential-auth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handler-sessions.js';
+import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
+import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
 

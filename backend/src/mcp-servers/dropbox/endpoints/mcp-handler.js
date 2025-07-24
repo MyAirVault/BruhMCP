@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { fetchWithRetry } from '../utils/fetch-with-retry.js';
 import { DropboxAPI } from '../api/dropbox-api.js';
 import '../types/dropbox-types.js';
-import '../types/service-types.js';
+import '../types/serviceTypes.js';
 
 /**
  * @typedef {Object} ServiceConfig

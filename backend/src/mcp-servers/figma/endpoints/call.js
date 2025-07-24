@@ -12,7 +12,7 @@ import {
 	createSuccessResponse, 
 	createErrorResponse,
 	createFigmaOptimizedResponse
-} from '../utils/mcp-responses.js';
+} from '../utils/mcpResponses.js';
 
 
 /**

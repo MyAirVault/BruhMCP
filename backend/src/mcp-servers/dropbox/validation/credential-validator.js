@@ -1,5 +1,5 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/base-validator.js';
+import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 
 /**
  * Dropbox OAuth credential validator
@@ -12,7 +12,7 @@ class DropboxOAuthValidator extends BaseValidator {
   /**
    * Validate Dropbox OAuth credentials format
    * @param {any} credentials - Credentials to validate
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
     // Check if credentials object has required OAuth fields
@@ -98,7 +98,7 @@ class DropboxAPIKeyValidator extends BaseValidator {
   /**
    * Validate Dropbox API key format
    * @param {any} credentials - Credentials to validate
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
     if (!credentials || typeof credentials !== 'object') {

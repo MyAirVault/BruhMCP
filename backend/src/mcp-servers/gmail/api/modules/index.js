@@ -4,7 +4,7 @@
  */
 
 // Core request handling
-export { makeGmailRequest } from './request-handler.js';
+export { makeGmailRequest } from './requestHandler.js';
 
 // Message operations
 export {
@@ -15,29 +15,29 @@ export {
 	deleteMessage,
 	moveToTrash,
 	searchEmails
-} from './message-operations.js';
+} from './messageOperations.js';
 
 // Draft operations
 export {
 	createDraft,
 	sendDraft,
 	listDrafts
-} from './draft-operations.js';
+} from './draftOperations.js';
 
 // Thread operations
 export {
 	getThread
-} from './thread-operations.js';
+} from './threadOperations.js';
 
 // Label operations
 export {
 	markAsRead,
 	markAsUnread
-} from './label-operations.js';
+} from './labelOperations.js';
 
 // Attachment operations
 export {
 	downloadAttachment,
 	listAttachments,
 	sendEmailWithAttachments
-} from './attachment-operations.js';
+} from './attachmentOperations.js';

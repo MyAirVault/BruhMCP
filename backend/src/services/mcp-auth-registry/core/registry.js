@@ -4,13 +4,13 @@
  */
 
 import { join } from 'path';
-import { discoverServices } from './service-discovery.js';
-import { loadServiceFunctions, loadSpecificFunction, safeCallFunction } from './service-loader.js';
+import { discoverServices } from './serviceDiscovery.js';
+import { loadServiceFunctions, loadSpecificFunction, safeCallFunction } from './serviceLoader.js';
 
 /**
- * @typedef {import('../types/service-types.js').ServiceRegistryMap} ServiceRegistryMap
- * @typedef {import('../types/service-types.js').ServiceRegistryEntry} ServiceRegistryEntry
- * @typedef {import('../types/service-types.js').ServiceError} ServiceError
+ * @typedef {import('../types/serviceTypes.js').ServiceRegistryMap} ServiceRegistryMap
+ * @typedef {import('../types/serviceTypes.js').ServiceRegistryEntry} ServiceRegistryEntry
+ * @typedef {import('../types/serviceTypes.js').ServiceError} ServiceError
  */
 
 
@@ -115,7 +115,7 @@ class ServiceRegistry {
 
 	/**
 	 * Get services by type
-	 * @param {import('../types/service-types.js').ServiceType} type - Service type
+	 * @param {import('../types/serviceTypes.js').ServiceType} type - Service type
 	 * @returns {string[]} Array of service names matching type
 	 */
 	getServicesByType(type) {

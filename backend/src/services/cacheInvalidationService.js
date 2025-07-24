@@ -69,7 +69,7 @@ async function performServiceCacheCleanup(serviceName, instanceId) {
 async function cleanupFigmaCache(instanceId) {
 	try {
 		// Dynamic import to avoid circular dependency
-		const { removeCachedCredential } = await import('../mcp-servers/figma/services/credential-cache.js');
+		const { removeCachedCredential } = await import('../mcp-servers/figma/services/credentialCache.js');
 		
 		const removed = removeCachedCredential(instanceId);
 		
@@ -153,7 +153,7 @@ export async function validateCacheCleanup(serviceName, instanceId) {
  */
 async function validateFigmaCacheCleanup(instanceId) {
 	try {
-		const { isInstanceCached } = await import('../mcp-servers/figma/services/credential-cache.js');
+		const { isInstanceCached } = await import('../mcp-servers/figma/services/credentialCache.js');
 		const stillCached = isInstanceCached(instanceId);
 		
 		if (stillCached) {
@@ -239,7 +239,7 @@ export async function emergencyCacheClear(serviceName) {
 		
 		switch (serviceName) {
 			case 'figma':
-				const { clearCredentialCache } = await import('../mcp-servers/figma/services/credential-cache.js');
+				const { clearCredentialCache } = await import('../mcp-servers/figma/services/credentialCache.js');
 				clearCredentialCache();
 				console.log(`🧹 Cleared entire Figma credential cache`);
 				return true;
@@ -323,7 +323,7 @@ async function performCacheMetadataUpdate(serviceName, instanceId, updates) {
 async function updateFigmaCacheMetadata(instanceId, updates) {
 	try {
 		// Dynamic import to avoid circular dependency
-		const { updateCachedCredentialMetadata } = await import('../mcp-servers/figma/services/credential-cache.js');
+		const { updateCachedCredentialMetadata } = await import('../mcp-servers/figma/services/credentialCache.js');
 		
 		const updated = updateCachedCredentialMetadata(instanceId, updates);
 		
@@ -387,7 +387,7 @@ export async function cleanupInvalidCacheEntries(reason = 'cleanup') {
 		
 		// Cleanup Figma cache
 		try {
-			const { cleanupInvalidCacheEntries: figmaCleanup } = await import('../mcp-servers/figma/services/credential-cache.js');
+			const { cleanupInvalidCacheEntries: figmaCleanup } = await import('../mcp-servers/figma/services/credentialCache.js');
 			results.figma = figmaCleanup(reason);
 		} catch (error) {
 			console.error(`❌ Figma cache cleanup failed:`, error);

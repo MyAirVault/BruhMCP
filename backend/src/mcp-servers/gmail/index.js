@@ -21,15 +21,15 @@ import {
 	createCredentialAuthMiddleware,
 	createLightweightAuthMiddleware,
 	createCachePerformanceMiddleware,
-} from './middleware/credential-auth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credential-cache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credential-watcher.js';
+} from './middleware/credentialAuth.js';
+import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
+import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
 import {
 	getOrCreateHandler,
 	startSessionCleanup,
 	stopSessionCleanup,
 	getSessionStatistics,
-} from './services/handler-sessions.js';
+} from './services/handlerSessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 import {
 	createMCPLoggingMiddleware,
@@ -97,7 +97,7 @@ app.post('/cache-tokens', async (req, res) => {
 		}
 
 		// Cache tokens using existing credential cache
-		const { setCachedCredential } = await import('./services/credential-cache.js');
+		const { setCachedCredential } = await import('./services/credentialCache.js');
 
 		setCachedCredential(instance_id, {
 			bearerToken: tokens.access_token,

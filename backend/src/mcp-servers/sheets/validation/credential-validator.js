@@ -3,7 +3,7 @@
  * Validates OAuth credentials and token formats
  */
 
-import { BaseValidator, createValidationResult } from '../../../services/validation/base-validator.js';
+import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 import { validateOAuthCredentials } from '../utils/oauth-integration.js';
 
 /**
@@ -338,7 +338,7 @@ class GoogleSheetsOAuthValidator extends BaseValidator {
   /**
    * Validate Google Sheets OAuth credentials format
    * @param {any} credentials - Credentials to validate
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
     if (!credentials || typeof credentials !== 'object') {
@@ -374,7 +374,7 @@ class GoogleSheetsOAuthValidator extends BaseValidator {
   /**
    * Test Google Sheets OAuth credentials against actual API
    * @param {any} credentials - Credentials to test
-   * @returns {Promise<import('../../../services/validation/base-validator.js').ValidationResult>} Validation result
+   * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
     // First validate basic format

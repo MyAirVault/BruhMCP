@@ -6,7 +6,7 @@
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { ServiceRegistry } from './core/registry.js';
-import { createAuthRoutes } from './routes/auth-routes.js';
+import { createAuthRoutes } from './routes/authRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -134,7 +134,7 @@ class MCPAuthRegistry {
 	/**
 	 * Gets service information by name
 	 * @param {string} serviceName - Name of the service
-	 * @returns {import('./types/service-types.js').ServiceRegistryEntry|null} Service entry or null if not found
+	 * @returns {import('./types/serviceTypes.js').ServiceRegistryEntry|null} Service entry or null if not found
 	 */
 	getService(serviceName) {
 		if (!this.initialized) {
@@ -146,7 +146,7 @@ class MCPAuthRegistry {
 
 	/**
 	 * Gets services by type
-	 * @param {import('./types/service-types.js').ServiceType} type - Service type
+	 * @param {import('./types/serviceTypes.js').ServiceType} type - Service type
 	 * @returns {string[]} Array of service names matching type
 	 */
 	getServicesByType(type) {
@@ -188,7 +188,7 @@ class MCPAuthRegistry {
 		console.log('   Services by Type:');
 		
 		for (const [type, count] of Object.entries(stats.servicesByType)) {
-			const services = this.getServicesByType(/** @type {import('./types/service-types.js').ServiceType} */ (type));
+			const services = this.getServicesByType(/** @type {import('./types/serviceTypes.js').ServiceType} */ (type));
 			console.log(`     ${type}: ${count} (${services.join(', ')})`);
 		}
 	}
