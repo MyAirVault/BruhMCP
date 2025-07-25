@@ -1,4 +1,9 @@
 /**
+ * Check if payments are disabled in local development
+ * @returns {boolean} True if payments are disabled
+ */
+export function isPaymentsDisabled(): boolean;
+/**
  * Get instance limit for a plan type
  * @param {string} planType - Plan type ('free' or 'pro')
  * @returns {number|null} Max instances (null = unlimited)
