@@ -1,11 +1,11 @@
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {import('../endpoints/mcpHandler.js').ServiceConfig} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
- * @returns {SlackMCPHandler} Persistent handler instance
+ * @returns {import('../endpoints/mcpHandler.js').SlackMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: Object, bearerToken: string): SlackMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: import("../endpoints/mcpHandler.js").ServiceConfig, bearerToken: string): import("../endpoints/mcpHandler.js").SlackMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance
@@ -40,5 +40,22 @@ export function invalidateHandlerSession(instanceId: string): void;
  * @param {string} newBearerToken - New bearer token
  */
 export function updateSessionBearerToken(instanceId: string, newBearerToken: string): boolean;
-import { SlackMCPHandler } from '../endpoints/mcpHandler.js';
+export type HandlerSession = {
+    /**
+     * - The MCP handler instance
+     */
+    handler: import("../endpoints/mcpHandler.js").SlackMCPHandler;
+    /**
+     * - Last access timestamp
+     */
+    lastAccessed: number;
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - Creation timestamp
+     */
+    createdAt: number;
+};
 //# sourceMappingURL=handlerSessions.d.ts.map

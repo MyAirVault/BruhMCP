@@ -48,23 +48,23 @@ export class SlackMCPHandler {
 	 * Handle incoming MCP request using session-based transport
 	 * @param {import('express').Request} req - Express request object
 	 * @param {import('express').Response} res - Express response object
-	 * @param {Object} message - MCP message
+	 * @param {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest|import('@modelcontextprotocol/sdk/types.js').JSONRPCResponse|import('@modelcontextprotocol/sdk/types.js').JSONRPCNotification} message - MCP message
 	 * @returns {Promise<void>}
 	 */
 	async handleMCPRequest(req, res, message) {
 		try {
-			const sessionId = req.headers['mcp-session-id'];
+			const sessionId = /** @type {string|undefined} */ (req.headers['mcp-session-id']);
 			console.log(`🔧 Processing MCP request - Session ID: ${sessionId}`);
 			console.log(`📨 Is Initialize Request: ${isInitializeRequest(message)}`);
 			
 			/** @type {StreamableHTTPServerTransport} */
 			let transport;
 
-			if (sessionId && this.transports[sessionId]) {
+			if (typeof sessionId === 'string' && this.transports[sessionId]) {
 				// Reuse existing transport
 				console.log(`♻️  Reusing existing transport for session: ${sessionId}`);
 				transport = this.transports[sessionId];
-			} else if (!sessionId && isInitializeRequest(message)) {
+			} else if (typeof sessionId === 'undefined' && isInitializeRequest(message)) {
 				// Create new transport only for initialization requests
 				console.log(`🚀 Creating new transport for initialization request`);
 				transport = this.createNewTransport();
@@ -80,13 +80,18 @@ export class SlackMCPHandler {
 			}
 
 			// Handle the request using the appropriate transport
-			console.log(`🔄 Handling request with transport`);
-			await transport.handleRequest(req, res, message);
-			console.log(`✅ Request handled successfully`);
+			if (transport) {
+				console.log(`🔄 Handling request with transport`);
+				await transport.handleRequest(req, res, message);
+				console.log(`✅ Request handled successfully`);
+			} else {
+				throw new Error('No transport available for request');
+			}
 			
 		} catch (error) {
 			console.error('❌ StreamableHTTP processing error:', error);
-			this.sendInternalErrorResponse(res, message, error);
+			const errorInstance = error instanceof Error ? error : new Error(String(error));
+			this.sendInternalErrorResponse(res, message, errorInstance);
 		}
 	}
 
@@ -106,9 +111,10 @@ export class SlackMCPHandler {
 		
 		// Setup cleanup on transport close
 		transport.onclose = () => {
-			if (transport.sessionId) {
-				delete this.transports[transport.sessionId];
-				console.log(`🧹 Cleaned up transport for session: ${transport.sessionId}`);
+			const sessionId = transport.sessionId;
+			if (typeof sessionId === 'string') {
+				delete this.transports[sessionId];
+				console.log(`🧹 Cleaned up transport for session: ${sessionId}`);
 			}
 		};
 		
@@ -118,7 +124,7 @@ export class SlackMCPHandler {
 	/**
 	 * Send bad request response
 	 * @param {import('express').Response} res - Express response
-	 * @param {Object} message - MCP message
+	 * @param {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest|import('@modelcontextprotocol/sdk/types.js').JSONRPCResponse|import('@modelcontextprotocol/sdk/types.js').JSONRPCNotification} message - MCP message
 	 */
 	sendBadRequestResponse(res, message) {
 		res.status(400).json({
@@ -127,20 +133,20 @@ export class SlackMCPHandler {
 				code: -32000,
 				message: 'Bad Request: No valid session ID provided and not an initialize request',
 			},
-			id: message?.id || null,
+			id: ('id' in message) ? message.id : null,
 		});
 	}
 
 	/**
 	 * Send internal error response
 	 * @param {import('express').Response} res - Express response
-	 * @param {Object} message - MCP message
+	 * @param {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest|import('@modelcontextprotocol/sdk/types.js').JSONRPCResponse|import('@modelcontextprotocol/sdk/types.js').JSONRPCNotification} message - MCP message
 	 * @param {Error} error - Error object
 	 */
 	sendInternalErrorResponse(res, message, error) {
 		res.json({
 			jsonrpc: '2.0',
-			id: message?.id || null,
+			id: ('id' in message) ? message.id : null,
 			error: {
 				code: -32603,
 				message: 'Internal error',

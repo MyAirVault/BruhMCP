@@ -6,7 +6,7 @@
  * required by the MCP protocol specification.
  */
 
-import { DropboxMCPHandler } from '../endpoints/mcp-handler.js';
+import { DropboxMCPHandler } from '../endpoints/mcpHandler.js';
 
 // Global handler session cache for Dropbox service instances
 const handlerSessions = new Map();
@@ -16,9 +16,17 @@ const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 /**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name
+ * @property {string} displayName
+ * @property {string} version
+ * @property {string[]} scopes
+ */
+
+/**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {ServiceConfig} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {DropboxMCPHandler} Persistent handler instance
  */
@@ -114,6 +122,7 @@ function cleanupExpiredSessions() {
 }
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout | null} */
 let cleanupInterval = null;
 
 /**

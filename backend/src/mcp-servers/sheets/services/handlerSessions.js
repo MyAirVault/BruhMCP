@@ -18,7 +18,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {import('../middleware/types.js').ServiceConfig} serviceConfig - Service configuration object
+ * @param {{name: string, displayName: string, version: string, scopes: string[]}} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {SheetsMCPHandler} Persistent handler instance
  */
@@ -28,7 +28,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	if (!session) {
 		// Create new handler instance for this instanceId
 		console.log(`🔧 Creating new Sheets handler session for instance: ${instanceId}`);
-		const handler = new SheetsMCPHandler(/** @type {import('../middleware/types.js').ServiceConfig} */ (serviceConfig), bearerToken);
+		const handler = new SheetsMCPHandler(serviceConfig, bearerToken);
 		
 		session = {
 			handler,
@@ -124,7 +124,7 @@ function cleanupExpiredSessions() {
 }
 
 // Cleanup interval handle
-/** @type {NodeJS.Timeout | null} */
+/** @type {NodeJS.Timeout|null} */
 let cleanupInterval = null;
 
 /**

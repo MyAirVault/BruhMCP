@@ -7,10 +7,59 @@
 import { pool } from '../../../db/config.js';
 
 /**
+ * @typedef {Object} InstanceCredentials
+ * @property {string} instance_id - UUID of the service instance
+ * @property {string} user_id - UUID of the user
+ * @property {string} oauth_status - OAuth completion status
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {string|null} expires_at - Expiration timestamp
+ * @property {number} usage_count - Number of times instance has been used
+ * @property {string|null} custom_name - Custom name for the instance
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string|null} credentials_updated_at - Last credential update timestamp
+ * @property {string} mcp_service_name - Name of the MCP service
+ * @property {string} display_name - Display name for the service
+ * @property {string} auth_type - Authentication type
+ * @property {boolean} service_active - Whether the service is active
+ * @property {number|null} port - Service port
+ * @property {string|null} api_key - API key credential
+ * @property {string|null} client_id - OAuth client ID
+ * @property {string|null} client_secret - OAuth client secret
+ * @property {string|null} access_token - OAuth access token
+ * @property {string|null} refresh_token - OAuth refresh token
+ * @property {string|null} token_expires_at - Token expiration timestamp
+ * @property {string|null} oauth_completed_at - OAuth completion timestamp
+ */
+
+/**
+ * @typedef {Object} InstanceStatistics
+ * @property {string} instance_id - UUID of the service instance
+ * @property {string} user_id - UUID of the user
+ * @property {string} status - Instance status
+ * @property {number} usage_count - Number of times instance has been used
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} created_at - Creation timestamp
+ * @property {string|null} expires_at - Expiration timestamp
+ * @property {string|null} custom_name - Custom name for the instance
+ * @property {string} mcp_service_name - Name of the MCP service
+ * @property {string} display_name - Display name for the service
+ */
+
+/**
+ * @typedef {Object} ActiveInstance
+ * @property {string} instance_id - UUID of the service instance
+ * @property {string} user_id - UUID of the user
+ * @property {number} usage_count - Number of times instance has been used
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} created_at - Creation timestamp
+ * @property {string|null} custom_name - Custom name for the instance
+ */
+
+/**
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
  * @param {string} serviceName - Name of the MCP service (sheets)
- * @returns {Object|null} Instance credentials or null if not found
+ * @returns {Promise<InstanceCredentials|null>} Instance credentials or null if not found
  */
 async function lookupInstanceCredentials(instanceId, serviceName) {
   try {
@@ -60,14 +109,15 @@ async function lookupInstanceCredentials(instanceId, serviceName) {
     
   } catch (error) {
     console.error('Database lookup error:', error);
-    throw new Error(`Failed to lookup instance credentials: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to lookup instance credentials: ${errorMessage}`);
   }
 }
 
 /**
  * Update instance usage tracking
  * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
 async function updateInstanceUsage(instanceId) {
   try {
@@ -104,7 +154,7 @@ async function updateInstanceUsage(instanceId) {
 /**
  * Get instance statistics
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Instance statistics or null if not found
+ * @returns {Promise<InstanceStatistics|null>} Instance statistics or null if not found
  */
 async function getInstanceStatistics(instanceId) {
   try {
@@ -136,7 +186,8 @@ async function getInstanceStatistics(instanceId) {
     
   } catch (error) {
     console.error('Database statistics query error:', error);
-    throw new Error(`Failed to get instance statistics: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to get instance statistics: ${errorMessage}`);
   }
 }
 
@@ -144,7 +195,7 @@ async function getInstanceStatistics(instanceId) {
  * Update instance status
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newStatus - New status (active, inactive, expired)
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
 async function updateInstanceStatus(instanceId, newStatus) {
   try {
@@ -170,13 +221,14 @@ async function updateInstanceStatus(instanceId, newStatus) {
     
   } catch (error) {
     console.error('Database status update error:', error);
-    throw new Error(`Failed to update instance status: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to update instance status: ${errorMessage}`);
   }
 }
 
 /**
  * Get all active instances for Google Sheets service
- * @returns {Array} Array of active instance records
+ * @returns {Promise<ActiveInstance[]>} Array of active instance records
  */
 async function getActiveSheetsInstances() {
   try {
@@ -206,7 +258,8 @@ async function getActiveSheetsInstances() {
     
   } catch (error) {
     console.error('Database active instances query error:', error);
-    throw new Error(`Failed to get active Google Sheets instances: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to get active Google Sheets instances: ${errorMessage}`);
   }
 }
 
@@ -214,7 +267,7 @@ async function getActiveSheetsInstances() {
  * Validate instance exists and is accessible
  * @param {string} instanceId - UUID of the service instance
  * @param {string} userId - UUID of the user (for additional security)
- * @returns {boolean} True if instance is valid and accessible
+ * @returns {Promise<boolean>} True if instance is valid and accessible
  */
 async function validateInstanceAccess(instanceId, userId) {
   try {
@@ -247,7 +300,7 @@ async function validateInstanceAccess(instanceId, userId) {
 
 /**
  * Clean up expired instances
- * @returns {number} Number of instances marked as expired
+ * @returns {Promise<number>} Number of instances marked as expired
  */
 async function cleanupExpiredInstances() {
   try {
@@ -277,7 +330,8 @@ async function cleanupExpiredInstances() {
     
   } catch (error) {
     console.error('Database cleanup error:', error);
-    throw new Error(`Failed to cleanup expired instances: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to cleanup expired instances: ${errorMessage}`);
   }
 }
 

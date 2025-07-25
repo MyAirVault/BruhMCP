@@ -4,6 +4,50 @@
  */
 
 /**
+ * @typedef {Object} SizeLimitsConfig
+ * @property {number} maxResponseSize - Maximum response size in bytes
+ * @property {Object.<string, number>} toolLimits - Tool-specific size limits
+ * @property {Object.<string, number>} stringLimits - String length limits by content type
+ */
+
+/**
+ * @typedef {Object} MCPResponse
+ * @property {string} [jsonrpc] - JSON-RPC version
+ * @property {string|number} [id] - Request ID
+ * @property {MCPResult} [result] - Response result
+ * @property {MCPError} [error] - Response error
+ */
+
+/**
+ * @typedef {Object} MCPResult
+ * @property {Array<MCPContent>} [content] - Response content array
+ */
+
+/**
+ * @typedef {Object} MCPContent
+ * @property {string} type - Content type (e.g., 'text')
+ * @property {string} [text] - Text content
+ */
+
+/**
+ * @typedef {Object} MCPError
+ * @property {number} code - Error code
+ * @property {string} message - Error message
+ * @property {Object} [data] - Additional error data
+ */
+
+/**
+ * @typedef {Object} RequestBody
+ * @property {string} [method] - MCP method name
+ * @property {RequestParams} [params] - Request parameters
+ */
+
+/**
+ * @typedef {Object} RequestParams
+ * @property {string} [name] - Tool name
+ */
+
+/**
  * Response size limits configuration
  */
 const SIZE_LIMITS = {
@@ -37,8 +81,8 @@ const SIZE_LIMITS = {
 
 /**
  * Creates response size limiting middleware
- * @param {Object} options - Size limit options
- * @returns {Function} Express middleware function
+ * @param {Partial<SizeLimitsConfig>} options - Size limit options
+ * @returns {import('express').RequestHandler} Express middleware function
  */
 export function createResponseSizeLimitMiddleware(options = {}) {
   const config = {
@@ -47,20 +91,27 @@ export function createResponseSizeLimitMiddleware(options = {}) {
   };
   
   return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
-    const operation = req.body?.method;
-    const toolName = req.body?.params?.name;
+    /** @type {RequestBody} */
+    const requestBody = req.body || {};
+    const operation = requestBody.method;
+    const toolName = requestBody.params?.name;
     
     if (operation !== 'tools/call' || !toolName) {
       return next();
     }
     
     // Get size limit for this tool
-    const sizeLimit = /** @type {Record<string, number>} */ (config.toolLimits)[/** @type {keyof typeof config.toolLimits} */ (toolName)] || config.maxResponseSize;
+    /** @type {number} */
+    let sizeLimit = config.maxResponseSize;
+    if (toolName && toolName in config.toolLimits) {
+      const toolLimits = config.toolLimits;
+      sizeLimit = toolLimits[/** @type {keyof typeof toolLimits} */ (toolName)];
+    }
     
     // Intercept response to check size
     const originalJson = res.json;
     
-    res.json = function(/** @type {Record<string, Record<string, Record<string, {result?: {content?: Array<{type: string, text: string}>}} | unknown>>} */ data) {
+    res.json = function(/** @type {MCPResponse} */ data) {
       try {
         // Calculate response size
         const responseString = JSON.stringify(data);
@@ -104,10 +155,10 @@ export function createResponseSizeLimitMiddleware(options = {}) {
 
 /**
  * Truncate response to fit within size limit
- * @param {Object} data - Response data
+ * @param {MCPResponse} data - Response data
  * @param {number} sizeLimit - Size limit in bytes
  * @param {string} toolName - Tool name for context
- * @returns {Object} Truncated response
+ * @returns {MCPResponse} Truncated response
  */
 function truncateResponse(data, sizeLimit, toolName) {
   try {
@@ -116,6 +167,7 @@ function truncateResponse(data, sizeLimit, toolName) {
       const content = data.result.content;
       
       // Find text content to truncate
+      /** @type {MCPContent|undefined} */
       const textContent = content.find(item => item.type === 'text');
       
       if (textContent && textContent.text) {
@@ -171,6 +223,9 @@ function truncateResponse(data, sizeLimit, toolName) {
     console.error('Response truncation error:', error);
     
     // Return error response
+    /** @type {string} */
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
     return {
       jsonrpc: '2.0',
       id: data.id,
@@ -178,7 +233,7 @@ function truncateResponse(data, sizeLimit, toolName) {
         code: -32000,
         message: 'Response processing error',
         data: {
-          error: error.message,
+          error: errorMessage,
           toolName: toolName
         }
       }
@@ -355,7 +410,12 @@ export function validateContentLength(content, type) {
     return;
   }
   
-  const limit = SIZE_LIMITS.stringLimits[type];
+  /** @type {number|undefined} */
+  let limit;
+  if (type in SIZE_LIMITS.stringLimits) {
+    const stringLimits = SIZE_LIMITS.stringLimits;
+    limit = stringLimits[/** @type {keyof typeof stringLimits} */ (type)];
+  }
   if (limit && content.length > limit) {
     throw new Error(`${type} exceeds maximum length of ${limit} characters`);
   }
@@ -363,7 +423,7 @@ export function validateContentLength(content, type) {
 
 /**
  * Update size limits configuration
- * @param {Object} newLimits - New size limits
+ * @param {Partial<SizeLimitsConfig>} newLimits - New size limits
  */
 export function updateSizeLimits(newLimits) {
   Object.assign(SIZE_LIMITS, newLimits);
@@ -372,7 +432,7 @@ export function updateSizeLimits(newLimits) {
 
 /**
  * Get current size limits configuration
- * @returns {Object} Current size limits
+ * @returns {SizeLimitsConfig} Current size limits
  */
 export function getSizeLimits() {
   return { ...SIZE_LIMITS };
@@ -384,7 +444,11 @@ export function getSizeLimits() {
  * @returns {number} Size limit in bytes
  */
 export function getToolSizeLimit(toolName) {
-  return SIZE_LIMITS.toolLimits[toolName] || SIZE_LIMITS.maxResponseSize;
+  if (toolName in SIZE_LIMITS.toolLimits) {
+    const toolLimits = SIZE_LIMITS.toolLimits;
+    return toolLimits[/** @type {keyof typeof toolLimits} */ (toolName)];
+  }
+  return SIZE_LIMITS.maxResponseSize;
 }
 
 /**

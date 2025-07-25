@@ -3,10 +3,53 @@
  * Implements in-memory caching for frequently accessed Reddit data
  */
 
+/**
+ * @typedef {Object} CacheEntry
+ * @property {*} data - The cached data
+ * @property {number} createdAt - Timestamp when entry was created
+ * @property {number} expiresAt - Timestamp when entry expires
+ * @property {number} lastAccessed - Timestamp when entry was last accessed
+ * @property {string} type - Cache type
+ * @property {string} instanceId - Instance ID
+ * @property {Record<string, *>} params - Request parameters
+ */
+
+/**
+ * @typedef {Object} CacheStats
+ * @property {number} hits - Number of cache hits
+ * @property {number} misses - Number of cache misses
+ * @property {number} sets - Number of cache sets
+ * @property {number} deletes - Number of cache deletes
+ * @property {number} cleanups - Number of cleanups performed
+ * @property {number} errors - Number of errors encountered
+ */
+
+/**
+ * @typedef {Object} CacheConfig
+ * @property {Record<string, number>} ttl - TTL values for different cache types
+ * @property {number} maxSize - Maximum number of cached items
+ * @property {number} cleanupInterval - Cleanup interval in milliseconds
+ */
+
+/**
+ * @typedef {Object} CacheStatistics
+ * @property {number} size - Current cache size
+ * @property {number} maxSize - Maximum cache size
+ * @property {number} expiredCount - Number of expired entries
+ * @property {string} hitRate - Hit rate percentage
+ * @property {CacheStats} statistics - Cache statistics
+ * @property {Record<string, number>} typeBreakdown - Breakdown by cache type
+ * @property {Object} memoryUsage - Memory usage information
+ * @property {number} memoryUsage.bytes - Memory usage in bytes
+ * @property {string} memoryUsage.mb - Memory usage in MB
+ */
+
 // In-memory cache storage
+/** @type {Map<string, CacheEntry>} */
 const responseCache = new Map();
 
 // Cache configuration
+/** @type {CacheConfig} */
 const CACHE_CONFIG = {
   // Default TTL for different types of data
   ttl: {
@@ -26,6 +69,7 @@ const CACHE_CONFIG = {
 };
 
 // Cache statistics
+/** @type {CacheStats} */
 let cacheStats = {
   hits: 0,
   misses: 0,
@@ -36,6 +80,7 @@ let cacheStats = {
 };
 
 // Cleanup interval
+/** @type {NodeJS.Timeout|null} */
 let cleanupIntervalId = null;
 
 /**
@@ -67,17 +112,18 @@ export function initializeResponseCache() {
  * Generate cache key
  * @param {string} type - Cache type (subreddit_info, user_posts, etc.)
  * @param {string} instanceId - Instance ID
- * @param {Object} params - Request parameters
+ * @param {Record<string, *>} params - Request parameters
  * @returns {string} Cache key
  */
 function generateCacheKey(type, instanceId, params) {
   // Sort parameters to ensure consistent keys
+  /** @type {Record<string, *>} */
   const sortedParams = Object.keys(params || {})
     .sort()
     .reduce((result, key) => {
       result[key] = params[key];
       return result;
-    }, {});
+    }, /** @type {Record<string, *>} */ ({}));
   
   const paramsString = JSON.stringify(sortedParams);
   return `${type}:${instanceId}:${paramsString}`;
@@ -87,8 +133,8 @@ function generateCacheKey(type, instanceId, params) {
  * Get cached response
  * @param {string} type - Cache type
  * @param {string} instanceId - Instance ID
- * @param {Object} params - Request parameters
- * @returns {any|null} Cached response or null if not found/expired
+ * @param {Record<string, *>} params - Request parameters
+ * @returns {*|null} Cached response or null if not found/expired
  */
 export function getCachedResponse(type, instanceId, params = {}) {
   try {
@@ -126,14 +172,14 @@ export function getCachedResponse(type, instanceId, params = {}) {
  * Set cached response
  * @param {string} type - Cache type
  * @param {string} instanceId - Instance ID
- * @param {Object} params - Request parameters
- * @param {any} data - Response data to cache
- * @param {number} [customTtl] - Custom TTL in milliseconds
+ * @param {Record<string, *>} params - Request parameters
+ * @param {*} data - Response data to cache
+ * @param {number|undefined} [customTtl] - Custom TTL in milliseconds
  */
-export function setCachedResponse(type, instanceId, params = {}, data, customTtl = null) {
+export function setCachedResponse(type, instanceId, params = {}, data, customTtl = undefined) {
   try {
     const key = generateCacheKey(type, instanceId, params);
-    const ttl = customTtl || CACHE_CONFIG.ttl[type] || CACHE_CONFIG.ttl.default;
+    const ttl = customTtl || (CACHE_CONFIG.ttl[/** @type {keyof typeof CACHE_CONFIG.ttl} */(type)] || CACHE_CONFIG.ttl.default);
     
     // Check cache size limit
     if (responseCache.size >= CACHE_CONFIG.maxSize) {
@@ -172,7 +218,7 @@ export function setCachedResponse(type, instanceId, params = {}, data, customTtl
  * Delete cached response
  * @param {string} type - Cache type
  * @param {string} instanceId - Instance ID
- * @param {Object} params - Request parameters
+ * @param {Record<string, *>} params - Request parameters
  */
 export function deleteCachedResponse(type, instanceId, params = {}) {
   try {
@@ -243,12 +289,13 @@ export function clearAllCache() {
 
 /**
  * Get cache statistics
- * @returns {Object} Cache statistics
+ * @returns {CacheStatistics} Cache statistics
  */
 export function getCacheStatistics() {
   const now = Date.now();
   const entries = Array.from(responseCache.values());
   
+  /** @type {Record<string, number>} */
   const typeStats = {};
   let expiredCount = 0;
   
@@ -338,7 +385,7 @@ function cleanupExpiredEntries() {
 
 /**
  * Update cache configuration
- * @param {Object} newConfig - New cache configuration
+ * @param {Partial<CacheConfig>} newConfig - New cache configuration
  */
 export function updateCacheConfig(newConfig) {
   Object.assign(CACHE_CONFIG, newConfig);
@@ -347,7 +394,7 @@ export function updateCacheConfig(newConfig) {
 
 /**
  * Get cache configuration
- * @returns {Object} Current cache configuration
+ * @returns {CacheConfig} Current cache configuration
  */
 export function getCacheConfig() {
   return { ...CACHE_CONFIG };

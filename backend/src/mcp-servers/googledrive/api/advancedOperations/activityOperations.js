@@ -21,11 +21,11 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 
   const requestOptions = {
     method: options.method || 'GET',
-    headers: /** @type {HeadersInit} */ ({
+    headers: {
       Authorization: `Bearer ${bearerToken}`,
       'Content-Type': 'application/json',
       ...(options.headers || {}),
-    }),
+    },
     ...options,
   };
 
@@ -81,7 +81,7 @@ export async function getFileRevisions(fileId, bearerToken) {
 
   return {
     fileId,
-    revisions: (data.revisions || []).map((rev) => ({
+    revisions: (data.revisions || []).map(/** @param {import('../types.js').DriveRevision} rev */ (rev) => ({
       id: rev.id,
       modifiedTime: rev.modifiedTime,
       keepForever: rev.keepForever,
@@ -126,7 +126,7 @@ export async function getRecentActivity(bearerToken, options = {}) {
   const data = await makeDriveRequest(endpoint, bearerToken);
 
   return {
-    files: (data.files || []).map((file) => ({
+    files: (data.files || []).map(/** @param {import('../types.js').DriveFile} file */ (file) => ({
       id: file.id,
       name: file.name,
       mimeType: file.mimeType,
@@ -172,14 +172,14 @@ export async function getFileComments(fileId, bearerToken, options = {}) {
 
   return {
     fileId,
-    comments: (data.comments || []).map((comment) => ({
+    comments: (data.comments || []).map(/** @param {import('../types.js').DriveComment} comment */ (comment) => ({
       id: comment.id,
       content: comment.content,
       createdTime: comment.createdTime,
       modifiedTime: comment.modifiedTime,
       author: comment.author,
       resolved: comment.resolved,
-      replies: (comment.replies || []).map((reply) => ({
+      replies: (comment.replies || []).map(/** @param {import('../types.js').DriveReply} reply */ (reply) => ({
         id: reply.id,
         content: reply.content,
         createdTime: reply.createdTime,
@@ -225,7 +225,7 @@ export async function trackFileChanges(bearerToken, options = {}) {
   const data = await makeDriveRequest(endpoint, bearerToken);
 
   return {
-    changes: (data.changes || []).map((change) => ({
+    changes: (data.changes || []).map(/** @param {import('../types.js').DriveChange} change */ (change) => ({
       removed: change.removed,
       changeType: change.changeType,
       time: change.time,

@@ -8,11 +8,11 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
 
 /**
  * Get current user
- * @param {Record<string, never>} args - User arguments (empty object)
+ * @param {Record<string, never>} _args - User arguments (empty object)
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} User data
  */
-export async function getCurrentUser(args, bearerToken) {
+export async function getCurrentUser(_args, bearerToken) {
 	const result = await makeNotionRequest('/users/me', bearerToken);
 
 	return formatNotionResponse({
@@ -45,6 +45,6 @@ export async function listUsers(args, bearerToken) {
 		action: 'list_users',
 		users: /** @type {import('../../utils/notionFormatting.js').NotionUser[]} */ (result.results || []),
 		hasMore: /** @type {boolean} */ (result.has_more || false),
-		next_cursor: /** @type {string|null} */ (result.next_cursor || null),
+		next_cursor: /** @type {string|undefined} */ (result.next_cursor || undefined),
 	});
 }

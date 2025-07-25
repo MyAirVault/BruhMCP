@@ -22,9 +22,9 @@ async function validateCredentials(credentials, userId) {
 		console.log(`🔍 Validating Notion credentials for user: ${userId}`);
 		console.log('📨 Received credentials:', Object.keys(credentials));
 
-		// Check required fields - handle both formats
-		const clientId = credentials.client_id || credentials.clientId;
-		const clientSecret = credentials.client_secret || credentials.clientSecret;
+		// Check required fields
+		const clientId = credentials.clientId;
+		const clientSecret = credentials.clientSecret;
 		
 		if (!credentials || !clientId || !clientSecret) {
 			return {
@@ -40,7 +40,7 @@ async function validateCredentials(credentials, userId) {
 		};
 
 		// Create validator instance
-		const validator = createNotionValidator(notionCredentials);
+		const validator = createNotionValidator(/** @type {import('../validation/credentialValidator.js').OAuthCredentials} */ (notionCredentials));
 
 		// Validate credentials format (OAuth only does format validation)
 		const result = await validator.validateFormat(notionCredentials);

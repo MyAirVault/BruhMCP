@@ -3,6 +3,13 @@
  * Monitors and automatically refreshes OAuth Bearer tokens before expiration
  */
 
+/**
+ * @typedef {import('../middleware/types.js').ExtendedCachedCredential} ExtendedCachedCredential
+ * @typedef {import('../middleware/types.js').DatabaseInstance} DatabaseInstance
+ * @typedef {import('../middleware/types.js').NewOAuthTokens} NewOAuthTokens
+ * @typedef {import('../middleware/types.js').TokenRefreshOptions} TokenRefreshOptions
+ */
+
 import { cleanupInvalidCacheEntries, getCachedInstanceIds, peekCachedCredential, updateCachedCredentialMetadata, incrementRefreshAttempts, resetRefreshAttempts } from './credentialCache.js';
 import { refreshBearerToken } from '../utils/oauthValidation.js';
 import { lookupInstanceCredentials } from './database.js';
@@ -12,8 +19,30 @@ const WATCHER_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const TOKEN_REFRESH_THRESHOLD = 10 * 60 * 1000; // Refresh tokens with less than 10 minutes left
 const MAX_REFRESH_ATTEMPTS = 3;
 
+/**
+ * @typedef {Object} WatcherStats
+ * @property {string|null} lastRun - ISO timestamp of last run
+ * @property {number} totalRuns - Total number of watcher cycles
+ * @property {number} tokensRefreshed - Number of tokens successfully refreshed
+ * @property {number} refreshFailures - Number of refresh failures
+ * @property {number} entriesCleanedUp - Number of cache entries cleaned up
+ * @property {boolean} isRunning - Whether the watcher is currently running
+ */
+
+/**
+ * @typedef {Object} WatcherStatus
+ * @property {boolean} isRunning - Whether the watcher is currently running
+ * @property {number} intervalMinutes - Watcher interval in minutes
+ * @property {number} refreshThresholdMinutes - Token refresh threshold in minutes
+ * @property {number} maxRefreshAttempts - Maximum refresh attempts allowed
+ * @property {WatcherStats & {nextRunIn: string}} statistics - Extended statistics with next run info
+ */
+
 // Watcher state
+/** @type {NodeJS.Timeout|null} */
 let watcherInterval = null;
+
+/** @type {WatcherStats} */
 let watcherStats = {
   lastRun: null,
   totalRuns: 0,
@@ -51,7 +80,7 @@ export function stopCredentialWatcher() {
 
 /**
  * Get watcher status and statistics
- * @returns {Object} Watcher status information
+ * @returns {WatcherStatus} Watcher status information
  */
 export function getWatcherStatus() {
   return {
@@ -94,7 +123,7 @@ async function runCredentialWatcher() {
       try {
         await checkAndRefreshToken(instanceId);
       } catch (error) {
-        console.error(`❌ Failed to check/refresh token for instance ${instanceId}:`, error);
+        console.error(`❌ Failed to check/refresh token for instance ${instanceId}:`, /** @type {Error} */ (error));
         watcherStats.refreshFailures++;
       }
     });
@@ -110,16 +139,18 @@ async function runCredentialWatcher() {
     console.log(`✅ Reddit credential watcher cycle completed in ${duration}ms`);
 
   } catch (error) {
-    console.error('❌ Reddit credential watcher cycle failed:', error);
+    console.error('❌ Reddit credential watcher cycle failed:', /** @type {Error} */ (error));
   }
 }
 
 /**
  * Check and refresh a token if needed
  * @param {string} instanceId - Instance ID to check
+ * @returns {Promise<void>}
  */
 async function checkAndRefreshToken(instanceId) {
-  const cached = peekCachedCredential(instanceId);
+  /** @type {ExtendedCachedCredential|null} */
+  const cached = /** @type {ExtendedCachedCredential|null} */ (peekCachedCredential(instanceId));
   
   if (!cached) {
     console.log(`ℹ️  Instance ${instanceId} no longer in cache, skipping`);
@@ -151,7 +182,8 @@ async function checkAndRefreshToken(instanceId) {
     incrementRefreshAttempts(instanceId);
 
     // Get instance credentials from database
-    const instance = await lookupInstanceCredentials(instanceId, 'reddit');
+    /** @type {DatabaseInstance|null} */
+    const instance = /** @type {DatabaseInstance|null} */ (await lookupInstanceCredentials(instanceId, 'reddit'));
     
     if (!instance || !instance.client_id || !instance.client_secret) {
       console.log(`❌ Invalid instance credentials for ${instanceId}, removing from cache`);
@@ -160,11 +192,15 @@ async function checkAndRefreshToken(instanceId) {
     }
 
     // Refresh the Bearer token
-    const newTokens = await refreshBearerToken({
+    /** @type {TokenRefreshOptions} */
+    const refreshOptions = {
       refreshToken: cached.refreshToken,
       clientId: instance.client_id,
       clientSecret: instance.client_secret
-    });
+    };
+    
+    /** @type {NewOAuthTokens} */
+    const newTokens = await refreshBearerToken(refreshOptions);
 
     // Update cache with new tokens
     updateCachedCredentialMetadata(instanceId, {
@@ -181,11 +217,13 @@ async function checkAndRefreshToken(instanceId) {
     console.log(`✅ Successfully refreshed token for instance ${instanceId} (expires in ${newExpiryMinutes} minutes)`);
 
   } catch (error) {
-    console.error(`❌ Failed to refresh token for instance ${instanceId}:`, error);
+    /** @type {Error} */
+    const errorObj = /** @type {Error} */ (error);
+    console.error(`❌ Failed to refresh token for instance ${instanceId}:`, errorObj);
     watcherStats.refreshFailures++;
     
     // If refresh failed due to invalid refresh token, remove from cache
-    if (error.message.includes('invalid_grant') || error.message.includes('invalid_request')) {
+    if (errorObj.message.includes('invalid_grant') || errorObj.message.includes('invalid_request')) {
       console.log(`🗑️  Removing instance ${instanceId} from cache due to invalid refresh token`);
       cleanupInvalidCacheEntries('invalid_refresh_token');
     }
@@ -195,7 +233,7 @@ async function checkAndRefreshToken(instanceId) {
 /**
  * Force refresh a specific instance token
  * @param {string} instanceId - Instance ID to refresh
- * @returns {boolean} True if refresh was successful
+ * @returns {Promise<boolean>} True if refresh was successful
  */
 export async function forceRefreshInstanceToken(instanceId) {
   try {
@@ -203,7 +241,7 @@ export async function forceRefreshInstanceToken(instanceId) {
     await checkAndRefreshToken(instanceId);
     return true;
   } catch (error) {
-    console.error(`❌ Force refresh failed for instance ${instanceId}:`, error);
+    console.error(`❌ Force refresh failed for instance ${instanceId}:`, /** @type {Error} */ (error));
     return false;
   }
 }

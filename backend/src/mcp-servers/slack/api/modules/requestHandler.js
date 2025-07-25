@@ -17,6 +17,16 @@ const SLACK_API_BASE = 'https://slack.com/api';
  * @typedef {Object} SlackApiResponse
  * @property {boolean} ok - Success indicator
  * @property {string} [error] - Error message if request failed
+ * @property {Object} [channel] - Channel data
+ * @property {Object} [message] - Message data
+ * @property {Object} [user] - User data
+ * @property {Object} [team] - Team data
+ * @property {Object[]} [channels] - Array of channels
+ * @property {Object[]} [members] - Array of members
+ * @property {Object[]} [messages] - Array of messages
+ * @property {Object[]} [files] - Array of files
+ * @property {string} [ts] - Message timestamp
+ * @property {string} [response_metadata] - Response metadata
  */
 
 /**
@@ -24,7 +34,7 @@ const SLACK_API_BASE = 'https://slack.com/api';
  * @param {string} endpoint - API endpoint
  * @param {string} bearerToken - OAuth Bearer token
  * @param {RequestOptions} options - Request options
- * @returns {Promise<SlackApiResponse & Record<string, any>>} API response
+ * @returns {Promise<SlackApiResponse>} API response
  */
 export async function makeSlackRequest(endpoint, bearerToken, options = {}) {
 	const url = `${SLACK_API_BASE}${endpoint}`;
@@ -69,14 +79,14 @@ export async function makeSlackRequest(endpoint, bearerToken, options = {}) {
 		throw new Error(errorMessage);
 	}
 
-	/** @type {SlackApiResponse & Record<string, any>} */
 	const data = await response.json();
 	console.log(`✅ Slack API Response: ${response.status}`);
 
 	// Check for Slack-specific error in response
-	if (data.ok === false) {
-		throw new Error(`Slack API error: ${data.error || 'Unknown error'}`);
+	if (typeof data === 'object' && data !== null && 'ok' in data && data.ok === false) {
+		const errorMsg = typeof data === 'object' && data !== null && 'error' in data ? String(data.error) : 'Unknown error';
+		throw new Error(`Slack API error: ${errorMsg}`);
 	}
 
-	return data;
+	return /** @type {SlackApiResponse} */ (data);
 }

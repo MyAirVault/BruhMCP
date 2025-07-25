@@ -22,9 +22,9 @@ export async function logSuccessfulTokenRefresh(instanceId, method, userId, meta
     await createTokenAuditLog({
       instanceId,
       userId,
-      action: 'TOKEN_REFRESH_SUCCESS',
+      operation: 'TOKEN_REFRESH_SUCCESS',
       method,
-      success: true,
+      status: 'success',
       metadata: {
         refreshMethod: method,
         duration: metadata.duration,
@@ -54,14 +54,16 @@ export async function logFailedTokenRefresh(instanceId, method, userId, errorTyp
     await createTokenAuditLog({
       instanceId,
       userId,
-      action: 'TOKEN_REFRESH_FAILED',
+      operation: 'TOKEN_REFRESH_FAILED',
       method,
-      success: false,
+      status: 'failed',
+      errorType,
+      errorMessage,
       metadata: {
         refreshMethod: method,
         errorType,
         errorMessage,
-        duration: errorInfo.duration,
+        duration: /** @type {Record<string, unknown>} */ (errorInfo).duration,
         timestamp: new Date().toISOString()
       }
     });
@@ -86,9 +88,9 @@ export async function logReauthenticationRequired(instanceId, userId, hadRefresh
     await createTokenAuditLog({
       instanceId,
       userId,
-      action: 'REAUTH_REQUIRED',
+      operation: 'REAUTH_REQUIRED',
       method: 'none',
-      success: false,
+      status: 'failed',
       metadata: {
         hadRefreshToken,
         hadAccessToken,
@@ -116,9 +118,9 @@ export async function logTokenValidationSuccess(instanceId, userId, source) {
     await createTokenAuditLog({
       instanceId,
       userId,
-      action: 'TOKEN_VALIDATION_SUCCESS',
+      operation: 'TOKEN_VALIDATION_SUCCESS',
       method: source,
-      success: true,
+      status: 'success',
       metadata: {
         tokenSource: source,
         timestamp: new Date().toISOString()
@@ -143,9 +145,9 @@ export async function logOAuthFlowInitiation(instanceId, userId, scopes) {
     await createTokenAuditLog({
       instanceId,
       userId,
-      action: 'OAUTH_FLOW_INITIATED',
+      operation: 'OAUTH_FLOW_INITIATED',
       method: 'oauth_initiation',
-      success: true,
+      status: 'success',
       metadata: {
         scopes,
         timestamp: new Date().toISOString()
@@ -171,9 +173,10 @@ export async function logOAuthCallbackCompletion(instanceId, userId, success, er
     await createTokenAuditLog({
       instanceId,
       userId,
-      action: 'OAUTH_CALLBACK_COMPLETED',
+      operation: 'OAUTH_CALLBACK_COMPLETED',
       method: 'oauth_callback',
-      success,
+      status: success ? 'success' : 'failed',
+      errorMessage: success ? undefined : errorMessage,
       metadata: {
         success,
         errorMessage,
@@ -191,29 +194,29 @@ export async function logOAuthCallbackCompletion(instanceId, userId, success, er
  * Create general audit log entry
  * @param {string} instanceId - The instance ID
  * @param {string} userId - User ID
- * @param {string} action - Action performed
+ * @param {string} operation - Operation performed
  * @param {string} method - Method used
- * @param {boolean} success - Whether action was successful
+ * @param {boolean} success - Whether operation was successful
  * @param {Object} metadata - Additional metadata
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function createAuditLogEntry(instanceId, userId, action, method, success, metadata = {}) {
+export async function createAuditLogEntry(instanceId, userId, operation, method, success, metadata = {}) {
   try {
     await createTokenAuditLog({
       instanceId,
       userId,
-      action,
+      operation,
       method,
-      success,
+      status: success ? 'success' : 'failed',
       metadata: {
         ...metadata,
         timestamp: new Date().toISOString()
       }
     });
 
-    console.log(`📝 Audit: ${action} logged for instance: ${instanceId}`);
+    console.log(`📝 Audit: ${operation} logged for instance: ${instanceId}`);
   } catch (error) {
-    console.error(`❌ Failed to log ${action} for instance: ${instanceId}:`, error);
+    console.error(`❌ Failed to log ${operation} for instance: ${instanceId}:`, error);
   }
 }
 

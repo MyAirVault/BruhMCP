@@ -2,6 +2,41 @@
 import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 
 /**
+ * Slack OAuth credentials object
+ * @typedef {Object} SlackOAuthCredentials
+ * @property {string} client_id - OAuth client ID
+ * @property {string} client_secret - OAuth client secret
+ */
+
+/**
+ * Slack Bot Token credentials object
+ * @typedef {Object} SlackBotTokenCredentials
+ * @property {string} bot_token - Slack bot token (starts with xoxb-)
+ */
+
+/**
+ * Slack User Token credentials object
+ * @typedef {Object} SlackUserTokenCredentials
+ * @property {string} user_token - Slack user token (starts with xoxp-)
+ */
+
+/**
+ * Slack service information object
+ * @typedef {Object} SlackServiceInfo
+ * @property {string} service - Service name
+ * @property {string} auth_type - Authentication type
+ * @property {string} [client_id] - OAuth client ID (for OAuth validation)
+ * @property {string} validation_type - Type of validation performed
+ * @property {string} note - Additional information
+ * @property {string[]} permissions - List of required permissions/scopes
+ */
+
+/**
+ * Generic credentials object that could be any of the Slack credential types
+ * @typedef {SlackOAuthCredentials|SlackBotTokenCredentials|SlackUserTokenCredentials} SlackCredentials
+ */
+
+/**
  * Slack OAuth credential validator
  */
 class SlackOAuthValidator extends BaseValidator {
@@ -11,9 +46,7 @@ class SlackOAuthValidator extends BaseValidator {
 
   /**
    * Validate Slack OAuth credentials format
-   * @param {Object} credentials - Credentials to validate
-   * @param {string} credentials.client_id - OAuth client ID
-   * @param {string} credentials.client_secret - OAuth client secret
+   * @param {SlackOAuthCredentials} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
@@ -40,10 +73,8 @@ class SlackOAuthValidator extends BaseValidator {
 
   /**
    * Get Slack service information
-   * @param {Object} credentials - Validated credentials
-   * @param {string} credentials.client_id - OAuth client ID
-   * @param {string} credentials.client_secret - OAuth client secret
-   * @returns {Object} Service information
+   * @param {SlackOAuthCredentials} credentials - Validated credentials
+   * @returns {SlackServiceInfo} Service information
    */
   getServiceInfo(credentials) {
     return {
@@ -67,7 +98,7 @@ class SlackBotTokenValidator extends BaseValidator {
 
   /**
    * Validate Slack Bot Token format
-   * @param {Object} credentials - Credentials to validate
+   * @param {SlackBotTokenCredentials} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
@@ -94,8 +125,8 @@ class SlackBotTokenValidator extends BaseValidator {
 
   /**
    * Get Slack Bot Token service information
-   * @param {Object} _credentials - Validated credentials
-   * @returns {Object} Service information
+   * @param {SlackBotTokenCredentials} _credentials - Validated credentials
+   * @returns {SlackServiceInfo} Service information
    */
   getServiceInfo(_credentials) {
     return {
@@ -118,7 +149,7 @@ class SlackUserTokenValidator extends BaseValidator {
 
   /**
    * Validate Slack User Token format
-   * @param {Object} credentials - Credentials to validate
+   * @param {SlackUserTokenCredentials} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
@@ -145,8 +176,8 @@ class SlackUserTokenValidator extends BaseValidator {
 
   /**
    * Get Slack User Token service information
-   * @param {Object} _credentials - Validated credentials
-   * @returns {Object} Service information
+   * @param {SlackUserTokenCredentials} _credentials - Validated credentials
+   * @returns {SlackServiceInfo} Service information
    */
   getServiceInfo(_credentials) {
     return {
@@ -160,16 +191,50 @@ class SlackUserTokenValidator extends BaseValidator {
 }
 
 /**
+ * Check if credentials are OAuth credentials
+ * @param {Object} credentials - Credentials to check
+ * @returns {credentials is SlackOAuthCredentials} True if OAuth credentials
+ */
+function isOAuthCredentials(credentials) {
+  return credentials && 
+         typeof credentials === 'object' &&
+         'client_id' in credentials && 
+         'client_secret' in credentials;
+}
+
+/**
+ * Check if credentials are bot token credentials
+ * @param {Object} credentials - Credentials to check
+ * @returns {credentials is SlackBotTokenCredentials} True if bot token credentials
+ */
+function isBotTokenCredentials(credentials) {
+  return credentials && 
+         typeof credentials === 'object' &&
+         'bot_token' in credentials;
+}
+
+/**
+ * Check if credentials are user token credentials
+ * @param {Object} credentials - Credentials to check
+ * @returns {credentials is SlackUserTokenCredentials} True if user token credentials
+ */
+function isUserTokenCredentials(credentials) {
+  return credentials && 
+         typeof credentials === 'object' &&
+         'user_token' in credentials;
+}
+
+/**
  * Slack validator factory - determines which validator to use based on credentials
  * @param {Object} credentials - Credentials to validate
  * @returns {BaseValidator} Appropriate validator instance
  */
 function createSlackValidator(credentials) {
-  if (credentials && credentials.client_id && credentials.client_secret) {
+  if (isOAuthCredentials(credentials)) {
     return new SlackOAuthValidator();
-  } else if (credentials && credentials.bot_token) {
+  } else if (isBotTokenCredentials(credentials)) {
     return new SlackBotTokenValidator();
-  } else if (credentials && credentials.user_token) {
+  } else if (isUserTokenCredentials(credentials)) {
     return new SlackUserTokenValidator();
   } else {
     throw new Error('Invalid Slack credentials format - must provide either OAuth credentials (client_id, client_secret), bot token (bot_token), or user token (user_token)');

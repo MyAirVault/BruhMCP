@@ -120,7 +120,7 @@ class NotionOAuthHandler {
 				throw new Error(`Token exchange failed: ${tokenResponse.status} ${tokenResponse.statusText} - ${JSON.stringify(errorData)}`);
 			}
 
-			const tokens = await tokenResponse.json();
+			const tokens = /** @type {{access_token: string, refresh_token?: string, expires_in?: number}} */ (await tokenResponse.json());
 
 			if (!tokens.access_token) {
 				throw new Error('Failed to obtain access token');
@@ -174,7 +174,7 @@ class NotionOAuthHandler {
 				throw new Error(`Token refresh failed: ${refreshResponse.status} ${refreshResponse.statusText} - ${JSON.stringify(errorData)}`);
 			}
 
-			const tokens = await refreshResponse.json();
+			const tokens = /** @type {{access_token: string, refresh_token?: string, expires_in?: number}} */ (await refreshResponse.json());
 
 			return {
 				access_token: tokens.access_token,

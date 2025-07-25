@@ -1,10 +1,50 @@
 /**
- * Credential watcher service for Gmail MCP OAuth token management
+ * Credential watcher service for Slack MCP OAuth token management
  * Monitors and automatically refreshes OAuth Bearer tokens before expiration
  */
 
-import { cleanupInvalidCacheEntries, getCachedInstanceIds, peekCachedCredential, updateCachedCredentialMetadata, incrementRefreshAttempts, resetRefreshAttempts } from './credential-cache.js';
-import { refreshBearerToken } from '../utils/oauth-validation.js';
+/**
+ * Cached credential entry from cache
+ * @typedef {Object} CachedCredential
+ * @property {string} bearerToken - OAuth access token
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {number} expiresAt - Token expiration timestamp
+ * @property {number} [refresh_attempts] - Number of refresh attempts
+ */
+
+/**
+ * Instance credentials from database
+ * @typedef {Object} InstanceCredentials
+ * @property {string} instance_id - Instance ID
+ * @property {string} client_id - OAuth client ID
+ * @property {string} client_secret - OAuth client secret
+ * @property {string} [team_id] - Slack team ID
+ * @property {string} [team_name] - Slack team name
+ */
+
+/**
+ * Watcher statistics object
+ * @typedef {Object} WatcherStats
+ * @property {string|null} lastRun - ISO timestamp of last run
+ * @property {number} totalRuns - Total number of runs
+ * @property {number} tokensRefreshed - Number of tokens successfully refreshed
+ * @property {number} refreshFailures - Number of refresh failures
+ * @property {number} entriesCleanedUp - Number of cache entries cleaned up
+ * @property {boolean} isRunning - Whether watcher is currently running
+ */
+
+/**
+ * Watcher status information
+ * @typedef {Object} WatcherStatusInfo
+ * @property {boolean} isRunning - Whether watcher is running
+ * @property {number} intervalMinutes - Watcher interval in minutes
+ * @property {number} refreshThresholdMinutes - Refresh threshold in minutes
+ * @property {number} maxRefreshAttempts - Maximum refresh attempts
+ * @property {Object} statistics - Watcher statistics with nextRunIn property
+ */
+
+import { cleanupInvalidCacheEntries, getCachedInstanceIds, peekCachedCredential, updateCachedCredentialMetadata, incrementRefreshAttempts, resetRefreshAttempts } from './credentialCache.js';
+import { refreshBearerToken } from '../utils/oauthValidation.js';
 import { lookupInstanceCredentials } from './database.js';
 
 // Watcher configuration
@@ -13,7 +53,9 @@ const TOKEN_REFRESH_THRESHOLD = 10 * 60 * 1000; // Refresh tokens with less than
 const MAX_REFRESH_ATTEMPTS = 3;
 
 // Watcher state
+/** @type {NodeJS.Timeout|null} */
 let watcherInterval = null;
+/** @type {WatcherStats} */
 let watcherStats = {
   lastRun: null,
   totalRuns: 0,
@@ -51,7 +93,7 @@ export function stopCredentialWatcher() {
 
 /**
  * Get watcher status and statistics
- * @returns {Object} Watcher status information
+ * @returns {WatcherStatusInfo} Watcher status information
  */
 export function getWatcherStatus() {
   return {
@@ -90,7 +132,7 @@ async function runCredentialWatcher() {
     console.log(`📊 Checking ${cachedInstanceIds.length} cached instances for token expiration`);
 
     // Check each cached instance
-    const refreshPromises = cachedInstanceIds.map(async (instanceId) => {
+    const refreshPromises = cachedInstanceIds.map(async (/** @type {string} */ instanceId) => {
       try {
         await checkAndRefreshToken(instanceId);
       } catch (error) {
@@ -119,7 +161,8 @@ async function runCredentialWatcher() {
  * @param {string} instanceId - Instance ID to check
  */
 async function checkAndRefreshToken(instanceId) {
-  const cached = peekCachedCredential(instanceId);
+  /** @type {CachedCredential|null} */
+  const cached = /** @type {CachedCredential|null} */ (peekCachedCredential(instanceId));
   
   if (!cached) {
     console.log(`ℹ️  Instance ${instanceId} no longer in cache, skipping`);
@@ -151,7 +194,8 @@ async function checkAndRefreshToken(instanceId) {
     incrementRefreshAttempts(instanceId);
 
     // Get instance credentials from database
-    const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+    /** @type {InstanceCredentials|null} */
+    const instance = /** @type {InstanceCredentials|null} */ (await lookupInstanceCredentials(instanceId, 'slack'));
     
     if (!instance || !instance.client_id || !instance.client_secret) {
       console.log(`❌ Invalid instance credentials for ${instanceId}, removing from cache`);
@@ -168,8 +212,9 @@ async function checkAndRefreshToken(instanceId) {
 
     // Update cache with new tokens
     updateCachedCredentialMetadata(instanceId, {
-      bearerToken: newTokens.access_token,
-      refreshToken: newTokens.refresh_token || cached.refreshToken,
+      user_id: '',
+      team_id: newTokens.team_id || '',
+      status: 'active',
       expiresAt: Date.now() + (newTokens.expires_in * 1000)
     });
 
@@ -180,7 +225,9 @@ async function checkAndRefreshToken(instanceId) {
     const newExpiryMinutes = Math.floor(newTokens.expires_in / 60);
     console.log(`✅ Successfully refreshed token for instance ${instanceId} (expires in ${newExpiryMinutes} minutes)`);
 
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error(`❌ Failed to refresh token for instance ${instanceId}:`, error);
     watcherStats.refreshFailures++;
     
@@ -195,7 +242,7 @@ async function checkAndRefreshToken(instanceId) {
 /**
  * Force refresh a specific instance token
  * @param {string} instanceId - Instance ID to refresh
- * @returns {boolean} True if refresh was successful
+ * @returns {Promise<boolean>} True if refresh was successful
  */
 export async function forceRefreshInstanceToken(instanceId) {
   try {

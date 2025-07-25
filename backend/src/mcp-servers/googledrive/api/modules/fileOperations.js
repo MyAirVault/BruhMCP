@@ -178,7 +178,7 @@ export async function uploadFile(args, bearerToken) {
 			throw new Error(errorMessage);
 		}
 
-		const fileData = /** @type {Object} */ (await response.json());
+		const fileData = /** @type {import('../../utils/googledriveFormatting.js').GoogleDriveFile} */ (await response.json());
 		return formatUploadResponse(fileData, localPath);
 	} catch (error) {
 		throw new Error(`Failed to upload file: ${/** @type {Error} */ (error).message}`);

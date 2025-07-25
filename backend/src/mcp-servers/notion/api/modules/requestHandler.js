@@ -67,7 +67,7 @@ export async function makeNotionRequest(endpoint, bearerToken, options = {}) {
 		throw new Error(errorMessage);
 	}
 
-	const data = await response.json();
+	const data = /** @type {Record<string, unknown>} */ (await response.json());
 	console.log(`✅ Notion API Response: ${response.status}`);
 
 	return data;

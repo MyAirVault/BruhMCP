@@ -123,7 +123,7 @@ class DropboxOAuthHandler {
 			}
 
 			/** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */
-			const tokens = await tokenResponse.json();
+			const tokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */ (await tokenResponse.json());
 
 			if (!tokens.access_token) {
 				throw new Error('Failed to obtain access token');
@@ -167,8 +167,8 @@ class DropboxOAuthHandler {
 				body: new URLSearchParams({
 					grant_type: 'refresh_token',
 					refresh_token: refreshToken,
-					client_id,
-					client_secret,
+					client_id: client_id || '',
+					client_secret: client_secret || '',
 				}),
 			});
 
@@ -178,10 +178,10 @@ class DropboxOAuthHandler {
 			}
 
 			/** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */
-			const tokens = await tokenResponse.json();
+			const tokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */ (await tokenResponse.json());
 
 			return {
-				access_token: tokens.access_token,
+				access_token: tokens.access_token || '',
 				refresh_token: tokens.refresh_token || refreshToken,
 				expires_in: tokens.expires_in || 14400, // Dropbox tokens typically expire in 4 hours
 			};

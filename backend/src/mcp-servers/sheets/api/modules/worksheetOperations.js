@@ -38,6 +38,7 @@ export async function addWorksheet(params, bearerToken) {
 		}]
 	};
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}:batchUpdate`,
 		bearerToken,
@@ -47,7 +48,14 @@ export async function addWorksheet(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.batchUpdateResult(response);
+	/** @type {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} */
+	const batchUpdateResult = {
+		spreadsheetId: response.spreadsheetId,
+		replies: response.replies,
+		updatedSpreadsheet: response.updatedSpreadsheet
+	};
+
+	return formatSheetsResponse.batchUpdateResult(batchUpdateResult);
 }
 
 /**
@@ -72,6 +80,7 @@ export async function deleteWorksheet(params, bearerToken) {
 		}]
 	};
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}:batchUpdate`,
 		bearerToken,
@@ -81,7 +90,14 @@ export async function deleteWorksheet(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.batchUpdateResult(response);
+	/** @type {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} */
+	const batchUpdateResult = {
+		spreadsheetId: response.spreadsheetId,
+		replies: response.replies,
+		updatedSpreadsheet: response.updatedSpreadsheet
+	};
+
+	return formatSheetsResponse.batchUpdateResult(batchUpdateResult);
 }
 
 /**
@@ -103,6 +119,7 @@ export async function copySheet(params, bearerToken) {
 		destinationSpreadsheetId: params.destinationSpreadsheetId || params.spreadsheetId
 	};
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}/sheets/${params.sheetId}:copyTo`,
 		bearerToken,
@@ -112,7 +129,14 @@ export async function copySheet(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.copyResult(response);
+	/** @type {{sheetId: number, sheetType: string, title: string}} */
+	const copyResult = {
+		sheetId: response.sheetId,
+		sheetType: response.sheetType,
+		title: response.title
+	};
+
+	return formatSheetsResponse.copyResult(copyResult);
 }
 
 /**
@@ -145,6 +169,7 @@ export async function insertRows(params, bearerToken) {
 		}]
 	};
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}:batchUpdate`,
 		bearerToken,
@@ -154,7 +179,14 @@ export async function insertRows(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.batchUpdateResult(response);
+	/** @type {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} */
+	const batchUpdateResult = {
+		spreadsheetId: response.spreadsheetId,
+		replies: response.replies,
+		updatedSpreadsheet: response.updatedSpreadsheet
+	};
+
+	return formatSheetsResponse.batchUpdateResult(batchUpdateResult);
 }
 
 /**
@@ -186,6 +218,7 @@ export async function deleteRows(params, bearerToken) {
 		}]
 	};
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}:batchUpdate`,
 		bearerToken,
@@ -195,5 +228,12 @@ export async function deleteRows(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.batchUpdateResult(response);
+	/** @type {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} */
+	const batchUpdateResult = {
+		spreadsheetId: response.spreadsheetId,
+		replies: response.replies,
+		updatedSpreadsheet: response.updatedSpreadsheet
+	};
+
+	return formatSheetsResponse.batchUpdateResult(batchUpdateResult);
 }

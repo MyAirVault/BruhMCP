@@ -62,13 +62,13 @@ export function logOAuthCallbackCompletion(instanceId: string, userId: string, s
  * Create general audit log entry
  * @param {string} instanceId - The instance ID
  * @param {string} userId - User ID
- * @param {string} action - Action performed
+ * @param {string} operation - Operation performed
  * @param {string} method - Method used
- * @param {boolean} success - Whether action was successful
+ * @param {boolean} success - Whether operation was successful
  * @param {Object} metadata - Additional metadata
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export function createAuditLogEntry(instanceId: string, userId: string, action: string, method: string, success: boolean, metadata?: Object): Promise<void>;
+export function createAuditLogEntry(instanceId: string, userId: string, operation: string, method: string, success: boolean, metadata?: Object): Promise<void>;
 declare namespace _default {
     export { logSuccessfulTokenRefresh };
     export { logFailedTokenRefresh };

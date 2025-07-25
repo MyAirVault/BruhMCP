@@ -23,7 +23,7 @@ async function acquireSyncLock(instanceId) {
 		await new Promise(resolve => setTimeout(resolve, 10));
 	}
 	
-	const _lockPromise = new Promise(resolve => {
+	new Promise(resolve => {
 		syncLocks.set(instanceId, resolve);
 	});
 	
@@ -354,7 +354,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		// Check if database has newer data
 		const dbTokenTimestamp = /** @type {{credentials_updated_at?: string}} */ (dbInstance).credentials_updated_at ? 
 			new Date(/** @type {{credentials_updated_at: string}} */ (dbInstance).credentials_updated_at).getTime() : 0;
-		const cacheTimestamp = cachedCredential?.cached_at ? 
+		const cacheTimestamp = /** @type {{cached_at?: string}} */ (cachedCredential)?.cached_at ? 
 			new Date(/** @type {{cached_at: string}} */ (cachedCredential).cached_at).getTime() : 0;
 		
 		const dbIsNewer = dbTokenTimestamp > cacheTimestamp;

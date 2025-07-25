@@ -7,8 +7,7 @@
 
 import { 
   getCachedCredential, 
-  setCachedCredential,
-  updateCachedCredentialMetadata 
+  setCachedCredential
 } from '../services/credentialCache.js';
 import { updateInstanceUsage } from '../services/database.js';
 
@@ -18,7 +17,7 @@ import { updateInstanceUsage } from '../services/database.js';
  * @returns {import('./types.js').CachedCredential | null} Cached credential or null
  */
 export function checkCachedCredentials(instanceId) {
-  return getCachedCredential(instanceId);
+  return /** @type {import('./types.js').CachedCredential | null} */ (getCachedCredential(instanceId));
 }
 
 /**
@@ -59,10 +58,7 @@ export async function setupRequestWithCachedToken(req, cachedCredential, instanc
  * Get token information from instance or cached credential
  * @param {import('./types.js').DatabaseInstance} instance - Database instance object
  * @param {import('./types.js').CachedCredential | null} cachedCredential - Cached credential object
- * @returns {Object} Token information
- * @returns {string | undefined} returns.refreshToken - Refresh token
- * @returns {string | undefined} returns.accessToken - Access token
- * @returns {number | null} returns.tokenExpiresAt - Token expiration timestamp
+ * @returns {{refreshToken: string | undefined, accessToken: string | undefined, tokenExpiresAt: number | null}} Token information
  */
 export function getTokenInfo(instance, cachedCredential) {
   const refreshToken = cachedCredential?.refreshToken || instance.refresh_token;
@@ -110,8 +106,8 @@ export async function cacheAndSetupToken(instanceId, accessToken, tokenExpiresAt
   if (!cachedCredential) {
     setCachedCredential(instanceId, {
       bearerToken: accessToken,
-      refreshToken: refreshToken,
-      expiresAt: tokenExpiresAt,
+      refreshToken: refreshToken || '',
+      expiresAt: (tokenExpiresAt || Date.now() + (365 * 24 * 60 * 60 * 1000)).toString(),
       user_id: userId,
     });
   }
@@ -136,8 +132,8 @@ export function cacheNewTokens(instanceId, newTokens, userId) {
   
   setCachedCredential(instanceId, {
     bearerToken: newTokens.access_token,
-    refreshToken: newTokens.refresh_token,
-    expiresAt: newExpiresAt.getTime(),
+    refreshToken: newTokens.refresh_token || '',
+    expiresAt: newExpiresAt.getTime().toString(),
     user_id: userId,
   });
 }

@@ -6,6 +6,12 @@
 /**
  * Health check for Google Drive service
  * @param {Object} config - Service configuration
+ * @param {string} config.name - Service name
+ * @param {string} config.displayName - Service display name  
+ * @param {string} config.version - Service version
+ * @param {number} config.port - Service port
+ * @param {string} config.authType - Authentication type
+ * @param {string} config.description - Service description
  * @returns {Object} Health status object
  */
 export function healthCheck(config) {

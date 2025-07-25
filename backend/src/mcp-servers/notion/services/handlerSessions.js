@@ -18,7 +18,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {ServiceConfig} serviceConfig - Service configuration object
+ * @param {import('../endpoints/mcpHandler.js').ServiceConfig} serviceConfig - Service configuration object
  * @param {string} apiKey - Notion API key for this instance
  * @returns {NotionMCPHandler} Persistent handler instance
  */
@@ -151,6 +151,7 @@ function cleanupExpiredSessions() {
 }
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout|null} */
 let cleanupInterval = null;
 
 /**
@@ -158,7 +159,7 @@ let cleanupInterval = null;
  * Called when the server starts
  */
 export function startSessionCleanup() {
-	if (cleanupInterval) {
+	if (cleanupInterval !== null) {
 		console.warn('⚠️  Session cleanup already running');
 		return;
 	}
@@ -172,7 +173,7 @@ export function startSessionCleanup() {
  * Called during graceful shutdown
  */
 export function stopSessionCleanup() {
-	if (cleanupInterval) {
+	if (cleanupInterval !== null) {
 		clearInterval(cleanupInterval);
 		cleanupInterval = null;
 		console.log('🛑 Stopped handler session cleanup service');

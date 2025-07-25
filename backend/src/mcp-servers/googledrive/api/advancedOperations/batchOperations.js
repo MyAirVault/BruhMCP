@@ -21,11 +21,11 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 
   const requestOptions = {
     method: options.method || 'GET',
-    headers: /** @type {HeadersInit} */ ({
+    headers: {
       Authorization: `Bearer ${bearerToken}`,
       'Content-Type': 'application/json',
       ...(options.headers || {}),
-    }),
+    },
     ...options,
   };
 
@@ -133,7 +133,7 @@ export async function batchUpdateMetadata(updates, bearerToken) {
 
   for (const update of updates) {
     try {
-      const { fileId, metadata } = /** @type {{fileId: string, metadata: Object}} */ (update);
+      const { fileId, metadata } = /** @type {{fileId: string, metadata: import('../types.js').DriveMetadata}} */ (update);
       
       if (!fileId) throw new Error('File ID is required');
       validateFileId(fileId);
@@ -202,7 +202,7 @@ export async function syncFolderPermissions(folderId, bearerToken, params = {}) 
   );
 
   // Filter out owner permissions (can't be transferred)
-  const targetPermissions = folderPermissions.permissions.filter(/** @type {(p: any) => boolean} */ (p => p.type !== 'owner'));
+  const targetPermissions = folderPermissions.permissions.filter(/** @param {import('../types.js').DrivePermission} p */ (p) => p.type !== 'owner');
 
   // Get folder contents
   const query = `'${folderId}' in parents and trashed=false`;
@@ -220,13 +220,13 @@ export async function syncFolderPermissions(folderId, bearerToken, params = {}) 
         try {
           // Apply permissions to this item
           for (const permission of targetPermissions) {
-            const permissionData = {
+            const permissionData = /** @type {Record<string, string>} */ ({
               type: permission.type,
               role: permission.role
-            };
+            });
 
-            if (permission.emailAddress) permissionData['emailAddress'] = permission.emailAddress;
-            if (permission.domain) permissionData['domain'] = permission.domain;
+            if (permission.emailAddress) permissionData.emailAddress = permission.emailAddress;
+            if (permission.domain) permissionData.domain = permission.domain;
 
             await makeDriveRequest(`/files/${item.id}/permissions?supportsAllDrives=true`, bearerToken, {
               method: 'POST',

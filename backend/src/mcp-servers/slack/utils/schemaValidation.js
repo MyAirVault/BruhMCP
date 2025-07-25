@@ -26,7 +26,7 @@ import { logValidationError } from './logger.js';
 
 /**
  * Validate object against JSON schema
- * @param {Object} obj - Object to validate
+ * @param {Record<string, unknown>} obj - Object to validate
  * @param {JSONSchema} schema - JSON schema
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
@@ -53,11 +53,12 @@ export function validateObject(obj, schema, context, instanceId = 'unknown') {
 				throw error;
 			}
 			
-			if (obj[requiredProp] === null || obj[requiredProp] === undefined || obj[requiredProp] === '') {
+			const propValue = obj[requiredProp];
+			if (propValue === null || propValue === undefined || propValue === '') {
 				const error = new Error(`Required property '${requiredProp}' cannot be empty`);
-				logValidationError('empty_required_property', requiredProp, obj[requiredProp], instanceId, { 
+				logValidationError('empty_required_property', requiredProp, propValue, instanceId, { 
 					context, 
-					valueType: typeof obj[requiredProp] 
+					valueType: typeof propValue 
 				});
 				throw error;
 			}
@@ -68,7 +69,10 @@ export function validateObject(obj, schema, context, instanceId = 'unknown') {
 	if (schema.properties) {
 		for (const [propName, propSchema] of Object.entries(schema.properties)) {
 			if (propName in obj) {
-				validateProperty(obj[propName], propSchema, `${context}.${propName}`, instanceId);
+				const propValue = obj[propName];
+				if (typeof propValue !== 'undefined') {
+					validateProperty(propValue, propSchema, `${context}.${propName}`, instanceId);
+				}
 			}
 		}
 	}
@@ -77,35 +81,38 @@ export function validateObject(obj, schema, context, instanceId = 'unknown') {
 /**
  * Validate tool arguments against schema
  * @param {string} toolName - Name of the tool
- * @param {Object} args - Arguments to validate
+ * @param {Record<string, unknown>} args - Arguments to validate
  * @param {string} instanceId - Instance ID for logging
  * @throws {Error} Validation error if arguments are invalid
  */
 export async function validateToolArguments(toolName, args, instanceId = 'unknown') {
 	try {
 		const { getTools } = await import('../endpoints/tools.js');
-		/** @type {SlackToolsData} */
 		const toolsData = getTools();
-		const tool = toolsData.tools.find(t => t.name === toolName);
+		if (!toolsData || !('tools' in toolsData) || !Array.isArray(toolsData.tools)) {
+			throw new Error('Invalid tools data structure');
+		}
+		const tool = toolsData.tools.find(t => t && typeof t === 'object' && 'name' in t && t.name === toolName);
 		
 		if (!tool) {
 			const error = new Error(`Unknown tool: ${toolName}`);
 			logValidationError('tool_not_found', 'toolName', toolName, instanceId, { 
-				availableTools: toolsData.tools.map(t => t.name) 
+				availableTools: toolsData.tools.map(t => t && typeof t === 'object' && 'name' in t ? t.name : 'unknown') 
 			});
 			throw error;
 		}
 
-		const schema = tool.inputSchema;
+		const schema = tool && typeof tool === 'object' && 'inputSchema' in tool ? tool.inputSchema : null;
 		if (!schema) {
 			return; // No validation schema defined
 		}
 
 		validateObject(args, schema, toolName, instanceId);
 	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		logValidationError('tool_validation_failed', 'arguments', args, instanceId, { 
 			toolName, 
-			error: error.message 
+			error: errorMessage 
 		});
 		throw error;
 	}

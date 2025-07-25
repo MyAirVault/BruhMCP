@@ -285,7 +285,7 @@ export function createStrictRateLimitMiddleware() {
 
 /**
  * Gets rate limit statistics
- * @returns {Object} Rate limit statistics
+ * @returns {{totalKeys: number, activeRateLimits: number, keysByType: {global: number, route: number, instance: number}, topKeys: Array<{key: string, requestCount: number, lastRequest: number}>}} Rate limit statistics
  */
 export function getRateLimitStatistics() {
 	const stats = {
@@ -296,15 +296,17 @@ export function getRateLimitStatistics() {
 			route: 0,
 			instance: 0,
 		},
+		/** @type {Array<{key: string, requestCount: number, lastRequest: number}>} */
 		topKeys: [],
 	};
 
 	const now = Date.now();
+	/** @type {Array<{key: string, requestCount: number, lastRequest: number}>} */
 	const keyStats = [];
 
-	for (const [key, record] of rateLimitStore.entries()) {
+	for (const [key, /** @type {{requests: number[], firstRequest: number}} */ record] of rateLimitStore.entries()) {
 		// Clean up old requests
-		record.requests = record.requests.filter(timestamp => now - timestamp < 60000);
+		record.requests = record.requests.filter(/** @param {number} timestamp */ (timestamp) => now - timestamp < 60000);
 
 		if (record.requests.length > 0) {
 			stats.activeRateLimits++;
@@ -327,7 +329,7 @@ export function getRateLimitStatistics() {
 
 	// Sort and get top keys
 	keyStats.sort((a, b) => b.requestCount - a.requestCount);
-	stats.topKeys = /** @type {Array<{key: string, requestCount: number, lastRequest: number}>} */ (keyStats.slice(0, 10));
+	stats.topKeys = keyStats.slice(0, 10);
 
 	return stats;
 }
@@ -400,7 +402,6 @@ export function isInstanceRateLimited(instanceId) {
  * @returns {Object} Remaining request information
  */
 export function getInstanceRemainingRequests(instanceId) {
-	const _now = Date.now();
 	const globalKey = `global:${instanceId}`;
 	const instanceKey = `instance:${instanceId}`;
 

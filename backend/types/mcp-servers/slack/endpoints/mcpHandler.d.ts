@@ -25,10 +25,10 @@ export class SlackMCPHandler {
      * Handle incoming MCP request using session-based transport
      * @param {import('express').Request} req - Express request object
      * @param {import('express').Response} res - Express response object
-     * @param {Object} message - MCP message
+     * @param {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest|import('@modelcontextprotocol/sdk/types.js').JSONRPCResponse|import('@modelcontextprotocol/sdk/types.js').JSONRPCNotification} message - MCP message
      * @returns {Promise<void>}
      */
-    handleMCPRequest(req: import("express").Request, res: import("express").Response, message: Object): Promise<void>;
+    handleMCPRequest(req: import("express").Request, res: import("express").Response, message: import("@modelcontextprotocol/sdk/types.js").JSONRPCRequest | import("@modelcontextprotocol/sdk/types.js").JSONRPCResponse | import("@modelcontextprotocol/sdk/types.js").JSONRPCNotification): Promise<void>;
     /**
      * Create a new StreamableHTTPServerTransport with proper session handling
      * @returns {StreamableHTTPServerTransport} New transport instance
@@ -37,16 +37,16 @@ export class SlackMCPHandler {
     /**
      * Send bad request response
      * @param {import('express').Response} res - Express response
-     * @param {Object} message - MCP message
+     * @param {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest|import('@modelcontextprotocol/sdk/types.js').JSONRPCResponse|import('@modelcontextprotocol/sdk/types.js').JSONRPCNotification} message - MCP message
      */
-    sendBadRequestResponse(res: import("express").Response, message: Object): void;
+    sendBadRequestResponse(res: import("express").Response, message: import("@modelcontextprotocol/sdk/types.js").JSONRPCRequest | import("@modelcontextprotocol/sdk/types.js").JSONRPCResponse | import("@modelcontextprotocol/sdk/types.js").JSONRPCNotification): void;
     /**
      * Send internal error response
      * @param {import('express').Response} res - Express response
-     * @param {Object} message - MCP message
+     * @param {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest|import('@modelcontextprotocol/sdk/types.js').JSONRPCResponse|import('@modelcontextprotocol/sdk/types.js').JSONRPCNotification} message - MCP message
      * @param {Error} error - Error object
      */
-    sendInternalErrorResponse(res: import("express").Response, message: Object, error: Error): void;
+    sendInternalErrorResponse(res: import("express").Response, message: import("@modelcontextprotocol/sdk/types.js").JSONRPCRequest | import("@modelcontextprotocol/sdk/types.js").JSONRPCResponse | import("@modelcontextprotocol/sdk/types.js").JSONRPCNotification, error: Error): void;
 }
 export type ServiceConfig = {
     name: string;

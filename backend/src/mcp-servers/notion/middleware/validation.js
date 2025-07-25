@@ -44,7 +44,9 @@ export function validateInstanceExists(instance, res, instanceId) {
       isValid: false,
       errorResponse: ErrorResponses.notFound(res, 'Instance', {
         instanceId,
-        service: 'notion'
+        metadata: {
+          service: 'notion'
+        }
       })
     };
   }
@@ -65,7 +67,9 @@ export function validateServiceActive(instance, res, instanceId) {
       isValid: false,
       errorResponse: ErrorResponses.serviceUnavailable(res, 'Notion service is currently disabled', {
         instanceId,
-        service: 'notion'
+        metadata: {
+          service: 'notion'
+        }
       })
     };
   }
@@ -86,7 +90,9 @@ export function validateInstanceStatus(instance, res, instanceId) {
       isValid: false,
       errorResponse: ErrorResponses.forbidden(res, 'Instance is paused', {
         instanceId,
-        status: instance.status
+        metadata: {
+          status: instance.status
+        }
       })
     };
   }
@@ -96,7 +102,9 @@ export function validateInstanceStatus(instance, res, instanceId) {
       isValid: false,
       errorResponse: ErrorResponses.forbidden(res, 'Instance has expired', {
         instanceId,
-        status: instance.status
+        metadata: {
+          status: instance.status
+        }
       })
     };
   }
@@ -138,7 +146,9 @@ export function validateOAuthCredentials(instance, res, instanceId) {
       isValid: false,
       errorResponse: ErrorResponses.internal(res, 'Invalid OAuth credentials configuration', {
         instanceId,
-        authType: instance.auth_type
+        metadata: {
+          authType: instance.auth_type
+        }
       })
     };
   }

@@ -5,10 +5,10 @@
 
 import { deleteMCPInstance } from '../../../db/queries/mcpInstances/crud.js';
 import { removeCachedCredential } from '../services/cache/index.js';
-import { removeHandler } from '../services/handlerSessions.js';
+import { removeHandlerSession } from '../services/handlerSessions.js';
 
 /**
- * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevocationResult} RevocationResult
+ * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevokeResult} RevokeResult
  */
 
 
@@ -16,7 +16,7 @@ import { removeHandler } from '../services/handlerSessions.js';
  * Revokes Google Drive MCP instance and cleans up resources
  * @param {string} instanceId - Instance ID to revoke
  * @param {string} userId - User ID for authorization
- * @returns {Promise<RevocationResult>} Revocation result
+ * @returns {Promise<RevokeResult>} Revocation result
  */
 async function revokeInstance(instanceId, userId) {
 	try {
@@ -35,7 +35,7 @@ async function revokeInstance(instanceId, userId) {
 		console.log('✅ Cached credentials removed');
 
 		// Remove any active MCP handler sessions
-		removeHandler(instanceId);
+		removeHandlerSession(instanceId);
 		console.log('✅ Active handler sessions removed');
 
 		// Delete from database
@@ -52,11 +52,7 @@ async function revokeInstance(instanceId, userId) {
 
 		return {
 			success: true,
-			message: 'Google Drive instance revoked successfully',
-			data: {
-				instanceId,
-				revokedAt: new Date().toISOString()
-			}
+			message: 'Google Drive instance revoked successfully'
 		};
 	} catch (error) {
 		console.error('Google Drive instance revocation error:', error);

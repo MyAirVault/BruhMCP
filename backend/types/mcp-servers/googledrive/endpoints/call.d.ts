@@ -3,12 +3,12 @@
  * @param {string} toolName - Name of the tool to execute
  * @param {Object} args - Tool arguments
  * @param {string} bearerToken - OAuth Bearer token for Google Drive API
- * @returns {Object} Tool execution result
+ * @returns {Promise<Object>} Tool execution result
  */
-export function executeToolCall(toolName: string, args: Object, bearerToken: string): Object;
+export function executeToolCall(toolName: string, args: Object, bearerToken: string): Promise<Object>;
 /**
  * Get list of available Google Drive tools
- * @returns {Array} List of tool definitions
+ * @returns {Array<Object>} List of tool definitions
  */
-export function getAvailableTools(): any[];
+export function getAvailableTools(): Array<Object>;
 //# sourceMappingURL=call.d.ts.map

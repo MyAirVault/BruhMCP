@@ -1,11 +1,11 @@
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {ServiceConfig} serviceConfig - Service configuration object
+ * @param {import('../endpoints/mcpHandler.js').ServiceConfig} serviceConfig - Service configuration object
  * @param {string} apiKey - Notion API key for this instance
  * @returns {NotionMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: ServiceConfig, apiKey: string): NotionMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: import("../endpoints/mcpHandler.js").ServiceConfig, apiKey: string): NotionMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance

@@ -25,8 +25,8 @@ class GoogleSheetsOAuthValidator extends BaseValidator {
 		}
 
 		// Check for OAuth credentials (support both camelCase and snake_case)
-		const clientId = credentials.clientId || credentials.client_id;
-		const clientSecret = credentials.clientSecret || credentials.client_secret;
+		const clientId = credentials.clientId || (/** @type {any} */ (credentials)).client_id;
+		const clientSecret = credentials.clientSecret || (/** @type {any} */ (credentials)).client_secret;
 
 		if (!clientId) {
 			return createValidationResult(false, 'Client ID is required', 'clientId');
@@ -98,7 +98,7 @@ class GoogleSheetsOAuthValidator extends BaseValidator {
  * @returns {BaseValidator} Validator instance
  */
 function createSheetsValidator(credentials) {
-	if (credentials && (credentials.clientId || credentials.client_id)) {
+	if (credentials && (credentials.clientId || (/** @type {any} */ (credentials)).client_id)) {
 		return new GoogleSheetsOAuthValidator();
 	} else {
 		throw new Error('Invalid Google Sheets credentials format - must provide clientId or client_id');

@@ -73,11 +73,7 @@ async function revokeInstance(instanceId, userId) {
 
 		return {
 			success: true,
-			message: 'Slack instance revoked successfully',
-			data: {
-				instanceId: instanceId,
-				revokedAt: new Date().toISOString()
-			}
+			message: 'Slack instance revoked successfully'
 		};
 	} catch (error) {
 		console.error('Slack instance revocation error:', error);

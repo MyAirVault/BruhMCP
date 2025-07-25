@@ -1,1 +1,1 @@
-{"version":3,"file":"revokeInstance.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/googledrive/auth/revokeInstance.js"],"names":[],"mappings":"+BAUa,OAAO,2DAA2D,EAAE,gBAAgB;AADjG;;GAEG;AAGH;;;;;GAKG;AACH,2CAJW,MAAM,UACN,MAAM,GACJ,OAAO,CAAC,gBAAgB,CAAC,CAiDrC"}
+{"version":3,"file":"revokeInstance.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/googledrive/auth/revokeInstance.js"],"names":[],"mappings":"2BAUa,OAAO,2DAA2D,EAAE,YAAY;AAD7F;;GAEG;AAGH;;;;;GAKG;AACH,2CAJW,MAAM,UACN,MAAM,GACJ,OAAO,CAAC,YAAY,CAAC,CA6CjC"}

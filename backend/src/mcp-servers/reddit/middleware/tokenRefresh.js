@@ -98,10 +98,10 @@ export function recordSuccessfulRefreshMetrics(instanceId, method, startTime, en
     instanceId, 
     /** @type {'oauth_service'|'direct_oauth'} */ (method), 
     true, // success
-    startTime, 
-    endTime,
     '', // errorType
-    '' // errorMessage
+    '', // errorMessage
+    startTime, 
+    endTime
   );
 }
 
@@ -119,10 +119,10 @@ export function recordFailedRefreshMetrics(instanceId, method, error, startTime,
     instanceId, 
     /** @type {'oauth_service'|'direct_oauth'} */ (method), 
     false, // failure
-    startTime, 
-    endTime,
     error.errorType || 'UNKNOWN_ERROR',
-    error.message || 'Token refresh failed'
+    error.message || 'Token refresh failed',
+    startTime, 
+    endTime
   );
 }
 

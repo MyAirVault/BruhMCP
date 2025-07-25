@@ -27,7 +27,7 @@ export function createSlackOperations(bearerToken: string, instanceId: string): 
  * Operation result object
  * @typedef {Object} OperationResult
  * @property {boolean} success - Whether operation succeeded
- * @property {*} [result] - Result data if successful
+ * @property {Object|null} [result] - Result data if successful
  * @property {string} [error] - Error message if failed
  */
 /**
@@ -171,9 +171,9 @@ export class FileOperations {
     /**
      * Upload file with progress tracking
      * @param {FileUploadData} fileData - File data and metadata
-     * @returns {Promise<Object>} Upload result
+     * @returns {Promise<SlackApiResponse>} Upload result
      */
-    uploadFileWithProgress(fileData: FileUploadData): Promise<Object>;
+    uploadFileWithProgress(fileData: FileUploadData): Promise<SlackApiResponse>;
     /**
      * Delete multiple files
      * @param {string[]} fileIds - Array of file IDs
@@ -192,7 +192,7 @@ export class FileOperations {
  */
 /**
  * Search results by content type
- * @typedef {Record<string, Object>} SearchResults
+ * @typedef {Object<string, SlackApiResponse>} SearchResults
  */
 /**
  * Workspace operations
@@ -218,6 +218,56 @@ export class WorkspaceOperations {
      */
     comprehensiveSearch(query: string, types?: ("messages" | "files")[]): Promise<SearchResults>;
 }
+export type SlackApiResponse = {
+    /**
+     * - Success indicator
+     */
+    ok: boolean;
+    /**
+     * - Error message if request failed
+     */
+    error?: string | undefined;
+    /**
+     * - Channel data
+     */
+    channel?: Object | undefined;
+    /**
+     * - Message data
+     */
+    message?: Object | undefined;
+    /**
+     * - User data
+     */
+    user?: Object | undefined;
+    /**
+     * - Team data
+     */
+    team?: Object | undefined;
+    /**
+     * - Array of channels
+     */
+    channels?: Object[] | undefined;
+    /**
+     * - Array of members
+     */
+    members?: Object[] | undefined;
+    /**
+     * - Array of messages
+     */
+    messages?: Object[] | undefined;
+    /**
+     * - Array of files
+     */
+    files?: Object[] | undefined;
+    /**
+     * - Message timestamp
+     */
+    ts?: string | undefined;
+    /**
+     * - Response metadata
+     */
+    response_metadata?: string | undefined;
+};
 /**
  * Request options for Slack API calls
  */
@@ -300,7 +350,7 @@ export type OperationResult = {
     /**
      * - Result data if successful
      */
-    result?: any;
+    result?: Object | null | undefined;
     /**
      * - Error message if failed
      */
@@ -447,5 +497,7 @@ export type WorkspaceStats = {
 /**
  * Search results by content type
  */
-export type SearchResults = Record<string, Object>;
+export type SearchResults = {
+    [x: string]: SlackApiResponse;
+};
 //# sourceMappingURL=slackOperations.d.ts.map

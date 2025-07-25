@@ -35,6 +35,7 @@
  * @property {number} attempts - Daily attempts
  * @property {number} successes - Daily successes
  * @property {number} failures - Daily failures
+ * @property {number} directFallbacks - Daily direct fallbacks
  */
 
 /**
@@ -54,9 +55,9 @@ class TokenMetrics {
       maxLatency: 0,
       minLatency: Infinity,
       lastReset: Date.now(),
-      errorsByType: /** @type {Object.<string, number>} */ ({}),
-      dailyStats: /** @type {Object.<string, DailyStat>} */ ({}),
-      instanceMetrics: /** @type {Object.<string, InstanceMetric>} */ ({})
+      errorsByType: /** @type {Record<string, number>} */ ({}),
+      dailyStats: /** @type {Record<string, DailyStat>} */ ({}),
+      instanceMetrics: /** @type {Record<string, InstanceMetric>} */ ({})
     };
   }
 
@@ -260,7 +261,7 @@ class TokenMetrics {
    */
   getDailyStats(days = 7) {
     const today = new Date();
-    const stats = /** @type {Record<string, any>} */ ({});
+    const stats = /** @type {Record<string, DailyStat>} */ ({});
 
     for (let i = 0; i < days; i++) {
       const date = new Date(today);
@@ -295,8 +296,8 @@ class TokenMetrics {
       minLatency: Infinity,
       lastReset: Date.now(),
       errorsByType: /** @type {Record<string, number>} */ ({}),
-      dailyStats: /** @type {Record<string, any>} */ ({}),
-      instanceMetrics: /** @type {Record<string, any>} */ ({})
+      dailyStats: /** @type {Record<string, DailyStat>} */ ({}),
+      instanceMetrics: /** @type {Record<string, InstanceMetric>} */ ({})
     };
     
     console.log('📊 Slack token metrics reset');
@@ -328,29 +329,29 @@ class TokenMetrics {
     const warnings = [];
 
     // Check success rate
-    const overview = summary.overview || { successRate: '0%', directFallbackRate: '0%' };
-    const successRate = parseFloat(overview.successRate || '0');
+    const overview = (summary && typeof summary === 'object' && 'overview' in summary) ? summary.overview : { successRate: '0%', directFallbackRate: '0%' };
+    const successRate = parseFloat((overview && typeof overview === 'object' && 'successRate' in overview && typeof overview.successRate === 'string') ? overview.successRate || '0' : '0');
     if (successRate < 95) {
-      issues.push(`Low success rate: ${overview.successRate || '0%'}`);
+      issues.push(`Low success rate: ${(overview && typeof overview === 'object' && 'successRate' in overview) ? overview.successRate || '0%' : '0%'}`);
     } else if (successRate < 98) {
-      warnings.push(`Success rate below target: ${overview.successRate || '0%'}`);
+      warnings.push(`Success rate below target: ${(overview && typeof overview === 'object' && 'successRate' in overview) ? overview.successRate || '0%' : '0%'}`);
     }
 
     // Check direct fallback rate
-    const fallbackRate = parseFloat(overview.directFallbackRate || '0');
+    const fallbackRate = parseFloat((overview && typeof overview === 'object' && 'directFallbackRate' in overview && typeof overview.directFallbackRate === 'string') ? overview.directFallbackRate || '0' : '0');
     if (fallbackRate > 20) {
-      issues.push(`High fallback rate: ${overview.directFallbackRate || '0%'}`);
+      issues.push(`High fallback rate: ${(overview && typeof overview === 'object' && 'directFallbackRate' in overview) ? overview.directFallbackRate || '0%' : '0%'}`);
     } else if (fallbackRate > 10) {
-      warnings.push(`Elevated fallback rate: ${overview.directFallbackRate || '0%'}`);
+      warnings.push(`Elevated fallback rate: ${(overview && typeof overview === 'object' && 'directFallbackRate' in overview) ? overview.directFallbackRate || '0%' : '0%'}`);
     }
 
     // Check latency
-    const performance = summary.performance || { averageLatency: '0ms', maxLatency: '0ms' };
-    const avgLatency = parseInt(performance.averageLatency || '0');
+    const performance = (summary && typeof summary === 'object' && 'performance' in summary) ? summary.performance : { averageLatency: '0ms', maxLatency: '0ms' };
+    const avgLatency = parseInt((performance && typeof performance === 'object' && 'averageLatency' in performance && typeof performance.averageLatency === 'string') ? performance.averageLatency || '0' : '0');
     if (avgLatency > 5000) {
-      issues.push(`High average latency: ${performance.averageLatency || '0ms'}`);
+      issues.push(`High average latency: ${(performance && typeof performance === 'object' && 'averageLatency' in performance) ? performance.averageLatency || '0ms' : '0ms'}`);
     } else if (avgLatency > 2000) {
-      warnings.push(`Elevated latency: ${performance.averageLatency || '0ms'}`);
+      warnings.push(`Elevated latency: ${(performance && typeof performance === 'object' && 'averageLatency' in performance) ? performance.averageLatency || '0ms' : '0ms'}`);
     }
 
     // Check error patterns

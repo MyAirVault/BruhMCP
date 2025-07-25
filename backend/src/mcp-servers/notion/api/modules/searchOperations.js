@@ -33,6 +33,6 @@ export async function searchNotion(args, bearerToken) {
 		query,
 		results: /** @type {(import('../../utils/notionFormatting.js').NotionPage|import('../../utils/notionFormatting.js').NotionDatabase)[]} */ (result.results || []),
 		hasMore: /** @type {boolean} */ (result.has_more || false),
-		next_cursor: /** @type {string|null} */ (result.next_cursor || null),
+		next_cursor: /** @type {string|undefined} */ (result.next_cursor || undefined),
 	});
 }

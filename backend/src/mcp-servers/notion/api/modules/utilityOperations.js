@@ -15,9 +15,9 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
 export async function makeRawApiCall(args, bearerToken) {
 	const { endpoint, method = 'GET', body = {} } = args;
 
-	const options = {
+	const options = /** @type {{method: string, body?: Record<string, unknown>}} */ ({
 		method: method.toUpperCase(),
-	};
+	});
 
 	let finalEndpoint = endpoint;
 

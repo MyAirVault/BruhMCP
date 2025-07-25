@@ -25,6 +25,8 @@
  * @property {boolean} success - Whether OAuth initiation succeeded
  * @property {string} [authUrl] - OAuth authorization URL
  * @property {string} [state] - OAuth state parameter
+ * @property {string} [instanceId] - Instance ID for the OAuth flow
+ * @property {string} [userId] - User ID for the OAuth flow
  * @property {string} message - Human readable message
  */
 

@@ -4,11 +4,11 @@
  * @param {string} method - Refresh method used
  * @param {boolean} success - Whether refresh succeeded
  * @param {string|null} errorType - Error type if failed
- * @param {string|null} errorMessage - Error message if failed
+ * @param {string|null} _errorMessage - Error message if failed (unused)
  * @param {number} startTime - Operation start time
  * @param {number} endTime - Operation end time
  */
-export function recordTokenRefreshMetrics(instanceId: string, method: string, success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
+export function recordTokenRefreshMetrics(instanceId: string, method: string, success: boolean, errorType: string | null, _errorMessage: string | null, startTime: number, endTime: number): void;
 /**
  * Get token refresh metrics for an instance
  * @param {string} instanceId - Instance ID

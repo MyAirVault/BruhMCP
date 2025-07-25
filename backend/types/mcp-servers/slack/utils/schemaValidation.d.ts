@@ -15,20 +15,20 @@
  */
 /**
  * Validate object against JSON schema
- * @param {Object} obj - Object to validate
+ * @param {Record<string, unknown>} obj - Object to validate
  * @param {JSONSchema} schema - JSON schema
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
-export function validateObject(obj: Object, schema: JSONSchema, context: string, instanceId?: string): void;
+export function validateObject(obj: Record<string, unknown>, schema: JSONSchema, context: string, instanceId?: string): void;
 /**
  * Validate tool arguments against schema
  * @param {string} toolName - Name of the tool
- * @param {Object} args - Arguments to validate
+ * @param {Record<string, unknown>} args - Arguments to validate
  * @param {string} instanceId - Instance ID for logging
  * @throws {Error} Validation error if arguments are invalid
  */
-export function validateToolArguments(toolName: string, args: Object, instanceId?: string): Promise<void>;
+export function validateToolArguments(toolName: string, args: Record<string, unknown>, instanceId?: string): Promise<void>;
 export type JSONSchema = {
     /**
      * - Schema type

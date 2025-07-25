@@ -22,9 +22,9 @@ async function validateCredentials(credentials, userId) {
 		console.log(`🔍 Validating Google Drive credentials for user: ${userId}`);
 		console.log('📨 Received credentials:', Object.keys(credentials));
 
-		// Check required fields - handle both formats
-		const clientId = credentials.client_id || credentials.clientId;
-		const clientSecret = credentials.client_secret || credentials.clientSecret;
+		// Check required fields
+		const clientId = credentials.clientId;
+		const clientSecret = credentials.clientSecret;
 		
 		if (!credentials || !clientId || !clientSecret) {
 			return {

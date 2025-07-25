@@ -270,7 +270,12 @@ export class GoogleDriveMCPHandler {
 			async (args) => {
 				console.log(`🔧 Tool call: move_file for ${this.serviceConfig.name}`);
 				try {
-					const result = await moveFile(args, this.bearerToken);
+					// Map the args to match MoveFileArgs interface
+					const moveArgs = {
+						fileId: args.fileId,
+						destinationFolderId: args.newParentFolderId
+					};
+					const result = await moveFile(moveArgs, this.bearerToken);
 					return {
 						content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
 					};

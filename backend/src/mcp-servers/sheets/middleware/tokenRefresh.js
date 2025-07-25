@@ -96,7 +96,7 @@ async function processFailedRefresh(instanceId, error, method, startTime) {
 		instanceId, 
 		method, 
 		false, // failure
-		(error instanceof Error && 'errorType' in error) ? error.errorType : 'UNKNOWN_ERROR',
+		(error instanceof Error && 'errorType' in error) ? String(error.errorType) : 'UNKNOWN_ERROR',
 		error.message || 'Token refresh failed',
 		startTime, 
 		endTime

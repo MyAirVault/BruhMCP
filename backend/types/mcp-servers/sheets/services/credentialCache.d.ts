@@ -11,9 +11,14 @@ export function getCachedCredential(instanceId: string): Object | null;
 /**
  * Store OAuth tokens in cache
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} credentialData - Credential data to cache
+ * @param {{bearerToken: string, refreshToken?: string, expiresAt: number, user_id: string}} credentialData - Credential data to cache
  */
-export function setCachedCredential(instanceId: string, credentialData: Object): void;
+export function setCachedCredential(instanceId: string, credentialData: {
+    bearerToken: string;
+    refreshToken?: string;
+    expiresAt: number;
+    user_id: string;
+}): void;
 /**
  * Update cached credential metadata
  * @param {string} instanceId - UUID of the service instance

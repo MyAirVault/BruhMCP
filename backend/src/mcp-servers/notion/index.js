@@ -289,6 +289,7 @@ app.use(/** @type {import('express').ErrorRequestHandler} */ (err, _req, res, _n
 	ErrorResponses.internal(res, 'Internal server error', {
 		metadata: { service: SERVICE_CONFIG.name, errorMessage },
 	});
+	return;
 });
 
 /**

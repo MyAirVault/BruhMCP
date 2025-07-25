@@ -5,6 +5,28 @@
  */
 
 /**
+ * @typedef {Object} OAuthStatus
+ * @property {string} status - OAuth status
+ * @property {string|null} accessToken - Access token
+ * @property {string|null} refreshToken - Refresh token
+ * @property {Date|null} tokenExpiresAt - Token expiration date
+ * @property {string|null} scope - OAuth scope
+ */
+
+/**
+ * @typedef {Object} ErrorAnalysis
+ * @property {string} type - Error type
+ * @property {boolean} requiresReauth - Whether re-authentication is required
+ * @property {string} userMessage - User-friendly error message
+ * @property {boolean} shouldRetry - Whether the operation should be retried
+ * @property {string} logLevel - Log level for the error
+ */
+
+/**
+ * @typedef {Error & {code?: string}} ExtendedError
+ */
+
+/**
  * OAuth error types
  */
 const OAUTH_ERROR_TYPES = {
@@ -18,8 +40,8 @@ const OAUTH_ERROR_TYPES = {
 
 /**
  * Parse OAuth error and determine appropriate action
- * @param {Error} error - OAuth error
- * @returns {Object} Error analysis
+ * @param {ExtendedError} error - OAuth error
+ * @returns {ErrorAnalysis} Error analysis
  */
 function parseOAuthError(error) {
   const message = error.message.toLowerCase();
@@ -104,9 +126,9 @@ function parseOAuthError(error) {
 /**
  * Handle token refresh failure with appropriate response
  * @param {string} instanceId - Instance ID
- * @param {Error} error - Refresh error
- * @param {Function} updateOAuthStatus - Database update function
- * @returns {Object} Error response details
+ * @param {ExtendedError} error - Refresh error
+ * @param {function(string, OAuthStatus): Promise<void>} updateOAuthStatus - Database update function
+ * @returns {Promise<{instanceId: string, error: string, errorCode: string, requiresReauth: boolean, shouldRetry: boolean, logLevel: string, originalError: string}>} Error response details
  */
 async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
   const errorAnalysis = parseOAuthError(error);
@@ -143,7 +165,7 @@ async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
 
 /**
  * Determine if error should trigger retry logic
- * @param {Error} error - OAuth error
+ * @param {ExtendedError} error - OAuth error
  * @param {number} attempt - Current attempt number
  * @param {number} maxAttempts - Maximum attempts allowed
  * @returns {boolean} Whether to retry
@@ -160,7 +182,7 @@ function shouldRetryOAuthError(error, attempt, maxAttempts) {
 /**
  * Get appropriate delay for retry attempt
  * @param {number} attempt - Current attempt number
- * @param {Error} error - OAuth error
+ * @param {ExtendedError} error - OAuth error
  * @returns {number} Delay in milliseconds
  */
 function getRetryDelay(attempt, error) {
@@ -178,7 +200,7 @@ function getRetryDelay(attempt, error) {
 
 /**
  * Log OAuth error with appropriate level
- * @param {Error} error - OAuth error
+ * @param {ExtendedError} error - OAuth error
  * @param {string} context - Error context
  * @param {string} instanceId - Instance ID
  */
@@ -202,9 +224,9 @@ function logOAuthError(error, context, instanceId) {
 /**
  * Create standardized error response for OAuth failures
  * @param {string} instanceId - Instance ID
- * @param {Error} error - OAuth error
+ * @param {ExtendedError} error - OAuth error
  * @param {string} context - Error context
- * @returns {Object} Standardized error response
+ * @returns {{success: boolean, instanceId: string, context: string, error: string, errorCode: string, requiresReauth: boolean, shouldRetry: boolean, timestamp: string, metadata: {originalError: string, errorType: string, logLevel: string}}} Standardized error response
  */
 function createOAuthErrorResponse(instanceId, error, context) {
   const errorAnalysis = parseOAuthError(error);

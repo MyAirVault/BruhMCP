@@ -76,6 +76,7 @@ export async function formatCells(params, bearerToken) {
 
 	const requestBody = { requests };
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}:batchUpdate`,
 		bearerToken,
@@ -85,7 +86,14 @@ export async function formatCells(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.batchUpdateResult(response);
+	/** @type {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} */
+	const batchUpdateResult = {
+		spreadsheetId: response.spreadsheetId,
+		replies: response.replies,
+		updatedSpreadsheet: response.updatedSpreadsheet
+	};
+
+	return formatSheetsResponse.batchUpdateResult(batchUpdateResult);
 }
 
 /**
@@ -102,6 +110,7 @@ export async function batchUpdate(params, bearerToken) {
 		throw new Error(validation.error);
 	}
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}:batchUpdate`,
 		bearerToken,
@@ -113,7 +122,14 @@ export async function batchUpdate(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.batchUpdateResult(response);
+	/** @type {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} */
+	const batchUpdateResult = {
+		spreadsheetId: response.spreadsheetId,
+		replies: response.replies,
+		updatedSpreadsheet: response.updatedSpreadsheet
+	};
+
+	return formatSheetsResponse.batchUpdateResult(batchUpdateResult);
 }
 
 /**

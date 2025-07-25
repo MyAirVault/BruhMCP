@@ -64,7 +64,7 @@ export async function getUserInfo(args, bearerToken) {
 
 	const params = new URLSearchParams({ user });
 	/** @type {SlackUserResponse} */
-	const response = await makeSlackRequest(`/users.info?${params}`, bearerToken);
+	const response = /** @type {SlackUserResponse} */ (await makeSlackRequest(`/users.info?${params}`, bearerToken));
 
 	return {
 		...response,
@@ -97,7 +97,7 @@ export async function listUsers(args, bearerToken) {
 	if (cursor) params.append('cursor', cursor);
 
 	/** @type {SlackUsersResponse} */
-	const response = await makeSlackRequest(`/users.list?${params}`, bearerToken);
+	const response = /** @type {SlackUsersResponse} */ (await makeSlackRequest(`/users.list?${params}`, bearerToken));
 
 	return {
 		...response,

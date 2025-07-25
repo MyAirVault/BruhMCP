@@ -6,26 +6,26 @@ export function initializeResponseCache(): void;
  * Get cached response
  * @param {string} type - Cache type
  * @param {string} instanceId - Instance ID
- * @param {Object} params - Request parameters
- * @returns {any|null} Cached response or null if not found/expired
+ * @param {Record<string, *>} params - Request parameters
+ * @returns {*|null} Cached response or null if not found/expired
  */
-export function getCachedResponse(type: string, instanceId: string, params?: Object): any | null;
+export function getCachedResponse(type: string, instanceId: string, params?: Record<string, any>): any | null;
 /**
  * Set cached response
  * @param {string} type - Cache type
  * @param {string} instanceId - Instance ID
- * @param {Object} params - Request parameters
- * @param {any} data - Response data to cache
- * @param {number} [customTtl] - Custom TTL in milliseconds
+ * @param {Record<string, *>} params - Request parameters
+ * @param {*} data - Response data to cache
+ * @param {number|undefined} [customTtl] - Custom TTL in milliseconds
  */
-export function setCachedResponse(type: string, instanceId: string, params: Object | undefined, data: any, customTtl?: number): void;
+export function setCachedResponse(type: string, instanceId: string, params: Record<string, any> | undefined, data: any, customTtl?: number | undefined): void;
 /**
  * Delete cached response
  * @param {string} type - Cache type
  * @param {string} instanceId - Instance ID
- * @param {Object} params - Request parameters
+ * @param {Record<string, *>} params - Request parameters
  */
-export function deleteCachedResponse(type: string, instanceId: string, params?: Object): boolean;
+export function deleteCachedResponse(type: string, instanceId: string, params?: Record<string, any>): boolean;
 /**
  * Clear all cached responses for an instance
  * @param {string} instanceId - Instance ID
@@ -37,21 +37,124 @@ export function clearInstanceCache(instanceId: string): number;
 export function clearAllCache(): number;
 /**
  * Get cache statistics
- * @returns {Object} Cache statistics
+ * @returns {CacheStatistics} Cache statistics
  */
-export function getCacheStatistics(): Object;
+export function getCacheStatistics(): CacheStatistics;
 /**
  * Stop cleanup interval
  */
 export function stopCleanupInterval(): void;
 /**
  * Update cache configuration
- * @param {Object} newConfig - New cache configuration
+ * @param {Partial<CacheConfig>} newConfig - New cache configuration
  */
-export function updateCacheConfig(newConfig: Object): void;
+export function updateCacheConfig(newConfig: Partial<CacheConfig>): void;
 /**
  * Get cache configuration
- * @returns {Object} Current cache configuration
+ * @returns {CacheConfig} Current cache configuration
  */
-export function getCacheConfig(): Object;
+export function getCacheConfig(): CacheConfig;
+export type CacheEntry = {
+    /**
+     * - The cached data
+     */
+    data: any;
+    /**
+     * - Timestamp when entry was created
+     */
+    createdAt: number;
+    /**
+     * - Timestamp when entry expires
+     */
+    expiresAt: number;
+    /**
+     * - Timestamp when entry was last accessed
+     */
+    lastAccessed: number;
+    /**
+     * - Cache type
+     */
+    type: string;
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - Request parameters
+     */
+    params: Record<string, any>;
+};
+export type CacheStats = {
+    /**
+     * - Number of cache hits
+     */
+    hits: number;
+    /**
+     * - Number of cache misses
+     */
+    misses: number;
+    /**
+     * - Number of cache sets
+     */
+    sets: number;
+    /**
+     * - Number of cache deletes
+     */
+    deletes: number;
+    /**
+     * - Number of cleanups performed
+     */
+    cleanups: number;
+    /**
+     * - Number of errors encountered
+     */
+    errors: number;
+};
+export type CacheConfig = {
+    /**
+     * - TTL values for different cache types
+     */
+    ttl: Record<string, number>;
+    /**
+     * - Maximum number of cached items
+     */
+    maxSize: number;
+    /**
+     * - Cleanup interval in milliseconds
+     */
+    cleanupInterval: number;
+};
+export type CacheStatistics = {
+    /**
+     * - Current cache size
+     */
+    size: number;
+    /**
+     * - Maximum cache size
+     */
+    maxSize: number;
+    /**
+     * - Number of expired entries
+     */
+    expiredCount: number;
+    /**
+     * - Hit rate percentage
+     */
+    hitRate: string;
+    /**
+     * - Cache statistics
+     */
+    statistics: CacheStats;
+    /**
+     * - Breakdown by cache type
+     */
+    typeBreakdown: Record<string, number>;
+    /**
+     * - Memory usage information
+     */
+    memoryUsage: {
+        bytes: number;
+        mb: string;
+    };
+};
 //# sourceMappingURL=responseCache.d.ts.map

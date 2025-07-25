@@ -1,1 +1,1 @@
-{"version":3,"file":"health.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/notion/endpoints/health.js"],"names":[],"mappings":"AAAA;;;GAGG;AAEH;;;;GAIG;AACH,oCAHW,MAAM,GACJ,MAAM,CA0BlB"}
+{"version":3,"file":"health.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/notion/endpoints/health.js"],"names":[],"mappings":"AAAA;;;GAGG;AAEH;;;;;;;;GAQG;AAEH;;;;GAIG;AACH,oCAHW,aAAa,GACX,MAAM,CA0BlB;;;;;UArCa,MAAM;;;;iBACN,MAAM;;;;aACN,MAAM;;;;UACN,MAAM;;;;cACN,MAAM;;;;iBACN,MAAM"}

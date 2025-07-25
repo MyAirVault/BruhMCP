@@ -47,10 +47,39 @@ export async function createSpreadsheet(params, bearerToken) {
 		body: requestBody
 	});
 
+	/** @type {{spreadsheetId: string, spreadsheetUrl: string, properties: {title: string, locale: string, autoRecalc: string, timeZone: string, defaultFormat: Object}, sheets: Array<{properties: import('../../types/index.js').SheetProperties}>, namedRanges: Object[], developerMetadata: Object[]}} */
+	const spreadsheetResponse = {
+		spreadsheetId: response.spreadsheetId,
+		spreadsheetUrl: response.spreadsheetUrl,
+		properties: {
+			title: response.properties?.title || params.title,
+			locale: response.properties?.locale || 'en_US',
+			autoRecalc: response.properties?.autoRecalc || 'ON_CHANGE',
+			timeZone: response.properties?.timeZone || 'America/New_York',
+			defaultFormat: response.properties?.defaultFormat || {}
+		},
+		sheets: response.sheets || [],
+		namedRanges: response.namedRanges || [],
+		developerMetadata: response.developerMetadata || []
+	};
+
 	/** @type {import('../../types/index.js').CreateSpreadsheetResponse} */
 	const result = {
-		...formatSheetsResponse.spreadsheet(response),
-		properties: response.properties || { title: params.title, spreadsheetId: response.spreadsheetId }
+		spreadsheetId: spreadsheetResponse.spreadsheetId,
+		properties: {
+			title: spreadsheetResponse.properties.title,
+			locale: spreadsheetResponse.properties.locale,
+			timeZone: spreadsheetResponse.properties.timeZone,
+			autoRecalc: spreadsheetResponse.properties.autoRecalc
+		},
+		sheets: spreadsheetResponse.sheets.map(sheet => ({
+			sheetId: sheet.properties.sheetId,
+			title: sheet.properties.title,
+			index: sheet.properties.index,
+			sheetType: sheet.properties.sheetType || 'GRID',
+			gridProperties: sheet.properties.gridProperties || { rowCount: 1000, columnCount: 26 }
+		})),
+		spreadsheetUrl: spreadsheetResponse.spreadsheetUrl || `https://docs.google.com/spreadsheets/d/${response.spreadsheetId}/edit`
 	};
 	return result;
 }
@@ -75,8 +104,26 @@ export async function getSpreadsheet(params, bearerToken) {
 		endpoint += '?includeGridData=true';
 	}
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(endpoint, bearerToken, {});
-	return formatSheetsResponse.spreadsheet(response);
+
+	/** @type {{spreadsheetId: string, spreadsheetUrl: string, properties: {title: string, locale: string, autoRecalc: string, timeZone: string, defaultFormat: Object}, sheets: Array<{properties: import('../../types/index.js').SheetProperties}>, namedRanges: Object[], developerMetadata: Object[]}} */
+	const spreadsheetResponse = {
+		spreadsheetId: response.spreadsheetId,
+		spreadsheetUrl: response.spreadsheetUrl,
+		properties: {
+			title: response.properties?.title || '',
+			locale: response.properties?.locale || 'en_US',
+			autoRecalc: response.properties?.autoRecalc || 'ON_CHANGE',
+			timeZone: response.properties?.timeZone || 'America/New_York',
+			defaultFormat: response.properties?.defaultFormat || {}
+		},
+		sheets: response.sheets || [],
+		namedRanges: response.namedRanges || [],
+		developerMetadata: response.developerMetadata || []
+	};
+
+	return formatSheetsResponse.spreadsheet(spreadsheetResponse);
 }
 
 /**
@@ -107,8 +154,16 @@ export async function listSpreadsheets(params, bearerToken) {
 		queryParams.set('pageToken', params.pageToken);
 	}
 
+	/** @type {Record<string, any>} */
 	const response = await makeDriveRequest(`/files?${queryParams}`, bearerToken, {});
-	return formatSheetsResponse.filesList(response);
+
+	/** @type {{files: Array<{id: string, name: string, createdTime: string, modifiedTime: string, webViewLink: string}>, nextPageToken: string}} */
+	const filesListResponse = {
+		files: response.files || [],
+		nextPageToken: response.nextPageToken
+	};
+
+	return formatSheetsResponse.filesList(filesListResponse);
 }
 
 /**
@@ -124,11 +179,28 @@ export async function getSheetMetadata(params, bearerToken) {
 		throw new Error(validation.error);
 	}
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}`,
 		bearerToken,
 		{}
 	);
 
-	return formatSheetsResponse.metadata(response);
+	/** @type {{spreadsheetId: string, spreadsheetUrl: string, properties: {title: string, locale: string, autoRecalc: string, timeZone: string, defaultFormat: Object}, sheets: Array<{properties: import('../../types/index.js').SheetProperties}>, namedRanges: Object[], developerMetadata: Object[]}} */
+	const spreadsheetResponse = {
+		spreadsheetId: response.spreadsheetId,
+		spreadsheetUrl: response.spreadsheetUrl,
+		properties: {
+			title: response.properties?.title || '',
+			locale: response.properties?.locale || 'en_US',
+			autoRecalc: response.properties?.autoRecalc || 'ON_CHANGE',
+			timeZone: response.properties?.timeZone || 'America/New_York',
+			defaultFormat: response.properties?.defaultFormat || {}
+		},
+		sheets: response.sheets || [],
+		namedRanges: response.namedRanges || [],
+		developerMetadata: response.developerMetadata || []
+	};
+
+	return formatSheetsResponse.metadata(spreadsheetResponse);
 }

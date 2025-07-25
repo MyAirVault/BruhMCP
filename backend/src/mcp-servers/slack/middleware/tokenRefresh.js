@@ -65,11 +65,13 @@ export async function attemptTokenRefresh(options) {
 
   } catch (refreshError) {
     const error = refreshError instanceof Error ? refreshError : new Error(String(refreshError));
+    /** @type {Error & {errorType?: string, originalError?: string}} */
+    const errorWithProperties = error;
     /** @type {import('./types.js').TokenRefreshError} */
     const tokenError = {
       message: error.message || 'Token refresh failed',
-      errorType: error.errorType || 'UNKNOWN_ERROR',
-      originalError: error.originalError || error.message,
+      errorType: errorWithProperties.errorType || 'UNKNOWN_ERROR',
+      originalError: errorWithProperties.originalError || error.message,
       name: error.name || 'TokenRefreshError'
     };
 
@@ -99,10 +101,10 @@ export function recordSuccessfulRefreshMetrics(instanceId, method, startTime, en
     instanceId, 
     /** @type {'oauth_service'|'direct_oauth'} */ (method), 
     true, // success
-    startTime, 
-    endTime,
     '', // errorType
-    '' // errorMessage
+    '', // errorMessage
+    startTime, 
+    endTime
   );
 }
 
@@ -120,10 +122,10 @@ export function recordFailedRefreshMetrics(instanceId, method, error, startTime,
     instanceId, 
     /** @type {'oauth_service'|'direct_oauth'} */ (method), 
     false, // failure
-    startTime, 
-    endTime,
     error.errorType || 'UNKNOWN_ERROR',
-    error.message || 'Token refresh failed'
+    error.message || 'Token refresh failed',
+    startTime, 
+    endTime
   );
 }
 

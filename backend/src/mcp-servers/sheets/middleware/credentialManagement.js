@@ -14,9 +14,28 @@ import { updateInstanceUsage } from '../services/database.js';
  * @returns {import('./types.js').CachedCredential|null} Cached credential or null
  */
 export function checkCachedCredentials(instanceId) {
-	/** @type {import('./types.js').CachedCredential|null} */
-	const result = getCachedCredential(instanceId);
-	return result;
+	const credential = getCachedCredential(instanceId);
+	if (!credential || typeof credential !== 'object') {
+		return null;
+	}
+	
+	// Type guard to ensure it has required properties
+	if ('bearerToken' in credential && 
+		'expiresAt' in credential && 
+		'user_id' in credential &&
+		typeof credential.bearerToken === 'string' &&
+		typeof credential.expiresAt === 'number' &&
+		typeof credential.user_id === 'string') {
+		/** @type {import('./types.js').CachedCredential} */
+		const result = {
+			bearerToken: credential.bearerToken,
+			expiresAt: credential.expiresAt,
+			user_id: credential.user_id
+		};
+		return result;
+	}
+	
+	return null;
 }
 
 /**

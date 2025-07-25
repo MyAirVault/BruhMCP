@@ -1,11 +1,18 @@
 /**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name
+ * @property {string} displayName
+ * @property {string} version
+ * @property {string[]} scopes
+ */
+/**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {ServiceConfig} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {DropboxMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: Object, bearerToken: string): DropboxMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: ServiceConfig, bearerToken: string): DropboxMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance
@@ -40,4 +47,11 @@ export function invalidateHandlerSession(instanceId: string): void;
  * @param {string} newBearerToken - New bearer token
  */
 export function updateSessionBearerToken(instanceId: string, newBearerToken: string): boolean;
+export type ServiceConfig = {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+};
+import { DropboxMCPHandler } from '../endpoints/mcpHandler.js';
 //# sourceMappingURL=handlerSessions.d.ts.map

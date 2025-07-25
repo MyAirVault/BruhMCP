@@ -19,6 +19,7 @@ import { getTools } from '../endpoints/tools.js';
  * @property {number} [minItems] - Minimum array items
  * @property {number} [maxItems] - Maximum array items
  * @property {JsonSchemaProperty} [items] - Array item schema
+ * @property {string | number | boolean} [default] - Default value
  */
 
 /**

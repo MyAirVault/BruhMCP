@@ -1,11 +1,16 @@
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {import('../middleware/types.js').ServiceConfig} serviceConfig - Service configuration object
+ * @param {{name: string, displayName: string, version: string, scopes: string[]}} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {SheetsMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: import("../middleware/types.js").ServiceConfig, bearerToken: string): SheetsMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+}, bearerToken: string): SheetsMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance

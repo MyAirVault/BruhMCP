@@ -41,12 +41,12 @@ import {
  */
 export function createCredentialAuthMiddleware() {
   /**
-   * @param {import('./types.js').ExpressRequest} req - Express request object
-   * @param {import('./types.js').ExpressResponse} res - Express response object
-   * @param {import('./types.js').ExpressNext} next - Express next function
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @param {import('express').NextFunction} next - Express next function
    */
   return async (req, res, next) => {
-    const { instanceId } = req.params;
+    const { instanceId } = /** @type {{instanceId: string}} */ (req.params);
     
     // Validate instance ID format
     if (!isValidInstanceId(instanceId)) {
@@ -58,7 +58,7 @@ export function createCredentialAuthMiddleware() {
       const cachedCredential = checkCachedCredentials(instanceId);
       
       if (hasCachedBearerToken(cachedCredential)) {
-        await setupRequestWithCachedToken(req, cachedCredential, instanceId);
+        await setupRequestWithCachedToken(/** @type {import('./types.js').ExpressRequest} */ (req), /** @type {import('./types.js').CachedCredential} */ (cachedCredential), instanceId);
         return next();
       }
 
@@ -77,7 +77,8 @@ export function createCredentialAuthMiddleware() {
       const validInstance = /** @type {import('./types.js').DatabaseInstance} */ (instance);
 
       // Get token information from cache or database
-      const { refreshToken, accessToken, tokenExpiresAt } = getTokenInfo(validInstance, cachedCredential);
+      const tokenInfo = getTokenInfo(validInstance, cachedCredential);
+      const { refreshToken, accessToken, tokenExpiresAt } = tokenInfo;
 
       // If we have an access token that's still valid, use it (Notion tokens don't expire)
       if (isAccessTokenValid(accessToken, tokenExpiresAt, 'notion')) {
@@ -86,7 +87,7 @@ export function createCredentialAuthMiddleware() {
           /** @type {string} */ (accessToken), 
           /** @type {number} */ (tokenExpiresAt), 
           validInstance.user_id, 
-          req,
+          /** @type {import('./types.js').ExpressRequest} */ (req),
           refreshToken, 
           cachedCredential
         );
@@ -97,13 +98,13 @@ export function createCredentialAuthMiddleware() {
       // Skip refresh for Notion since tokens don't expire (this should not happen)
       if (refreshToken && validInstance.mcp_service_name !== 'notion') {
         try {
-          const refreshResult = await performTokenRefresh(instanceId, refreshToken, validInstance, req);
+          const refreshResult = await performTokenRefresh(instanceId, refreshToken, validInstance, /** @type {import('./types.js').ExpressRequest} */ (req));
           
           if (refreshResult.success && refreshResult.metadata) {
             // Log successful refresh
             await logSuccessfulTokenRefresh(
               instanceId, 
-              refreshResult.metadata.method, 
+              String(refreshResult.metadata.method), 
               validInstance.user_id, 
               refreshResult.metadata
             );
@@ -112,7 +113,7 @@ export function createCredentialAuthMiddleware() {
             // Log failed refresh
             await logFailedTokenRefresh(
               instanceId, 
-              refreshResult.errorInfo.method, 
+              String(refreshResult.errorInfo.method), 
               validInstance.user_id, 
               refreshResult.error.errorType || 'UNKNOWN_ERROR',
               refreshResult.error.message || 'Token refresh failed',
@@ -133,13 +134,7 @@ export function createCredentialAuthMiddleware() {
         } catch (refreshError) {
           console.error('Token refresh operation failed:', refreshError);
           const errorObj = refreshError instanceof Error ? refreshError : new Error(String(refreshError));
-          const tokenError = /** @type {import('./types.js').TokenRefreshError} */ ({
-            message: errorObj.message,
-            errorType: 'UNKNOWN_ERROR',
-            originalError: errorObj.message,
-            name: errorObj.name
-          });
-          logRefreshFallback(tokenError);
+          logRefreshFallback(errorObj);
         }
       }
 
@@ -167,12 +162,12 @@ export function createCredentialAuthMiddleware() {
  */
 export function createLightweightAuthMiddleware() {
   /**
-   * @param {import('./types.js').ExpressRequest} req - Express request object
-   * @param {import('./types.js').ExpressResponse} res - Express response object
-   * @param {import('./types.js').ExpressNext} next - Express next function
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @param {import('express').NextFunction} next - Express next function
    */
   return async (req, res, next) => {
-    const { instanceId } = req.params;
+    const { instanceId } = /** @type {{instanceId: string}} */ (req.params);
     
     // Validate instance ID format
     if (!isValidInstanceId(instanceId)) {
@@ -192,7 +187,7 @@ export function createLightweightAuthMiddleware() {
       // TypeScript assertion: instance is valid after validation
       const validInstance = /** @type {import('./types.js').DatabaseInstance} */ (instance);
 
-      setupLightweightRequest(req, instanceId, validInstance.user_id);
+      setupLightweightRequest(/** @type {import('./types.js').ExpressRequest} */ (req), instanceId, validInstance.user_id);
       
       return next();
 
@@ -209,9 +204,9 @@ export function createLightweightAuthMiddleware() {
  */
 export function createCachePerformanceMiddleware() {
   /**
-   * @param {import('./types.js').ExpressRequest} req - Express request object
-   * @param {import('./types.js').ExpressResponse} res - Express response object
-   * @param {import('./types.js').ExpressNext} next - Express next function
+   * @param {import('express').Request} req - Express request object
+   * @param {import('express').Response} res - Express response object
+   * @param {import('express').NextFunction} next - Express next function
    */
   return (req, res, next) => {
     const startTime = Date.now();
@@ -226,7 +221,7 @@ export function createCachePerformanceMiddleware() {
       
       // Add performance headers in development
       res.set('X-Cache-Performance-Ms', responseTime.toString());
-      res.set('X-Instance-Id', req.instanceId || 'unknown');
+      res.set('X-Instance-Id', /** @type {import('./types.js').ExpressRequest} */ (req).instanceId || 'unknown');
       
       // Log performance metrics
       if (responseTime > 100) {

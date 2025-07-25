@@ -49,7 +49,53 @@ export function clearCredentialCache(): void;
 export function peekCachedCredential(instanceId: string): Object | null;
 /**
  * Get access to the internal cache Map (for advanced operations)
- * @returns {Map} The internal cache Map
+ * @returns {Map<string, CacheEntry>} The internal cache Map
  */
-export function getCacheMap(): Map<any, any>;
+export function getCacheMap(): Map<string, CacheEntry>;
+export type CacheEntry = {
+    /**
+     * - Bearer token
+     */
+    bearerToken: string;
+    /**
+     * - Refresh token
+     */
+    refreshToken: string;
+    /**
+     * - Expiration timestamp
+     */
+    expiresAt: number;
+    /**
+     * - User ID
+     */
+    user_id: string;
+    /**
+     * - Team ID
+     */
+    team_id: string;
+    /**
+     * - Last used timestamp
+     */
+    last_used: string;
+    /**
+     * - Number of refresh attempts
+     */
+    refresh_attempts: number;
+    /**
+     * - Cache timestamp
+     */
+    cached_at: string;
+    /**
+     * - Last modified timestamp
+     */
+    last_modified?: string | undefined;
+    /**
+     * - Last refresh attempt timestamp
+     */
+    last_refresh_attempt?: string | undefined;
+    /**
+     * - Last successful refresh timestamp
+     */
+    last_successful_refresh?: string | undefined;
+};
 //# sourceMappingURL=cacheCore.d.ts.map

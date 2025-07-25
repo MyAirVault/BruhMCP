@@ -7,8 +7,9 @@ import GoogleDriveOAuthHandler from '../oauth/oauthHandler.js';
 import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
 
 /**
- * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthCallbackData} OAuthCallbackData
- * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthCallbackResult} OAuthCallbackResult
+ * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
+ * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult} OAuthCallbackResult
+ * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthStatusUpdate} OAuthStatusUpdate
  */
 
 
@@ -16,7 +17,7 @@ import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
  * Processes OAuth callback for Google Drive service
  * @param {string} code - OAuth authorization code
  * @param {string} state - OAuth state parameter
- * @returns {Promise<OAuthCallbackResult>} OAuth callback result
+ * @returns {Promise<ValidationResult>} OAuth callback result
  */
 async function oauthCallback(code, state) {
 	try {
@@ -26,8 +27,7 @@ async function oauthCallback(code, state) {
 		if (!code || !state) {
 			return {
 				success: false,
-				message: 'Authorization code and state are required',
-				data: null
+				message: 'Authorization code and state are required'
 			};
 		}
 
@@ -56,17 +56,22 @@ async function oauthCallback(code, state) {
 
 			return {
 				success: false,
-				message: callbackResult.error || 'OAuth callback failed',
-				data: null
+				message: callbackResult.error || 'OAuth callback failed'
 			};
 		}
 
 		// Parse state to get instance and user info
 		const stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
-		const { instanceId, userId } = stateData;
+		const { instanceId } = stateData;
 
 		// Update tokens in database
-		const tokenExpiresAt = new Date(Date.now() + (callbackResult.tokens.expires_in * 1000));
+		if (!callbackResult.tokens) {
+			throw new Error('No tokens received from OAuth callback');
+		}
+
+		const tokenExpiresAt = callbackResult.tokens.expires_in 
+			? new Date(Date.now() + (callbackResult.tokens.expires_in * 1000))
+			: undefined;
 		
 		await updateOAuthStatus(instanceId, {
 			status: 'completed',
@@ -91,8 +96,7 @@ async function oauthCallback(code, state) {
 		console.error('Google Drive OAuth callback error:', error);
 		return {
 			success: false,
-			message: `OAuth callback failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			data: null
+			message: `OAuth callback failed: ${error instanceof Error ? error.message : 'Unknown error'}`
 		};
 	}
 }

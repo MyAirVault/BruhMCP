@@ -8,7 +8,16 @@
 
 import { SlackMCPHandler } from '../endpoints/mcpHandler.js';
 
+/**
+ * @typedef {Object} HandlerSession
+ * @property {import('../endpoints/mcpHandler.js').SlackMCPHandler} handler - The MCP handler instance
+ * @property {number} lastAccessed - Last access timestamp
+ * @property {string} instanceId - Instance ID
+ * @property {number} createdAt - Creation timestamp
+ */
+
 // Global handler session cache for Slack service instances
+/** @type {Map<string, HandlerSession>} */
 const handlerSessions = new Map();
 
 // Session configuration
@@ -18,9 +27,9 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {import('../endpoints/mcpHandler.js').ServiceConfig} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
- * @returns {SlackMCPHandler} Persistent handler instance
+ * @returns {import('../endpoints/mcpHandler.js').SlackMCPHandler} Persistent handler instance
  */
 export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	let session = handlerSessions.get(instanceId);
@@ -114,6 +123,7 @@ function cleanupExpiredSessions() {
 }
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout|null} */
 let cleanupInterval = null;
 
 /**

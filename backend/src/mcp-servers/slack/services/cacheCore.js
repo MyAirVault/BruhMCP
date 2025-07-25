@@ -3,7 +3,23 @@
  * Basic cache operations for OAuth tokens
  */
 
+/**
+ * @typedef {Object} CacheEntry
+ * @property {string} bearerToken - Bearer token
+ * @property {string} refreshToken - Refresh token
+ * @property {number} expiresAt - Expiration timestamp
+ * @property {string} user_id - User ID
+ * @property {string} team_id - Team ID
+ * @property {string} last_used - Last used timestamp
+ * @property {number} refresh_attempts - Number of refresh attempts
+ * @property {string} cached_at - Cache timestamp
+ * @property {string} [last_modified] - Last modified timestamp
+ * @property {string} [last_refresh_attempt] - Last refresh attempt timestamp
+ * @property {string} [last_successful_refresh] - Last successful refresh timestamp
+ */
+
 // Global credential cache for Slack service instances
+/** @type {Map<string, CacheEntry>} */
 const slackCredentialCache = new Map();
 
 /**
@@ -132,7 +148,7 @@ export function peekCachedCredential(instanceId) {
 
 /**
  * Get access to the internal cache Map (for advanced operations)
- * @returns {Map} The internal cache Map
+ * @returns {Map<string, CacheEntry>} The internal cache Map
  */
 export function getCacheMap() {
 	return slackCredentialCache;

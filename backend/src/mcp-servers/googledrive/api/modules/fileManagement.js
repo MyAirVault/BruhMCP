@@ -133,7 +133,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * Create a folder in Google Drive
  * @param {CreateFolderArgs} args - Folder creation arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Created folder info
+ * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Created folder info
  */
 export async function createFolder(args, bearerToken) {
 	const { folderName, parentFolderId } = args;
@@ -237,7 +237,7 @@ export async function deleteFile(args, bearerToken) {
  * Copy a file in Google Drive
  * @param {CopyFileArgs} args - Copy arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Copied file info
+ * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Copied file info
  */
 export async function copyFile(args, bearerToken) {
 	const { fileId, newName, destinationFolderId } = args;
@@ -293,7 +293,7 @@ export async function copyFile(args, bearerToken) {
  * Move a file to a different folder in Google Drive
  * @param {MoveFileArgs} args - Move arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Moved file info
+ * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Moved file info
  */
 export async function moveFile(args, bearerToken) {
 	const { fileId, destinationFolderId } = args;

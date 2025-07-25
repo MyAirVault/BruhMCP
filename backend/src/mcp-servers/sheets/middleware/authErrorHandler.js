@@ -65,11 +65,10 @@ export function handleRefreshFailure(instanceId, error) {
 /**
  * Create token refresh failure response
  * @param {import('./types.js').ExpressResponse} res - Express response
- * @param {string} instanceId - Instance ID
  * @param {{error: string, errorCode: string, requiresReauth: boolean, instanceId: string}} errorDetails - Error details
  * @returns {any} Error response
  */
-export function createRefreshFailureResponse(res, _instanceId, errorDetails) {
+export function createRefreshFailureResponse(res, errorDetails) {
 	return ErrorResponses.unauthorized(res, errorDetails.error, {
 		instanceId: errorDetails.instanceId
 	});

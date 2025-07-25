@@ -155,7 +155,7 @@ export async function validateBearerToken(bearerToken) {
         }
         
         /** @type {SlackAuthTestResponse} */
-        const authResult = await response.json();
+        const authResult = /** @type {SlackAuthTestResponse} */ (await response.json());
         
         if (!authResult.ok) {
             throw new Error(`Slack auth test failed: ${authResult.error}`);
@@ -170,7 +170,7 @@ export async function validateBearerToken(bearerToken) {
             user: authResult.user,
             team_id: authResult.team_id,
             user_id: authResult.user_id,
-            bot_id: authResult.bot_id
+            bot_id: authResult.bot_id || ''
         };
     } catch (error) {
         console.error('Slack Bearer token validation failed:', error);
@@ -245,7 +245,7 @@ export async function getUserInfoFromToken(bearerToken) {
         }
         
         /** @type {SlackAuthTestResponse} */
-        const authResult = await response.json();
+        const authResult = /** @type {SlackAuthTestResponse} */ (await response.json());
         
         if (!authResult.ok) {
             throw new Error(`Slack auth test failed: ${authResult.error}`);
@@ -316,15 +316,17 @@ export async function refreshBearerTokenDirect(refreshData) {
                 // Use the default error message
             }
             
-            /** @type {ExtendedError} */
             const error = new Error(errorMessage);
-            error.code = errorCode;
-            error.status = response.status;
-            throw error;
+            /** @type {ExtendedError} */
+            const extendedError = Object.assign(error, {
+                code: errorCode || undefined,
+                status: response.status
+            });
+            throw extendedError;
         }
         
         /** @type {SlackOAuthTokenResponse} */
-        const tokenResponse = await response.json();
+        const tokenResponse = /** @type {SlackOAuthTokenResponse} */ (await response.json());
         
         if (!tokenResponse.ok) {
             throw new Error(`Slack OAuth refresh failed: ${tokenResponse.error}`);
@@ -349,12 +351,16 @@ export async function refreshBearerTokenDirect(refreshData) {
         console.error('Direct Slack OAuth token refresh failed:', error);
         
         // Enhanced error handling for common OAuth errors
-        const extendedError = /** @type {ExtendedError} */(error);
-        if (extendedError.code === 'invalid_grant') {
+        let errorCode;
+        if (error && typeof error === 'object' && 'code' in error) {
+            errorCode = /** @type {string | undefined} */ (/** @type {Record<string, unknown>} */(error).code);
+        }
+        
+        if (errorCode === 'invalid_grant') {
             throw new Error('invalid_grant: Invalid refresh token - user may need to re-authorize');
-        } else if (extendedError.code === 'invalid_client') {
+        } else if (errorCode === 'invalid_client') {
             throw new Error('invalid_client: Invalid OAuth client credentials');
-        } else if (extendedError.code === 'invalid_request') {
+        } else if (errorCode === 'invalid_request') {
             throw new Error('invalid_request: Invalid token refresh request format');
         }
         
@@ -388,7 +394,7 @@ export async function revokeToken(token) {
         }
         
         /** @type {SlackRevokeResponse} */
-        const result = await response.json();
+        const result = /** @type {SlackRevokeResponse} */ (await response.json());
         
         if (!result.ok) {
             throw new Error(`Slack token revocation failed: ${result.error}`);

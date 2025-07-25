@@ -1,11 +1,16 @@
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {{name: string, displayName: string, version: string, scopes: string[]}} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {RedditMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: Object, bearerToken: string): RedditMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+}, bearerToken: string): RedditMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance

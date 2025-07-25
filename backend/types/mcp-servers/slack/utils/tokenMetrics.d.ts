@@ -106,6 +106,10 @@ export type DailyStat = {
      * - Daily failures
      */
     failures: number;
+    /**
+     * - Daily direct fallbacks
+     */
+    directFallbacks: number;
 };
 declare const tokenMetrics: TokenMetrics;
 /**
@@ -140,6 +144,7 @@ declare const tokenMetrics: TokenMetrics;
  * @property {number} attempts - Daily attempts
  * @property {number} successes - Daily successes
  * @property {number} failures - Daily failures
+ * @property {number} directFallbacks - Daily direct fallbacks
  */
 /**
  * Metrics storage and management
@@ -157,15 +162,9 @@ declare class TokenMetrics {
         maxLatency: number;
         minLatency: number;
         lastReset: number;
-        errorsByType: {
-            [x: string]: number;
-        };
-        dailyStats: {
-            [x: string]: DailyStat;
-        };
-        instanceMetrics: {
-            [x: string]: InstanceMetric;
-        };
+        errorsByType: Record<string, number>;
+        dailyStats: Record<string, DailyStat>;
+        instanceMetrics: Record<string, InstanceMetric>;
     };
     /**
      * Record a token refresh attempt

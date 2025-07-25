@@ -12,7 +12,7 @@ const tokenRefreshMetrics = new Map();
  * @param {string} method - Refresh method used
  * @param {boolean} success - Whether refresh succeeded
  * @param {string|null} errorType - Error type if failed
- * @param {string|null} errorMessage - Error message if failed
+ * @param {string|null} _errorMessage - Error message if failed (unused)
  * @param {number} startTime - Operation start time
  * @param {number} endTime - Operation end time
  */
@@ -21,7 +21,7 @@ export function recordTokenRefreshMetrics(
 	method, 
 	success, 
 	errorType, 
-	errorMessage, 
+	_errorMessage, 
 	startTime, 
 	endTime
 ) {
@@ -88,6 +88,7 @@ export function getTokenRefreshMetrics(instanceId) {
  * @returns {Object} All metrics by instance
  */
 export function getAllTokenRefreshMetrics() {
+	/** @type {Record<string, any>} */
 	const metrics = {};
 	
 	for (const [instanceId, data] of tokenRefreshMetrics.entries()) {
@@ -115,6 +116,7 @@ export function getMetricsSummary() {
 	let totalSuccess = 0;
 	let totalFailure = 0;
 	let totalDuration = 0;
+	/** @type {Record<string, number>} */
 	const allErrorTypes = {};
 	
 	for (const metrics of tokenRefreshMetrics.values()) {

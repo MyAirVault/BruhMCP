@@ -10,6 +10,7 @@ const sheetsCredentialCache = new Map();
 
 // Cache synchronization interval
 const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+/** @type {NodeJS.Timeout|null} */
 let syncInterval = null;
 
 /**
@@ -54,7 +55,7 @@ export function getCachedCredential(instanceId) {
 /**
  * Store OAuth tokens in cache
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} credentialData - Credential data to cache
+ * @param {{bearerToken: string, refreshToken?: string, expiresAt: number, user_id: string}} credentialData - Credential data to cache
  */
 export function setCachedCredential(instanceId, credentialData) {
 	const cacheEntry = {
@@ -216,7 +217,7 @@ async function syncCacheWithDatabase() {
 /**
  * Update database metadata
  * @param {string} instanceId - Instance ID
- * @param {Object} metadata - Metadata to update
+ * @param {{last_used_at?: string, usage_count_increment?: number}} metadata - Metadata to update
  */
 async function updateDatabaseMetadata(instanceId, metadata) {
 	try {

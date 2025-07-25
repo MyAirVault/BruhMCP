@@ -8,6 +8,11 @@ declare global {
 				email: string;
 				[key: string]: any;
 			};
+			// Slack MCP server specific properties
+			instanceId?: string;
+			bearerToken?: string;
+			userId?: string;
+			teamId?: string;
 		}
 	}
 }

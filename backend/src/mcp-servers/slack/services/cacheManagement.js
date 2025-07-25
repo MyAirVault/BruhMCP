@@ -3,7 +3,11 @@
  * Handles cache updates, cleanup, and background operations
  */
 
-import { getCacheMap, removeCachedCredential } from './cacheCore.js';
+import { getCacheMap } from './cacheCore.js';
+
+/**
+ * @typedef {import('./cacheCore.js').CacheEntry} CacheEntry
+ */
 
 /**
  * Update cached credential metadata without changing tokens
@@ -16,6 +20,7 @@ import { getCacheMap, removeCachedCredential } from './cacheCore.js';
  * @returns {boolean} True if update was successful
  */
 export function updateCachedCredentialMetadata(instanceId, updates) {
+	/** @type {Map<string, CacheEntry>} */
 	const cache = getCacheMap();
 	const cached = cache.get(instanceId);
 	
@@ -25,14 +30,19 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
 	}
 	
 	// Apply updates
-	const allowedUpdates = ['user_id', 'team_id', 'status', 'expiresAt'];
 	let hasChanges = false;
 	
-	for (const [key, value] of Object.entries(updates)) {
-		if (allowedUpdates.includes(key) && cached[key] !== value) {
-			cached[key] = value;
-			hasChanges = true;
-		}
+	if ('user_id' in updates && cached.user_id !== updates.user_id) {
+		cached.user_id = updates.user_id;
+		hasChanges = true;
+	}
+	if ('team_id' in updates && cached.team_id !== updates.team_id) {
+		cached.team_id = updates.team_id;
+		hasChanges = true;
+	}
+	if ('expiresAt' in updates && cached.expiresAt !== updates.expiresAt) {
+		cached.expiresAt = updates.expiresAt;
+		hasChanges = true;
 	}
 	
 	if (hasChanges) {
@@ -50,6 +60,7 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
  * @returns {number} Number of entries removed
  */
 export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+	/** @type {Map<string, CacheEntry>} */
 	const cache = getCacheMap();
 	const now = Date.now();
 	let removedCount = 0;
@@ -96,6 +107,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
  * @returns {number} New refresh attempts count
  */
 export function incrementRefreshAttempts(instanceId) {
+	/** @type {Map<string, CacheEntry>} */
 	const cache = getCacheMap();
 	const cached = cache.get(instanceId);
 	
@@ -114,6 +126,7 @@ export function incrementRefreshAttempts(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  */
 export function resetRefreshAttempts(instanceId) {
+	/** @type {Map<string, CacheEntry>} */
 	const cache = getCacheMap();
 	const cached = cache.get(instanceId);
 	
@@ -130,6 +143,7 @@ export function resetRefreshAttempts(instanceId) {
  * @returns {number} Number of entries removed
  */
 export function cleanupUserCacheEntries(userId) {
+	/** @type {Map<string, CacheEntry>} */
 	const cache = getCacheMap();
 	let removedCount = 0;
 	
@@ -150,6 +164,7 @@ export function cleanupUserCacheEntries(userId) {
  * @returns {number} Number of entries removed
  */
 export function cleanupTeamCacheEntries(teamId) {
+	/** @type {Map<string, CacheEntry>} */
 	const cache = getCacheMap();
 	let removedCount = 0;
 	

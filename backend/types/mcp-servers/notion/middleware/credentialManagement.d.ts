@@ -22,12 +22,13 @@ export function setupRequestWithCachedToken(req: import("./types.js").ExpressReq
  * Get token information from instance or cached credential
  * @param {import('./types.js').DatabaseInstance} instance - Database instance object
  * @param {import('./types.js').CachedCredential | null} cachedCredential - Cached credential object
- * @returns {Object} Token information
- * @returns {string | undefined} returns.refreshToken - Refresh token
- * @returns {string | undefined} returns.accessToken - Access token
- * @returns {number | null} returns.tokenExpiresAt - Token expiration timestamp
+ * @returns {{refreshToken: string | undefined, accessToken: string | undefined, tokenExpiresAt: number | null}} Token information
  */
-export function getTokenInfo(instance: import("./types.js").DatabaseInstance, cachedCredential: import("./types.js").CachedCredential | null): Object;
+export function getTokenInfo(instance: import("./types.js").DatabaseInstance, cachedCredential: import("./types.js").CachedCredential | null): {
+    refreshToken: string | undefined;
+    accessToken: string | undefined;
+    tokenExpiresAt: number | null;
+};
 /**
  * Check if access token is still valid (Notion tokens don't expire)
  * @param {string | undefined} accessToken - Access token to check

@@ -4,8 +4,18 @@
  */
 
 /**
+ * @typedef {Object} ServiceConfig
+ * @property {string} name - Service name
+ * @property {string} displayName - Display name
+ * @property {string} version - Service version  
+ * @property {number} port - Service port
+ * @property {string} authType - Authentication type
+ * @property {string} description - Service description
+ */
+
+/**
  * Health check for Notion service
- * @param {Object} config - Service configuration
+ * @param {ServiceConfig} config - Service configuration
  * @returns {Object} Health status object
  */
 export function healthCheck(config) {

@@ -6,7 +6,6 @@
 /// <reference path="./types.js" />
 
 import { ErrorResponses } from '../../../utils/errorResponse.js';
-import { handleTokenRefreshFailure } from '../utils/oauthErrorHandler.js';
 
 /**
  * Create system error response for authentication failures
@@ -46,18 +45,29 @@ export function createLightweightSystemErrorResponse(res, instanceId, error) {
 
 /**
  * Handle token refresh failure and determine next steps
- * @param {string} instanceId - The instance ID
- * @param {import('./types.js').TokenRefreshError} error - Token refresh error
- * @returns {Promise<import('./types.js').ErrorHandlingResult>} Error handling result
+ * @param {string} _instanceId - The instance ID
+ * @param {Error} error - Token refresh error
+ * @returns {Promise<{requiresReauth: boolean, errorType: string, message: string}>} Error handling result
  */
-export async function handleRefreshFailure(instanceId, error) {
-  return await handleTokenRefreshFailure(instanceId, error);
+export async function handleRefreshFailure(_instanceId, error) {
+  // Simple error handling that returns consistent structure
+  const errorWithType = /** @type {Error & {errorType?: string}} */ (error);
+  const errorType = errorWithType.errorType || 'UNKNOWN_ERROR';
+  
+  const criticalErrors = ['INVALID_GRANT', 'INVALID_CLIENT', 'UNAUTHORIZED_CLIENT'];
+  const requiresReauth = criticalErrors.includes(errorType);
+  
+  return {
+    requiresReauth,
+    errorType,
+    message: error.message || 'Token refresh failed'
+  };
 }
 
 /**
  * Create refresh failure response
  * @param {import('express').Response} res - Express response object
- * @param {import('./types.js').ErrorHandlingResult} errorResult - Error handling result
+ * @param {{requiresReauth: boolean, errorType: string, message: string}} errorResult - Error handling result
  * @returns {void} Express response
  */
 export function createRefreshFailureResponse(res, errorResult) {
@@ -66,7 +76,6 @@ export function createRefreshFailureResponse(res, errorResult) {
       metadata: {
         errorType: 'TOKEN_REFRESH_FAILED',
         requiresReauth: true,
-        redirectUrl: errorResult.redirectUrl,
         message: errorResult.message
       }
     });
@@ -108,7 +117,7 @@ export async function createReauthenticationResponse(res, instanceId, refreshTok
 
 /**
  * Log refresh fallback scenario
- * @param {import('./types.js').TokenRefreshError} error - Token refresh error
+ * @param {Error} error - Token refresh error
  * @returns {void}
  */
 export function logRefreshFallback(error) {
@@ -143,7 +152,7 @@ export function handleNetworkError(res, instanceId, error) {
  */
 export function handleOAuthProviderError(res, instanceId, error) {
   console.error(`🔑 OAuth provider error for instance: ${instanceId}:`, error);
-  return ErrorResponses.badGateway(res, 'OAuth provider error', {
+  return ErrorResponses.externalApiError(res, 'Notion OAuth', error.message, {
     instanceId,
     metadata: {
       errorMessage: error.message,
@@ -162,7 +171,7 @@ export function handleOAuthProviderError(res, instanceId, error) {
  */
 export function handleRateLimitError(res, instanceId, error) {
   console.error(`⏱️  Rate limit error for instance: ${instanceId}:`, error);
-  return ErrorResponses.tooManyRequests(res, 'Rate limit exceeded', {
+  return ErrorResponses.rateLimited(res, 'Rate limit exceeded', {
     instanceId,
     metadata: {
       errorMessage: error.message,

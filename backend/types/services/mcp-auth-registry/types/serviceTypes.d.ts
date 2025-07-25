@@ -44,6 +44,14 @@ export type OAuthResult = {
      */
     state?: string | undefined;
     /**
+     * - Instance ID for the OAuth flow
+     */
+    instanceId?: string | undefined;
+    /**
+     * - User ID for the OAuth flow
+     */
+    userId?: string | undefined;
+    /**
      * - Human readable message
      */
     message: string;

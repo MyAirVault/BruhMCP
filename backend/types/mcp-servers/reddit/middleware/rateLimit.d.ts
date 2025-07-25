@@ -17,9 +17,22 @@ export function createRedditApiRateLimitMiddleware(): Function;
 export function createStrictRateLimitMiddleware(): Function;
 /**
  * Gets rate limit statistics
- * @returns {Object} Rate limit statistics
+ * @returns {{totalKeys: number, activeRateLimits: number, keysByType: {global: number, route: number, instance: number}, topKeys: Array<{key: string, requestCount: number, lastRequest: number}>}} Rate limit statistics
  */
-export function getRateLimitStatistics(): Object;
+export function getRateLimitStatistics(): {
+    totalKeys: number;
+    activeRateLimits: number;
+    keysByType: {
+        global: number;
+        route: number;
+        instance: number;
+    };
+    topKeys: Array<{
+        key: string;
+        requestCount: number;
+        lastRequest: number;
+    }>;
+};
 /**
  * Clears rate limit data for an instance
  * @param {string} instanceId - Instance ID

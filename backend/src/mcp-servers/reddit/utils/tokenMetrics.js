@@ -4,6 +4,7 @@
  */
 
 // In-memory metrics storage
+/** @type {{refreshAttempts: number, refreshSuccesses: number, refreshFailures: number, averageRefreshTime: number, lastRefreshTime: string|null, errorsByType: Record<string, number>, methodSuccessRates: {oauth_service: {attempts: number, successes: number}, direct_oauth: {attempts: number, successes: number}}}} */
 const tokenMetrics = {
   refreshAttempts: 0,
   refreshSuccesses: 0,
@@ -32,13 +33,14 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
   
   // Update overall metrics
   tokenMetrics.refreshAttempts++;
-  tokenMetrics.lastRefreshTime = /** @type {string|null} */ (new Date().toISOString());
+  tokenMetrics.lastRefreshTime = new Date().toISOString();
   
   // Update method-specific metrics
-  if (/** @type {keyof typeof tokenMetrics.methodSuccessRates} */ (method) in tokenMetrics.methodSuccessRates) {
-    /** @type {any} */ (tokenMetrics.methodSuccessRates)[method].attempts++;
+  const typedMethod = /** @type {keyof typeof tokenMetrics.methodSuccessRates} */ (method);
+  if (typedMethod in tokenMetrics.methodSuccessRates) {
+    tokenMetrics.methodSuccessRates[typedMethod].attempts++;
     if (success) {
-      /** @type {any} */ (tokenMetrics.methodSuccessRates)[method].successes++;
+      tokenMetrics.methodSuccessRates[typedMethod].successes++;
     }
   }
   

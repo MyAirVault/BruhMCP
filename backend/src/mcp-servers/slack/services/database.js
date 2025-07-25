@@ -3,13 +3,88 @@
  * Handles instance credential lookup and usage tracking
  */
 
+/**
+ * Instance credentials record from database
+ * @typedef {Object} InstanceCredentials
+ * @property {string} instance_id - UUID of the service instance
+ * @property {string} user_id - UUID of the user
+ * @property {string} oauth_status - OAuth completion status
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {Date|null} expires_at - Instance expiration date
+ * @property {number} usage_count - Number of times instance has been used
+ * @property {string|null} custom_name - User-defined name for instance
+ * @property {Date|null} last_used_at - Last usage timestamp
+ * @property {string} mcp_service_name - Name of the MCP service
+ * @property {string} display_name - Display name of the service
+ * @property {string} auth_type - Authentication type
+ * @property {boolean} service_active - Whether service is active
+ * @property {number|null} port - Service port number
+ * @property {string|null} api_key - API key if applicable
+ * @property {string|null} client_id - OAuth client ID
+ * @property {string|null} client_secret - OAuth client secret
+ * @property {string|null} access_token - OAuth access token
+ * @property {string|null} refresh_token - OAuth refresh token
+ * @property {Date|null} token_expires_at - Token expiration timestamp
+ * @property {Date|null} oauth_completed_at - OAuth completion timestamp
+ * @property {string|null} team_id - Slack team ID
+ * @property {string|null} team_name - Slack team name
+ */
+
+/**
+ * Instance statistics record from database
+ * @typedef {Object} InstanceStatistics
+ * @property {string} instance_id - UUID of the service instance
+ * @property {string} user_id - UUID of the user
+ * @property {string} status - Instance status
+ * @property {number} usage_count - Number of times instance has been used
+ * @property {Date|null} last_used_at - Last usage timestamp
+ * @property {Date} created_at - Instance creation timestamp
+ * @property {Date|null} expires_at - Instance expiration date
+ * @property {string|null} custom_name - User-defined name for instance
+ * @property {string} mcp_service_name - Name of the MCP service
+ * @property {string} display_name - Display name of the service
+ * @property {string|null} team_id - Slack team ID
+ * @property {string|null} team_name - Slack team name
+ */
+
+/**
+ * Active instance record from database
+ * @typedef {Object} ActiveInstance
+ * @property {string} instance_id - UUID of the service instance
+ * @property {string} user_id - UUID of the user
+ * @property {number} usage_count - Number of times instance has been used
+ * @property {Date|null} last_used_at - Last usage timestamp
+ * @property {Date} created_at - Instance creation timestamp
+ * @property {string|null} custom_name - User-defined name for instance
+ * @property {string|null} team_id - Slack team ID
+ * @property {string|null} team_name - Slack team name
+ */
+
+/**
+ * Slack workspace information from database
+ * @typedef {Object} SlackWorkspaceInfo
+ * @property {string} team_id - Slack team ID
+ * @property {string} team_name - Slack team name
+ * @property {string} access_token - OAuth access token
+ * @property {Date|null} token_expires_at - Token expiration timestamp
+ * @property {string|null} custom_name - User-defined name for instance
+ * @property {string} user_id - UUID of the user
+ */
+
+/**
+ * Team information for updating Slack team data
+ * @typedef {Object} SlackTeamInfo
+ * @property {string} team_id - Slack team ID
+ * @property {string} team_name - Slack team name
+ */
+
 import { pool } from '../../../db/config.js';
 
 /**
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
  * @param {string} serviceName - Name of the MCP service (slack)
- * @returns {Object|null} Instance credentials or null if not found
+ * @returns {Promise<InstanceCredentials|null>} Instance credentials or null if not found
  */
 export async function lookupInstanceCredentials(instanceId, serviceName) {
   try {
@@ -58,7 +133,9 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
     
     return instance;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database lookup error:', error);
     throw new Error(`Failed to lookup Slack instance credentials: ${error.message}`);
   }
@@ -94,7 +171,9 @@ export async function updateInstanceUsage(instanceId) {
     
     return true;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database usage update error:', error);
     // Don't throw error - usage tracking is not critical
     return false;
@@ -104,7 +183,7 @@ export async function updateInstanceUsage(instanceId) {
 /**
  * Get instance statistics
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Instance statistics or null if not found
+ * @returns {Promise<InstanceStatistics|null>} Instance statistics or null if not found
  */
 export async function getInstanceStatistics(instanceId) {
   try {
@@ -137,7 +216,9 @@ export async function getInstanceStatistics(instanceId) {
     
     return result.rows[0];
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database statistics query error:', error);
     throw new Error(`Failed to get Slack instance statistics: ${error.message}`);
   }
@@ -171,7 +252,9 @@ export async function updateInstanceStatus(instanceId, newStatus) {
     console.log(`🔄 Updated status for Slack instance ${instanceId}: ${newStatus}`);
     return true;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database status update error:', error);
     throw new Error(`Failed to update Slack instance status: ${error.message}`);
   }
@@ -179,7 +262,7 @@ export async function updateInstanceStatus(instanceId, newStatus) {
 
 /**
  * Get all active instances for Slack service
- * @returns {Array} Array of active instance records
+ * @returns {Promise<ActiveInstance[]>} Array of active instance records
  */
 export async function getActiveSlackInstances() {
   try {
@@ -210,7 +293,9 @@ export async function getActiveSlackInstances() {
     console.log(`📊 Found ${result.rows.length} active Slack instances`);
     return result.rows;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database active instances query error:', error);
     throw new Error(`Failed to get active Slack instances: ${error.message}`);
   }
@@ -245,7 +330,9 @@ export async function validateInstanceAccess(instanceId, userId) {
     
     return isValid;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database instance validation error:', error);
     return false;
   }
@@ -253,7 +340,7 @@ export async function validateInstanceAccess(instanceId, userId) {
 
 /**
  * Clean up expired instances
- * @returns {number} Number of instances marked as expired
+ * @returns {Promise<number>} Number of instances marked as expired
  */
 export async function cleanupExpiredInstances() {
   try {
@@ -281,7 +368,9 @@ export async function cleanupExpiredInstances() {
     
     return expiredCount;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database cleanup error:', error);
     throw new Error(`Failed to cleanup expired Slack instances: ${error.message}`);
   }
@@ -290,7 +379,7 @@ export async function cleanupExpiredInstances() {
 /**
  * Get Slack workspace information for an instance
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Workspace information or null if not found
+ * @returns {Promise<SlackWorkspaceInfo|null>} Workspace information or null if not found
  */
 export async function getSlackWorkspaceInfo(instanceId) {
   try {
@@ -320,7 +409,9 @@ export async function getSlackWorkspaceInfo(instanceId) {
     
     return workspace;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database workspace info query error:', error);
     throw new Error(`Failed to get Slack workspace info: ${error.message}`);
   }
@@ -329,7 +420,7 @@ export async function getSlackWorkspaceInfo(instanceId) {
 /**
  * Update Slack team information
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} teamInfo - Team information object
+ * @param {SlackTeamInfo} teamInfo - Team information object
  * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
 export async function updateSlackTeamInfo(instanceId, teamInfo) {
@@ -355,7 +446,9 @@ export async function updateSlackTeamInfo(instanceId, teamInfo) {
     console.log(`🏢 Updated team info for Slack instance ${instanceId}: ${teamInfo.team_name} (${teamInfo.team_id})`);
     return true;
     
-  } catch (error) {
+  } catch (err) {
+    /** @type {Error} */
+    const error = /** @type {Error} */ (err);
     console.error('Database team info update error:', error);
     throw new Error(`Failed to update Slack team info: ${error.message}`);
   }

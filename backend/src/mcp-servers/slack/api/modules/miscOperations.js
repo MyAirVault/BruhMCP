@@ -80,7 +80,7 @@ export async function createReminder(args, bearerToken) {
  */
 export async function getTeamInfo(bearerToken) {
 	/** @type {SlackTeamResponse} */
-	const response = await makeSlackRequest('/team.info', bearerToken);
+	const response = /** @type {SlackTeamResponse} */ (await makeSlackRequest('/team.info', bearerToken));
 
 	return {
 		...response,

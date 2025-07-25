@@ -2,6 +2,34 @@
 import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 
 /**
+ * @typedef {Object} RedditOAuthCredentials
+ * @property {string} client_id - Reddit OAuth client ID
+ * @property {string} client_secret - Reddit OAuth client secret
+ */
+
+/**
+ * @typedef {Object} RedditAPIKeyCredentials
+ * @property {string} api_key - Reddit API key
+ */
+
+/**
+ * @typedef {Object} RedditServiceInfo
+ * @property {string} service - Service name
+ * @property {string} auth_type - Authentication type
+ * @property {string} [client_id] - OAuth client ID (for OAuth)
+ * @property {string} validation_type - Type of validation performed
+ * @property {string} note - Additional information
+ * @property {string[]} permissions - Available permissions
+ */
+
+/**
+ * @typedef {Object} RedditValidationResult
+ * @property {boolean} valid - Whether credentials are valid
+ * @property {string} [error] - Error message if validation failed
+ * @property {string} [field] - Field that caused validation failure
+ */
+
+/**
  * Reddit OAuth credential validator
  */
 class RedditOAuthValidator extends BaseValidator {
@@ -11,7 +39,7 @@ class RedditOAuthValidator extends BaseValidator {
 
   /**
    * Validate Reddit OAuth credentials format
-   * @param {Object} credentials - Credentials to validate
+   * @param {RedditOAuthCredentials} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
@@ -36,8 +64,9 @@ class RedditOAuthValidator extends BaseValidator {
       } else {
         return createValidationResult(false, validation.error, validation.field);
       }
-    } catch (/** @type {Error} */ error) {
-      return createValidationResult(false, `Failed to validate Reddit OAuth credentials: ${error.message}`, 'credentials');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return createValidationResult(false, `Failed to validate Reddit OAuth credentials: ${errorMessage}`, 'credentials');
     }
   }
 
@@ -45,7 +74,7 @@ class RedditOAuthValidator extends BaseValidator {
    * Validate Reddit OAuth credentials
    * @param {string} clientId - OAuth client ID
    * @param {string} clientSecret - OAuth client secret
-   * @returns {Promise<{valid: boolean, error?: string, field?: string}>} Validation result
+   * @returns {Promise<RedditValidationResult>} Validation result
    */
   async validateRedditCredentials(clientId, clientSecret) {
     // Basic format validation
@@ -85,8 +114,8 @@ class RedditOAuthValidator extends BaseValidator {
 
   /**
    * Get Reddit service information
-   * @param {Object} credentials - Validated credentials
-   * @returns {Object} Service information
+   * @param {RedditOAuthCredentials} credentials - Validated credentials
+   * @returns {RedditServiceInfo} Service information
    */
   getServiceInfo(credentials) {
     return {
@@ -110,7 +139,7 @@ class RedditAPIKeyValidator extends BaseValidator {
 
   /**
    * Validate Reddit API key format
-   * @param {Object} credentials - Credentials to validate
+   * @param {RedditAPIKeyCredentials} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
@@ -137,8 +166,8 @@ class RedditAPIKeyValidator extends BaseValidator {
 
   /**
    * Get Reddit API service information
-   * @param {Object} _credentials - Validated credentials
-   * @returns {Object} Service information
+   * @param {RedditAPIKeyCredentials} _credentials - Validated credentials
+   * @returns {RedditServiceInfo} Service information
    */
   getServiceInfo(_credentials) {
     return {
@@ -153,13 +182,13 @@ class RedditAPIKeyValidator extends BaseValidator {
 
 /**
  * Reddit validator factory - determines which validator to use based on credentials
- * @param {Object} credentials - Credentials to validate
+ * @param {RedditOAuthCredentials | RedditAPIKeyCredentials} credentials - Credentials to validate
  * @returns {BaseValidator} Appropriate validator instance
  */
 function createRedditValidator(credentials) {
-  if (credentials && credentials.client_id && credentials.client_secret) {
+  if (credentials && 'client_id' in credentials && 'client_secret' in credentials) {
     return new RedditOAuthValidator();
-  } else if (credentials && credentials.api_key) {
+  } else if (credentials && 'api_key' in credentials) {
     return new RedditAPIKeyValidator();
   } else {
     throw new Error('Invalid Reddit credentials format - must provide either OAuth credentials (client_id, client_secret) or API key');

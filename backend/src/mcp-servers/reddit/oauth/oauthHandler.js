@@ -127,7 +127,7 @@ class RedditOAuthHandler {
 				throw new Error(`Token exchange failed: ${response.status} ${errorText}`);
 			}
 
-			const tokens = await response.json();
+			const tokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */ (await response.json());
 
 			if (!tokens.access_token) {
 				throw new Error('Failed to obtain access token');
@@ -185,10 +185,10 @@ class RedditOAuthHandler {
 				throw new Error(`Token refresh failed: ${response.status} ${errorText}`);
 			}
 
-			const newTokens = await response.json();
+			const newTokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number}} */ (await response.json());
 
 			return {
-				access_token: newTokens.access_token,
+				access_token: /** @type {string} */ (newTokens.access_token),
 				refresh_token: newTokens.refresh_token || refreshToken,
 				expires_in: newTokens.expires_in || 3600,
 			};

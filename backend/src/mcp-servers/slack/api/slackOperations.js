@@ -4,9 +4,25 @@
  */
 
 import { logApiRequest, logApiResponse, createTimer } from '../utils/logger.js';
-import { formatSlackResponse, formatMessageResponse, formatChannelResponse, formatUserResponse } from '../utils/slackFormatting.js';
+import { formatMessageResponse, formatChannelResponse, formatUserResponse } from '../utils/slackFormatting.js';
 
 const SLACK_API_BASE = 'https://slack.com/api';
+
+/**
+ * @typedef {Object} SlackApiResponse
+ * @property {boolean} ok - Success indicator
+ * @property {string} [error] - Error message if request failed
+ * @property {Object} [channel] - Channel data
+ * @property {Object} [message] - Message data
+ * @property {Object} [user] - User data
+ * @property {Object} [team] - Team data
+ * @property {Object[]} [channels] - Array of channels
+ * @property {Object[]} [members] - Array of members
+ * @property {Object[]} [messages] - Array of messages
+ * @property {Object[]} [files] - Array of files
+ * @property {string} [ts] - Message timestamp
+ * @property {string} [response_metadata] - Response metadata
+ */
 
 /**
  * Request options for Slack API calls
@@ -23,7 +39,7 @@ const SLACK_API_BASE = 'https://slack.com/api';
  * @param {string} bearerToken - OAuth Bearer token
  * @param {string} instanceId - Instance ID for logging
  * @param {SlackRequestOptions} options - Request options
- * @returns {Promise<Record<string, any>>} API response
+ * @returns {Promise<SlackApiResponse>} API response
  */
 async function makeSlackRequest(endpoint, bearerToken, instanceId, options = {}) {
 	const url = `${SLACK_API_BASE}${endpoint}`;
@@ -89,7 +105,6 @@ async function makeSlackRequest(endpoint, bearerToken, instanceId, options = {})
 			throw new Error(errorMessage);
 		}
 
-		/** @type {Record<string, any>} */
 		const data = await response.json();
 		
 		// Check for Slack-specific error in response
@@ -100,7 +115,7 @@ async function makeSlackRequest(endpoint, bearerToken, instanceId, options = {})
 		}
 
 		logApiResponse(options.method || 'GET', endpoint, instanceId, true, duration);
-		return data;
+		return /** @type {SlackApiResponse} */ (data);
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		const duration = timer.end(false, { error: errorMessage });
@@ -123,7 +138,7 @@ async function makeSlackRequest(endpoint, bearerToken, instanceId, options = {})
  * Operation result object
  * @typedef {Object} OperationResult
  * @property {boolean} success - Whether operation succeeded
- * @property {*} [result] - Result data if successful
+ * @property {Object|null} [result] - Result data if successful
  * @property {string} [error] - Error message if failed
  */
 
@@ -154,7 +169,7 @@ export class MessageOperations {
 					method: 'POST',
 					body: message
 				});
-				results.push({ success: true, result: formatMessageResponse(/** @type {import('../middleware/types.js').SlackMessage} */ (result)) });
+				results.push({ success: true, result: formatMessageResponse(/** @type {import('../middleware/types.js').SlackMessage} */ (/** @type {unknown} */ (result))) });
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error);
 				results.push({ success: false, error: errorMessage });
@@ -178,7 +193,7 @@ export class MessageOperations {
 					method: 'POST',
 					body: update
 				});
-				results.push({ success: true, result: formatMessageResponse(/** @type {import('../middleware/types.js').SlackMessage} */ (result)) });
+				results.push({ success: true, result: formatMessageResponse(/** @type {import('../middleware/types.js').SlackMessage} */ (/** @type {unknown} */ (result))) });
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error);
 				results.push({ success: false, error: errorMessage });
@@ -449,7 +464,7 @@ export class FileOperations {
 	/**
 	 * Upload file with progress tracking
 	 * @param {FileUploadData} fileData - File data and metadata
-	 * @returns {Promise<Object>} Upload result
+	 * @returns {Promise<SlackApiResponse>} Upload result
 	 */
 	async uploadFileWithProgress(fileData) {
 		try {
@@ -473,7 +488,7 @@ export class FileOperations {
 				formData
 			});
 
-			return /** @type {Record<string, any>} */ (result);
+			return result;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			throw new Error(`Failed to upload file: ${errorMessage}`);
@@ -517,7 +532,7 @@ export class FileOperations {
 
 /**
  * Search results by content type
- * @typedef {Record<string, Object>} SearchResults
+ * @typedef {Object<string, SlackApiResponse>} SearchResults
  */
 
 /**
@@ -559,9 +574,9 @@ export class WorkspaceOperations {
 			const channelData = (typeof channels === 'object' && channels !== null && 'channels' in channels && Array.isArray(channels.channels)) ? channels.channels : [];
 			const userData = (typeof users === 'object' && users !== null && 'members' in users && Array.isArray(users.members)) ? users.members : [];
 			
-			/** @type {{team: any, stats: {totalChannels: number, totalUsers: number, activeUsers: number}}} */
+			/** @type {WorkspaceStats} */
 			const result = {
-				team: teamData,
+				team: teamData || {},
 				stats: {
 					totalChannels: channelData.length,
 					totalUsers: userData.length,
@@ -586,7 +601,7 @@ export class WorkspaceOperations {
 	 * @returns {Promise<SearchResults>} Search results
 	 */
 	async comprehensiveSearch(query, types = ['messages', 'files']) {
-		/** @type {Record<string, any>} */
+		/** @type {SearchResults} */
 		const results = {};
 		
 		for (const type of types) {
@@ -599,11 +614,11 @@ export class WorkspaceOperations {
 				results[type] = result;
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error);
-				results[type] = { error: errorMessage };
+				results[type] = { ok: false, error: errorMessage };
 			}
 		}
 		
-		return /** @type {any} */ (results);
+		return results;
 	}
 }
 

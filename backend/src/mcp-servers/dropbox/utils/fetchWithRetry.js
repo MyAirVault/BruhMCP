@@ -63,7 +63,7 @@ export async function fetchWithRetry(url, options = {}, maxRetries = MAX_RETRIES
 			lastError = error;
 			
 			// Handle timeout errors
-			if (error.name === 'AbortError') {
+			if (error instanceof Error && error.name === 'AbortError') {
 				if (attempt < maxRetries) {
 					const delay = baseDelay * Math.pow(2, attempt);
 					console.log(`⏳ Request timeout, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`);
@@ -74,7 +74,7 @@ export async function fetchWithRetry(url, options = {}, maxRetries = MAX_RETRIES
 			}
 			
 			// If it's a network error, retry
-			if (error.name === 'TypeError' && error.message.includes('fetch')) {
+			if (error instanceof Error && error.name === 'TypeError' && error.message.includes('fetch')) {
 				if (attempt < maxRetries) {
 					const delay = baseDelay * Math.pow(2, attempt);
 					console.log(`⏳ Network error, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`);

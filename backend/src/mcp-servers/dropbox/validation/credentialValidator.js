@@ -45,7 +45,7 @@ class DropboxOAuthValidator extends BaseValidator {
    * Validate Dropbox OAuth credentials
    * @param {string} clientId - Client ID
    * @param {string} clientSecret - Client secret
-   * @returns {Promise<Object>} Validation result
+   * @returns {Promise<{valid: boolean, error?: string, field?: string}>} Validation result
    */
   async validateDropboxCredentials(clientId, clientSecret) {
     // Basic format validation for Dropbox credentials

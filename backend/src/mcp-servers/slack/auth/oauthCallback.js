@@ -77,11 +77,7 @@ async function oauthCallback(code, state) {
 		return {
 			success: true,
 			message: 'Slack OAuth flow completed successfully',
-			data: {
-				instanceId: instanceId,
-				tokens: callbackResult.tokens,
-				status: 'completed'
-			}
+			tokens: callbackResult.tokens
 		};
 	} catch (error) {
 		console.error('Slack OAuth callback error:', error);

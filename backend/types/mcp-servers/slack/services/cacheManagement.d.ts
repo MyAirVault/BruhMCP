@@ -1,4 +1,7 @@
 /**
+ * @typedef {import('./cacheCore.js').CacheEntry} CacheEntry
+ */
+/**
  * Update cached credential metadata without changing tokens
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} updates - Metadata updates
@@ -43,4 +46,5 @@ export function cleanupUserCacheEntries(userId: string): number;
  * @returns {number} Number of entries removed
  */
 export function cleanupTeamCacheEntries(teamId: string): number;
+export type CacheEntry = import("./cacheCore.js").CacheEntry;
 //# sourceMappingURL=cacheManagement.d.ts.map

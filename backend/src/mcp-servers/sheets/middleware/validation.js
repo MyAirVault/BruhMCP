@@ -40,64 +40,73 @@ export function createInstanceIdValidationError(res, instanceId) {
 export function validateInstance(instance, res, instanceId, checkOAuth = false) {
 	// Check if instance exists
 	if (!instance) {
+		ErrorResponses.notFound(res, 'Instance', {
+			instanceId
+		});
 		return {
 			isValid: false,
-			errorResponse: ErrorResponses.notFound(res, 'Instance', {
-				instanceId
-			})
+			errorResponse: undefined
 		};
 	}
 
 	// Validate service is active
 	if (!instance.service_active) {
+		ErrorResponses.serviceUnavailable(res, 'Google Sheets service is currently disabled', {
+			instanceId
+		});
 		return {
 			isValid: false,
-			errorResponse: ErrorResponses.serviceUnavailable(res, 'Google Sheets service is currently disabled', {
-				instanceId
-			})
+			errorResponse: undefined
 		};
 	}
 
 	// Validate instance status
 	if (instance.status === 'inactive') {
+		ErrorResponses.forbidden(res, 'Instance is paused', {
+			instanceId
+		});
 		return {
 			isValid: false,
-			errorResponse: ErrorResponses.forbidden(res, 'Instance is paused', {
-				instanceId
-			})
+			errorResponse: undefined
 		};
 	}
 
 	if (instance.status === 'expired') {
+		ErrorResponses.forbidden(res, 'Instance has expired', {
+			instanceId
+		});
 		return {
 			isValid: false,
-			errorResponse: ErrorResponses.forbidden(res, 'Instance has expired', {
-				instanceId
-			})
+			errorResponse: undefined
 		};
 	}
 
 	// Check expiration time
 	if (instance.expires_at && new Date(instance.expires_at) < new Date()) {
+		ErrorResponses.forbidden(res, 'Instance has expired', {
+			instanceId
+		});
 		return {
 			isValid: false,
-			errorResponse: ErrorResponses.forbidden(res, 'Instance has expired', {
-				instanceId
-			})
+			errorResponse: undefined
 		};
 	}
 
 	// Validate OAuth credentials if requested
 	if (checkOAuth) {
 		if (instance.auth_type !== 'oauth' || !instance.client_id || !instance.client_secret) {
+			ErrorResponses.internal(res, 'Invalid OAuth credentials configuration', {
+				instanceId
+			});
 			return {
 				isValid: false,
-				errorResponse: ErrorResponses.internal(res, 'Invalid OAuth credentials configuration', {
-					instanceId
-				})
+				errorResponse: undefined
 			};
 		}
 	}
 
-	return { isValid: true };
+	return { 
+		isValid: true,
+		errorResponse: undefined 
+	};
 }

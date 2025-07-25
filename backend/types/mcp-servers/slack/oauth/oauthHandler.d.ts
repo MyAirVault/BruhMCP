@@ -2,15 +2,123 @@ export default SlackOAuthHandler;
 export type AuthCredentials = import("../../../services/mcp-auth-registry/types/authTypes.js").AuthCredentials;
 export type OAuthFlowResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthFlowResult;
 export type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
-/**
- * @fileoverview Slack OAuth Handler
- * Implements OAuth flow for Slack MCP service
- */
-/**
- * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
- * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult} OAuthFlowResult
- * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult} OAuthCallbackResult
- */
+export type SlackOAuthResponse = {
+    /**
+     * - Whether the request was successful
+     */
+    ok: boolean;
+    /**
+     * - OAuth access token
+     */
+    access_token?: string | undefined;
+    /**
+     * - OAuth refresh token
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Token expiration in seconds
+     */
+    expires_in?: number | undefined;
+    /**
+     * - Token scopes
+     */
+    scope?: string | undefined;
+    /**
+     * - Team information
+     */
+    team?: {
+        /**
+         * - Team ID
+         */
+        id: string;
+    } | undefined;
+    /**
+     * - Error message if request failed
+     */
+    error?: string | undefined;
+};
+export type SlackTokenData = {
+    /**
+     * - OAuth access token
+     */
+    access_token: string;
+    /**
+     * - OAuth refresh token
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Token expiration in seconds
+     */
+    expires_in: number;
+    /**
+     * - Team ID
+     */
+    team_id: string;
+};
+export type SlackOAuthTokens = {
+    /**
+     * - Access token
+     */
+    access_token?: string | undefined;
+    /**
+     * - Refresh token
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Token expiration in seconds
+     */
+    expires_in?: number | undefined;
+    /**
+     * - Token scope
+     */
+    scope?: string | undefined;
+    /**
+     * - Team ID (Slack-specific)
+     */
+    team_id?: string | undefined;
+};
+export type SlackOAuthCallbackResult = {
+    /**
+     * - Whether callback was successful
+     */
+    success: boolean;
+    /**
+     * - Error message if callback failed
+     */
+    error?: string | undefined;
+    /**
+     * - OAuth tokens if successful
+     */
+    tokens?: SlackOAuthTokens | undefined;
+};
+export type StateData = {
+    /**
+     * - MCP instance ID
+     */
+    instanceId: string;
+    /**
+     * - User ID
+     */
+    userId: string;
+    /**
+     * - Timestamp when state was created
+     */
+    timestamp: number;
+    /**
+     * - Service name
+     */
+    service: string;
+};
+export type MCPInstance = {
+    /**
+     * - OAuth client ID
+     */
+    client_id?: string | undefined;
+    /**
+     * - OAuth client secret
+     */
+    client_secret?: string | undefined;
+};
 /**
  * Slack OAuth Handler Class
  * Implements OAuth 2.0 flow for Slack service
@@ -30,20 +138,15 @@ declare class SlackOAuthHandler {
      * Handles OAuth callback and exchanges code for tokens
      * @param {string} code - OAuth authorization code
      * @param {string} state - OAuth state parameter
-     * @returns {Promise<OAuthCallbackResult>} Callback processing result
+     * @returns {Promise<SlackOAuthCallbackResult>} Callback processing result
      */
-    handleCallback(code: string, state: string): Promise<OAuthCallbackResult>;
+    handleCallback(code: string, state: string): Promise<SlackOAuthCallbackResult>;
     /**
      * Refreshes OAuth tokens
      * @param {string} refreshToken - Refresh token
      * @param {AuthCredentials} credentials - OAuth credentials
-     * @returns {Promise<{access_token: string, refresh_token: string, expires_in: number, team_id: string}>} New tokens
+     * @returns {Promise<SlackTokenData>} New tokens
      */
-    refreshToken(refreshToken: string, credentials: AuthCredentials): Promise<{
-        access_token: string;
-        refresh_token: string;
-        expires_in: number;
-        team_id: string;
-    }>;
+    refreshToken(refreshToken: string, credentials: AuthCredentials): Promise<SlackTokenData>;
 }
 //# sourceMappingURL=oauthHandler.d.ts.map

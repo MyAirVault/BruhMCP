@@ -107,7 +107,7 @@ export function createResponseCacheMiddleware(options = /** @type {{enabled?: bo
       return next();
     }
     
-    const instanceId = req.instanceId;
+    const instanceId = /** @type {string} */ (req.instanceId);
     const params = cacheMapping.getParams(args);
     
     // Skip caching for private operations (if configured)
@@ -147,7 +147,7 @@ export function createResponseCacheMiddleware(options = /** @type {{enabled?: bo
     // Cache miss - intercept response to cache it
     const originalJson = res.json;
     
-    res.json = function(/** @type {Record<string, Record<string, Record<string, {type: string, text: string}[]>>} */ data) {
+    res.json = function(/** @type {{result?: {content?: Array<{type: string, text: string}>}, error?: boolean}} */ data) {
       try {
         // Check if response should be cached
         const shouldCache = !skipCacheForErrors || !data.error;
@@ -256,7 +256,7 @@ export function createCacheInvalidationMiddleware() {
           import('../services/responseCache.js').then(({ clearInstanceCache }) => {
             // For simplicity, clear all cache for the instance
             // In a more sophisticated implementation, we'd selectively clear
-            clearInstanceCache(instanceId);
+            clearInstanceCache(/** @type {string} */ (instanceId));
             console.log(`🗑️ Cache invalidated for instance ${instanceId} after ${toolName}`);
           }).catch(err => {
             console.error('Cache invalidation error:', err);

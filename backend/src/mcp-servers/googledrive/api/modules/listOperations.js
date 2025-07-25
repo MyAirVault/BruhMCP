@@ -121,7 +121,7 @@ export async function listFiles(args, bearerToken) {
 	const endpoint = `/files?${params.toString()}`;
 	const data = await makeDriveRequest(endpoint, bearerToken);
 
-	return formatFileListResponse(data);
+	return formatFileListResponse(/** @type {import('../../utils/googledriveFormatting.js').GoogleDriveFilesResponse} */ (data));
 }
 
 /**
@@ -216,7 +216,7 @@ export async function searchFiles(args, bearerToken) {
 	const endpoint = `/files?${params.toString()}`;
 	const data = await makeDriveRequest(endpoint, bearerToken);
 
-	return formatFileListResponse(data);
+	return formatFileListResponse(/** @type {import('../../utils/googledriveFormatting.js').GoogleDriveFilesResponse} */ (data));
 }
 
 /**

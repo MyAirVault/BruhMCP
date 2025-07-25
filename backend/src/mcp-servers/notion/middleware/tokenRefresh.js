@@ -30,12 +30,13 @@ export async function attemptTokenRefresh(refreshToken, clientId, clientSecret) 
     });
     usedMethod = 'oauth_service';
   } catch (oauthServiceError) {
-    console.log(`⚠️  OAuth service failed, trying direct Notion OAuth: ${oauthServiceError.message}`);
+    const error = /** @type {Error} */ (oauthServiceError);
+    console.log(`⚠️  OAuth service failed, trying direct Notion OAuth: ${error.message}`);
 
     // Check if error indicates OAuth service unavailable
     if (
-      oauthServiceError.message.includes('OAuth service error') ||
-      oauthServiceError.message.includes('Failed to start OAuth service')
+      error.message.includes('OAuth service error') ||
+      error.message.includes('Failed to start OAuth service')
     ) {
       // Fallback to direct Notion OAuth
       newTokens = await refreshBearerTokenDirect({
@@ -46,7 +47,7 @@ export async function attemptTokenRefresh(refreshToken, clientId, clientSecret) 
       usedMethod = 'direct_oauth';
     } else {
       // Re-throw if it's not a service availability issue
-      throw oauthServiceError;
+      throw error;
     }
   }
 
@@ -62,7 +63,7 @@ export async function attemptTokenRefresh(refreshToken, clientId, clientSecret) 
  */
 export function recordSuccessfulRefreshMetrics(instanceId, method, startTime) {
   const endTime = Date.now();
-  recordTokenRefreshMetrics(instanceId, method, true, endTime - startTime);
+  recordTokenRefreshMetrics(instanceId, method, true, null, null, startTime, endTime);
 }
 
 /**
@@ -74,7 +75,7 @@ export function recordSuccessfulRefreshMetrics(instanceId, method, startTime) {
  */
 export function recordFailedRefreshMetrics(instanceId, method, startTime) {
   const endTime = Date.now();
-  recordTokenRefreshMetrics(instanceId, method, false, endTime - startTime);
+  recordTokenRefreshMetrics(instanceId, method, false, 'REFRESH_FAILED', 'Token refresh failed', startTime, endTime);
 }
 
 /**
@@ -128,8 +129,7 @@ export async function processSuccessfulRefresh(instanceId, newTokens, method, us
     success: true,
     metadata: {
       method,
-      duration,
-      expiresIn: newTokens.expires_in
+      duration
     }
   };
 }
@@ -159,8 +159,7 @@ export function processFailedRefresh(instanceId, error, method, startTime) {
     success: false,
     error: tokenError,
     errorInfo: {
-      method,
-      duration: Date.now() - startTime
+      method
     }
   };
 }

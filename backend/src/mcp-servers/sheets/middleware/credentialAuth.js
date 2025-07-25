@@ -110,7 +110,7 @@ export function createCredentialAuthMiddleware() {
 					const errorDetails = handleRefreshFailure(instanceId, refreshError);
 					
 					if (errorDetails && typeof errorDetails === 'object' && 'requiresReauth' in errorDetails && errorDetails.requiresReauth) {
-						return createRefreshFailureResponse(res, instanceId, errorDetails);
+						return createRefreshFailureResponse(res, /** @type {{error: string, errorCode: string, requiresReauth: boolean, instanceId: string}} */ (errorDetails));
 					}
 					
 					// For other errors, fall through to full OAuth exchange
@@ -159,18 +159,37 @@ export function createLightweightAuthMiddleware() {
 
 		try {
 			// Quick database lookup without credential exchange
-			const instance = await lookupInstanceCredentials(instanceId, 'sheets');
+			const instanceCredentials = await lookupInstanceCredentials(instanceId, 'sheets');
+			
+			// Convert to DatabaseInstance for validation
+			/** @type {import('./types.js').DatabaseInstance|null} */
+			const instance = instanceCredentials ? {
+				instance_id: instanceCredentials.instance_id,
+				user_id: instanceCredentials.user_id,
+				mcp_service_name: 'sheets',
+				auth_type: 'oauth',
+				oauth_status: instanceCredentials.oauth_status,
+				status: instanceCredentials.status,
+				expires_at: instanceCredentials.expires_at,
+				service_active: instanceCredentials.service_active,
+				client_id: instanceCredentials.client_id || undefined,
+				client_secret: instanceCredentials.client_secret || undefined,
+				access_token: instanceCredentials.access_token || undefined,
+				refresh_token: instanceCredentials.refresh_token || undefined,
+				token_expires_at: instanceCredentials.expires_at,
+				scope: undefined,
+				created_at: new Date(),
+				updated_at: new Date()
+			} : null;
 			
 			// Basic validation without OAuth check
-			/** @type {import('./types.js').DatabaseInstance | null} */
-			const dbInstance = instance;
-			const validation = validateInstance(dbInstance, res, instanceId, false);
+			const validation = validateInstance(instance, res, instanceId, false);
 			if (!validation.isValid) {
 				return validation.errorResponse;
 			}
 
-			if (dbInstance && typeof dbInstance === 'object' && 'user_id' in dbInstance) {
-				setupLightweightRequest(req, instanceId, dbInstance.user_id);
+			if (instanceCredentials && typeof instanceCredentials === 'object' && 'user_id' in instanceCredentials) {
+				setupLightweightRequest(req, instanceId, instanceCredentials.user_id);
 			}
 			return next();
 

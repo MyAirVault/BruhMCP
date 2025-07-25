@@ -22,11 +22,11 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 
   const requestOptions = {
     method: options.method || 'GET',
-    headers: /** @type {HeadersInit} */ ({
+    headers: {
       Authorization: `Bearer ${bearerToken}`,
       'Content-Type': 'application/json',
       ...(options.headers || {}),
-    }),
+    },
     ...options,
   };
 

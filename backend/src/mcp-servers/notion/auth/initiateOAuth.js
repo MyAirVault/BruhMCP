@@ -58,6 +58,7 @@ async function initiateOAuth(credentials, userId, instanceId) {
 			authUrl: oauthResult.authUrl,
 			state: oauthResult.state,
 			instanceId: instanceId,
+			userId: userId,
 			message: 'Notion OAuth flow initiated successfully',
 		};
 	} catch (error) {

@@ -28,11 +28,40 @@ import {
 import { validateToolArguments } from '../utils/validation.js';
 
 /**
+ * @typedef {import('../api/modules/messageOperations.js').SendMessageArgs} SendMessageArgs
+ * @typedef {import('../api/modules/messageOperations.js').GetMessagesArgs} GetMessagesArgs
+ * @typedef {import('../api/modules/messageOperations.js').GetThreadMessagesArgs} GetThreadMessagesArgs
+ * @typedef {import('../api/modules/messageOperations.js').DeleteMessageArgs} DeleteMessageArgs
+ * @typedef {import('../api/modules/messageOperations.js').UpdateMessageArgs} UpdateMessageArgs
+ * @typedef {import('../api/modules/channelOperations.js').ListChannelsArgs} ListChannelsArgs
+ * @typedef {import('../api/modules/channelOperations.js').ChannelInfoArgs} ChannelInfoArgs
+ * @typedef {import('../api/modules/channelOperations.js').JoinChannelArgs} JoinChannelArgs
+ * @typedef {import('../api/modules/channelOperations.js').LeaveChannelArgs} LeaveChannelArgs
+ * @typedef {import('../api/modules/userOperations.js').UserInfoArgs} UserInfoArgs
+ * @typedef {import('../api/modules/userOperations.js').ListUsersArgs} ListUsersArgs
+ * @typedef {import('../api/modules/reactionOperations.js').ReactionArgs} ReactionArgs
+ * @typedef {import('../api/modules/reactionOperations.js').GetReactionsArgs} GetReactionsArgs
+ * @typedef {import('../api/modules/fileOperations.js').UploadFileArgs} UploadFileArgs
+ * @typedef {import('../api/modules/fileOperations.js').FileInfoArgs} FileInfoArgs
+ * @typedef {import('../api/modules/miscOperations.js').CreateReminderArgs} CreateReminderArgs
+ */
+
+/**
+ * @typedef {Object} ToolExecutionResult
+ * @property {Array<{type: string, text: string}>} content - MCP-compliant result content
+ */
+
+/**
+ * Union type for all possible tool arguments
+ * @typedef {SendMessageArgs|GetMessagesArgs|GetThreadMessagesArgs|DeleteMessageArgs|UpdateMessageArgs|ListChannelsArgs|ChannelInfoArgs|JoinChannelArgs|LeaveChannelArgs|UserInfoArgs|ListUsersArgs|ReactionArgs|GetReactionsArgs|UploadFileArgs|FileInfoArgs|CreateReminderArgs|Record<string, never>} ToolArguments
+ */
+
+/**
  * Execute a Slack tool call
  * @param {string} toolName - Name of the tool to execute
- * @param {Object} args - Tool arguments
+ * @param {ToolArguments} args - Tool arguments
  * @param {string} bearerToken - OAuth Bearer token for Slack API
- * @returns {Object} Tool execution result
+ * @returns {Promise<ToolExecutionResult>} Tool execution result
  */
 export async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Slack tool: ${toolName}`);
@@ -47,7 +76,8 @@ export async function executeToolCall(toolName, args, bearerToken) {
   try {
     validateToolArguments(toolName, args);
   } catch (validationError) {
-    throw new Error(`Invalid arguments for ${toolName}: ${validationError.message}`);
+    const errorMessage = validationError instanceof Error ? validationError.message : 'Unknown validation error';
+    throw new Error(`Invalid arguments for ${toolName}: ${errorMessage}`);
   }
 
   try {
@@ -55,71 +85,71 @@ export async function executeToolCall(toolName, args, bearerToken) {
 
     switch (toolName) {
       case 'send_message':
-        result = await sendMessage(args, bearerToken);
+        result = await sendMessage(/** @type {SendMessageArgs} */ (args), bearerToken);
         break;
 
       case 'get_messages':
-        result = await getMessages(args, bearerToken);
+        result = await getMessages(/** @type {GetMessagesArgs} */ (args), bearerToken);
         break;
 
       case 'get_thread_messages':
-        result = await getThreadMessages(args, bearerToken);
+        result = await getThreadMessages(/** @type {GetThreadMessagesArgs} */ (args), bearerToken);
         break;
 
       case 'delete_message':
-        result = await deleteMessage(args, bearerToken);
+        result = await deleteMessage(/** @type {DeleteMessageArgs} */ (args), bearerToken);
         break;
 
       case 'update_message':
-        result = await updateMessage(args, bearerToken);
+        result = await updateMessage(/** @type {UpdateMessageArgs} */ (args), bearerToken);
         break;
 
       case 'list_channels':
-        result = await listChannels(args, bearerToken);
+        result = await listChannels(/** @type {ListChannelsArgs} */ (args), bearerToken);
         break;
 
       case 'get_channel_info':
-        result = await getChannelInfo(args, bearerToken);
+        result = await getChannelInfo(/** @type {ChannelInfoArgs} */ (args), bearerToken);
         break;
 
       case 'join_channel':
-        result = await joinChannel(args, bearerToken);
+        result = await joinChannel(/** @type {JoinChannelArgs} */ (args), bearerToken);
         break;
 
       case 'leave_channel':
-        result = await leaveChannel(args, bearerToken);
+        result = await leaveChannel(/** @type {LeaveChannelArgs} */ (args), bearerToken);
         break;
 
       case 'get_user_info':
-        result = await getUserInfo(args, bearerToken);
+        result = await getUserInfo(/** @type {UserInfoArgs} */ (args), bearerToken);
         break;
 
       case 'list_users':
-        result = await listUsers(args, bearerToken);
+        result = await listUsers(/** @type {ListUsersArgs} */ (args), bearerToken);
         break;
 
       case 'add_reaction':
-        result = await addReaction(args, bearerToken);
+        result = await addReaction(/** @type {ReactionArgs} */ (args), bearerToken);
         break;
 
       case 'remove_reaction':
-        result = await removeReaction(args, bearerToken);
+        result = await removeReaction(/** @type {ReactionArgs} */ (args), bearerToken);
         break;
 
       case 'get_reactions':
-        result = await getReactions(args, bearerToken);
+        result = await getReactions(/** @type {GetReactionsArgs} */ (args), bearerToken);
         break;
 
       case 'upload_file':
-        result = await uploadFile(args, bearerToken);
+        result = await uploadFile(/** @type {UploadFileArgs} */ (args), bearerToken);
         break;
 
       case 'get_file_info':
-        result = await getFileInfo(args, bearerToken);
+        result = await getFileInfo(/** @type {FileInfoArgs} */ (args), bearerToken);
         break;
 
       case 'create_reminder':
-        result = await createReminder(args, bearerToken);
+        result = await createReminder(/** @type {CreateReminderArgs} */ (args), bearerToken);
         break;
 
       case 'get_team_info':
@@ -150,11 +180,11 @@ export async function executeToolCall(toolName, args, bearerToken) {
     console.error(`❌ Tool ${toolName} execution failed:`, error);
     
     // Enhance error message with context
-    const errorMessage = error.message || 'Unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     const enhancedError = new Error(`Slack ${toolName} failed: ${errorMessage}`);
     
     // Preserve original error stack if available
-    if (error.stack) {
+    if (error instanceof Error && error.stack) {
       enhancedError.stack = error.stack;
     }
     

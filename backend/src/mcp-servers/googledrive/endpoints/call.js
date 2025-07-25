@@ -16,16 +16,16 @@ import {
   searchFiles,
   getFilePermissions,
   getDriveInfo
-} from '../api/googledrive-api.js';
+} from '../api/googledriveApi.js';
 
 import { validateToolArguments } from '../utils/validation.js';
 
 /**
  * Execute a Google Drive tool call
  * @param {string} toolName - Name of the tool to execute
- * @param {Object} args - Tool arguments
+ * @param {Record<string, string | number | boolean | string[] | Record<string, unknown>>} args - Tool arguments
  * @param {string} bearerToken - OAuth Bearer token for Google Drive API
- * @returns {Object} Tool execution result
+ * @returns {Promise<Object>} Tool execution result
  */
 export async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Google Drive tool: ${toolName}`);
@@ -40,7 +40,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
   try {
     validateToolArguments(toolName, args);
   } catch (validationError) {
-    throw new Error(`Invalid arguments for ${toolName}: ${validationError.message}`);
+    throw new Error(`Invalid arguments for ${toolName}: ${validationError instanceof Error ? validationError.message : String(validationError)}`);
   }
 
   let result;
@@ -52,35 +52,35 @@ export async function executeToolCall(toolName, args, bearerToken) {
         break;
       
       case 'get_file_metadata':
-        result = await getFileMetadata(args, bearerToken);
+        result = await getFileMetadata(/** @type {{ fileId: string }} */ (args), bearerToken);
         break;
       
       case 'download_file':
-        result = await downloadFile(args, bearerToken);
+        result = await downloadFile(/** @type {{ fileId: string; localPath: string }} */ (args), bearerToken);
         break;
       
       case 'upload_file':
-        result = await uploadFile(args, bearerToken);
+        result = await uploadFile(/** @type {{ localPath: string; fileName: string; parentFolderId?: string; mimeType?: string }} */ (args), bearerToken);
         break;
       
       case 'create_folder':
-        result = await createFolder(args, bearerToken);
+        result = await createFolder(/** @type {import('../api/modules/fileManagement.js').CreateFolderArgs} */ (args), bearerToken);
         break;
       
       case 'delete_file':
-        result = await deleteFile(args, bearerToken);
+        result = await deleteFile(/** @type {import('../api/modules/fileManagement.js').DeleteFileArgs} */ (args), bearerToken);
         break;
       
       case 'copy_file':
-        result = await copyFile(args, bearerToken);
+        result = await copyFile(/** @type {import('../api/modules/fileManagement.js').CopyFileArgs} */ (args), bearerToken);
         break;
       
       case 'move_file':
-        result = await moveFile(args, bearerToken);
+        result = await moveFile(/** @type {import('../api/modules/fileManagement.js').MoveFileArgs} */ (args), bearerToken);
         break;
       
       case 'share_file':
-        result = await shareFile(args, bearerToken);
+        result = await shareFile(/** @type {import('../api/modules/permissionOperations.js').ShareFileArgs} */ (args), bearerToken);
         break;
       
       case 'search_files':
@@ -88,7 +88,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
         break;
       
       case 'get_file_permissions':
-        result = await getFilePermissions(args, bearerToken);
+        result = await getFilePermissions(/** @type {import('../api/modules/permissionOperations.js').GetFilePermissionsArgs} */ (args), bearerToken);
         break;
       
       case 'get_drive_info':
@@ -114,8 +114,8 @@ export async function executeToolCall(toolName, args, bearerToken) {
     return {
       success: false,
       error: {
-        message: error.message,
-        type: error.constructor.name,
+        message: error instanceof Error ? error.message : String(error),
+        type: error instanceof Error ? error.constructor.name : 'Unknown',
         toolName: toolName,
         timestamp: new Date().toISOString()
       }
@@ -125,7 +125,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
 
 /**
  * Get list of available Google Drive tools
- * @returns {Array} List of tool definitions
+ * @returns {Array<Object>} List of tool definitions
  */
 export function getAvailableTools() {
   return [

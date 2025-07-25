@@ -86,7 +86,7 @@ export async function listChannels(args, bearerToken) {
 	if (cursor) params.append('cursor', cursor);
 
 	/** @type {SlackChannelsResponse} */
-	const response = await makeSlackRequest(`/conversations.list?${params}`, bearerToken);
+	const response = /** @type {SlackChannelsResponse} */ (await makeSlackRequest(`/conversations.list?${params}`, bearerToken));
 
 	return {
 		...response,
@@ -114,7 +114,7 @@ export async function getChannelInfo(args, bearerToken) {
 
 	const params = new URLSearchParams({ channel });
 	/** @type {SlackChannelResponse} */
-	const response = await makeSlackRequest(`/conversations.info?${params}`, bearerToken);
+	const response = /** @type {SlackChannelResponse} */ (await makeSlackRequest(`/conversations.info?${params}`, bearerToken));
 
 	return {
 		...response,
@@ -133,10 +133,10 @@ export async function joinChannel(args, bearerToken) {
 	const { channel } = args;
 
 	/** @type {SlackChannelResponse} */
-	const response = await makeSlackRequest('/conversations.join', bearerToken, {
+	const response = /** @type {SlackChannelResponse} */ (await makeSlackRequest('/conversations.join', bearerToken, {
 		method: 'POST',
 		body: { channel },
-	});
+	}));
 
 	return {
 		...response,
@@ -162,10 +162,10 @@ export async function leaveChannel(args, bearerToken) {
 	const { channel } = args;
 
 	/** @type {SlackChannelResponse} */
-	const response = await makeSlackRequest('/conversations.leave', bearerToken, {
+	const response = /** @type {SlackChannelResponse} */ (await makeSlackRequest('/conversations.leave', bearerToken, {
 		method: 'POST',
 		body: { channel },
-	});
+	}));
 
 	return {
 		...response,

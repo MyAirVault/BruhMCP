@@ -18,11 +18,12 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} serviceConfig - Service configuration object
+ * @param {{name: string, displayName: string, version: string, scopes: string[]}} serviceConfig - Service configuration object
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {RedditMCPHandler} Persistent handler instance
  */
 export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
+	/** @type {{handler: RedditMCPHandler, lastAccessed: number, instanceId: string, createdAt: number, bearerToken: string}|undefined} */
 	let session = handlerSessions.get(instanceId);
 	
 	if (!session) {
@@ -117,6 +118,7 @@ function cleanupExpiredSessions() {
 }
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout|null} */
 let cleanupInterval = null;
 
 /**

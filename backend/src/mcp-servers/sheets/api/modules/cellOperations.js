@@ -28,13 +28,21 @@ export async function getCells(params, bearerToken) {
 		dateTimeRenderOption: 'FORMATTED_STRING'
 	});
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}/values/${encodeURIComponent(params.range)}?${queryParams}`,
 		bearerToken,
 		{}
 	);
 
-	return formatSheetsResponse.values(response);
+	/** @type {{range: string, majorDimension: string, values: string[][]}} */
+	const valuesResponse = {
+		range: response.range,
+		majorDimension: response.majorDimension,
+		values: response.values || []
+	};
+
+	return formatSheetsResponse.values(valuesResponse);
 }
 
 /**
@@ -48,27 +56,45 @@ export async function getCells(params, bearerToken) {
  * @returns {Promise<import('../../types/index.js').UpdateCellsResponse>} Update result
  */
 export async function updateCells(params, bearerToken) {
-	const validation = validateSheetsInput.updateCells(params);
+	/** @type {{spreadsheetId: string, range: string, values: (string|number)[][], valueInputOption: string}} */
+	const validatedParams = {
+		spreadsheetId: params.spreadsheetId,
+		range: params.range,
+		values: params.values.map(row => row.map(cell => cell === null ? '' : typeof cell === 'boolean' ? String(cell) : cell)),
+		valueInputOption: params.valueInputOption || 'USER_ENTERED'
+	};
+
+	const validation = validateSheetsInput.updateCells(validatedParams);
 	if (!validation.valid) {
 		throw new Error(validation.error);
 	}
 
 	const queryParams = new URLSearchParams({
-		valueInputOption: params.valueInputOption || 'USER_ENTERED'
+		valueInputOption: validatedParams.valueInputOption
 	});
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
-		`/spreadsheets/${params.spreadsheetId}/values/${encodeURIComponent(params.range)}?${queryParams}`,
+		`/spreadsheets/${validatedParams.spreadsheetId}/values/${encodeURIComponent(validatedParams.range)}?${queryParams}`,
 		bearerToken,
 		{
 			method: 'PUT',
 			body: {
-				values: params.values
+				values: validatedParams.values
 			}
 		}
 	);
 
-	return formatSheetsResponse.updateResult(response);
+	/** @type {{spreadsheetId: string, updatedRange: string, updatedRows: number, updatedColumns: number, updatedCells: number}} */
+	const updateResult = {
+		spreadsheetId: response.spreadsheetId,
+		updatedRange: response.updatedRange,
+		updatedRows: response.updatedRows,
+		updatedColumns: response.updatedColumns,
+		updatedCells: response.updatedCells
+	};
+
+	return formatSheetsResponse.updateResult(updateResult);
 }
 
 /**
@@ -82,28 +108,50 @@ export async function updateCells(params, bearerToken) {
  * @returns {Promise<Record<string, any>>} Append result
  */
 export async function appendValues(params, bearerToken) {
-	const validation = validateSheetsInput.appendValues(params);
+	/** @type {{spreadsheetId: string, range: string, values: (string|number)[][], valueInputOption: string}} */
+	const validatedParams = {
+		spreadsheetId: params.spreadsheetId,
+		range: params.range,
+		values: params.values.map(row => row.map(cell => cell === null ? '' : typeof cell === 'boolean' ? String(cell) : cell)),
+		valueInputOption: params.valueInputOption || 'USER_ENTERED'
+	};
+
+	const validation = validateSheetsInput.appendValues(validatedParams);
 	if (!validation.valid) {
 		throw new Error(validation.error);
 	}
 
 	const queryParams = new URLSearchParams({
-		valueInputOption: params.valueInputOption || 'USER_ENTERED',
+		valueInputOption: validatedParams.valueInputOption,
 		insertDataOption: 'INSERT_ROWS'
 	});
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
-		`/spreadsheets/${params.spreadsheetId}/values/${encodeURIComponent(params.range)}:append?${queryParams}`,
+		`/spreadsheets/${validatedParams.spreadsheetId}/values/${encodeURIComponent(validatedParams.range)}:append?${queryParams}`,
 		bearerToken,
 		{
 			method: 'POST',
 			body: {
-				values: params.values
+				values: validatedParams.values
 			}
 		}
 	);
 
-	return formatSheetsResponse.appendResult(response);
+	/** @type {{spreadsheetId: string, tableRange: string, updates: {spreadsheetId: string, updatedRange: string, updatedRows: number, updatedColumns: number, updatedCells: number}}} */
+	const appendResult = {
+		spreadsheetId: response.spreadsheetId,
+		tableRange: response.tableRange,
+		updates: {
+			spreadsheetId: response.updates?.spreadsheetId,
+			updatedRange: response.updates?.updatedRange,
+			updatedRows: response.updates?.updatedRows,
+			updatedColumns: response.updates?.updatedColumns,
+			updatedCells: response.updates?.updatedCells
+		}
+	};
+
+	return formatSheetsResponse.appendResult(appendResult);
 }
 
 /**
@@ -120,6 +168,7 @@ export async function clearCells(params, bearerToken) {
 		throw new Error(validation.error);
 	}
 
+	/** @type {Record<string, any>} */
 	const response = await makeSheetsRequest(
 		`/spreadsheets/${params.spreadsheetId}/values/${encodeURIComponent(params.range)}:clear`,
 		bearerToken,
@@ -128,5 +177,11 @@ export async function clearCells(params, bearerToken) {
 		}
 	);
 
-	return formatSheetsResponse.clearResult(response);
+	/** @type {{spreadsheetId: string, clearedRange: string}} */
+	const clearResult = {
+		spreadsheetId: response.spreadsheetId,
+		clearedRange: response.clearedRange
+	};
+
+	return formatSheetsResponse.clearResult(clearResult);
 }
