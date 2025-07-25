@@ -4,7 +4,7 @@
  */
 
 import { formatFileResponse, formatUploadResponse } from '../../utils/googledriveFormatting.js';
-import { validateFileId, validateFileName, validateMimeType, validateLocalPath } from '../../utils/validation.js';
+import { validateFileId, validateFileName, validateLocalPath } from '../../utils/validation.js';
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 const UPLOAD_API_BASE = 'https://www.googleapis.com/upload/drive/v3';
@@ -13,8 +13,8 @@ const UPLOAD_API_BASE = 'https://www.googleapis.com/upload/drive/v3';
  * Make authenticated request to Google Drive API
  * @param {string} endpoint - API endpoint
  * @param {string} bearerToken - OAuth Bearer token
- * @param {Object} options - Request options
- * @returns {Object} API response
+ * @param {{method?: string, headers?: Record<string, string>, body?: any, raw?: boolean}} [options={}] - Request options
+ * @returns {Promise<any>} API response
  */
 async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 	const url = `${DRIVE_API_BASE}${endpoint}`;
@@ -55,15 +55,15 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 		const data = await response.json();
 		return data;
 	} catch (error) {
-		throw new Error(`Failed to access Google Drive API: ${error.message}`);
+		throw new Error(`Failed to access Google Drive API: ${/** @type {Error} */ (error).message}`);
 	}
 }
 
 /**
  * Upload a file to Google Drive
- * @param {Object} args - Upload arguments
+ * @param {{localPath: string, fileName: string, parentFolderId?: string, mimeType?: string}} args - Upload arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Upload result
+ * @returns {Promise<any>} Upload result
  */
 export async function uploadFile(args, bearerToken) {
 	const { localPath, fileName, parentFolderId, mimeType } = args;
@@ -80,20 +80,20 @@ export async function uploadFile(args, bearerToken) {
 	try {
 		validateLocalPath(localPath);
 	} catch (error) {
-		throw new Error(`Invalid local path: ${error.message}`);
+		throw new Error(`Invalid local path: ${/** @type {Error} */ (error).message}`);
 	}
 
 	try {
 		validateFileName(fileName);
 	} catch (error) {
-		throw new Error(`Invalid file name: ${error.message}`);
+		throw new Error(`Invalid file name: ${/** @type {Error} */ (error).message}`);
 	}
 
 	if (parentFolderId) {
 		try {
 			validateFileId(parentFolderId);
 		} catch (error) {
-			throw new Error(`Invalid parent folder ID: ${error.message}`);
+			throw new Error(`Invalid parent folder ID: ${/** @type {Error} */ (error).message}`);
 		}
 	}
 
@@ -112,13 +112,14 @@ export async function uploadFile(args, bearerToken) {
 
 		fileContent = await fs.readFile(localPath);
 	} catch (error) {
-		throw new Error(`Failed to read file: ${error.message}`);
+		throw new Error(`Failed to read file: ${/** @type {Error} */ (error).message}`);
 	}
 
 	// Detect MIME type if not provided
 	const detectedMimeType = mimeType || detectMimeType(path.extname(localPath));
 
 	// Prepare metadata
+	/** @type {{name: string, parents?: string[]}} */
 	const metadata = {
 		name: fileName,
 	};
@@ -177,18 +178,18 @@ export async function uploadFile(args, bearerToken) {
 			throw new Error(errorMessage);
 		}
 
-		const fileData = await response.json();
-		return formatUploadResponse(fileData);
+		const fileData = /** @type {Object} */ (await response.json());
+		return formatUploadResponse(fileData, localPath);
 	} catch (error) {
-		throw new Error(`Failed to upload file: ${error.message}`);
+		throw new Error(`Failed to upload file: ${/** @type {Error} */ (error).message}`);
 	}
 }
 
 /**
  * Download a file from Google Drive
- * @param {Object} args - Download arguments
+ * @param {{fileId: string, localPath: string}} args - Download arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Download result
+ * @returns {Promise<any>} Download result
  */
 export async function downloadFile(args, bearerToken) {
 	const { fileId, localPath } = args;
@@ -205,13 +206,13 @@ export async function downloadFile(args, bearerToken) {
 	try {
 		validateFileId(fileId);
 	} catch (error) {
-		throw new Error(`Invalid file ID: ${error.message}`);
+		throw new Error(`Invalid file ID: ${/** @type {Error} */ (error).message}`);
 	}
 
 	try {
 		validateLocalPath(localPath);
 	} catch (error) {
-		throw new Error(`Invalid local path: ${error.message}`);
+		throw new Error(`Invalid local path: ${/** @type {Error} */ (error).message}`);
 	}
 
 	// Import fs module
@@ -223,7 +224,7 @@ export async function downloadFile(args, bearerToken) {
 	try {
 		await fs.mkdir(directory, { recursive: true });
 	} catch (error) {
-		throw new Error(`Failed to create directory: ${error.message}`);
+		throw new Error(`Failed to create directory: ${/** @type {Error} */ (error).message}`);
 	}
 
 	// First, get file metadata to know its properties
@@ -279,15 +280,15 @@ export async function downloadFile(args, bearerToken) {
 			message: `File downloaded successfully to ${localPath}`,
 		};
 	} catch (error) {
-		throw new Error(`Failed to download file: ${error.message}`);
+		throw new Error(`Failed to download file: ${/** @type {Error} */ (error).message}`);
 	}
 }
 
 /**
  * Get file metadata
- * @param {Object} args - Arguments
+ * @param {{fileId: string}} args - Arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} File metadata
+ * @returns {Promise<any>} File metadata
  */
 export async function getFileMetadata(args, bearerToken) {
 	const { fileId } = args;
@@ -299,7 +300,7 @@ export async function getFileMetadata(args, bearerToken) {
 	try {
 		validateFileId(fileId);
 	} catch (error) {
-		throw new Error(`Invalid file ID: ${error.message}`);
+		throw new Error(`Invalid file ID: ${/** @type {Error} */ (error).message}`);
 	}
 
 	const fields = 'id,name,mimeType,size,createdTime,modifiedTime,parents,webViewLink,webContentLink,owners,shared,permissions,trashed';
@@ -315,6 +316,7 @@ export async function getFileMetadata(args, bearerToken) {
  * @returns {string} MIME type
  */
 function detectMimeType(extension) {
+	/** @type {Record<string, string>} */
 	const mimeTypes = {
 		'.txt': 'text/plain',
 		'.html': 'text/html',
@@ -347,6 +349,7 @@ function detectMimeType(extension) {
  * @returns {string} Export MIME type
  */
 function getExportMimeType(googleMimeType) {
+	/** @type {Record<string, string>} */
 	const exportTypes = {
 		'application/vnd.google-apps.document': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 		'application/vnd.google-apps.spreadsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

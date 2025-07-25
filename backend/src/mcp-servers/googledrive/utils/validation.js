@@ -6,15 +6,51 @@
 import { getTools } from '../endpoints/tools.js';
 
 /**
+ * @typedef {Object} JsonSchemaProperty
+ * @property {string} [type] - Property type
+ * @property {string} [description] - Property description
+ * @property {string[]} [enum] - Enumeration values
+ * @property {string} [pattern] - Regex pattern
+ * @property {number} [minLength] - Minimum string length
+ * @property {number} [maxLength] - Maximum string length
+ * @property {number} [minimum] - Minimum number value
+ * @property {number} [maximum] - Maximum number value
+ * @property {number} [multipleOf] - Number must be multiple of this
+ * @property {number} [minItems] - Minimum array items
+ * @property {number} [maxItems] - Maximum array items
+ * @property {JsonSchemaProperty} [items] - Array item schema
+ */
+
+/**
+ * @typedef {Object} JsonSchema
+ * @property {string} type - Schema type
+ * @property {Record<string, JsonSchemaProperty>} [properties] - Object properties
+ * @property {string[]} [required] - Required properties
+ */
+
+/**
+ * @typedef {Object} DriveToolDefinition
+ * @property {string} name - Tool name
+ * @property {string} description - Tool description
+ * @property {JsonSchema} inputSchema - Input validation schema
+ */
+
+/**
+ * @typedef {Object} DriveToolsResponse
+ * @property {DriveToolDefinition[]} tools - Available tools
+ */
+
+/**
  * Validate tool arguments against schema
  * @param {string} toolName - Name of the tool
- * @param {Object} args - Arguments to validate
+ * @param {Record<string, string | number | boolean | string[] | Record<string, unknown>>} args - Arguments to validate
  * @throws {Error} Validation error if arguments are invalid
  * @returns {void}
  */
 export function validateToolArguments(toolName, args) {
+	/** @type {DriveToolsResponse} */
 	const toolsData = getTools();
-	const tool = toolsData.tools.find(t => t.name === toolName);
+	const tool = toolsData.tools.find((t) => t.name === toolName);
 
 	if (!tool) {
 		throw new Error(`Unknown tool: ${toolName}`);
@@ -30,8 +66,8 @@ export function validateToolArguments(toolName, args) {
 
 /**
  * Validate object against JSON schema
- * @param {Object} obj - Object to validate
- * @param {Object} schema - JSON schema
+ * @param {Record<string, string | number | boolean | string[] | Record<string, unknown>>} obj - Object to validate
+ * @param {JsonSchema} schema - JSON schema
  * @param {string} context - Context for error messages
  */
 function validateObject(obj, schema, context) {
@@ -64,8 +100,8 @@ function validateObject(obj, schema, context) {
 
 /**
  * Validate individual property
- * @param {string|number|boolean|Array|Object|null|undefined} value - Value to validate
- * @param {Object} schema - Property schema
+ * @param {string | number | boolean | string[] | Record<string, unknown> | null | undefined} value - Value to validate
+ * @param {JsonSchemaProperty} schema - Property schema
  * @param {string} context - Context for error messages
  */
 function validateProperty(value, schema, context) {
@@ -77,23 +113,23 @@ function validateProperty(value, schema, context) {
 	}
 
 	// String validations
-	if (schema.type === 'string') {
+	if (schema.type === 'string' && typeof value === 'string') {
 		validateString(value, schema, context);
 	}
 
 	// Number validations
-	if (schema.type === 'number') {
+	if (schema.type === 'number' && typeof value === 'number') {
 		validateNumber(value, schema, context);
 	}
 
 	// Array validations
-	if (schema.type === 'array') {
+	if (schema.type === 'array' && Array.isArray(value)) {
 		validateArray(value, schema, context);
 	}
 
 	// Enum validation
 	if (schema.enum) {
-		if (!schema.enum.includes(value)) {
+		if (!schema.enum.includes(String(value))) {
 			throw new Error(`Invalid value for ${context}: must be one of [${schema.enum.join(', ')}]`);
 		}
 	}
@@ -101,7 +137,7 @@ function validateProperty(value, schema, context) {
 
 /**
  * Validate value type
- * @param {string|number|boolean|Array|Object|null|undefined} value - Value to validate
+ * @param {string | number | boolean | string[] | Record<string, unknown> | null | undefined} value - Value to validate
  * @param {string} expectedType - Expected type
  * @returns {boolean} True if type is valid
  */
@@ -125,7 +161,7 @@ function validateType(value, expectedType) {
 /**
  * Validate string property
  * @param {string} value - String value
- * @param {Object} schema - String schema
+ * @param {JsonSchemaProperty} schema - String schema
  * @param {string} context - Context for error messages
  */
 function validateString(value, schema, context) {
@@ -148,7 +184,7 @@ function validateString(value, schema, context) {
 /**
  * Validate number property
  * @param {number} value - Number value
- * @param {Object} schema - Number schema
+ * @param {JsonSchemaProperty} schema - Number schema
  * @param {string} context - Context for error messages
  */
 function validateNumber(value, schema, context) {
@@ -167,8 +203,8 @@ function validateNumber(value, schema, context) {
 
 /**
  * Validate array property
- * @param {Array} value - Array value
- * @param {Object} schema - Array schema
+ * @param {string[]} value - Array value
+ * @param {JsonSchemaProperty} schema - Array schema
  * @param {string} context - Context for error messages
  */
 function validateArray(value, schema, context) {
@@ -183,7 +219,9 @@ function validateArray(value, schema, context) {
 	// Validate array items
 	if (schema.items) {
 		value.forEach((item, index) => {
-			validateProperty(item, schema.items, `${context}[${index}]`);
+			if (schema.items) {
+				validateProperty(item, schema.items, `${context}[${index}]`);
+			}
 		});
 	}
 }

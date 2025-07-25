@@ -12,24 +12,36 @@ const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
  * Make authenticated request to Google Drive API
  * @param {string} endpoint - API endpoint
  * @param {string} bearerToken - OAuth Bearer token
- * @param {Object} options - Request options
- * @returns {Object} API response
+ * @param {import('../../api/types.js').RequestOptions} [options] - Request options
+ * @returns {Promise<Object>} API response
  */
 async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 	const url = `${DRIVE_API_BASE}${endpoint}`;
 
-	const requestOptions = {
-		method: options.method || 'GET',
-		headers: {
-			Authorization: `Bearer ${bearerToken}`,
-			'Content-Type': 'application/json',
-			...options.headers,
-		},
-		...options,
+	/** @type {Record<string, string>} */
+	const headersRecord = {
+		Authorization: `Bearer ${bearerToken}`,
+		'Content-Type': 'application/json',
 	};
 
-	if (options.body && typeof options.body === 'object' && !options.raw) {
-		requestOptions.body = JSON.stringify(options.body);
+	// Add any additional headers from options
+	if (options.headers) {
+		Object.assign(headersRecord, options.headers);
+	}
+
+	/** @type {RequestInit} */
+	const requestOptions = {
+		method: options.method || 'GET',
+		headers: headersRecord,
+	};
+
+	// Add body if present
+	if (options.body) {
+		if (typeof options.body === 'object' && !options.raw) {
+			requestOptions.body = JSON.stringify(options.body);
+		} else if (typeof options.body === 'string' || options.body instanceof FormData) {
+			requestOptions.body = options.body;
+		}
 	}
 
 	try {
@@ -51,18 +63,24 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 			throw new Error(errorMessage);
 		}
 
-		const data = await response.json();
-		return data;
+		const jsonData = await response.json();
+		return /** @type {Object} */ (jsonData);
 	} catch (error) {
-		throw new Error(`Failed to access Google Drive API: ${error.message}`);
+		throw new Error(`Failed to access Google Drive API: ${error instanceof Error ? error.message : String(error)}`);
 	}
 }
 
 /**
  * List files in Google Drive
- * @param {Object} args - List arguments
+ * @param {{
+ *   parentFolderId?: string,
+ *   pageSize?: number,
+ *   pageToken?: string,
+ *   showTrashed?: boolean,
+ *   orderBy?: string
+ * }} args - List arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} List result
+ * @returns {Promise<Object>} List result
  */
 export async function listFiles(args, bearerToken) {
 	const { parentFolderId, pageSize = 100, pageToken, showTrashed = false, orderBy = 'modifiedTime desc' } = args;
@@ -74,7 +92,7 @@ export async function listFiles(args, bearerToken) {
 		try {
 			validateFileId(parentFolderId);
 		} catch (error) {
-			throw new Error(`Invalid parent folder ID: ${error.message}`);
+			throw new Error(`Invalid parent folder ID: ${error instanceof Error ? error.message : String(error)}`);
 		}
 		queryParts.push(`'${parentFolderId}' in parents`);
 	}
@@ -108,9 +126,19 @@ export async function listFiles(args, bearerToken) {
 
 /**
  * Search files in Google Drive
- * @param {Object} args - Search arguments
+ * @param {{
+ *   query?: string,
+ *   name?: string,
+ *   mimeType?: string,
+ *   parentFolderId?: string,
+ *   pageSize?: number,
+ *   pageToken?: string,
+ *   showTrashed?: boolean,
+ *   orderBy?: string,
+ *   searchInContent?: boolean
+ * }} args - Search arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Search result
+ * @returns {Promise<Object>} Search result
  */
 export async function searchFiles(args, bearerToken) {
 	const {
@@ -147,7 +175,7 @@ export async function searchFiles(args, bearerToken) {
 		try {
 			validateMimeType(mimeType);
 		} catch (error) {
-			throw new Error(`Invalid MIME type: ${error.message}`);
+			throw new Error(`Invalid MIME type: ${error instanceof Error ? error.message : String(error)}`);
 		}
 		queryParts.push(`mimeType = '${mimeType}'`);
 	}
@@ -157,7 +185,7 @@ export async function searchFiles(args, bearerToken) {
 		try {
 			validateFileId(parentFolderId);
 		} catch (error) {
-			throw new Error(`Invalid parent folder ID: ${error.message}`);
+			throw new Error(`Invalid parent folder ID: ${error instanceof Error ? error.message : String(error)}`);
 		}
 		queryParts.push(`'${parentFolderId}' in parents`);
 	}
@@ -193,11 +221,11 @@ export async function searchFiles(args, bearerToken) {
 
 /**
  * Get Google Drive storage information
- * @param {Object} args - Arguments (unused but kept for consistency)
+ * @param {Object} _args - Arguments (unused but kept for consistency)
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Drive info
+ * @returns {Promise<Object>} Drive info
  */
-export async function getDriveInfo(args, bearerToken) {
+export async function getDriveInfo(_args, bearerToken) {
 	const endpoint = '/about?fields=storageQuota,user';
 	const data = await makeDriveRequest(endpoint, bearerToken);
 

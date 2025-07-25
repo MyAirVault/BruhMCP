@@ -6,13 +6,34 @@
 import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 
 /**
+ * OAuth credentials interface
+ * @typedef {Object} OAuthCredentials
+ * @property {string} clientId - OAuth Client ID
+ * @property {string} clientSecret - OAuth Client Secret
+ * @property {string} [refreshToken] - OAuth Refresh Token (optional)
+ * @property {string} [accessToken] - OAuth Access Token (optional)
+ */
+
+/**
+ * Validation result interface
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether validation passed
+ * @property {string} [error] - Error message if validation failed
+ * @property {string} [message] - Success message if validation passed
+ * @property {Object} [details] - Additional validation details
+ */
+
+/**
+ * Token validation result interface
+ * @typedef {Object} TokenValidationResult
+ * @property {boolean} valid - Whether token is valid
+ * @property {Object} [details] - Token validation details
+ */
+
+/**
  * Validate OAuth 2.0 credentials for Google Drive
- * @param {Object} credentials - OAuth credentials to validate
- * @param {string} credentials.clientId - OAuth Client ID
- * @param {string} credentials.clientSecret - OAuth Client Secret
- * @param {string} credentials.refreshToken - OAuth Refresh Token (optional)
- * @param {string} credentials.accessToken - OAuth Access Token (optional)
- * @returns {Object} Validation result
+ * @param {OAuthCredentials} credentials - OAuth credentials to validate
+ * @returns {Promise<ValidationResult>} Validation result
  */
 export async function validateCredentials(credentials) {
   const { clientId, clientSecret, refreshToken, accessToken } = credentials;
@@ -92,7 +113,7 @@ export async function validateCredentials(credentials) {
 /**
  * Validate OAuth access token format
  * @param {string} accessToken - Access token to validate
- * @returns {Object} Validation result
+ * @returns {TokenValidationResult} Validation result
  */
 export function validateAccessToken(accessToken) {
   if (!accessToken) {
@@ -137,7 +158,7 @@ export function validateAccessToken(accessToken) {
 /**
  * Validate OAuth refresh token format
  * @param {string} refreshToken - Refresh token to validate
- * @returns {Object} Validation result
+ * @returns {TokenValidationResult} Validation result
  */
 export function validateRefreshToken(refreshToken) {
   if (!refreshToken) {
@@ -181,8 +202,8 @@ export function validateRefreshToken(refreshToken) {
 
 /**
  * Validate Google Drive scopes
- * @param {Array} scopes - Array of OAuth scopes
- * @returns {Object} Validation result
+ * @param {string[]} scopes - Array of OAuth scopes
+ * @returns {ValidationResult} Validation result
  */
 export function validateScopes(scopes) {
   if (!Array.isArray(scopes)) {
@@ -248,9 +269,18 @@ export function validateScopes(scopes) {
 }
 
 /**
+ * Instance configuration interface
+ * @typedef {Object} InstanceConfig
+ * @property {string} instanceId - Instance UUID
+ * @property {string} userId - User UUID
+ * @property {string} serviceName - Service name
+ * @property {OAuthCredentials} credentials - OAuth credentials
+ */
+
+/**
  * Validate instance configuration
- * @param {Object} config - Instance configuration
- * @returns {Object} Validation result
+ * @param {InstanceConfig} config - Instance configuration
+ * @returns {ValidationResult} Validation result
  */
 export function validateInstanceConfig(config) {
   const { instanceId, userId, serviceName, credentials } = config;
@@ -281,7 +311,7 @@ export function validateInstanceConfig(config) {
   if (errors.length > 0) {
     return {
       valid: false,
-      errors,
+      error: errors.join('; '),
       details: {
         instanceId: instanceId || 'missing',
         userId: userId || 'missing',
@@ -311,8 +341,21 @@ class GoogleDriveOAuthValidator extends BaseValidator {
   }
 
   /**
+   * Mixed credentials interface (supports both camelCase and snake_case)
+   * @typedef {Object} MixedCredentials
+   * @property {string} [clientId] - OAuth Client ID (camelCase)
+   * @property {string} [client_id] - OAuth Client ID (snake_case)
+   * @property {string} [clientSecret] - OAuth Client Secret (camelCase)
+   * @property {string} [client_secret] - OAuth Client Secret (snake_case)
+   * @property {string} [refreshToken] - OAuth Refresh Token (camelCase)
+   * @property {string} [refresh_token] - OAuth Refresh Token (snake_case)
+   * @property {string} [accessToken] - OAuth Access Token (camelCase)
+   * @property {string} [access_token] - OAuth Access Token (snake_case)
+   */
+
+  /**
    * Validate Google Drive OAuth credentials format
-   * @param {Object} credentials - Credentials to validate
+   * @param {MixedCredentials} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
@@ -348,7 +391,7 @@ class GoogleDriveOAuthValidator extends BaseValidator {
 
   /**
    * Test Google Drive OAuth credentials against actual API
-   * @param {Object} credentials - Credentials to test
+   * @param {MixedCredentials} credentials - Credentials to test
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
@@ -359,9 +402,16 @@ class GoogleDriveOAuthValidator extends BaseValidator {
     }
 
     // Convert to expected format for validateCredentials function
+    const clientId = credentials.clientId || credentials.client_id;
+    const clientSecret = credentials.clientSecret || credentials.client_secret;
+    
+    if (!clientId || !clientSecret) {
+      return createValidationResult(false, 'Client ID and Client Secret are required', 'credentials');
+    }
+    
     const creds = {
-      clientId: credentials.clientId || credentials.client_id,
-      clientSecret: credentials.clientSecret || credentials.client_secret,
+      clientId,
+      clientSecret,
       refreshToken: credentials.refreshToken || credentials.refresh_token,
       accessToken: credentials.accessToken || credentials.access_token
     };
@@ -380,14 +430,15 @@ class GoogleDriveOAuthValidator extends BaseValidator {
       } else {
         return createValidationResult(false, validation.error, 'credentials');
       }
-    } catch (/** @type {Error} */ error) {
-      return createValidationResult(false, `Failed to test Google Drive OAuth credentials: ${error.message}`, 'credentials');
+    } catch (error) {
+      const err = /** @type {Error} */ (error);
+      return createValidationResult(false, `Failed to test Google Drive OAuth credentials: ${err.message}`, 'credentials');
     }
   }
 
   /**
    * Get Google Drive service information
-   * @param {Object} _credentials - Validated credentials
+   * @param {MixedCredentials} _credentials - Validated credentials
    * @returns {Object} Service information
    */
   getServiceInfo(_credentials) {
@@ -403,7 +454,7 @@ class GoogleDriveOAuthValidator extends BaseValidator {
 
 /**
  * Google Drive validator factory
- * @param {Object} credentials - Credentials to validate
+ * @param {MixedCredentials} credentials - Credentials to validate
  * @returns {BaseValidator} Validator instance
  */
 function createGoogleDriveValidator(credentials) {

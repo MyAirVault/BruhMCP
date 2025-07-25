@@ -9,15 +9,79 @@ import { validateFileId, validateFileName } from '../../utils/validation.js';
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
 /**
+ * @typedef {Object} RequestOptions
+ * @property {string} [method='GET'] - HTTP method
+ * @property {Record<string, string>} [headers] - Additional headers
+ * @property {Record<string, any>} [body] - Request body
+ * @property {boolean} [raw] - Whether to send raw body
+ */
+
+/**
+ * @typedef {Object} CreateFolderArgs
+ * @property {string} folderName - Name of the folder to create
+ * @property {string} [parentFolderId] - ID of parent folder
+ */
+
+/**
+ * @typedef {Object} DeleteFileArgs
+ * @property {string} fileId - ID of file to delete
+ * @property {boolean} [permanent=false] - Whether to permanently delete
+ */
+
+/**
+ * @typedef {Object} CopyFileArgs
+ * @property {string} fileId - ID of file to copy
+ * @property {string} [newName] - New name for copied file
+ * @property {string} [destinationFolderId] - Destination folder ID
+ */
+
+/**
+ * @typedef {Object} MoveFileArgs
+ * @property {string} fileId - ID of file to move
+ * @property {string} destinationFolderId - Destination folder ID
+ */
+
+/**
+ * @typedef {Object} DriveFileMetadata
+ * @property {string} name - File name
+ * @property {string} mimeType - MIME type
+ * @property {string[]} [parents] - Parent folder IDs
+ */
+
+/**
+ * @typedef {Object} DriveApiResponse
+ * @property {string} id - File ID
+ * @property {string} name - File name
+ * @property {string} mimeType - MIME type
+ * @property {string} [size] - File size
+ * @property {string} createdTime - Creation time
+ * @property {string} modifiedTime - Modification time
+ * @property {string[]} [parents] - Parent folder IDs
+ * @property {string} webViewLink - Web view link
+ * @property {Object[]} owners - File owners
+ * @property {boolean} shared - Whether file is shared
+ */
+
+/**
+ * @typedef {Object} FileOperationResult
+ * @property {boolean} success - Operation success status
+ * @property {string} fileId - File ID
+ * @property {string} message - Result message
+ * @property {string} action - Action performed
+ * @property {Object} [file] - File details (for non-permanent delete)
+ */
+
+/**
  * Make authenticated request to Google Drive API
  * @param {string} endpoint - API endpoint
  * @param {string} bearerToken - OAuth Bearer token
- * @param {Object} options - Request options
- * @returns {Object} API response
+ * @param {RequestOptions} options - Request options
+ * @returns {Promise<DriveApiResponse | null>} API response
  */
 async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 	const url = `${DRIVE_API_BASE}${endpoint}`;
 
+	/** @type {RequestInit} */
 	const requestOptions = {
 		method: options.method || 'GET',
 		headers: {
@@ -25,11 +89,12 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 			'Content-Type': 'application/json',
 			...options.headers,
 		},
-		...options,
 	};
 
 	if (options.body && typeof options.body === 'object' && !options.raw) {
 		requestOptions.body = JSON.stringify(options.body);
+	} else if (options.body) {
+		requestOptions.body = String(options.body);
 	}
 
 	try {
@@ -57,17 +122,18 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 		}
 
 		const data = await response.json();
-		return data;
+		return /** @type {DriveApiResponse} */ (data);
 	} catch (error) {
-		throw new Error(`Failed to access Google Drive API: ${error.message}`);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Failed to access Google Drive API: ${errorMessage}`);
 	}
 }
 
 /**
  * Create a folder in Google Drive
- * @param {Object} args - Folder creation arguments
+ * @param {CreateFolderArgs} args - Folder creation arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Created folder info
+ * @returns {Promise<Object>} Created folder info
  */
 export async function createFolder(args, bearerToken) {
 	const { folderName, parentFolderId } = args;
@@ -79,9 +145,11 @@ export async function createFolder(args, bearerToken) {
 	try {
 		validateFileName(folderName);
 	} catch (error) {
-		throw new Error(`Invalid folder name: ${error.message}`);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid folder name: ${errorMessage}`);
 	}
 
+	/** @type {DriveFileMetadata} */
 	const metadata = {
 		name: folderName,
 		mimeType: 'application/vnd.google-apps.folder',
@@ -91,7 +159,8 @@ export async function createFolder(args, bearerToken) {
 		try {
 			validateFileId(parentFolderId);
 		} catch (error) {
-			throw new Error(`Invalid parent folder ID: ${error.message}`);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			throw new Error(`Invalid parent folder ID: ${errorMessage}`);
 		}
 		metadata.parents = [parentFolderId];
 	}
@@ -102,14 +171,18 @@ export async function createFolder(args, bearerToken) {
 		body: metadata,
 	});
 
+	if (!data) {
+		throw new Error('Failed to create folder: No response data');
+	}
+
 	return formatFileResponse(data);
 }
 
 /**
  * Delete a file or folder from Google Drive
- * @param {Object} args - Deletion arguments
+ * @param {DeleteFileArgs} args - Deletion arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Deletion result
+ * @returns {Promise<FileOperationResult>} Deletion result
  */
 export async function deleteFile(args, bearerToken) {
 	const { fileId, permanent = false } = args;
@@ -121,7 +194,8 @@ export async function deleteFile(args, bearerToken) {
 	try {
 		validateFileId(fileId);
 	} catch (error) {
-		throw new Error(`Invalid file ID: ${error.message}`);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid file ID: ${errorMessage}`);
 	}
 
 	if (permanent) {
@@ -145,6 +219,10 @@ export async function deleteFile(args, bearerToken) {
 			body: { trashed: true },
 		});
 
+		if (!data) {
+			throw new Error('Failed to move file to trash: No response data');
+		}
+
 		return {
 			success: true,
 			fileId,
@@ -157,9 +235,9 @@ export async function deleteFile(args, bearerToken) {
 
 /**
  * Copy a file in Google Drive
- * @param {Object} args - Copy arguments
+ * @param {CopyFileArgs} args - Copy arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Copied file info
+ * @returns {Promise<Object>} Copied file info
  */
 export async function copyFile(args, bearerToken) {
 	const { fileId, newName, destinationFolderId } = args;
@@ -171,16 +249,19 @@ export async function copyFile(args, bearerToken) {
 	try {
 		validateFileId(fileId);
 	} catch (error) {
-		throw new Error(`Invalid file ID: ${error.message}`);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid file ID: ${errorMessage}`);
 	}
 
+	/** @type {Partial<DriveFileMetadata>} */
 	const metadata = {};
 
 	if (newName) {
 		try {
 			validateFileName(newName);
 		} catch (error) {
-			throw new Error(`Invalid new file name: ${error.message}`);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid new file name: ${errorMessage}`);
 		}
 		metadata.name = newName;
 	}
@@ -189,7 +270,8 @@ export async function copyFile(args, bearerToken) {
 		try {
 			validateFileId(destinationFolderId);
 		} catch (error) {
-			throw new Error(`Invalid destination folder ID: ${error.message}`);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid destination folder ID: ${errorMessage}`);
 		}
 		metadata.parents = [destinationFolderId];
 	}
@@ -200,14 +282,18 @@ export async function copyFile(args, bearerToken) {
 		body: metadata,
 	});
 
+	if (!data) {
+		throw new Error('Failed to copy file: No response data');
+	}
+
 	return formatFileResponse(data);
 }
 
 /**
  * Move a file to a different folder in Google Drive
- * @param {Object} args - Move arguments
+ * @param {MoveFileArgs} args - Move arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Moved file info
+ * @returns {Promise<Object>} Moved file info
  */
 export async function moveFile(args, bearerToken) {
 	const { fileId, destinationFolderId } = args;
@@ -223,18 +309,20 @@ export async function moveFile(args, bearerToken) {
 	try {
 		validateFileId(fileId);
 	} catch (error) {
-		throw new Error(`Invalid file ID: ${error.message}`);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid file ID: ${errorMessage}`);
 	}
 
 	try {
 		validateFileId(destinationFolderId);
 	} catch (error) {
-		throw new Error(`Invalid destination folder ID: ${error.message}`);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid destination folder ID: ${errorMessage}`);
 	}
 
 	// First, get the current parent(s)
 	const fileMetadata = await makeDriveRequest(`/files/${fileId}?fields=parents`, bearerToken);
-	const previousParents = fileMetadata.parents ? fileMetadata.parents.join(',') : '';
+	const previousParents = fileMetadata && fileMetadata.parents ? fileMetadata.parents.join(',') : '';
 
 	// Move the file
 	const endpoint = `/files/${fileId}`;
@@ -247,6 +335,10 @@ export async function moveFile(args, bearerToken) {
 	const data = await makeDriveRequest(`${endpoint}?${params.toString()}`, bearerToken, {
 		method: 'PATCH',
 	});
+
+	if (!data) {
+		throw new Error('Failed to move file: No response data');
+	}
 
 	return formatFileResponse(data);
 }

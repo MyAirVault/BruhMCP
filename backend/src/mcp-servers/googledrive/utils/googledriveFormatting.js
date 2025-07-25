@@ -4,9 +4,85 @@
  */
 
 /**
+ * @typedef {Object} GoogleDriveFile
+ * @property {string} id - File ID
+ * @property {string} name - File name
+ * @property {string} mimeType - MIME type
+ * @property {string} [size] - File size in bytes
+ * @property {string} [createdTime] - Creation timestamp
+ * @property {string} [modifiedTime] - Modification timestamp
+ * @property {string} [webViewLink] - Web view URL
+ * @property {string} [webContentLink] - Direct download URL
+ * @property {string[]} [parents] - Parent folder IDs
+ * @property {GoogleDrivePermission[]} [permissions] - File permissions
+ * @property {boolean} [shared] - Whether file is shared
+ * @property {boolean} [starred] - Whether file is starred
+ * @property {boolean} [trashed] - Whether file is trashed
+ */
+
+/**
+ * @typedef {Object} GoogleDrivePermission
+ * @property {string} id - Permission ID
+ * @property {string} type - Permission type (user, group, domain, anyone)
+ * @property {string} role - Permission role (owner, organizer, fileOrganizer, writer, commenter, reader)
+ * @property {string} [emailAddress] - Email address for user permissions
+ * @property {string} [displayName] - Display name
+ * @property {string} [photoLink] - Photo URL
+ * @property {string} [domain] - Domain for domain permissions
+ * @property {boolean} [allowFileDiscovery] - Whether file can be discovered
+ * @property {boolean} [deleted] - Whether permission is deleted
+ */
+
+/**
+ * @typedef {Object} GoogleDriveFilesResponse
+ * @property {GoogleDriveFile[]} files - Array of files
+ * @property {string} [nextPageToken] - Token for next page
+ */
+
+/**
+ * @typedef {Object} GoogleDriveAbout
+ * @property {Object} user - User information
+ * @property {string} user.displayName - User display name
+ * @property {string} user.emailAddress - User email
+ * @property {string} [user.photoLink] - User photo URL
+ * @property {Object} storageQuota - Storage quota information
+ * @property {string} storageQuota.usage - Total usage in bytes
+ * @property {string} storageQuota.limit - Storage limit in bytes
+ * @property {string} storageQuota.usageInDrive - Drive usage in bytes
+ * @property {string} storageQuota.usageInDriveTrash - Trash usage in bytes
+ */
+
+/**
+ * @typedef {Object} FormattedFile
+ * @property {string} id - File ID
+ * @property {string} name - File name
+ * @property {string} mimeType - MIME type
+ * @property {string} type - Human-readable file type
+ * @property {string|null} size - Formatted file size
+ * @property {string|null} createdTime - Formatted creation time
+ * @property {string|null} modifiedTime - Formatted modification time
+ * @property {string} [webViewLink] - Web view URL
+ * @property {string} [webContentLink] - Direct download URL
+ * @property {string[]} parents - Parent folder IDs
+ * @property {GoogleDrivePermission[]} permissions - File permissions
+ * @property {boolean} shared - Whether file is shared
+ * @property {boolean} starred - Whether file is starred
+ * @property {boolean} trashed - Whether file is trashed
+ */
+
+/**
+ * @typedef {Object} FormattedFileList
+ * @property {FormattedFile[]} files - Array of formatted files
+ * @property {number} totalCount - Total number of files
+ * @property {string|null} nextPageToken - Token for next page
+ * @property {boolean} hasMore - Whether more files exist
+ * @property {string|null} query - Search query used
+ */
+
+/**
  * Format file response for MCP protocol
- * @param {Object} file - Google Drive file object
- * @returns {Object} Formatted file response
+ * @param {GoogleDriveFile|null|undefined} file - Google Drive file object
+ * @returns {FormattedFile|null} Formatted file response
  */
 export function formatFileResponse(file) {
   if (!file) return null;
@@ -31,14 +107,22 @@ export function formatFileResponse(file) {
 
 /**
  * Format file list response
- * @param {Object} response - Google Drive files list response
+ * @param {GoogleDriveFilesResponse|null|undefined} response - Google Drive files list response
  * @param {string} query - Optional search query
- * @returns {Object} Formatted file list
+ * @returns {FormattedFileList} Formatted file list
  */
 export function formatFileListResponse(response, query = '') {
-  if (!response || !response.files) return { files: [], totalCount: 0 };
+  if (!response || !response.files) {
+    return { 
+      files: [], 
+      totalCount: 0,
+      nextPageToken: null,
+      hasMore: false,
+      query: query || null
+    };
+  }
 
-  const formattedFiles = response.files.map(file => formatFileResponse(file));
+  const formattedFiles = response.files.map(file => formatFileResponse(file)).filter(file => file !== null);
   
   return {
     files: formattedFiles,
@@ -51,7 +135,7 @@ export function formatFileListResponse(response, query = '') {
 
 /**
  * Format upload response
- * @param {Object} response - Google Drive upload response
+ * @param {GoogleDriveFile} response - Google Drive upload response
  * @param {string} originalPath - Original file path
  * @returns {Object} Formatted upload response
  */
@@ -69,8 +153,8 @@ export function formatUploadResponse(response, originalPath) {
 
 /**
  * Format drive info response
- * @param {Object} about - Google Drive about response
- * @returns {Object} Formatted drive info
+ * @param {GoogleDriveAbout|null|undefined} about - Google Drive about response
+ * @returns {Object|null} Formatted drive info
  */
 export function formatDriveInfoResponse(about) {
   if (!about || typeof about !== 'object' || !about.storageQuota) return null;
@@ -108,7 +192,7 @@ export function formatDriveInfoResponse(about) {
 
 /**
  * Format file permissions
- * @param {Array} permissions - Array of permission objects
+ * @param {GoogleDrivePermission[]|null|undefined} permissions - Array of permission objects
  * @returns {Object} Formatted permissions
  */
 export function formatFilePermissions(permissions) {
@@ -129,7 +213,9 @@ export function formatFilePermissions(permissions) {
   // Create summary
   const summary = {
     totalPermissions: formattedPermissions.length,
+    /** @type {Record<string, number>} */
     byType: {},
+    /** @type {Record<string, number>} */
     byRole: {},
     isPublic: permissions.some(p => p.type === 'anyone'),
     hasExternalUsers: permissions.some(p => p.type === 'user' && p.emailAddress && !p.emailAddress.includes('@gmail.com'))
@@ -137,8 +223,12 @@ export function formatFilePermissions(permissions) {
 
   // Count by type and role
   formattedPermissions.forEach(permission => {
-    summary.byType[permission.type] = (summary.byType[permission.type] || 0) + 1;
-    summary.byRole[permission.role] = (summary.byRole[permission.role] || 0) + 1;
+    if (permission.type) {
+      summary.byType[permission.type] = (summary.byType[permission.type] || 0) + 1;
+    }
+    if (permission.role) {
+      summary.byRole[permission.role] = (summary.byRole[permission.role] || 0) + 1;
+    }
   });
 
   return {
@@ -149,7 +239,7 @@ export function formatFilePermissions(permissions) {
 
 /**
  * Format search results
- * @param {Object} response - Google Drive search response
+ * @param {GoogleDriveFilesResponse} response - Google Drive search response
  * @param {string} query - Original search query
  * @returns {Object} Formatted search results
  */
@@ -173,7 +263,7 @@ export function formatSearchResults(response, query) {
 
 /**
  * Format upload result
- * @param {Object} uploadResponse - Google Drive upload response
+ * @param {GoogleDriveFile} uploadResponse - Google Drive upload response
  * @param {string} originalPath - Original file path
  * @returns {Object} Formatted upload result
  */
@@ -215,6 +305,7 @@ export function formatErrorResponse(error, operation) {
 function getFileType(mimeType) {
   if (!mimeType) return 'Unknown';
 
+  /** @type {Record<string, string>} */
   const typeMap = {
     'application/vnd.google-apps.folder': 'Folder',
     'application/vnd.google-apps.document': 'Google Doc',
@@ -247,7 +338,10 @@ function getFileType(mimeType) {
     'audio/wav': 'WAV Audio'
   };
 
-  return typeMap[mimeType] || mimeType.split('/')[0].toUpperCase();
+  if (mimeType in typeMap) {
+    return typeMap[mimeType];
+  }
+  return mimeType.split('/')[0].toUpperCase();
 }
 
 /**
@@ -268,10 +362,11 @@ function formatFileSize(bytes) {
 
 /**
  * Get file type summary from file list
- * @param {Array} files - Array of formatted files
- * @returns {Object} File type summary
+ * @param {FormattedFile[]|null|undefined} files - Array of formatted files
+ * @returns {Record<string, number>} File type summary
  */
 function getFileTypeSummary(files) {
+  /** @type {Record<string, number>} */
   const summary = {};
   
   // Validate input
@@ -295,10 +390,11 @@ function getFileTypeSummary(files) {
 
 /**
  * Get size distribution from file list
- * @param {Array} files - Array of formatted files
- * @returns {Object} Size distribution
+ * @param {FormattedFile[]|null|undefined} files - Array of formatted files
+ * @returns {Record<string, number>} Size distribution
  */
 function getSizeDistribution(files) {
+  /** @type {Record<string, number>} */
   const distribution = {
     'Small (< 1MB)': 0,
     'Medium (1MB - 10MB)': 0,
@@ -354,7 +450,7 @@ function getSizeDistribution(files) {
 
 /**
  * Format folder tree structure
- * @param {Array} files - Array of files and folders
+ * @param {FormattedFile[]} files - Array of files and folders
  * @returns {Object} Formatted folder tree
  */
 export function formatFolderTree(files) {

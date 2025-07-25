@@ -4,7 +4,61 @@
  */
 
 /**
+ * @typedef {'INVALID_REFRESH_TOKEN' | 'INVALID_CLIENT' | 'INVALID_REQUEST' | 'NETWORK_ERROR' | 'SERVICE_UNAVAILABLE' | 'UNKNOWN_ERROR'} OAuthErrorType
+ */
+
+/**
+ * @typedef {'error' | 'warn' | 'info'} LogLevel
+ */
+
+/**
+ * @typedef {Object} OAuthErrorAnalysis
+ * @property {OAuthErrorType} type
+ * @property {boolean} requiresReauth
+ * @property {string} userMessage
+ * @property {boolean} shouldRetry
+ * @property {LogLevel} logLevel
+ */
+
+/**
+ * @typedef {Object} TokenRefreshFailureResponse
+ * @property {string} instanceId
+ * @property {string} error
+ * @property {OAuthErrorType} errorCode
+ * @property {boolean} requiresReauth
+ * @property {boolean} shouldRetry
+ * @property {LogLevel} logLevel
+ * @property {string} originalError
+ */
+
+/**
+ * @typedef {Object} OAuthErrorResponse
+ * @property {boolean} success
+ * @property {string} instanceId
+ * @property {string} context
+ * @property {string} error
+ * @property {OAuthErrorType} errorCode
+ * @property {boolean} requiresReauth
+ * @property {boolean} shouldRetry
+ * @property {string} timestamp
+ * @property {Object} metadata
+ * @property {string} metadata.originalError
+ * @property {OAuthErrorType} metadata.errorType
+ * @property {LogLevel} metadata.logLevel
+ */
+
+/**
+ * @typedef {Object} OAuthStatusUpdate
+ * @property {'failed'} status
+ * @property {null} accessToken
+ * @property {null} refreshToken
+ * @property {null} tokenExpiresAt
+ * @property {null} scope
+ */
+
+/**
  * OAuth error types
+ * @type {Record<string, OAuthErrorType>}
  */
 export const OAUTH_ERROR_TYPES = {
   INVALID_REFRESH_TOKEN: 'INVALID_REFRESH_TOKEN',
@@ -18,10 +72,10 @@ export const OAUTH_ERROR_TYPES = {
 /**
  * Parse OAuth error and determine appropriate action
  * @param {Error} error - OAuth error
- * @returns {Object} Error analysis
+ * @returns {OAuthErrorAnalysis} Error analysis
  */
 export function parseOAuthError(error) {
-  const message = error.message.toLowerCase();
+  const message = error.message?.toLowerCase() || '';
   
   // Check for invalid refresh token errors
   if (message.includes('invalid_grant') || 
@@ -63,10 +117,10 @@ export function parseOAuthError(error) {
   }
   
   // Check for network errors
-  if (error.code === 'ECONNRESET' || 
-      error.code === 'ETIMEDOUT' || 
-      error.code === 'ENOTFOUND' ||
-      error.code === 'ECONNREFUSED' ||
+  if ((/** @type {NodeJS.ErrnoException} */(error)).code === 'ECONNRESET' || 
+      (/** @type {NodeJS.ErrnoException} */(error)).code === 'ETIMEDOUT' || 
+      (/** @type {NodeJS.ErrnoException} */(error)).code === 'ENOTFOUND' ||
+      (/** @type {NodeJS.ErrnoException} */(error)).code === 'ECONNREFUSED' ||
       error.name === 'AbortError') {
     return {
       type: OAUTH_ERROR_TYPES.NETWORK_ERROR,
@@ -104,8 +158,8 @@ export function parseOAuthError(error) {
  * Handle token refresh failure with appropriate response
  * @param {string} instanceId - Instance ID
  * @param {Error} error - Refresh error
- * @param {Function} updateOAuthStatus - Database update function
- * @returns {Object} Error response details
+ * @param {(instanceId: string, update: OAuthStatusUpdate) => Promise<void>} updateOAuthStatus - Database update function
+ * @returns {Promise<TokenRefreshFailureResponse>} Error response details
  */
 export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
   const errorAnalysis = parseOAuthError(error);
@@ -114,18 +168,18 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
     type: errorAnalysis.type,
     requiresReauth: errorAnalysis.requiresReauth,
     shouldRetry: errorAnalysis.shouldRetry,
-    originalError: error.message
+    originalError: error.message || 'Unknown error' || 'Unknown error'
   });
   
   // Update database based on error type
   if (errorAnalysis.requiresReauth) {
-    await updateOAuthStatus(instanceId, {
+    await updateOAuthStatus(instanceId, /** @type {OAuthStatusUpdate} */({
       status: 'failed',
       accessToken: null,
       refreshToken: null, // Clear refresh token for security
       tokenExpiresAt: null,
       scope: null
-    });
+    }));
   }
   
   // Return error response details
@@ -136,7 +190,7 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
     requiresReauth: errorAnalysis.requiresReauth,
     shouldRetry: errorAnalysis.shouldRetry,
     logLevel: errorAnalysis.logLevel,
-    originalError: error.message
+    originalError: error.message || 'Unknown error'
   };
 }
 
@@ -184,14 +238,14 @@ export function getRetryDelay(attempt, error) {
 export function logOAuthError(error, context, instanceId) {
   const errorAnalysis = parseOAuthError(error);
   
-  const logMessage = `OAuth error in ${context} for instance ${instanceId}: ${error.message}`;
+  const logMessage = `OAuth error in ${context} for instance ${instanceId}: ${error.message || 'Unknown error'}`;
   
   switch (errorAnalysis.logLevel) {
     case 'error':
       console.error(`L ${logMessage}`);
       break;
     case 'warn':
-      console.warn(`   ${logMessage}`);
+      console.warn(`ï¿½  ${logMessage}`);
       break;
     default:
       console.log(`9  ${logMessage}`);
@@ -203,7 +257,7 @@ export function logOAuthError(error, context, instanceId) {
  * @param {string} instanceId - Instance ID
  * @param {Error} error - OAuth error
  * @param {string} context - Error context
- * @returns {Object} Standardized error response
+ * @returns {OAuthErrorResponse} Standardized error response
  */
 export function createOAuthErrorResponse(instanceId, error, context) {
   const errorAnalysis = parseOAuthError(error);
@@ -218,7 +272,7 @@ export function createOAuthErrorResponse(instanceId, error, context) {
     shouldRetry: errorAnalysis.shouldRetry,
     timestamp: new Date().toISOString(),
     metadata: {
-      originalError: error.message,
+      originalError: error.message || 'Unknown error',
       errorType: errorAnalysis.type,
       logLevel: errorAnalysis.logLevel
     }
