@@ -1,10 +1,21 @@
 #!/bin/bash
 
-# Phase 2 MCP Services Stop Script
+# MCP Services Stop Script
 # Stops all MCP services via PM2
+# Automatically detects local development mode from environment variables
 
-echo "🛑 Stopping MCP Services - Phase 2 (PM2)"
-echo "========================================="
+# Detect environment mode
+if [ "$LOCAL_DEV" = "true" ]; then
+    MODE="Local Development"
+    MODE_SUFFIX="-local"
+    echo "🛑 Stopping MCP Services - Local Development Mode"
+    echo "=================================================="
+else
+    MODE="Production"
+    MODE_SUFFIX=""
+    echo "🛑 Stopping MCP Services - Production Mode"
+    echo "=========================================="
+fi
 
 # Check prerequisites
 command -v pm2 >/dev/null 2>&1 || { echo "❌ PM2 not installed"; exit 1; }
@@ -18,9 +29,9 @@ echo "📁 Backend root: $BACKEND_ROOT"
 # Function to stop a PM2 service
 stop_service() {
     local service_name=$1
-    local pm2_name="mcp-$service_name"
+    local pm2_name="mcp-$service_name$MODE_SUFFIX"
     
-    echo "🛑 Stopping $service_name service..."
+    echo "🛑 Stopping $service_name service ($MODE mode)..."
     
     # Check if service exists in PM2
     if pm2 describe "$pm2_name" > /dev/null 2>&1; then

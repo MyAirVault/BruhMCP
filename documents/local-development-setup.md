@@ -85,7 +85,7 @@ Choose one of these approaches based on your setup:
 #### Option A: All Services + Backend + Frontend (Recommended)
 ```bash
 # Start all MCP services + backend in local development mode
-cd backend && npm run dev:local:all-services
+cd backend && LOCAL_DEV=true npm run dev:all-services
 ```
 
 #### Option B: Single Server (Backend serves Frontend)
@@ -268,15 +268,15 @@ Add these scripts to your backend package.json:
   "scripts": {
     "dev:local": "LOCAL_DEV=true DISABLE_PAYMENTS=true npm run dev",
     "dev:local:build": "cd ../frontend && npm run build && cd ../backend && npm run dev:local",
-    "dev:local:all-services": "./scripts/start-all-services-local.sh && npm run dev:local",
     "setup:local-dev": "node scripts/setup-local-dev-db.js",
     "auth:set-password": "node scripts/local-auth-cli.js set-password",
     "auth:list-users": "node scripts/local-auth-cli.js list-users",
-    "auth:test-login": "node scripts/local-auth-cli.js test-login",
-    "stop:local-services": "./scripts/stop-all-services-local.sh"
+    "auth:test-login": "node scripts/local-auth-cli.js test-login"
   }
 }
 ```
+
+**Note:** The existing `dev:all-services` script automatically detects local mode when `LOCAL_DEV=true` is set!
 
 ### Serving Frontend from Backend
 
@@ -398,13 +398,13 @@ npm run auth:set-password
 2. **Daily development**:
 ```bash
 # Start all MCP services + backend in local development mode
-npm run dev:local:all-services
+LOCAL_DEV=true npm run dev:all-services
 ```
 
 3. **Stop all services when done**:
 ```bash
 # Stop all local MCP services
-npm run stop:local-services
+LOCAL_DEV=true ./scripts/stop-all-services.sh
 ```
 
 ### Alternative Workflows
@@ -430,9 +430,9 @@ cd frontend && npm run dev
 
 ## MCP Services in Local Development
 
-### What `dev:local:all-services` Does
+### How `dev:all-services` Detects Local Mode
 
-This command runs the equivalent of `dev:all-services` but with local development settings:
+The existing `npm run dev:all-services` script automatically detects when `LOCAL_DEV=true` is set and configures services for local development:
 
 1. **Starts all MCP services via PM2** with these environment variables:
    - `LOCAL_DEV=true` - Enables local authentication
@@ -450,7 +450,7 @@ This command runs the equivalent of `dev:all-services` but with local developmen
    - Process monitoring
    - Centralized logging
 
-### Managing Local MCP Services
+### Managing MCP Services
 
 ```bash
 # View all running services
@@ -462,14 +462,16 @@ pm2 logs
 # Real-time monitoring
 pm2 monit
 
-# Restart a specific service
-pm2 restart mcp-figma-local
+# In local mode, services are named with -local suffix:
+pm2 restart mcp-figma-local     # Restart specific local service
+pm2 logs mcp-gmail-local        # View logs for specific service
 
-# Stop all local services
-npm run stop:local-services
+# Stop all services (detects LOCAL_DEV automatically)
+LOCAL_DEV=true ./scripts/stop-all-services.sh
 
-# Or stop individual services
-pm2 stop mcp-gmail-local
+# Or stop services individually
+pm2 stop mcp-*-local            # Stop all local services
+pm2 delete mcp-*-local          # Remove all local services
 ```
 
 ## Troubleshooting
