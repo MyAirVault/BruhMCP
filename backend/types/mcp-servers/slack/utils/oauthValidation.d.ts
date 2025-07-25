@@ -20,6 +20,44 @@
  * @property {string} team_id - Slack team ID
  */
 /**
+ * Slack auth.test API response
+ * @typedef {Object} SlackAuthTestResponse
+ * @property {boolean} ok - Whether the request was successful
+ * @property {string} url - Team URL
+ * @property {string} team - Team name
+ * @property {string} user - User name
+ * @property {string} team_id - Team ID
+ * @property {string} user_id - User ID
+ * @property {string} [bot_id] - Bot ID (if applicable)
+ * @property {boolean} [is_admin] - Whether user is admin
+ * @property {string} [error] - Error message if ok is false
+ */
+/**
+ * Slack OAuth token response from oauth.v2.access
+ * @typedef {Object} SlackOAuthTokenResponse
+ * @property {boolean} ok - Whether the request was successful
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token
+ * @property {number} [expires_in] - Token expiration in seconds
+ * @property {string} token_type - Token type (usually 'Bearer')
+ * @property {string} scope - Granted scopes
+ * @property {{id: string}} team - Team object with ID
+ * @property {string} [error] - Error message if ok is false
+ */
+/**
+ * Slack auth.revoke API response
+ * @typedef {Object} SlackRevokeResponse
+ * @property {boolean} ok - Whether the request was successful
+ * @property {boolean} [revoked] - Whether token was revoked
+ * @property {string} [error] - Error message if ok is false
+ */
+/**
+ * Extended Error object with additional properties
+ * @typedef {Error} ExtendedError
+ * @property {string} [code] - Error code
+ * @property {number} [status] - HTTP status code
+ */
+/**
  * Exchange OAuth credentials for Bearer token via OAuth service
  * @param {OAuthCredentials} credentials - OAuth credentials
  * @returns {Promise<TokenResponse>} Token response with access_token and refresh_token
@@ -142,6 +180,107 @@ export type TokenResponse = {
      */
     team_id: string;
 };
+/**
+ * Slack auth.test API response
+ */
+export type SlackAuthTestResponse = {
+    /**
+     * - Whether the request was successful
+     */
+    ok: boolean;
+    /**
+     * - Team URL
+     */
+    url: string;
+    /**
+     * - Team name
+     */
+    team: string;
+    /**
+     * - User name
+     */
+    user: string;
+    /**
+     * - Team ID
+     */
+    team_id: string;
+    /**
+     * - User ID
+     */
+    user_id: string;
+    /**
+     * - Bot ID (if applicable)
+     */
+    bot_id?: string | undefined;
+    /**
+     * - Whether user is admin
+     */
+    is_admin?: boolean | undefined;
+    /**
+     * - Error message if ok is false
+     */
+    error?: string | undefined;
+};
+/**
+ * Slack OAuth token response from oauth.v2.access
+ */
+export type SlackOAuthTokenResponse = {
+    /**
+     * - Whether the request was successful
+     */
+    ok: boolean;
+    /**
+     * - Access token
+     */
+    access_token: string;
+    /**
+     * - Refresh token
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Token expiration in seconds
+     */
+    expires_in?: number | undefined;
+    /**
+     * - Token type (usually 'Bearer')
+     */
+    token_type: string;
+    /**
+     * - Granted scopes
+     */
+    scope: string;
+    /**
+     * - Team object with ID
+     */
+    team: {
+        id: string;
+    };
+    /**
+     * - Error message if ok is false
+     */
+    error?: string | undefined;
+};
+/**
+ * Slack auth.revoke API response
+ */
+export type SlackRevokeResponse = {
+    /**
+     * - Whether the request was successful
+     */
+    ok: boolean;
+    /**
+     * - Whether token was revoked
+     */
+    revoked?: boolean | undefined;
+    /**
+     * - Error message if ok is false
+     */
+    error?: string | undefined;
+};
+/**
+ * Extended Error object with additional properties
+ */
+export type ExtendedError = Error;
 /**
  * Refresh token data for Slack
  */

@@ -7,7 +7,7 @@ import { logValidationError } from './logger.js';
 
 /**
  * Validate type of value
- * @param {*} value - Value to validate
+ * @param {string|number|boolean|Array<string|number|boolean|Object>|Object|null|undefined} value - Value to validate
  * @param {string} expectedType - Expected type
  * @returns {boolean} True if type is valid
  */
@@ -23,7 +23,7 @@ export function validateType(value, expectedType) {
 /**
  * Validate string value
  * @param {string} value - String value to validate
- * @param {Object} schema - String schema
+ * @param {{minLength?: number, maxLength?: number, pattern?: string}} schema - String schema
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
@@ -63,7 +63,7 @@ export function validateString(value, schema, context, instanceId = 'unknown') {
 /**
  * Validate number value
  * @param {number} value - Number value to validate
- * @param {Object} schema - Number schema
+ * @param {{minimum?: number, maximum?: number, type?: string}} schema - Number schema
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
@@ -99,8 +99,8 @@ export function validateNumber(value, schema, context, instanceId = 'unknown') {
 
 /**
  * Validate array value
- * @param {Array} value - Array value to validate
- * @param {Object} schema - Array schema
+ * @param {Array<string|number|boolean|Object>} value - Array value to validate
+ * @param {{minItems?: number, maxItems?: number, items?: Object}} schema - Array schema
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
@@ -127,15 +127,15 @@ export function validateArray(value, schema, context, instanceId = 'unknown') {
 	// Items validation
 	if (schema.items) {
 		value.forEach((item, index) => {
-			validateProperty(item, schema.items, `${context}[${index}]`, instanceId);
+			validateProperty(item, /** @type {{type?: string, minLength?: number, maxLength?: number, pattern?: string, minimum?: number, maximum?: number, minItems?: number, maxItems?: number, items?: Object, enum?: Array<string|number|boolean>}} */ (schema.items), `${context}[${index}]`, instanceId);
 		});
 	}
 }
 
 /**
  * Validate individual property
- * @param {*} value - Value to validate
- * @param {Object} schema - Property schema
+ * @param {string|number|boolean|Array<string|number|boolean|Object>|Object|null|undefined} value - Value to validate
+ * @param {{type?: string, minLength?: number, maxLength?: number, pattern?: string, minimum?: number, maximum?: number, minItems?: number, maxItems?: number, items?: Object, enum?: Array<string|number|boolean>}} schema - Property schema
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
@@ -162,7 +162,7 @@ export function validateProperty(value, schema, context, instanceId = 'unknown')
 	}
 
 	// Enum validation
-	if (schema.enum && !schema.enum.includes(value)) {
+	if (schema.enum && !schema.enum.includes(/** @type {string|number|boolean} */ (value))) {
 		const error = new Error(`${context} must be one of: ${schema.enum.join(', ')}`);
 		logValidationError('invalid_enum_value', context, value, instanceId, { 
 			allowedValues: schema.enum 

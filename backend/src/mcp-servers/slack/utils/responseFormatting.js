@@ -4,18 +4,48 @@
  */
 
 import { debug } from './logger.js';
-import { formatSlackText, formatSlackTimestamp } from './textFormatting.js';
-import { formatMessageResponse } from './messageFormatting.js';
-import { formatChannelResponse, formatUserResponse, formatTeamResponse } from './entityFormatting.js';
+
+/**
+ * @typedef {Object} SlackAPIResponse
+ * @property {boolean} ok - Whether the API call was successful
+ * @property {string} [error] - Error message if ok is false
+ * @property {string} [warning] - Warning message if present
+ * @property {Object} [response_metadata] - Response metadata
+ * @property {string} [response_metadata.next_cursor] - Cursor for pagination
+ * @property {string[]} [response_metadata.scopes] - OAuth scopes
+ * @property {string[]} [response_metadata.acceptedScopes] - Accepted OAuth scopes
+ */
+
+/**
+ * @typedef {Object} FormattedSlackResponse
+ * @property {boolean} ok - Whether the API call was successful
+ * @property {string} timestamp - ISO timestamp of formatting
+ * @property {string} [error] - Error message if present
+ * @property {string} [warning] - Warning message if present
+ * @property {Object} [response_metadata] - Response metadata
+ */
+
+/**
+ * @typedef {Object} MCPContentBlock
+ * @property {string} type - Content type (usually 'text')
+ * @property {string} text - Content text
+ */
+
+/**
+ * @typedef {Object} MCPResponse
+ * @property {MCPContentBlock[]} content - Array of content blocks
+ * @property {boolean} [isError] - Whether this is an error response
+ */
 
 /**
  * Format a generic Slack API response
- * @param {Object} response - Raw Slack API response
- * @returns {Object} Formatted response
+ * @param {SlackAPIResponse|null} response - Raw Slack API response
+ * @returns {FormattedSlackResponse|null} Formatted response
  */
 export function formatSlackResponse(response) {
 	if (!response) return null;
 
+	/** @type {FormattedSlackResponse} */
 	const formatted = {
 		ok: response.ok,
 		timestamp: new Date().toISOString()
@@ -42,7 +72,7 @@ export function formatSlackResponse(response) {
 /**
  * Create a simple text response for MCP
  * @param {string} text - Response text
- * @returns {Object} MCP response object
+ * @returns {MCPResponse} MCP response object
  */
 export function createTextResponse(text) {
 	return {
@@ -57,8 +87,8 @@ export function createTextResponse(text) {
 
 /**
  * Create a formatted response with multiple content blocks
- * @param {Object[]} blocks - Array of content blocks
- * @returns {Object} MCP response object
+ * @param {MCPContentBlock[]} blocks - Array of content blocks
+ * @returns {MCPResponse} MCP response object
  */
 export function createFormattedResponse(blocks) {
 	return {
@@ -69,7 +99,7 @@ export function createFormattedResponse(blocks) {
 /**
  * Format error response for MCP
  * @param {Error} error - Error object
- * @returns {Object} MCP error response
+ * @returns {MCPResponse} MCP error response
  */
 export function formatErrorResponse(error) {
 	debug('Formatting error response', { error: error.message });
@@ -89,8 +119,8 @@ export function formatErrorResponse(error) {
  * Create a rich text response with formatting
  * @param {string} title - Response title
  * @param {string} content - Response content
- * @param {Object} metadata - Additional metadata
- * @returns {Object} Rich MCP response object
+ * @param {Record<string, any>} metadata - Additional metadata
+ * @returns {MCPResponse} Rich MCP response object
  */
 export function createRichTextResponse(title, content, metadata = {}) {
 	debug('Creating rich text response', { title, hasMetadata: Object.keys(metadata).length > 0 });
@@ -119,7 +149,7 @@ export function createRichTextResponse(title, content, metadata = {}) {
  * @param {string[]} headers - Table headers
  * @param {string[][]} rows - Table rows
  * @param {string} title - Table title
- * @returns {Object} Table MCP response object
+ * @returns {MCPResponse} Table MCP response object
  */
 export function createTableResponse(headers, rows, title = '') {
 	debug('Creating table response', { 

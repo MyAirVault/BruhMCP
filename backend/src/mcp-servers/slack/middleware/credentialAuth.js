@@ -4,6 +4,34 @@
  */
 
 /// <reference path="./types.js" />
+
+/**
+ * Slack error structure for OAuth operations
+ * @typedef {Object} SlackError
+ * @property {string} [message] - Error message
+ * @property {string} [errorType] - Error type classification
+ * @property {string} [originalError] - Original error message
+ * @property {string} [code] - Error code
+ * @property {number} [status] - HTTP status code
+ * @property {string} [stack] - Error stack trace
+ */
+
+/**
+ * Extended error options for Slack error responses
+ * @typedef {import('../../../utils/errorResponse.js').ErrorOptions & {
+ *   expectedFormat?: string,
+ *   error?: string,
+ *   errorCode?: string,
+ *   requiresReauth?: boolean
+ * }} ExtendedErrorOptions
+ */
+
+/**
+ * Extended OAuth update data for Slack
+ * @typedef {import('../../../db/queries/mcpInstances/types.js').OAuthUpdateData & {
+ *   teamId?: string
+ * }} SlackOAuthUpdateData
+ */
 import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
 import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
 import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauthValidation.js';
@@ -23,15 +51,16 @@ export function createCredentialAuthMiddleware() {
     // Validate instance ID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(instanceId)) {
-      return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
+      return ErrorResponses.badRequest(res, 'Invalid instance ID format', /** @type {ExtendedErrorOptions} */ ({
         instanceId,
         expectedFormat: 'UUID v4'
-      });
+      }));
     }
 
     try {
       // Check credential cache first (fast path)
-      let cachedCredential = getCachedCredential(instanceId);
+      /** @type {import('./types.js').CachedCredential | null} */
+      let cachedCredential = /** @type {import('./types.js').CachedCredential | null} */ (getCachedCredential(instanceId));
       
       if (cachedCredential && cachedCredential.bearerToken) {
         console.log(`✅ Slack OAuth Bearer token cache hit for instance: ${instanceId}`);
@@ -51,12 +80,13 @@ export function createCredentialAuthMiddleware() {
       console.log(`⏳ Slack OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'slack');
+      /** @type {import('./types.js').DatabaseInstance | null} */
+      const instance = /** @type {import('./types.js').DatabaseInstance | null} */ (await lookupInstanceCredentials(instanceId, 'slack'));
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'slack'
+          metadata: { service: 'slack' }
         });
       }
 
@@ -64,7 +94,7 @@ export function createCredentialAuthMiddleware() {
       if (!instance.service_active) {
         return ErrorResponses.serviceUnavailable(res, 'Slack service is currently disabled', {
           instanceId,
-          service: 'slack'
+          metadata: { service: 'slack' }
         });
       }
 
@@ -72,14 +102,14 @@ export function createCredentialAuthMiddleware() {
       if (instance.status === 'inactive') {
         return ErrorResponses.forbidden(res, 'Instance is paused', {
           instanceId,
-          status: instance.status
+          metadata: { status: instance.status }
         });
       }
 
       if (instance.status === 'expired') {
         return ErrorResponses.forbidden(res, 'Instance has expired', {
           instanceId,
-          status: instance.status
+          metadata: { status: instance.status }
         });
       }
 
@@ -95,7 +125,7 @@ export function createCredentialAuthMiddleware() {
       if (instance.auth_type !== 'oauth' || !instance.client_id || !instance.client_secret) {
         return ErrorResponses.internal(res, 'Invalid OAuth credentials configuration', {
           instanceId,
-          authType: instance.auth_type
+          metadata: { authType: instance.auth_type }
         });
       }
 
@@ -112,10 +142,10 @@ export function createCredentialAuthMiddleware() {
         if (!cachedCredential) {
           setCachedCredential(instanceId, {
             bearerToken: accessToken,
-            refreshToken: refreshToken,
+            refreshToken: refreshToken || '',
             expiresAt: tokenExpiresAt,
             user_id: instance.user_id,
-            team_id: instance.team_id
+            team_id: instance.team_id || ''
           });
         }
 
@@ -148,11 +178,12 @@ export function createCredentialAuthMiddleware() {
             });
             usedMethod = 'oauth_service';
           } catch (oauthServiceError) {
-            console.log(`⚠️  OAuth service failed, trying direct Slack OAuth: ${oauthServiceError.message}`);
+            const errorMessage = oauthServiceError instanceof Error ? oauthServiceError.message : String(oauthServiceError);
+            console.log(`⚠️  OAuth service failed, trying direct Slack OAuth: ${errorMessage}`);
             
             // Check if error indicates OAuth service unavailable
-            if (oauthServiceError.message.includes('OAuth service error') || 
-                oauthServiceError.message.includes('Failed to start OAuth service')) {
+            if (errorMessage.includes('OAuth service error') || 
+                errorMessage.includes('Failed to start OAuth service')) {
               
               // Fallback to direct Slack OAuth
               newTokens = await refreshBearerTokenDirect({
@@ -175,8 +206,8 @@ export function createCredentialAuthMiddleware() {
             instanceId, 
             usedMethod, 
             true, // success
-            null, // errorType
-            null, // errorMessage
+            '', // errorType
+            '', // errorMessage
             refreshStartTime, 
             refreshEndTime
           );
@@ -209,25 +240,25 @@ export function createCredentialAuthMiddleware() {
 
           // Update database with new tokens using optimistic locking
           try {
-            await updateOAuthStatusWithLocking(instanceId, {
+            await updateOAuthStatusWithLocking(instanceId, /** @type {SlackOAuthUpdateData} */ ({
               status: 'completed',
               accessToken: newTokens.access_token,
               refreshToken: newTokens.refresh_token || refreshToken,
               tokenExpiresAt: newExpiresAt,
               scope: newTokens.scope,
               teamId: newTokens.team_id
-            });
+            }));
           } catch (lockingError) {
             // Fallback to regular update if optimistic locking fails
             console.warn(`⚠️ Optimistic locking failed for ${instanceId}, falling back to regular update`);
-            await updateOAuthStatus(instanceId, {
+            await updateOAuthStatus(instanceId, /** @type {SlackOAuthUpdateData} */ ({
               status: 'completed',
               accessToken: newTokens.access_token,
               refreshToken: newTokens.refresh_token || refreshToken,
               tokenExpiresAt: newExpiresAt,
               scope: newTokens.scope,
               teamId: newTokens.team_id
-            });
+            }));
           }
 
           req.bearerToken = newTokens.access_token;
@@ -242,13 +273,17 @@ export function createCredentialAuthMiddleware() {
         } catch (refreshError) {
           const refreshEndTime = Date.now();
           
+          const slackError = /** @type {SlackError} */ (refreshError);
+          const errorType = slackError.errorType || 'UNKNOWN_ERROR';
+          const errorMessage = slackError.message || 'Token refresh failed';
+          
           // Record failed metrics
           recordTokenRefreshMetrics(
             instanceId, 
             usedMethod, 
             false, // failure
-            refreshError.errorType || 'UNKNOWN_ERROR',
-            refreshError.message || 'Token refresh failed',
+            errorType,
+            errorMessage,
             refreshStartTime, 
             refreshEndTime
           );
@@ -259,34 +294,39 @@ export function createCredentialAuthMiddleware() {
             operation: 'refresh',
             status: 'failure',
             method: usedMethod,
-            errorType: refreshError.errorType || 'UNKNOWN_ERROR',
-            errorMessage: refreshError.message || 'Token refresh failed',
+            errorType,
+            errorMessage,
             userId: instance.user_id,
             metadata: {
               responseTime: refreshEndTime - refreshStartTime,
-              originalError: refreshError.originalError || refreshError.message
+              originalError: slackError.originalError || errorMessage
             }
           }).catch(err => {
             console.error('Failed to create audit log:', err);
           });
 
           // Use centralized error handling
-          logOAuthError(refreshError, 'slack token refresh', instanceId);
+          logOAuthError(slackError, 'slack token refresh', instanceId);
           
-          const errorResponse = await handleTokenRefreshFailure(instanceId, refreshError, updateOAuthStatus);
+          const errorResponse = await handleTokenRefreshFailure(instanceId, slackError, 
+            /** @type {import('../utils/oauthErrorHandler.js').UpdateOAuthStatusFunction} */
+            (async (id, status) => {
+              await updateOAuthStatus(id, /** @type {import('../../../db/queries/mcpInstances/types.js').OAuthUpdateData} */ (status));
+            })
+          );
           
           // If error requires re-authentication, return immediately
           if (errorResponse.requiresReauth) {
-            return ErrorResponses.unauthorized(res, errorResponse.error, {
+            return ErrorResponses.unauthorized(res, errorResponse.error, /** @type {ExtendedErrorOptions} */ ({
               instanceId: errorResponse.instanceId,
               error: errorResponse.error,
               errorCode: errorResponse.errorCode,
               requiresReauth: errorResponse.requiresReauth
-            });
+            }));
           }
           
           // For other errors, fall through to full OAuth exchange
-          console.log(`🔄 Falling back to full OAuth exchange due to refresh error: ${refreshError.message}`);
+          console.log(`🔄 Falling back to full OAuth exchange due to refresh error: ${errorMessage}`);
         }
       }
 
@@ -314,19 +354,19 @@ export function createCredentialAuthMiddleware() {
       // Mark OAuth status as failed in database to indicate re-authentication needed
       await updateOAuthStatus(instanceId, {
         status: 'failed',
-        accessToken: null,
+        accessToken: undefined,
         refreshToken: refreshToken, // Keep refresh token for potential retry
-        tokenExpiresAt: null,
-        scope: null
+        tokenExpiresAt: undefined,
+        scope: undefined
       });
       
       // Return specific error requiring re-authentication
-      return ErrorResponses.unauthorized(res, 'OAuth authentication required - please re-authenticate', {
+      return ErrorResponses.unauthorized(res, 'OAuth authentication required - please re-authenticate', /** @type {ExtendedErrorOptions} */ ({
         instanceId,
         error: 'No valid access token and refresh token failed',
         requiresReauth: true,
         errorCode: 'OAUTH_FLOW_REQUIRED'
-      });
+      }));
 
     } catch (error) {
       console.error('Slack credential authentication middleware error:', error);
@@ -350,20 +390,21 @@ export function createLightweightAuthMiddleware() {
     // Validate instance ID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(instanceId)) {
-      return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
+      return ErrorResponses.badRequest(res, 'Invalid instance ID format', /** @type {ExtendedErrorOptions} */ ({
         instanceId,
         expectedFormat: 'UUID v4'
-      });
+      }));
     }
 
     try {
       // Quick database lookup without credential exchange
-      const instance = await lookupInstanceCredentials(instanceId, 'slack');
+      /** @type {import('./types.js').DatabaseInstance | null} */
+      const instance = /** @type {import('./types.js').DatabaseInstance | null} */ (await lookupInstanceCredentials(instanceId, 'slack'));
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'slack'
+          metadata: { service: 'slack' }
         });
       }
 

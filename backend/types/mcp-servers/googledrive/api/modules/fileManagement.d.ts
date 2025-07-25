@@ -1,29 +1,169 @@
 /**
  * Create a folder in Google Drive
- * @param {Object} args - Folder creation arguments
+ * @param {CreateFolderArgs} args - Folder creation arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Created folder info
+ * @returns {Promise<Object>} Created folder info
  */
-export function createFolder(args: Object, bearerToken: string): Object;
+export function createFolder(args: CreateFolderArgs, bearerToken: string): Promise<Object>;
 /**
  * Delete a file or folder from Google Drive
- * @param {Object} args - Deletion arguments
+ * @param {DeleteFileArgs} args - Deletion arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Deletion result
+ * @returns {Promise<FileOperationResult>} Deletion result
  */
-export function deleteFile(args: Object, bearerToken: string): Object;
+export function deleteFile(args: DeleteFileArgs, bearerToken: string): Promise<FileOperationResult>;
 /**
  * Copy a file in Google Drive
- * @param {Object} args - Copy arguments
+ * @param {CopyFileArgs} args - Copy arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Copied file info
+ * @returns {Promise<Object>} Copied file info
  */
-export function copyFile(args: Object, bearerToken: string): Object;
+export function copyFile(args: CopyFileArgs, bearerToken: string): Promise<Object>;
 /**
  * Move a file to a different folder in Google Drive
- * @param {Object} args - Move arguments
+ * @param {MoveFileArgs} args - Move arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Moved file info
+ * @returns {Promise<Object>} Moved file info
  */
-export function moveFile(args: Object, bearerToken: string): Object;
+export function moveFile(args: MoveFileArgs, bearerToken: string): Promise<Object>;
+export type RequestOptions = {
+    /**
+     * - HTTP method
+     */
+    method?: string | undefined;
+    /**
+     * - Additional headers
+     */
+    headers?: Record<string, string> | undefined;
+    /**
+     * - Request body
+     */
+    body?: Record<string, any> | undefined;
+    /**
+     * - Whether to send raw body
+     */
+    raw?: boolean | undefined;
+};
+export type CreateFolderArgs = {
+    /**
+     * - Name of the folder to create
+     */
+    folderName: string;
+    /**
+     * - ID of parent folder
+     */
+    parentFolderId?: string | undefined;
+};
+export type DeleteFileArgs = {
+    /**
+     * - ID of file to delete
+     */
+    fileId: string;
+    /**
+     * - Whether to permanently delete
+     */
+    permanent?: boolean | undefined;
+};
+export type CopyFileArgs = {
+    /**
+     * - ID of file to copy
+     */
+    fileId: string;
+    /**
+     * - New name for copied file
+     */
+    newName?: string | undefined;
+    /**
+     * - Destination folder ID
+     */
+    destinationFolderId?: string | undefined;
+};
+export type MoveFileArgs = {
+    /**
+     * - ID of file to move
+     */
+    fileId: string;
+    /**
+     * - Destination folder ID
+     */
+    destinationFolderId: string;
+};
+export type DriveFileMetadata = {
+    /**
+     * - File name
+     */
+    name: string;
+    /**
+     * - MIME type
+     */
+    mimeType: string;
+    /**
+     * - Parent folder IDs
+     */
+    parents?: string[] | undefined;
+};
+export type DriveApiResponse = {
+    /**
+     * - File ID
+     */
+    id: string;
+    /**
+     * - File name
+     */
+    name: string;
+    /**
+     * - MIME type
+     */
+    mimeType: string;
+    /**
+     * - File size
+     */
+    size?: string | undefined;
+    /**
+     * - Creation time
+     */
+    createdTime: string;
+    /**
+     * - Modification time
+     */
+    modifiedTime: string;
+    /**
+     * - Parent folder IDs
+     */
+    parents?: string[] | undefined;
+    /**
+     * - Web view link
+     */
+    webViewLink: string;
+    /**
+     * - File owners
+     */
+    owners: Object[];
+    /**
+     * - Whether file is shared
+     */
+    shared: boolean;
+};
+export type FileOperationResult = {
+    /**
+     * - Operation success status
+     */
+    success: boolean;
+    /**
+     * - File ID
+     */
+    fileId: string;
+    /**
+     * - Result message
+     */
+    message: string;
+    /**
+     * - Action performed
+     */
+    action: string;
+    /**
+     * - File details (for non-permanent delete)
+     */
+    file?: Object | undefined;
+};
 //# sourceMappingURL=fileManagement.d.ts.map

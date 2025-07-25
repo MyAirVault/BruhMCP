@@ -5,6 +5,7 @@
 
 /**
  * Map of Slack OAuth error codes to error types
+ * @type {Record<string, string>}
  */
 const SLACK_ERROR_MAP = {
   'invalid_grant': 'INVALID_GRANT',
@@ -29,8 +30,19 @@ const SLACK_ERROR_MAP = {
 
 /**
  * Determine if an error requires user re-authentication
- * @param {Error} error - The error to check
+ * @param {SlackError} error - The error to check
  * @returns {boolean} True if re-authentication is required
+ */
+
+/**
+ * @typedef {Object} SlackError
+ * @property {string} [message] - Error message
+ * @property {string} [code] - Error code
+ * @property {number} [status] - HTTP status code
+ * @property {string} [stack] - Error stack trace
+ */
+/**
+ * @param {SlackError} error
  */
 export function requiresReauthentication(error) {
   const errorMessage = error.message?.toLowerCase() || '';
@@ -61,7 +73,7 @@ export function requiresReauthentication(error) {
 
 /**
  * Determine if an error is temporary/retryable
- * @param {Error} error - The error to check
+ * @param {SlackError} error - The error to check
  * @returns {boolean} True if error is temporary
  */
 export function isTemporaryError(error) {
@@ -100,8 +112,22 @@ export function isTemporaryError(error) {
 
 /**
  * Extract structured error information from error object
- * @param {Error} error - The error to parse
- * @returns {Object} Structured error information
+ * @param {SlackError} error - The error to parse
+ * @returns {ParsedSlackError} Structured error information
+ */
+
+/**
+ * @typedef {Object} ParsedSlackError
+ * @property {string} errorType - Standardized error type
+ * @property {string} errorCode - Original error code
+ * @property {string} errorMessage - Error message
+ * @property {number} status - HTTP status code
+ * @property {boolean} requiresReauth - Whether re-authentication is required
+ * @property {boolean} isTemporary - Whether error is temporary/retryable
+ * @property {SlackError} originalError - Original error object
+ */
+/**
+ * @param {SlackError} error
  */
 export function parseSlackError(error) {
   const errorMessage = error.message || 'Unknown error';
@@ -125,9 +151,37 @@ export function parseSlackError(error) {
 /**
  * Handle token refresh failures with appropriate error responses
  * @param {string} instanceId - Instance ID for logging
- * @param {Error} error - The refresh error
- * @param {Function} updateOAuthStatus - Function to update OAuth status
- * @returns {Object} Error response object
+ * @param {SlackError} error - The refresh error
+ * @param {UpdateOAuthStatusFunction} updateOAuthStatus - Function to update OAuth status
+ * @returns {Promise<OAuthErrorResponse>} Error response object
+ */
+
+/**
+ * @typedef {Object} OAuthStatus
+ * @property {string} status - OAuth status ('failed', 'active', etc.)
+ * @property {string|null} [accessToken] - Access token
+ * @property {string|null} [refreshToken] - Refresh token
+ * @property {string|null} [tokenExpiresAt] - Token expiration timestamp
+ * @property {string|null} [scope] - OAuth scope
+ * @property {string} [error] - Error message
+ */
+
+/**
+ * @typedef {function(string, OAuthStatus): Promise<void>} UpdateOAuthStatusFunction
+ */
+
+/**
+ * @typedef {Object} OAuthErrorResponse
+ * @property {string} error - Error message
+ * @property {string} errorCode - Error code
+ * @property {string} errorType - Error type
+ * @property {boolean} requiresReauth - Whether re-authentication is required
+ * @property {string} instanceId - Instance ID
+ */
+/**
+ * @param {string} instanceId
+ * @param {SlackError} error
+ * @param {UpdateOAuthStatusFunction} updateOAuthStatus
  */
 export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
   const parsedError = parseSlackError(error);
@@ -168,7 +222,7 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
   
   // Handle temporary errors
   if (parsedError.isTemporary) {
-    console.log(`ó Temporary error for Slack instance ${instanceId}, will retry automatically`);
+    console.log(`ï¿½ Temporary error for Slack instance ${instanceId}, will retry automatically`);
     
     return {
       error: 'Temporary authentication error - please try again',
@@ -202,9 +256,10 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
 
 /**
  * Log OAuth errors with structured information
- * @param {Error} error - The error to log
+ * @param {SlackError} error - The error to log
  * @param {string} operation - The operation that failed
  * @param {string} instanceId - Instance ID for context
+ * @returns {void}
  */
 export function logOAuthError(error, operation, instanceId) {
   const parsedError = parseSlackError(error);
@@ -224,11 +279,14 @@ export function logOAuthError(error, operation, instanceId) {
 
 /**
  * Create user-friendly error messages for different error types
- * @param {Object} parsedError - Parsed error information
+ * @param {ParsedSlackError} parsedError - Parsed error information
  * @returns {string} User-friendly error message
  */
+/**
+ * @param {ParsedSlackError} parsedError
+ */
 export function createUserFriendlyMessage(parsedError) {
-  const { errorType, errorCode, errorMessage } = parsedError;
+  const { errorType, errorMessage } = parsedError;
   
   switch (errorType) {
     case 'INVALID_GRANT':
@@ -271,7 +329,7 @@ export function createUserFriendlyMessage(parsedError) {
 
 /**
  * Determine retry delay based on error type
- * @param {Object} parsedError - Parsed error information
+ * @param {ParsedSlackError} parsedError - Parsed error information
  * @param {number} attemptNumber - Current attempt number
  * @returns {number} Retry delay in milliseconds
  */
@@ -305,9 +363,9 @@ export function getRetryDelay(parsedError, attemptNumber) {
 
 /**
  * Check if an error should be retried
- * @param {Object} parsedError - Parsed error information
+ * @param {ParsedSlackError} parsedError - Parsed error information
  * @param {number} attemptNumber - Current attempt number
- * @param {number} maxAttempts - Maximum retry attempts
+ * @param {number} [maxAttempts=3] - Maximum retry attempts
  * @returns {boolean} True if should retry
  */
 export function shouldRetry(parsedError, attemptNumber, maxAttempts = 3) {
@@ -328,8 +386,24 @@ export function shouldRetry(parsedError, attemptNumber, maxAttempts = 3) {
 /**
  * Create an OAuth error response object
  * @param {string} instanceId - Instance ID
- * @param {Object} parsedError - Parsed error information
- * @returns {Object} OAuth error response
+ * @param {ParsedSlackError} parsedError - Parsed error information
+ * @returns {OAuthErrorResponseWithDetails} OAuth error response
+ */
+
+/**
+ * @typedef {Object} OAuthErrorResponseWithDetails
+ * @property {boolean} success - Always false for error responses
+ * @property {string} error - User-friendly error message
+ * @property {string} errorCode - Error code
+ * @property {string} errorType - Error type
+ * @property {boolean} requiresReauth - Whether re-authentication is required
+ * @property {boolean} isTemporary - Whether error is temporary
+ * @property {string} instanceId - Instance ID
+ * @property {string} timestamp - ISO timestamp
+ */
+/**
+ * @param {string} instanceId
+ * @param {ParsedSlackError} parsedError
  */
 export function createOAuthErrorResponse(instanceId, parsedError) {
   return {

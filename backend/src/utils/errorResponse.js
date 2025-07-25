@@ -178,6 +178,14 @@ export const ErrorResponses = {
 	 * @param {string} [message]
 	 * @param {ErrorOptions} [options]
 	 */
+	badRequest: (res, message = 'Bad request', options = {}) =>
+		sendErrorResponse(res, 400, 'BAD_REQUEST', message, options),
+
+	/**
+	 * @param {import('express').Response} res
+	 * @param {string} [message]
+	 * @param {ErrorOptions} [options]
+	 */
 	invalidInput: (res, message = 'Invalid input provided', options = {}) =>
 		sendErrorResponse(res, 400, 'INVALID_INPUT', message, options),
 

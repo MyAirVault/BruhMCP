@@ -85,6 +85,7 @@ export namespace ErrorResponses {
     function invalidToken(res: import("express").Response, message?: string, options?: ErrorOptions): void;
     function missingToken(res: import("express").Response, message?: string, options?: ErrorOptions): void;
     function validation(res: import("express").Response, message?: string, details?: Array<ValidationDetail>, options?: ErrorOptions): void;
+    function badRequest(res: import("express").Response, message?: string, options?: ErrorOptions): void;
     function invalidInput(res: import("express").Response, message?: string, options?: ErrorOptions): void;
     function missingField(res: import("express").Response, field: string, options?: ErrorOptions): void;
     function notFound(res: import("express").Response, resource?: string, options?: ErrorOptions): void;
