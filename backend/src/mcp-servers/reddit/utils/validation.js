@@ -6,14 +6,57 @@
 import { getTools } from '../endpoints/tools.js';
 
 /**
+ * @typedef {Object} JsonSchemaProperty
+ * @property {string} [type] - The type of the property
+ * @property {string[]} [enum] - Allowed enum values
+ * @property {number} [minimum] - Minimum value for numbers
+ * @property {number} [maximum] - Maximum value for numbers
+ * @property {number} [multipleOf] - Multiple constraint for numbers
+ * @property {number} [minLength] - Minimum length for strings
+ * @property {number} [maxLength] - Maximum length for strings
+ * @property {string} [pattern] - Regex pattern for strings
+ * @property {number} [minItems] - Minimum items for arrays
+ * @property {number} [maxItems] - Maximum items for arrays
+ * @property {JsonSchemaProperty} [items] - Schema for array items
+ */
+
+/**
+ * @typedef {Object} JsonSchema
+ * @property {string} type - The schema type
+ * @property {string[]} [required] - Required properties
+ * @property {Object<string, JsonSchemaProperty>} [properties] - Property definitions
+ * @property {string[]} [enum] - Allowed enum values
+ * @property {number} [minimum] - Minimum value for numbers
+ * @property {number} [maximum] - Maximum value for numbers
+ * @property {number} [multipleOf] - Multiple constraint for numbers
+ * @property {number} [minLength] - Minimum length for strings
+ * @property {number} [maxLength] - Maximum length for strings
+ * @property {string} [pattern] - Regex pattern for strings
+ * @property {number} [minItems] - Minimum items for arrays
+ * @property {number} [maxItems] - Maximum items for arrays
+ * @property {JsonSchemaProperty} [items] - Schema for array items
+ */
+
+/**
+ * @typedef {Object} Tool
+ * @property {string} name - Tool name
+ * @property {JsonSchema} [inputSchema] - Input validation schema
+ */
+
+/**
+ * @typedef {Object} ToolsData
+ * @property {Tool[]} tools - Array of available tools
+ */
+
+/**
  * Validate tool arguments against schema
  * @param {string} toolName - Name of the tool
- * @param {Object} args - Arguments to validate
+ * @param {Record<string, any>} args - Arguments to validate
  * @throws {Error} Validation error if arguments are invalid
  */
 export function validateToolArguments(toolName, args) {
-  const toolsData = getTools();
-  const tool = toolsData.tools.find(t => t.name === toolName);
+  const toolsData = /** @type {ToolsData} */ (getTools());
+  const tool = toolsData.tools.find((/** @type {Tool} */ t) => t.name === toolName);
   
   if (!tool) {
     throw new Error(`Unknown tool: ${toolName}`);
@@ -29,8 +72,8 @@ export function validateToolArguments(toolName, args) {
 
 /**
  * Validate object against JSON schema
- * @param {Object} obj - Object to validate
- * @param {Object} schema - JSON schema
+ * @param {Record<string, any>} obj - Object to validate
+ * @param {JsonSchema} schema - JSON schema
  * @param {string} context - Context for error messages
  */
 function validateObject(obj, schema, context) {
@@ -63,8 +106,8 @@ function validateObject(obj, schema, context) {
 
 /**
  * Validate individual property
- * @param {unknown} value - Value to validate
- * @param {Object} schema - Property schema
+ * @param {any} value - Value to validate
+ * @param {JsonSchemaProperty} schema - Property schema
  * @param {string} context - Context for error messages
  */
 function validateProperty(value, schema, context) {
@@ -77,17 +120,17 @@ function validateProperty(value, schema, context) {
 
   // String validations
   if (schema.type === 'string') {
-    validateString(value, schema, context);
+    validateString(/** @type {string} */ (value), schema, context);
   }
 
   // Number validations
   if (schema.type === 'number') {
-    validateNumber(value, schema, context);
+    validateNumber(/** @type {number} */ (value), schema, context);
   }
 
   // Array validations
   if (schema.type === 'array') {
-    validateArray(value, schema, context);
+    validateArray(/** @type {any[]} */ (value), schema, context);
   }
 
   // Enum validation
@@ -100,7 +143,7 @@ function validateProperty(value, schema, context) {
 
 /**
  * Validate value type
- * @param {unknown} value - Value to validate
+ * @param {any} value - Value to validate
  * @param {string} expectedType - Expected type
  * @returns {boolean} True if type is valid
  */
@@ -124,7 +167,7 @@ function validateType(value, expectedType) {
 /**
  * Validate string property
  * @param {string} value - String value
- * @param {Object} schema - String schema
+ * @param {JsonSchemaProperty} schema - String schema
  * @param {string} context - Context for error messages
  */
 function validateString(value, schema, context) {
@@ -157,7 +200,7 @@ function validateString(value, schema, context) {
 /**
  * Validate number property
  * @param {number} value - Number value
- * @param {Object} schema - Number schema
+ * @param {JsonSchemaProperty} schema - Number schema
  * @param {string} context - Context for error messages
  */
 function validateNumber(value, schema, context) {
@@ -176,8 +219,8 @@ function validateNumber(value, schema, context) {
 
 /**
  * Validate array property
- * @param {Array} value - Array value
- * @param {Object} schema - Array schema
+ * @param {any[]} value - Array value
+ * @param {JsonSchemaProperty} schema - Array schema
  * @param {string} context - Context for error messages
  */
 function validateArray(value, schema, context) {
@@ -192,7 +235,7 @@ function validateArray(value, schema, context) {
   // Validate array items
   if (schema.items) {
     value.forEach((item, index) => {
-      validateProperty(item, schema.items, `${context}[${index}]`);
+      validateProperty(item, /** @type {JsonSchemaProperty} */ (schema.items), `${context}[${index}]`);
     });
   }
 }
@@ -357,7 +400,7 @@ export function validateVoteDirection(direction) {
 /**
  * Validate Reddit post content
  * @param {string} content - Post content
- * @param {string} type - Content type ('title', 'text', 'url')
+ * @param {'title' | 'text' | 'url'} type - Content type ('title', 'text', 'url')
  * @throws {Error} If content is invalid
  */
 export function validatePostContent(content, type) {

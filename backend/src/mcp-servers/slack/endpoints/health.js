@@ -13,28 +13,29 @@ import { getActiveSlackInstances } from '../services/database.js';
  * @returns {Object} Health status object
  */
 export function healthCheck(serviceConfig) {
+  const config = /** @type {Record<string, any>} */ (serviceConfig);
   return {
     status: 'healthy',
-    service: serviceConfig.name,
-    displayName: serviceConfig.displayName,
-    version: serviceConfig.version,
+    service: config['name'],
+    displayName: config['displayName'],
+    version: config['version'],
     timestamp: new Date().toISOString(),
-    authType: serviceConfig.authType,
-    scopes: serviceConfig.scopes || []
+    authType: config['authType'],
+    scopes: config['scopes'] || []
   };
 }
 
 /**
  * Get detailed health status for Slack MCP service
- * @returns {Object} Health status object
+ * @returns {Promise<Object>} Health status object
  */
 export async function getHealthStatus() {
   try {
-    // Get cache statistics
-    const cacheStats = getCacheStatistics();
+    // Get cache statistics - cast to allow property access
+    const cacheStats = /** @type {Record<string, any>} */ (getCacheStatistics());
     
-    // Get token metrics
-    const tokenMetrics = getAggregatedTokenMetrics();
+    // Get token metrics - cast to allow property access
+    const tokenMetrics = /** @type {Record<string, any>} */ (getAggregatedTokenMetrics());
     
     // Get active instances count
     const activeInstances = await getActiveSlackInstances();
@@ -51,26 +52,26 @@ export async function getHealthStatus() {
       metrics: {
         activeInstances: activeInstances.length,
         cacheStats: {
-          totalEntries: cacheStats.total_entries,
-          expiredEntries: cacheStats.expired_entries,
-          hitRate: cacheStats.cache_hit_rate_last_hour,
-          memoryUsage: cacheStats.memory_usage_mb
+          totalEntries: cacheStats['total_entries'] || 0,
+          expiredEntries: cacheStats['expired_entries'] || 0,
+          hitRate: cacheStats['cache_hit_rate_last_hour'] || 0,
+          memoryUsage: cacheStats['memory_usage_mb'] || 0
         },
         tokenMetrics: {
-          totalRefreshes: tokenMetrics.totalRefreshes,
-          successRate: tokenMetrics.successRate,
-          averageResponseTime: tokenMetrics.averageResponseTime,
-          methodStats: tokenMetrics.methodStats
+          totalRefreshes: tokenMetrics['summary']?.['overview']?.['totalAttempts'] || 0,
+          successRate: parseFloat(tokenMetrics['summary']?.['overview']?.['successRate'] || '0'),
+          averageResponseTime: parseInt(tokenMetrics['summary']?.['performance']?.['averageLatency'] || '0'),
+          methodStats: tokenMetrics['summary']?.['errors']?.['errorsByType'] || {}
         }
       },
       checks: {
         cache: {
-          status: cacheStats.total_entries >= 0 ? 'pass' : 'fail',
-          message: `${cacheStats.total_entries} cached credentials`
+          status: (cacheStats['total_entries'] || 0) >= 0 ? 'pass' : 'fail',
+          message: `${cacheStats['total_entries'] || 0} cached credentials`
         },
         tokenRefresh: {
-          status: tokenMetrics.successRate >= 90 ? 'pass' : 'warn',
-          message: `${tokenMetrics.successRate}% success rate`
+          status: parseFloat(tokenMetrics['summary']?.['overview']?.['successRate'] || '0') >= 90 ? 'pass' : 'warn',
+          message: `${tokenMetrics['summary']?.['overview']?.['successRate'] || '0%'} success rate`
         },
         database: {
           status: 'pass',
@@ -85,7 +86,7 @@ export async function getHealthStatus() {
       service: 'slack',
       version: '1.0.0',
       timestamp: new Date().toISOString(),
-      error: error.message,
+      error: /** @type {Error} */ (error).message,
       healthScore: 0
     };
   }
@@ -95,28 +96,33 @@ export async function getHealthStatus() {
  * Calculate overall health score
  * @param {Object} cacheStats - Cache statistics
  * @param {Object} tokenMetrics - Token metrics
- * @param {Array} activeInstances - Active instances
+ * @param {Array<Object>} activeInstances - Active instances
  * @returns {number} Health score (0-100)
  */
 function calculateHealthScore(cacheStats, tokenMetrics, activeInstances) {
+  // Cast parameters to allow property access
+  const cache = /** @type {Record<string, any>} */ (cacheStats);
+  const metrics = /** @type {Record<string, any>} */ (tokenMetrics);
   let score = 100;
   
   // Deduct points for cache issues
-  if (cacheStats.expired_entries > cacheStats.total_entries * 0.1) {
+  if ((cache['expired_entries'] || 0) > (cache['total_entries'] || 0) * 0.1) {
     score -= 10; // Too many expired entries
   }
   
   // Deduct points for low token success rate
-  if (tokenMetrics.successRate < 90) {
+  const successRate = parseFloat(metrics['summary']?.['overview']?.['successRate'] || '0');
+  if (successRate < 90) {
     score -= 20;
-  } else if (tokenMetrics.successRate < 95) {
+  } else if (successRate < 95) {
     score -= 10;
   }
   
   // Deduct points for high response time
-  if (tokenMetrics.averageResponseTime > 5000) {
+  const avgResponseTime = parseInt(metrics['summary']?.['performance']?.['averageLatency'] || '0');
+  if (avgResponseTime > 5000) {
     score -= 15;
-  } else if (tokenMetrics.averageResponseTime > 3000) {
+  } else if (avgResponseTime > 3000) {
     score -= 5;
   }
   
