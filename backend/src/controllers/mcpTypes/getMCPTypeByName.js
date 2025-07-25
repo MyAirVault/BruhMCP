@@ -1,16 +1,44 @@
 import { getMCPTypeByName, getMCPTypeById } from '../../db/queries/mcpTypesQueries.js';
 
 /**
+ * @typedef {Object} MCPConfigTemplate
+ * @property {string} api_version
+ * @property {string} base_url
+ * @property {string[]} [scopes]
+ */
+
+/**
+ * @typedef {Object} MCPResourceLimits
+ * @property {number} max_memory_mb
+ * @property {number} max_cpu_percent
+ * @property {number} max_requests_per_minute
+ */
+
+/**
+ * @typedef {Object} MCPCredentialField
+ * @property {string} name
+ * @property {string} type
+ * @property {string} description
+ * @property {boolean} required
+ */
+
+/**
  * @typedef {Object} MCPType
  * @property {string} id
  * @property {string} name
  * @property {string} display_name
  * @property {string} description
  * @property {string} icon_url
- * @property {Object} config_template
- * @property {Object} resource_limits
+ * @property {string} icon_url_path
+ * @property {string} mcp_service_id
+ * @property {string} mcp_service_name
+ * @property {number} port
+ * @property {string} type
+ * @property {number} active_instances_count
+ * @property {MCPConfigTemplate} config_template
+ * @property {MCPResourceLimits} resource_limits
  * @property {boolean} is_active
- * @property {Array<string|Object>} required_credentials
+ * @property {Array<string|MCPCredentialField>} required_credentials
  */
 
 /**
@@ -47,7 +75,7 @@ export async function getMCPTypeByNameHandler(req, res) {
 
 		// Transform the response to match API specification
 		// Handle both old format (string array) and new format (object array)
-		/** @type {Array<{name: string, type: string, description: string, required: boolean}>} */
+		/** @type {MCPCredentialField[]} */
 		let requiredFields = [];
 		if (mcpType.required_credentials && Array.isArray(mcpType.required_credentials)) {
 			if (mcpType.required_credentials.length > 0) {
@@ -62,10 +90,7 @@ export async function getMCPTypeByNameHandler(req, res) {
 					}));
 				} else {
 					// New format: object array
-					requiredFields =
-						/** @type {Array<{name: string, type: string, description: string, required: boolean}>} */ (
-							mcpType.required_credentials
-						);
+					requiredFields = /** @type {MCPCredentialField[]} */ (mcpType.required_credentials);
 				}
 			}
 		}

@@ -170,47 +170,19 @@ export type ServiceConfig = {
      */
     useSimplification?: boolean | undefined;
 };
-export type AirtableRecord = {
+export type AirtableRecord = import("../api/common.js").AirtableRecord;
+export type AirtableBase = import("../api/common.js").AirtableBase;
+export type AirtableField = import("../api/common.js").AirtableField;
+export type AirtableTable = import("../api/common.js").AirtableTable;
+export type SortItem = {
     /**
-     * - Record ID
+     * - Field name to sort by
      */
-    id: string;
+    field: string;
     /**
-     * - Record fields
+     * - Sort direction
      */
-    fields: Object;
-    /**
-     * - Created timestamp
-     */
-    createdTime?: string | undefined;
-};
-export type AirtableBase = {
-    /**
-     * - Base ID
-     */
-    id: string;
-    /**
-     * - Base name
-     */
-    name: string;
-    /**
-     * - Permission level
-     */
-    permissionLevel: string;
-};
-export type AirtableTable = {
-    /**
-     * - Table ID
-     */
-    id: string;
-    /**
-     * - Table name
-     */
-    name: string;
-    /**
-     * - Table fields
-     */
-    fields: Array<Object>;
+    direction?: "asc" | "desc" | undefined;
 };
 export type QueryOptions = {
     /**
@@ -228,7 +200,7 @@ export type QueryOptions = {
     /**
      * - Sort configuration
      */
-    sort?: Object[] | undefined;
+    sort?: SortItem[] | undefined;
     /**
      * - View ID or name
      */

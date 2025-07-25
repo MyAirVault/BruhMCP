@@ -2,260 +2,605 @@
  * Make authenticated Reddit API request
  * @param {string} endpoint - API endpoint path
  * @param {string} bearerToken - OAuth bearer token
- * @param {Object} options - Request options
- * @returns {Promise<Object>} API response
+ * @param {RequestOptions} [options] - Request options
+ * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse>} API response
  */
-export function makeRedditRequest(endpoint: string, bearerToken: string, options?: Object): Promise<Object>;
+export function makeRedditRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<RedditApiResponse | RedditListingResponse | RedditSubmissionResponse | RedditCommentResponse | RedditMessageResponse>;
 /**
  * Get current user information
  * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<Object>} User information
+ * @returns {Promise<RedditUser>} User information
  */
-export function getCurrentUser(bearerToken: string): Promise<Object>;
+export function getCurrentUser(bearerToken: string): Promise<RedditUser>;
 /**
  * Get subreddit information
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
+ * @param {GetSubredditInfoArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subreddit info
  */
-export function getSubredditInfo(args: {
-    subreddit: string;
-}, bearerToken: string): Promise<string>;
+export function getSubredditInfo(args: GetSubredditInfoArgs, bearerToken: string): Promise<string>;
 /**
  * Get posts from a subreddit
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
- * @param {string} args.sort - Sort type (hot, new, rising, top)
- * @param {number} args.limit - Number of posts to fetch
- * @param {string} args.time - Time frame for 'top' sort
+ * @param {GetSubredditPostsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted posts data
  */
-export function getSubredditPosts(args: {
-    subreddit: string;
-    sort: string;
-    limit: number;
-    time: string;
-}, bearerToken: string): Promise<string>;
+export function getSubredditPosts(args: GetSubredditPostsArgs, bearerToken: string): Promise<string>;
 /**
  * Get post by ID
- * @param {Object} args - Arguments object
- * @param {string} args.postId - Post ID
+ * @param {GetPostByIdArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted post data
  */
-export function getPostById(args: {
-    postId: string;
-}, bearerToken: string): Promise<string>;
+export function getPostById(args: GetPostByIdArgs, bearerToken: string): Promise<string>;
 /**
  * Get post comments
- * @param {Object} args - Arguments object
- * @param {string} args.postId - Post ID
- * @param {string} args.sort - Comment sorting method
- * @param {number} args.limit - Number of comments to retrieve
+ * @param {GetPostCommentsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted comments data
  */
-export function getPostComments(args: {
-    postId: string;
-    sort: string;
-    limit: number;
-}, bearerToken: string): Promise<string>;
+export function getPostComments(args: GetPostCommentsArgs, bearerToken: string): Promise<string>;
 /**
  * Submit a new post
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit to submit to
- * @param {string} args.title - Post title
- * @param {string} args.text - Post text (for self posts)
- * @param {string} args.url - Post URL (for link posts)
- * @param {string} args.kind - Post kind ('self' or 'link')
- * @param {boolean} args.nsfw - Mark post as NSFW
- * @param {boolean} args.spoiler - Mark post as spoiler
+ * @param {SubmitPostArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted submission response
  */
-export function submitPost(args: {
-    subreddit: string;
-    title: string;
-    text: string;
-    url: string;
-    kind: string;
-    nsfw: boolean;
-    spoiler: boolean;
-}, bearerToken: string): Promise<string>;
+export function submitPost(args: SubmitPostArgs, bearerToken: string): Promise<string>;
 /**
  * Submit a comment
- * @param {Object} args - Arguments object
- * @param {string} args.parent - Parent post or comment ID
- * @param {string} args.text - Comment text
+ * @param {SubmitCommentArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted comment response
  */
-export function submitComment(args: {
-    parent: string;
-    text: string;
-}, bearerToken: string): Promise<string>;
+export function submitComment(args: SubmitCommentArgs, bearerToken: string): Promise<string>;
 /**
  * Vote on a post
- * @param {Object} args - Arguments object
- * @param {string} args.postId - Post ID to vote on
- * @param {number} args.direction - Vote direction (1, 0, -1)
+ * @param {VoteArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted vote response
  */
-export function voteOnPost(args: {
-    postId: string;
-    direction: number;
-}, bearerToken: string): Promise<string>;
+export function voteOnPost(args: VoteArgs, bearerToken: string): Promise<string>;
 /**
  * Vote on a comment
- * @param {Object} args - Arguments object
- * @param {string} args.commentId - Comment ID to vote on
- * @param {number} args.direction - Vote direction (1, 0, -1)
+ * @param {VoteArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted vote response
  */
-export function voteOnComment(args: {
-    commentId: string;
-    direction: number;
-}, bearerToken: string): Promise<string>;
+export function voteOnComment(args: VoteArgs, bearerToken: string): Promise<string>;
 /**
  * Get user information
- * @param {Object} args - Arguments object
- * @param {string} args.username - Username
+ * @param {GetUserInfoArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user info
  */
-export function getUserInfo(args: {
-    username: string;
-}, bearerToken: string): Promise<string>;
+export function getUserInfo(args: GetUserInfoArgs, bearerToken: string): Promise<string>;
 /**
  * Get user's posts
- * @param {Object} args - Arguments object
- * @param {string} args.username - Username
- * @param {string} args.sort - Sort type
- * @param {number} args.limit - Number of posts
- * @param {string} args.time - Time frame
+ * @param {GetUserPostsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user posts
  */
-export function getUserPosts(args: {
-    username: string;
-    sort: string;
-    limit: number;
-    time: string;
-}, bearerToken: string): Promise<string>;
+export function getUserPosts(args: GetUserPostsArgs, bearerToken: string): Promise<string>;
 /**
  * Get user's comments
- * @param {Object} args - Arguments object
- * @param {string} args.username - Username
- * @param {string} args.sort - Sort type
- * @param {number} args.limit - Number of comments
- * @param {string} args.time - Time frame
+ * @param {GetUserCommentsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user comments
  */
-export function getUserComments(args: {
-    username: string;
-    sort: string;
-    limit: number;
-    time: string;
-}, bearerToken: string): Promise<string>;
+export function getUserComments(args: GetUserCommentsArgs, bearerToken: string): Promise<string>;
 /**
  * Search posts
- * @param {Object} args - Arguments object
- * @param {string} args.query - Search query
- * @param {string} args.subreddit - Subreddit to search (optional)
- * @param {string} args.sort - Sort type
- * @param {number} args.limit - Number of results
- * @param {string} args.time - Time frame
+ * @param {SearchPostsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted search results
  */
-export function searchPosts(args: {
-    query: string;
-    subreddit: string;
-    sort: string;
-    limit: number;
-    time: string;
-}, bearerToken: string): Promise<string>;
+export function searchPosts(args: SearchPostsArgs, bearerToken: string): Promise<string>;
 /**
  * Search subreddits
- * @param {Object} args - Arguments object
- * @param {string} args.query - Search query
- * @param {number} args.limit - Number of results
+ * @param {SearchSubredditsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted search results
  */
-export function searchSubreddits(args: {
-    query: string;
-    limit: number;
-}, bearerToken: string): Promise<string>;
+export function searchSubreddits(args: SearchSubredditsArgs, bearerToken: string): Promise<string>;
 /**
  * Get user's inbox messages
- * @param {Object} args - Arguments object
- * @param {string} args.filter - Filter type for inbox messages
- * @param {number} args.limit - Number of messages
+ * @param {GetInboxMessagesArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted inbox messages
  */
-export function getInboxMessages(args: {
-    filter: string;
-    limit: number;
-}, bearerToken: string): Promise<string>;
+export function getInboxMessages(args: GetInboxMessagesArgs, bearerToken: string): Promise<string>;
 /**
  * Send a private message
- * @param {Object} args - Arguments object
- * @param {string} args.to - Recipient username
- * @param {string} args.subject - Message subject
- * @param {string} args.text - Message text
+ * @param {SendMessageArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted message response
  */
-export function sendMessage(args: {
-    to: string;
-    subject: string;
-    text: string;
-}, bearerToken: string): Promise<string>;
+export function sendMessage(args: SendMessageArgs, bearerToken: string): Promise<string>;
 /**
  * Mark messages as read
- * @param {Object} args - Arguments object
- * @param {Array<string>} args.messageIds - Array of message IDs to mark as read
+ * @param {MarkAsReadArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted response
  */
-export function markAsRead(args: {
-    messageIds: Array<string>;
-}, bearerToken: string): Promise<string>;
+export function markAsRead(args: MarkAsReadArgs, bearerToken: string): Promise<string>;
 /**
  * Get user's subscribed subreddits
- * @param {Object} args - Arguments object
- * @param {number} args.limit - Number of subscriptions to return
+ * @param {GetSubscriptionsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subscriptions
  */
-export function getSubscriptions(args: {
-    limit: number;
-}, bearerToken: string): Promise<string>;
+export function getSubscriptions(args: GetSubscriptionsArgs, bearerToken: string): Promise<string>;
 /**
  * Subscribe to a subreddit
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
+ * @param {SubscribeArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subscription response
  */
-export function subscribeToSubreddit(args: {
-    subreddit: string;
-}, bearerToken: string): Promise<string>;
+export function subscribeToSubreddit(args: SubscribeArgs, bearerToken: string): Promise<string>;
 /**
  * Unsubscribe from a subreddit
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
+ * @param {SubscribeArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted unsubscription response
  */
-export function unsubscribeFromSubreddit(args: {
+export function unsubscribeFromSubreddit(args: SubscribeArgs, bearerToken: string): Promise<string>;
+export type RequestOptions = {
+    /**
+     * - HTTP method
+     */
+    method?: string | undefined;
+    /**
+     * - Request headers
+     */
+    headers?: Record<string, string> | undefined;
+    /**
+     * - Request body
+     */
+    body?: string | URLSearchParams | undefined;
+};
+export type RedditUser = {
+    /**
+     * - User ID
+     */
+    id: string;
+    /**
+     * - Username
+     */
+    name: string;
+    /**
+     * - User icon URL
+     */
+    icon_img?: string | undefined;
+    /**
+     * - Link karma
+     */
+    link_karma: number;
+    /**
+     * - Comment karma
+     */
+    comment_karma: number;
+    /**
+     * - Gold status
+     */
+    is_gold: boolean;
+    /**
+     * - Moderator status
+     */
+    is_mod: boolean;
+    /**
+     * - Verified status
+     */
+    verified: boolean;
+    /**
+     * - Creation timestamp
+     */
+    created_utc: number;
+};
+export type RedditSubreddit = {
+    /**
+     * - Subreddit ID
+     */
+    id: string;
+    /**
+     * - Subreddit name
+     */
+    display_name: string;
+    /**
+     * - Subreddit title
+     */
+    title: string;
+    /**
+     * - Public description
+     */
+    public_description: string;
+    /**
+     * - Full description
+     */
+    description: string;
+    /**
+     * - Subscriber count
+     */
+    subscribers: number;
+    /**
+     * - NSFW flag
+     */
+    over18: boolean;
+    /**
+     * - Icon URL
+     */
+    icon_img: string;
+    /**
+     * - Banner URL
+     */
+    banner_img: string;
+    /**
+     * - Creation timestamp
+     */
+    created_utc: number;
+};
+export type RedditPost = {
+    /**
+     * - Post ID
+     */
+    id: string;
+    /**
+     * - Post title
+     */
+    title: string;
+    /**
+     * - Author username
+     */
+    author: string;
+    /**
+     * - Subreddit name
+     */
     subreddit: string;
-}, bearerToken: string): Promise<string>;
+    /**
+     * - Self text content
+     */
+    selftext?: string | undefined;
+    /**
+     * - Post URL
+     */
+    url?: string | undefined;
+    /**
+     * - Post score
+     */
+    score: number;
+    /**
+     * - Upvotes
+     */
+    ups: number;
+    /**
+     * - Downvotes
+     */
+    downs: number;
+    /**
+     * - Comment count
+     */
+    num_comments: number;
+    /**
+     * - NSFW flag
+     */
+    over_18: boolean;
+    /**
+     * - Spoiler flag
+     */
+    spoiler: boolean;
+    /**
+     * - Creation timestamp
+     */
+    created_utc: number;
+    /**
+     * - Post permalink
+     */
+    permalink: string;
+};
+export type RedditComment = {
+    /**
+     * - Comment ID
+     */
+    id: string;
+    /**
+     * - Author username
+     */
+    author: string;
+    /**
+     * - Comment body
+     */
+    body: string;
+    /**
+     * - Comment score
+     */
+    score: number;
+    /**
+     * - Upvotes
+     */
+    ups: number;
+    /**
+     * - Downvotes
+     */
+    downs: number;
+    /**
+     * - Parent ID
+     */
+    parent_id: string;
+    /**
+     * - Creation timestamp
+     */
+    created_utc: number;
+    /**
+     * - Comment permalink
+     */
+    permalink: string;
+    /**
+     * - Nested replies
+     */
+    replies?: RedditComment[] | undefined;
+};
+export type RedditApiResponse = {
+    /**
+     * - Response data
+     */
+    data: Object;
+    /**
+     * - JSON response data
+     */
+    json?: Object | undefined;
+};
+export type RedditListingResponse = {
+    /**
+     * - Listing data
+     */
+    data: {
+        children: Object[];
+        after?: string | undefined;
+        before?: string | undefined;
+    };
+};
+export type RedditSubmissionResponse = {
+    /**
+     * - JSON response
+     */
+    json: {
+        data: {
+            id: string;
+        };
+        errors?: string[][] | undefined;
+    };
+};
+export type RedditCommentResponse = {
+    /**
+     * - JSON response
+     */
+    json: {
+        data: {
+            things: Object[];
+        };
+        errors?: string[][] | undefined;
+    };
+};
+export type RedditMessageResponse = {
+    /**
+     * - JSON response
+     */
+    json: {
+        errors?: string[][] | undefined;
+    };
+};
+export type GetSubredditInfoArgs = {
+    /**
+     * - Subreddit name
+     */
+    subreddit: string;
+};
+export type GetSubredditPostsArgs = {
+    /**
+     * - Subreddit name
+     */
+    subreddit: string;
+    /**
+     * - Sort type
+     */
+    sort?: string | undefined;
+    /**
+     * - Post limit
+     */
+    limit?: number | undefined;
+    /**
+     * - Time frame
+     */
+    time?: string | undefined;
+};
+export type GetPostByIdArgs = {
+    /**
+     * - Post ID
+     */
+    postId: string;
+};
+export type GetPostCommentsArgs = {
+    /**
+     * - Post ID
+     */
+    postId: string;
+    /**
+     * - Sort type
+     */
+    sort?: string | undefined;
+    /**
+     * - Comment limit
+     */
+    limit?: number | undefined;
+};
+export type SubmitPostArgs = {
+    /**
+     * - Subreddit name
+     */
+    subreddit: string;
+    /**
+     * - Post title
+     */
+    title: string;
+    /**
+     * - Post text
+     */
+    text?: string | undefined;
+    /**
+     * - Post URL
+     */
+    url?: string | undefined;
+    /**
+     * - Post kind
+     */
+    kind?: string | undefined;
+    /**
+     * - NSFW flag
+     */
+    nsfw?: boolean | undefined;
+    /**
+     * - Spoiler flag
+     */
+    spoiler?: boolean | undefined;
+};
+export type SubmitCommentArgs = {
+    /**
+     * - Parent ID
+     */
+    parent: string;
+    /**
+     * - Comment text
+     */
+    text: string;
+};
+export type VoteArgs = {
+    /**
+     * - Post ID
+     */
+    postId: string;
+    /**
+     * - Comment ID
+     */
+    commentId: string;
+    /**
+     * - Vote direction
+     */
+    direction: number;
+};
+export type GetUserInfoArgs = {
+    /**
+     * - Username
+     */
+    username: string;
+};
+export type GetUserPostsArgs = {
+    /**
+     * - Username
+     */
+    username: string;
+    /**
+     * - Sort type
+     */
+    sort?: string | undefined;
+    /**
+     * - Post limit
+     */
+    limit?: number | undefined;
+    /**
+     * - Time frame
+     */
+    time?: string | undefined;
+};
+export type GetUserCommentsArgs = {
+    /**
+     * - Username
+     */
+    username: string;
+    /**
+     * - Sort type
+     */
+    sort?: string | undefined;
+    /**
+     * - Comment limit
+     */
+    limit?: number | undefined;
+    /**
+     * - Time frame
+     */
+    time?: string | undefined;
+};
+export type SearchPostsArgs = {
+    /**
+     * - Search query
+     */
+    query: string;
+    /**
+     * - Subreddit name
+     */
+    subreddit?: string | undefined;
+    /**
+     * - Sort type
+     */
+    sort?: string | undefined;
+    /**
+     * - Result limit
+     */
+    limit?: number | undefined;
+    /**
+     * - Time frame
+     */
+    time?: string | undefined;
+};
+export type SearchSubredditsArgs = {
+    /**
+     * - Search query
+     */
+    query: string;
+    /**
+     * - Result limit
+     */
+    limit?: number | undefined;
+};
+export type GetInboxMessagesArgs = {
+    /**
+     * - Message filter
+     */
+    filter?: string | undefined;
+    /**
+     * - Message limit
+     */
+    limit?: number | undefined;
+};
+export type SendMessageArgs = {
+    /**
+     * - Recipient username
+     */
+    to: string;
+    /**
+     * - Message subject
+     */
+    subject: string;
+    /**
+     * - Message text
+     */
+    text: string;
+};
+export type MarkAsReadArgs = {
+    /**
+     * - Message IDs
+     */
+    messageIds: string[];
+};
+export type GetSubscriptionsArgs = {
+    /**
+     * - Subscription limit
+     */
+    limit?: number | undefined;
+};
+export type SubscribeArgs = {
+    /**
+     * - Subreddit name
+     */
+    subreddit: string;
+};
 //# sourceMappingURL=redditApi.d.ts.map

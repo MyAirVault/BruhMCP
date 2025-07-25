@@ -87,9 +87,10 @@ app.post('/cache-tokens', async (req, res) => {
     const { instance_id, tokens } = req.body;
 
     if (!instance_id || !tokens) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Instance ID and tokens are required'
       });
+      return 
     }
 
     // Cache tokens using existing credential cache

@@ -23,9 +23,9 @@ import { formatDropboxResponse, formatDropboxError } from '../utils/dropboxForma
 /**
  * Execute a Dropbox tool call
  * @param {string} toolName - Name of the tool to execute
- * @param {Object} args - Tool arguments
+ * @param {Record<string, unknown>} args - Tool arguments
  * @param {string} bearerToken - OAuth Bearer token for Dropbox API
- * @returns {Promise<Object>} Tool execution result in MCP format
+ * @returns {Promise<Record<string, unknown>>} Tool execution result in MCP format
  * @throws {Error} If tool execution fails or validation errors occur
  */
 export async function executeToolCall(toolName, args, bearerToken) {
@@ -41,7 +41,8 @@ export async function executeToolCall(toolName, args, bearerToken) {
   try {
     validateToolArguments(toolName, args);
   } catch (validationError) {
-    const errorMessage = formatDropboxError(`validation for ${toolName}`, validationError);
+    const error = validationError instanceof Error ? validationError : new Error(String(validationError));
+    const errorMessage = formatDropboxError(`validation for ${toolName}`, error);
     throw new Error(errorMessage);
   }
 
@@ -94,7 +95,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
         break;
 
       case 'get_space_usage':
-        result = await getSpaceUsage(args, bearerToken);
+        result = await getSpaceUsage(bearerToken);
         break;
 
       default:
@@ -104,7 +105,19 @@ export async function executeToolCall(toolName, args, bearerToken) {
     console.log(`✅ Tool ${toolName} executed successfully`);
     
     // Format response consistently
-    const formattedResponse = typeof result === 'string' ? result : formatDropboxResponse(result);
+    let formattedResponse;
+    if (typeof result === 'string') {
+      formattedResponse = result;
+    } else {
+      // Transform result to DropboxResponseData format
+      /** @type {import('../utils/dropboxFormatting.js').DropboxResponseData} */
+      const responseData = {
+        action: toolName,
+        timestamp: new Date().toISOString(),
+        ...result
+      };
+      formattedResponse = formatDropboxResponse(responseData);
+    }
     
     // Return MCP-compliant result format
     return {
@@ -120,7 +133,8 @@ export async function executeToolCall(toolName, args, bearerToken) {
     console.error(`❌ Tool ${toolName} execution failed:`, error);
     
     // Format error consistently
-    const formattedError = formatDropboxError(toolName, error);
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    const formattedError = formatDropboxError(toolName, errorObj);
     const enhancedError = new Error(formattedError);
     
     // Preserve original error stack if available

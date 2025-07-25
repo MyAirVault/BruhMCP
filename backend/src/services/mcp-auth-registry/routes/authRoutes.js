@@ -194,25 +194,29 @@ function createAuthRoutes(serviceRegistry) {
 			// Handle OAuth error responses
 			if (error) {
 				console.error(`❌ OAuth callback error for ${serviceName}: ${error}`);
-				return res.redirect(`${frontendUrl}/dashboard?error=${encodeURIComponent(String(error))}`);
+				res.redirect(`${frontendUrl}/dashboard?error=${encodeURIComponent(String(error))}`);
+				return 
 			}
 
 			// Validate required parameters
 			if (!code || !state) {
 				console.error(`❌ Missing OAuth callback parameters for ${serviceName}`);
-				return res.redirect(`${frontendUrl}/dashboard?error=missing_parameters`);
+				res.redirect(`${frontendUrl}/dashboard?error=missing_parameters`);
+				return 
 			}
 
 			// Check if service exists and supports OAuth
 			const service = serviceRegistry.getService(serviceName);
 			if (!service || !service.isActive) {
 				console.error(`❌ Service ${serviceName} not found`);
-				return res.redirect(`${frontendUrl}/dashboard?error=service_not_found`);
+				res.redirect(`${frontendUrl}/dashboard?error=service_not_found`);
+				return 
 			}
 
 			if (service.type !== 'oauth' && service.type !== 'hybrid') {
 				console.error(`❌ Service ${serviceName} does not support OAuth`);
-				return res.redirect(`${frontendUrl}/dashboard?error=service_not_oauth`);
+			res.redirect(`${frontendUrl}/dashboard?error=service_not_oauth`);
+			return 
 			}
 
 			// Call service OAuth callback function
@@ -228,7 +232,7 @@ function createAuthRoutes(serviceRegistry) {
 			if (result.success) {
 				console.log(`✅ OAuth callback successful for ${serviceName}`);
 				// Send HTML that closes the popup window
-				return res.send(`
+				return  res.send(`
 					<!DOCTYPE html>
 					<html>
 					<head>

@@ -3,5 +3,5 @@
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-export function handleCallEndpoint(req: Object, res: Object, ...args: any[]): Promise<any>;
+export function handleCallEndpoint(req: Object, res: Object, ...args: any[]): Promise<void>;
 //# sourceMappingURL=call.d.ts.map

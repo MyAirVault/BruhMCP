@@ -5,6 +5,8 @@
  * @typedef {import('../middleware/types.js').SlackFile} SlackFile
  * @typedef {import('../middleware/types.js').SlackFileUploadResult} SlackFileUploadResult
  * @typedef {import('../middleware/types.js').SlackMessageEdit} SlackMessageEdit
+ * @typedef {import('../middleware/types.js').SlackBlock} SlackBlock
+ * @typedef {import('../middleware/types.js').SlackField} SlackField
  */
 /**
  * Formatted message response object
@@ -22,7 +24,7 @@
  * @property {string} [bot_id] - Bot ID
  * @property {string} [username] - Username
  * @property {FormattedAttachment[]} [attachments] - Attachments
- * @property {Object[]} [blocks] - Message blocks
+ * @property {SlackBlock[]} [blocks] - Message blocks
  * @property {FormattedReaction[]} [reactions] - Reactions
  * @property {FormattedFile[]} [files] - Files
  * @property {FormattedMessageEdit} [edited] - Edit information
@@ -45,7 +47,7 @@
  * @property {string} [footer] - Footer
  * @property {string} [footer_icon] - Footer icon
  * @property {number} [ts] - Timestamp
- * @property {Object[]} [fields] - Fields
+ * @property {SlackField[]} [fields] - Fields
  */
 /**
  * Formatted reaction object
@@ -102,10 +104,10 @@
  */
 /**
  * Format a Slack message response
- * @param {SlackMessage|Object|null} message - Raw Slack message object
+ * @param {SlackMessage|null} message - Raw Slack message object
  * @returns {FormattedMessage|null} Formatted message
  */
-export function formatMessageResponse(message: SlackMessage | Object | null): FormattedMessage | null;
+export function formatMessageResponse(message: SlackMessage | null): FormattedMessage | null;
 /**
  * Format a Slack attachment
  * @param {SlackAttachment} attachment - Raw Slack attachment object
@@ -136,6 +138,8 @@ export type SlackReaction = import("../middleware/types.js").SlackReaction;
 export type SlackFile = import("../middleware/types.js").SlackFile;
 export type SlackFileUploadResult = import("../middleware/types.js").SlackFileUploadResult;
 export type SlackMessageEdit = import("../middleware/types.js").SlackMessageEdit;
+export type SlackBlock = import("../middleware/types.js").SlackBlock;
+export type SlackField = import("../middleware/types.js").SlackField;
 /**
  * Formatted message response object
  */
@@ -195,7 +199,7 @@ export type FormattedMessage = {
     /**
      * - Message blocks
      */
-    blocks?: Object[] | undefined;
+    blocks?: import("../middleware/types.js").SlackBlock[] | undefined;
     /**
      * - Reactions
      */
@@ -276,7 +280,7 @@ export type FormattedAttachment = {
     /**
      * - Fields
      */
-    fields?: Object[] | undefined;
+    fields?: import("../middleware/types.js").SlackField[] | undefined;
 };
 /**
  * Formatted reaction object

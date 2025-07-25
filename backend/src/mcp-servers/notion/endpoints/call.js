@@ -17,7 +17,7 @@ export async function handleCallEndpoint(req, res) {
 		const { bearerToken, instanceId, userId } = req;
 
 		if (!bearerToken) {
-			return res.status(401).json({
+			 res.status(401).json({
 				jsonrpc: '2.0',
 				error: {
 					code: -32000,
@@ -25,12 +25,13 @@ export async function handleCallEndpoint(req, res) {
 				},
 				id: req.body?.id || null,
 			});
+			return 
 		}
 
 		const { tool, arguments: args } = req.body;
 
 		if (!tool) {
-			return res.status(400).json({
+			res.status(400).json({
 				jsonrpc: '2.0',
 				error: {
 					code: -32602,
@@ -38,6 +39,7 @@ export async function handleCallEndpoint(req, res) {
 				},
 				id: req.body?.id || null,
 			});
+			return 
 		}
 
 		Logger.info(`Call endpoint executing tool: ${tool}`, { instanceId, userId });

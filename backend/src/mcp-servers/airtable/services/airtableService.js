@@ -20,24 +20,25 @@ import { chunkArray, measureExecutionTime, withTimeout } from '../utils/common.j
  */
 
 /**
- * @typedef {Object} AirtableRecord
- * @property {string} id - Record ID
- * @property {Object} fields - Record fields
- * @property {string} [createdTime] - Created timestamp
+ * @typedef {import('../api/common.js').AirtableRecord} AirtableRecord
  */
 
 /**
- * @typedef {Object} AirtableBase
- * @property {string} id - Base ID
- * @property {string} name - Base name
- * @property {string} permissionLevel - Permission level
+ * @typedef {import('../api/common.js').AirtableBase} AirtableBase
  */
 
 /**
- * @typedef {Object} AirtableTable
- * @property {string} id - Table ID
- * @property {string} name - Table name
- * @property {Array<Object>} fields - Table fields
+ * @typedef {import('../api/common.js').AirtableField} AirtableField
+ */
+
+/**
+ * @typedef {import('../api/common.js').AirtableTable} AirtableTable
+ */
+
+/**
+ * @typedef {Object} SortItem
+ * @property {string} field - Field name to sort by
+ * @property {'asc'|'desc'} [direction='asc'] - Sort direction
  */
 
 /**
@@ -45,7 +46,7 @@ import { chunkArray, measureExecutionTime, withTimeout } from '../utils/common.j
  * @property {number} [maxRecords] - Maximum number of records to return
  * @property {Array<string>} [fields] - Fields to include
  * @property {string} [filterByFormula] - Formula to filter records
- * @property {Array<Object>} [sort] - Sort configuration
+ * @property {Array<SortItem>} [sort] - Sort configuration
  * @property {string} [view] - View ID or name
  * @property {string} [offset] - Pagination offset
  */
@@ -359,7 +360,9 @@ export class AirtableService {
 		/** @type {Record<string, string | number | boolean | string[]>} */
 		const cleanFields = {};
 		for (const [key, value] of Object.entries(sanitizedFields)) {
-			if (value !== null && value !== undefined) {
+			if (value !== null && value !== undefined && typeof value !== 'object') {
+				cleanFields[key] = /** @type {string | number | boolean | string[]} */ (value);
+			} else if (Array.isArray(value)) {
 				cleanFields[key] = value;
 			}
 		}
@@ -426,7 +429,9 @@ export class AirtableService {
 		/** @type {Record<string, string | number | boolean | string[]>} */
 		const cleanFields = {};
 		for (const [key, value] of Object.entries(sanitizedFields)) {
-			if (value !== null && value !== undefined) {
+			if (value !== null && value !== undefined && typeof value !== 'object') {
+				cleanFields[key] = /** @type {string | number | boolean | string[]} */ (value);
+			} else if (Array.isArray(value)) {
 				cleanFields[key] = value;
 			}
 		}
@@ -537,7 +542,9 @@ export class AirtableService {
 			/** @type {Record<string, string | number | boolean | string[]>} */
 			const cleanFields = {};
 			for (const [key, value] of Object.entries(sanitizedFields)) {
-				if (value !== null && value !== undefined) {
+				if (value !== null && value !== undefined && typeof value !== 'object') {
+					cleanFields[key] = /** @type {string | number | boolean | string[]} */ (value);
+				} else if (Array.isArray(value)) {
 					cleanFields[key] = value;
 				}
 			}

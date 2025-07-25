@@ -56,19 +56,22 @@ export function createCredentialAuthMiddleware() {
 
 			// Validate instance ID format
 			if (!instanceId) {
-				return res.status(400).json({
+				 res.status(400).json({
 					error: 'Instance ID is required',
 					message: 'URL must include instance ID: /:instanceId/endpoint',
 				});
+				return
 			}
 
 			// Validate UUID format
 			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 			if (!uuidRegex.test(instanceId)) {
-				return res.status(400).json({
+				 res.status(400).json({
 					error: 'Invalid instance ID format',
 					message: 'Instance ID must be a valid UUID',
 				});
+				return
+
 			}
 
 			// Step 1: Check credential cache first (fast path)
@@ -102,19 +105,21 @@ export function createCredentialAuthMiddleware() {
 			const validation = validateInstanceAccess(instance);
 
 			if (!validation.isValid) {
-				return res.status(validation.statusCode || 400).json({
+				 res.status(validation.statusCode || 400).json({
 					error: validation.error,
 					message: 'Instance access denied',
 					instanceId: instanceId,
 				});
+				return
 			}
 
 			if (!instance) {
-				return res.status(404).json({
+				 res.status(404).json({
 					error: 'Instance not found',
 					message: 'Instance not found in database',
 					instanceId: instanceId,
 				});
+				return
 			}
 
 			// Get API key for external service calls
@@ -123,11 +128,12 @@ export function createCredentialAuthMiddleware() {
 			const apiKey = /** @type {string | null} */ (rawApiKey);
 
 			if (!apiKey) {
-				return res.status(500).json({
+				 res.status(500).json({
 					error: 'No API key found',
 					message: 'Instance has no valid API key',
 					instanceId: instanceId,
 				});
+				return
 			}
 
 			// Step 3: Cache the credential for future requests
@@ -158,11 +164,12 @@ export function createCredentialAuthMiddleware() {
 			next();
 		} catch (error) {
 			console.error('Credential authentication error:', error);
-			return res.status(500).json({
+			 res.status(500).json({
 				error: 'Authentication failed',
 				message: 'Failed to validate instance credentials',
 				instanceId: req.params.instanceId,
 			});
+			return
 		}
 	};
 }
@@ -182,10 +189,11 @@ export function createLightweightAuthMiddleware() {
 				// Validate UUID format
 				const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 				if (!uuidRegex.test(instanceId)) {
-					return res.status(400).json({
+					 res.status(400).json({
 						error: 'Invalid instance ID format',
 						message: 'Instance ID must be a valid UUID',
 					});
+					return
 				}
 
 				// Check cache first for basic validation
@@ -207,19 +215,21 @@ export function createLightweightAuthMiddleware() {
 				const validation = validateInstanceAccess(instance);
 
 				if (!validation.isValid) {
-					return res.status(validation.statusCode || 400).json({
+					 res.status(validation.statusCode || 400).json({
 						error: validation.error,
 						message: 'Instance access denied',
 						instanceId: instanceId,
 					});
+					return
 				}
 
 				if (!instance) {
-					return res.status(404).json({
+					res.status(404).json({
 						error: 'Instance not found',
 						message: 'Instance not found in database',
 						instanceId: instanceId,
 					});
+					return 
 				}
 
 				req.instanceId = instanceId;
@@ -232,11 +242,12 @@ export function createLightweightAuthMiddleware() {
 			next();
 		} catch (error) {
 			console.error('Lightweight authentication error:', error);
-			return res.status(500).json({
+			 res.status(500).json({
 				error: 'Authentication failed',
 				message: 'Failed to validate instance',
 				instanceId: req.params.instanceId,
 			});
+			return 
 		}
 	};
 }

@@ -67,16 +67,16 @@ export const createPageSchema: z.ZodObject<{
     } | {
         page_id: string;
     };
-    properties?: Record<string, unknown> | undefined;
     children?: unknown[] | undefined;
+    properties?: Record<string, unknown> | undefined;
 }, {
     parent: {
         database_id: string;
     } | {
         page_id: string;
     };
-    properties?: Record<string, unknown> | undefined;
     children?: unknown[] | undefined;
+    properties?: Record<string, unknown> | undefined;
 }>;
 /**
  * Schema for update page tool

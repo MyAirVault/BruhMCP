@@ -8,9 +8,9 @@ export function lookupInstanceCredentials(instanceId: string, serviceName: strin
 /**
  * Update instance usage tracking
  * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
-export function updateInstanceUsage(instanceId: string): boolean;
+export function updateInstanceUsage(instanceId: string): Promise<boolean>;
 /**
  * Get instance statistics
  * @param {string} instanceId - UUID of the service instance

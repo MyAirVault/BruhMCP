@@ -129,7 +129,7 @@ export function createResponseCacheMiddleware(options = {}) {
       });
       
       // Return cached response in MCP format
-      return res.json({
+       res.json({
         jsonrpc: '2.0',
         id: req.body.id,
         result: {
@@ -141,6 +141,7 @@ export function createResponseCacheMiddleware(options = {}) {
           ]
         }
       });
+      return 
     }
     
     // Cache miss - intercept response to cache it

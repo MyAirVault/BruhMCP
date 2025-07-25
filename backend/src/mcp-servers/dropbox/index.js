@@ -68,9 +68,10 @@ app.post('/cache-tokens', async (req, res) => {
     const { instance_id, tokens } = req.body;
 
     if (!instance_id || !tokens) {
-      return res.status(400).json({
+       res.status(400).json({
         error: 'Instance ID and tokens are required'
       });
+      return 
     }
 
     // Cache tokens using existing credential cache
@@ -93,9 +94,10 @@ app.post('/cache-tokens', async (req, res) => {
 
   } catch (error) {
     console.error('Token caching error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({
       error: 'Failed to cache tokens',
-      details: error.message
+      details: errorMessage
     });
   }
 });
@@ -161,6 +163,11 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
 // MCP JSON-RPC endpoint at base instance URL for Claude Code compatibility
 app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
   try {
+    if (!req.instanceId) {
+       res.status(400).json({ error: 'Instance ID is required' });
+    return 
+      }
+    
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
       req.instanceId,
@@ -191,6 +198,12 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
 // MCP JSON-RPC endpoint at /mcp path (requires full credential authentication with caching)
 app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   try {
+    if (!req.instanceId) {
+       res.status(400).json({ error: 'Instance ID is required' });
+    return 
+      }
+
+    
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
       req.instanceId,
@@ -247,7 +260,7 @@ if (process.env.NODE_ENV === 'development') {
 // Error handling middleware with logging
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
-app.use((err, req, res, next) => {
+app.use((/** @type {Error} */ err, /** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);
   ErrorResponses.internal(res, 'Internal server error', {

@@ -68,12 +68,13 @@ export function webhookRateLimit(req, res, next) {
 	
 	if (recentRequests.length >= maxRequests) {
 		console.warn(`Webhook rate limit exceeded for IP: ${ip}`);
-		return res.status(429).json({
+		 res.status(429).json({
 			error: {
 				code: 'RATE_LIMIT_EXCEEDED',
 				message: 'Too many webhook requests'
 			}
 		});
+		return
 	}
 	
 	recentRequests.push(now);
@@ -128,13 +129,14 @@ export function checkBillingConfig(_req, res, next) {
 	
 	if (!validation.valid) {
 		console.error('❌ Billing configuration error:', validation.message);
-		return res.status(500).json({
+		 res.status(500).json({
 			error: {
 				code: 'BILLING_CONFIG_ERROR',
 				message: 'Billing service not properly configured',
 				details: validation.missingVars
 			}
 		});
+		return
 	}
 	
 	next();

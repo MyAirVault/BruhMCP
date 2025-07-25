@@ -5,6 +5,17 @@
  * @property {string} version
  * @property {string[]} scopes
  */
+/**
+ * @typedef {Object} MCPToolResult
+ * @property {boolean} [isError]
+ * @property {Array<{type: string, text: string}>} content
+ */
+/**
+ * @typedef {Object} MCPMessage
+ * @property {string} method
+ * @property {string|number} [id]
+ * @property {Object} [params]
+ */
 export class GoogleDriveMCPHandler {
     /**
      * @param {ServiceConfig} serviceConfig
@@ -23,18 +34,34 @@ export class GoogleDriveMCPHandler {
     setupTools(): void;
     /**
      * Handle incoming MCP request using session-based transport
-     * @param {import('express').Request} req - Express request object
-     * @param {import('express').Response} res - Express response object
-     * @param {import('@modelcontextprotocol/sdk/types.js').Request} message - MCP message
+     * @param {ExpressRequest} req - Express request object
+     * @param {ExpressResponse} res - Express response object
+     * @param {JSONRPCRequest} message - MCP message
      * @returns {Promise<void>}
      */
-    handleMCPRequest(req: import("express").Request, res: import("express").Response, message: import("@modelcontextprotocol/sdk/types.js").Request): Promise<void>;
+    handleMCPRequest(req: ExpressRequest, res: ExpressResponse, message: JSONRPCRequest): Promise<void>;
 }
+export type JSONRPCRequest = import("@modelcontextprotocol/sdk/types.js").JSONRPCRequest;
+export type JSONRPCMessage = import("@modelcontextprotocol/sdk/types.js").JSONRPCMessage;
+export type ExpressRequest = import("express").Request;
+export type ExpressResponse = import("express").Response;
 export type ServiceConfig = {
     name: string;
     displayName: string;
     version: string;
     scopes: string[];
+};
+export type MCPToolResult = {
+    isError?: boolean | undefined;
+    content: Array<{
+        type: string;
+        text: string;
+    }>;
+};
+export type MCPMessage = {
+    method: string;
+    id?: string | number | undefined;
+    params?: Object | undefined;
 };
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
