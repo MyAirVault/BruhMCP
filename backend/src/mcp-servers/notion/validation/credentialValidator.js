@@ -5,8 +5,18 @@
 
 import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
 import { validateBearerToken } from '../utils/oauthValidation.js';
-import { NotionService } from '../api/notionApi.js';
 import { Logger } from '../utils/validation.js';
+
+/**
+ * Credentials object for OAuth authentication
+ * @typedef {Object} OAuthCredentials
+ * @property {string} auth_type - Authentication type ('oauth' or 'api_key')
+ * @property {string} [client_id] - OAuth client ID (required for oauth)
+ * @property {string} [client_secret] - OAuth client secret (required for oauth)
+ * @property {string} [access_token] - Access token (optional for oauth)
+ * @property {string} [refresh_token] - Refresh token (optional for oauth)
+ * @property {string} [api_key] - API key (required for api_key auth type)
+ */
 
 /**
  * Validate Notion Bearer token by making a test request
@@ -24,52 +34,54 @@ export async function validateNotionBearerToken(bearerToken) {
 		}
 
 		// Test the Bearer token by making a request to the current user endpoint
+		// validateBearerToken throws on error, returns TokenValidationResult on success
 		const validation = await validateBearerToken(bearerToken);
 
-		if (validation.isValid) {
-			Logger.log('Bearer token validation successful');
+		// If we reach here, validation succeeded (no error thrown)
+		Logger.log('Bearer token validation successful');
+		return {
+			valid: true,
+			user: {
+				id: validation.userId,
+				name: validation.workspaceName,
+				type: 'bot',
+				avatarUrl: ''
+			},
+		};
+	} catch (error) {
+		const err = error instanceof Error ? error : new Error(String(error));
+		Logger.error('Credential validation error:', err);
+		
+		// Handle specific error types from validateBearerToken
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		
+		if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
 			return {
-				valid: true,
-				user: validation.user,
+				valid: false,
+				error: 'Invalid Bearer token: Unauthorized access to Notion API',
+			};
+		} else if (errorMessage.includes('403')) {
+			return {
+				valid: false,
+				error: 'Bearer token lacks necessary permissions',
+			};
+		} else if (errorMessage.includes('429')) {
+			return {
+				valid: false,
+				error: 'Rate limit exceeded during validation. Please try again later.',
 			};
 		} else {
-			Logger.error('Bearer token validation failed:', validation.error);
-
-			// Parse the error to provide meaningful feedback
-			if (validation.errorType === 'INVALID_TOKEN') {
-				return {
-					valid: false,
-					error: 'Invalid Bearer token: Unauthorized access to Notion API',
-				};
-			} else if (validation.statusCode === 403) {
-				return {
-					valid: false,
-					error: 'Bearer token lacks necessary permissions',
-				};
-			} else if (validation.statusCode === 429) {
-				return {
-					valid: false,
-					error: 'Rate limit exceeded during validation. Please try again later.',
-				};
-			} else {
-				return {
-					valid: false,
-					error: `Bearer token validation failed: ${validation.error}`,
-				};
-			}
+			return {
+				valid: false,
+				error: `Validation error: ${errorMessage}`,
+			};
 		}
-	} catch (error) {
-		Logger.error('Credential validation error:', error);
-		return {
-			valid: false,
-			error: `Validation error: ${error.message}`,
-		};
 	}
 }
 
 /**
  * Validate instance credentials structure
- * @param {Object} credentials - Credentials object
+ * @param {OAuthCredentials} credentials - Credentials object
  * @returns {boolean} True if valid structure
  */
 export function validateCredentialStructure(credentials) {
@@ -77,19 +89,21 @@ export function validateCredentialStructure(credentials) {
 		return false;
 	}
 
+	const creds = /** @type {Record<string, any>} */ (credentials);
+
 	// For OAuth authentication, we need client_id and client_secret
-	if (credentials.auth_type === 'oauth') {
+	if (creds.auth_type === 'oauth') {
 		return (
-			credentials.client_id &&
-			credentials.client_secret &&
-			typeof credentials.client_id === 'string' &&
-			typeof credentials.client_secret === 'string'
+			creds.client_id &&
+			creds.client_secret &&
+			typeof creds.client_id === 'string' &&
+			typeof creds.client_secret === 'string'
 		);
 	}
 
 	// For legacy API key authentication (deprecated)
-	if (credentials.auth_type === 'api_key') {
-		return credentials.api_key && typeof credentials.api_key === 'string';
+	if (creds.auth_type === 'api_key') {
+		return creds.api_key && typeof creds.api_key === 'string';
 	}
 
 	return false;
@@ -105,19 +119,21 @@ export function extractOAuthCredentials(credentials) {
 		return null;
 	}
 
-	if (credentials.auth_type === 'oauth') {
+	const creds = /** @type {Record<string, any>} */ (credentials);
+
+	if (creds.auth_type === 'oauth') {
 		return {
-			clientId: credentials.client_id,
-			clientSecret: credentials.client_secret,
-			accessToken: credentials.access_token,
-			refreshToken: credentials.refresh_token,
+			clientId: creds.client_id,
+			clientSecret: creds.client_secret,
+			accessToken: creds.access_token,
+			refreshToken: creds.refresh_token,
 		};
 	}
 
 	// For legacy API key authentication (deprecated)
-	if (credentials.auth_type === 'api_key' && credentials.api_key) {
+	if (creds.auth_type === 'api_key' && creds.api_key) {
 		return {
-			accessToken: credentials.api_key,
+			accessToken: creds.api_key,
 		};
 	}
 
@@ -132,7 +148,7 @@ export function extractOAuthCredentials(credentials) {
 export async function validateAndExtractCredentials(credentials) {
 	try {
 		// Validate structure
-		if (!validateCredentialStructure(credentials)) {
+		if (!validateCredentialStructure(/** @type {OAuthCredentials} */ (credentials))) {
 			return {
 				valid: false,
 				error: 'Invalid credentials structure. Expected OAuth credentials with client_id and client_secret',
@@ -148,9 +164,11 @@ export async function validateAndExtractCredentials(credentials) {
 			};
 		}
 
+		const creds = /** @type {Record<string, any>} */ (credentials);
+
 		// For OAuth, we validate the structure but not the tokens here
 		// Token validation happens during authentication middleware
-		if (credentials.auth_type === 'oauth') {
+		if (creds.auth_type === 'oauth') {
 			return {
 				valid: true,
 				oauthCredentials,
@@ -158,8 +176,9 @@ export async function validateAndExtractCredentials(credentials) {
 		}
 
 		// For legacy API key validation
-		if (credentials.auth_type === 'api_key' && oauthCredentials.accessToken) {
-			const validation = await validateNotionBearerToken(oauthCredentials.accessToken);
+		const oauthCreds = /** @type {Record<string, any>} */ (oauthCredentials);
+		if (creds.auth_type === 'api_key' && oauthCredentials && oauthCreds.accessToken) {
+			const validation = await validateNotionBearerToken(String(oauthCreds.accessToken));
 			if (!validation.valid) {
 				return validation;
 			}
@@ -174,13 +193,29 @@ export async function validateAndExtractCredentials(credentials) {
 			error: 'Unsupported authentication type',
 		};
 	} catch (error) {
-		Logger.error('Credential validation error:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		Logger.error('Credential validation error:', { message: errorMessage });
 		return {
 			valid: false,
-			error: `Credential validation failed: ${error.message}`,
+			error: `Credential validation failed: ${errorMessage}`,
 		};
 	}
 }
+
+/**
+ * OAuth credentials for Notion validator
+ * @typedef {Object} NotionOAuthCredentials
+ * @property {string} client_id - OAuth client ID
+ * @property {string} client_secret - OAuth client secret
+ */
+
+/**
+ * Bearer token credentials for Notion validator
+ * @typedef {Object} NotionBearerTokenCredentials
+ * @property {string} [bearer_token] - Bearer token
+ * @property {string} [access_token] - Access token
+ * @property {string} [api_key] - API key
+ */
 
 /**
  * Notion OAuth validator
@@ -234,9 +269,19 @@ class NotionOAuthValidator extends BaseValidator {
   }
 
   /**
+   * Service information for OAuth
+   * @typedef {Object} NotionOAuthServiceInfo
+   * @property {string} service - Service name
+   * @property {string} auth_type - Authentication type
+   * @property {string} validation_type - Validation type
+   * @property {boolean} requires_oauth_flow - Whether OAuth flow is required
+   * @property {string[]} permissions - Available permissions
+   */
+
+  /**
    * Get Notion service information
-   * @param {Object} _credentials - Validated credentials
-   * @returns {Object} Service information
+   * @param {NotionOAuthCredentials} _credentials - Validated credentials
+   * @returns {NotionOAuthServiceInfo} Service information
    */
   getServiceInfo(_credentials) {
     return {
@@ -259,10 +304,7 @@ class NotionBearerTokenValidator extends BaseValidator {
 
   /**
    * Validate Notion Bearer token format
-   * @param {Object} credentials - Credentials to validate
-   * @param {string} [credentials.bearer_token] - Bearer token
-   * @param {string} [credentials.access_token] - Access token
-   * @param {string} [credentials.api_key] - API key
+   * @param {NotionBearerTokenCredentials} credentials - Credentials to validate
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async validateFormat(credentials) {
@@ -270,7 +312,8 @@ class NotionBearerTokenValidator extends BaseValidator {
       return createValidationResult(false, 'Credentials must be a valid object', 'credentials');
     }
 
-    const token = credentials.bearer_token || credentials.access_token || credentials.api_key;
+    const creds = /** @type {Record<string, any>} */ (credentials);
+    const token = creds.bearer_token || creds.access_token || creds.api_key;
     if (!token) {
       return createValidationResult(false, 'Bearer token, access token, or API key is required', 'token');
     }
@@ -284,10 +327,7 @@ class NotionBearerTokenValidator extends BaseValidator {
 
   /**
    * Test Notion Bearer token against actual API
-   * @param {Object} credentials - Credentials to test
-   * @param {string} [credentials.bearer_token] - Bearer token
-   * @param {string} [credentials.access_token] - Access token
-   * @param {string} [credentials.api_key] - API key
+   * @param {NotionBearerTokenCredentials} credentials - Credentials to test
    * @returns {Promise<import('../../../services/validation/baseValidator.js').ValidationResult>} Validation result
    */
   async testCredentials(credentials) {
@@ -296,14 +336,15 @@ class NotionBearerTokenValidator extends BaseValidator {
       return formatResult;
     }
 
-    const token = credentials.bearer_token || credentials.access_token || credentials.api_key;
+    const creds = /** @type {Record<string, any>} */ (credentials);
+    const token = creds.bearer_token || creds.access_token || creds.api_key;
     
     try {
-      const validation = await validateNotionBearerToken(token);
+      const validation = await validateNotionBearerToken(String(token || ''));
       if (validation.valid) {
         return createValidationResult(true, null, null, {
           service: 'Notion API',
-          auth_type: credentials.api_key ? 'api_key' : 'bearer_token',
+          auth_type: creds.api_key ? 'api_key' : 'bearer_token',
           validation_type: 'api_test',
           user: validation.user,
           permissions: ['read', 'write'],
@@ -312,14 +353,24 @@ class NotionBearerTokenValidator extends BaseValidator {
         return createValidationResult(false, validation.error || 'Invalid token', 'token');
       }
     } catch (error) {
-      return createValidationResult(false, `Failed to test Notion token: ${error.message}`, 'token');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return createValidationResult(false, `Failed to test Notion token: ${errorMessage}`, 'token');
     }
   }
 
   /**
+   * Service information for Bearer token
+   * @typedef {Object} NotionBearerTokenServiceInfo
+   * @property {string} service - Service name
+   * @property {string} auth_type - Authentication type
+   * @property {string} validation_type - Validation type
+   * @property {string[]} permissions - Available permissions
+   */
+
+  /**
    * Get Notion service information
-   * @param {Object} _credentials - Validated credentials
-   * @returns {Object} Service information
+   * @param {NotionBearerTokenCredentials} _credentials - Validated credentials
+   * @returns {NotionBearerTokenServiceInfo} Service information
    */
   getServiceInfo(_credentials) {
     return {
@@ -333,13 +384,14 @@ class NotionBearerTokenValidator extends BaseValidator {
 
 /**
  * Notion validator factory
- * @param {Object} credentials - Credentials to validate
+ * @param {OAuthCredentials|NotionBearerTokenCredentials} credentials - Credentials to validate
  * @returns {BaseValidator} Validator instance
  */
 function createNotionValidator(credentials) {
-  if (credentials && credentials.client_id && credentials.client_secret) {
+  const creds = /** @type {Record<string, any>} */ (credentials);
+  if (credentials && creds.client_id && creds.client_secret) {
     return new NotionOAuthValidator();
-  } else if (credentials && (credentials.bearer_token || credentials.access_token || credentials.api_key)) {
+  } else if (credentials && (creds.bearer_token || creds.access_token || creds.api_key)) {
     return new NotionBearerTokenValidator();
   } else {
     throw new Error('Invalid Notion credentials format - must provide OAuth credentials or bearer token');

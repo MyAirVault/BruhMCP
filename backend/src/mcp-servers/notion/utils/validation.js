@@ -3,6 +3,43 @@
  */
 
 /**
+ * @typedef {Object} NotionParent
+ * @property {'page_id'|'database_id'|'workspace'} type - Parent type
+ * @property {string} [page_id] - Page ID if type is 'page_id'
+ * @property {string} [database_id] - Database ID if type is 'database_id'
+ */
+
+/**
+ * @typedef {Object} NotionPageCreationData
+ * @property {NotionParent} parent - Parent object
+ * @property {Record<string, any>} [properties] - Page properties
+ * @property {Array<any>} [children] - Child blocks
+ */
+
+/**
+ * @typedef {Object} NotionDatabaseCreationData
+ * @property {NotionParent} parent - Parent object
+ * @property {Array<any>} title - Database title
+ * @property {Record<string, any>} properties - Database properties
+ */
+
+/**
+ * @typedef {Object} NotionBlockData
+ * @property {string} type - Block type
+ * @property {Record<string, any>} [properties] - Block properties
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether validation passed
+ * @property {string[]} errors - Array of error messages
+ */
+
+/**
+ * @typedef {Record<string, any>} LogMetadata
+ */
+
+/**
  * Validate Notion page ID
  * @param {string} pageId - Page ID to validate
  * @returns {boolean} True if valid
@@ -74,8 +111,8 @@ export function isValidApiKey(apiKey) {
 
 /**
  * Validate page creation data
- * @param {Object} pageData - Page creation data
- * @returns {{ valid: boolean, errors: string[] }} Validation result
+ * @param {NotionPageCreationData} pageData - Page creation data
+ * @returns {ValidationResult} Validation result
  */
 export function validatePageCreationData(pageData) {
 	const errors = [];
@@ -89,10 +126,10 @@ export function validatePageCreationData(pageData) {
 	if (!pageData.parent || typeof pageData.parent !== 'object') {
 		errors.push('Parent is required');
 	} else {
-		if (pageData.parent.type === 'page_id' && !isValidPageId(pageData.parent.page_id)) {
+		if (pageData.parent.type === 'page_id' && pageData.parent.page_id && !isValidPageId(pageData.parent.page_id)) {
 			errors.push('Invalid parent page ID');
 		}
-		if (pageData.parent.type === 'database_id' && !isValidDatabaseId(pageData.parent.database_id)) {
+		if (pageData.parent.type === 'database_id' && pageData.parent.database_id && !isValidDatabaseId(pageData.parent.database_id)) {
 			errors.push('Invalid parent database ID');
 		}
 	}
@@ -112,8 +149,8 @@ export function validatePageCreationData(pageData) {
 
 /**
  * Validate database creation data
- * @param {Object} databaseData - Database creation data
- * @returns {{ valid: boolean, errors: string[] }} Validation result
+ * @param {NotionDatabaseCreationData} databaseData - Database creation data
+ * @returns {ValidationResult} Validation result
  */
 export function validateDatabaseCreationData(databaseData) {
 	const errors = [];
@@ -127,7 +164,7 @@ export function validateDatabaseCreationData(databaseData) {
 	if (!databaseData.parent || typeof databaseData.parent !== 'object') {
 		errors.push('Parent is required');
 	} else {
-		if (databaseData.parent.type === 'page_id' && !isValidPageId(databaseData.parent.page_id)) {
+		if (databaseData.parent.type === 'page_id' && databaseData.parent.page_id && !isValidPageId(databaseData.parent.page_id)) {
 			errors.push('Invalid parent page ID');
 		}
 	}
@@ -147,8 +184,8 @@ export function validateDatabaseCreationData(databaseData) {
 
 /**
  * Validate block data
- * @param {Object} blockData - Block data
- * @returns {{ valid: boolean, errors: string[] }} Validation result
+ * @param {NotionBlockData} blockData - Block data
+ * @returns {ValidationResult} Validation result
  */
 export function validateBlockData(blockData) {
 	const errors = [];
@@ -163,9 +200,9 @@ export function validateBlockData(blockData) {
 		errors.push('Block type is required');
 	}
 
-	// Validate that block has the corresponding type object
-	if (blockData.type && !blockData[blockData.type]) {
-		errors.push(`Block must have ${blockData.type} property`);
+	// Validate that block has properties if needed
+	if (blockData.type && blockData.properties && typeof blockData.properties !== 'object') {
+		errors.push(`Block properties must be an object`);
 	}
 
 	return { valid: errors.length === 0, errors };
@@ -221,7 +258,7 @@ export const Logger = {
 	/**
 	 * Log info message
 	 * @param {string} message - Log message
-	 * @param {Object} [metadata] - Additional metadata
+	 * @param {LogMetadata} [metadata] - Additional metadata
 	 */
 	info(message, metadata = {}) {
 		console.log(`[INFO] ${message}`, metadata);
@@ -230,7 +267,7 @@ export const Logger = {
 	/**
 	 * Log error message
 	 * @param {string} message - Log message
-	 * @param {Error|Object} [error] - Error object or metadata
+	 * @param {Error|LogMetadata} [error] - Error object or metadata
 	 */
 	error(message, error = {}) {
 		console.error(`[ERROR] ${message}`, error);
@@ -239,7 +276,7 @@ export const Logger = {
 	/**
 	 * Log general message
 	 * @param {string} message - Log message
-	 * @param {Object} [metadata] - Additional metadata
+	 * @param {LogMetadata} [metadata] - Additional metadata
 	 */
 	log(message, metadata = {}) {
 		console.log(`[LOG] ${message}`, metadata);

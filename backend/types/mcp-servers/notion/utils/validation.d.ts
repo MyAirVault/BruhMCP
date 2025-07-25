@@ -2,6 +2,37 @@
  * Input validation utilities for Notion MCP service
  */
 /**
+ * @typedef {Object} NotionParent
+ * @property {'page_id'|'database_id'|'workspace'} type - Parent type
+ * @property {string} [page_id] - Page ID if type is 'page_id'
+ * @property {string} [database_id] - Database ID if type is 'database_id'
+ */
+/**
+ * @typedef {Object} NotionPageCreationData
+ * @property {NotionParent} parent - Parent object
+ * @property {Record<string, any>} [properties] - Page properties
+ * @property {Array<any>} [children] - Child blocks
+ */
+/**
+ * @typedef {Object} NotionDatabaseCreationData
+ * @property {NotionParent} parent - Parent object
+ * @property {Array<any>} title - Database title
+ * @property {Record<string, any>} properties - Database properties
+ */
+/**
+ * @typedef {Object} NotionBlockData
+ * @property {string} type - Block type
+ * @property {Record<string, any>} [properties] - Block properties
+ */
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether validation passed
+ * @property {string[]} errors - Array of error messages
+ */
+/**
+ * @typedef {Record<string, any>} LogMetadata
+ */
+/**
  * Validate Notion page ID
  * @param {string} pageId - Page ID to validate
  * @returns {boolean} True if valid
@@ -39,31 +70,22 @@ export function isValidSearchQuery(query: string): boolean;
 export function isValidApiKey(apiKey: string): boolean;
 /**
  * Validate page creation data
- * @param {Object} pageData - Page creation data
- * @returns {{ valid: boolean, errors: string[] }} Validation result
+ * @param {NotionPageCreationData} pageData - Page creation data
+ * @returns {ValidationResult} Validation result
  */
-export function validatePageCreationData(pageData: Object): {
-    valid: boolean;
-    errors: string[];
-};
+export function validatePageCreationData(pageData: NotionPageCreationData): ValidationResult;
 /**
  * Validate database creation data
- * @param {Object} databaseData - Database creation data
- * @returns {{ valid: boolean, errors: string[] }} Validation result
+ * @param {NotionDatabaseCreationData} databaseData - Database creation data
+ * @returns {ValidationResult} Validation result
  */
-export function validateDatabaseCreationData(databaseData: Object): {
-    valid: boolean;
-    errors: string[];
-};
+export function validateDatabaseCreationData(databaseData: NotionDatabaseCreationData): ValidationResult;
 /**
  * Validate block data
- * @param {Object} blockData - Block data
- * @returns {{ valid: boolean, errors: string[] }} Validation result
+ * @param {NotionBlockData} blockData - Block data
+ * @returns {ValidationResult} Validation result
  */
-export function validateBlockData(blockData: Object): {
-    valid: boolean;
-    errors: string[];
-};
+export function validateBlockData(blockData: NotionBlockData): ValidationResult;
 /**
  * Validate pagination cursor
  * @param {string} cursor - Pagination cursor
@@ -86,20 +108,83 @@ export namespace Logger {
     /**
      * Log info message
      * @param {string} message - Log message
-     * @param {Object} [metadata] - Additional metadata
+     * @param {LogMetadata} [metadata] - Additional metadata
      */
-    function info(message: string, metadata?: Object): void;
+    function info(message: string, metadata?: LogMetadata): void;
     /**
      * Log error message
      * @param {string} message - Log message
-     * @param {Error|Object} [error] - Error object or metadata
+     * @param {Error|LogMetadata} [error] - Error object or metadata
      */
-    function error(message: string, error?: Error | Object): void;
+    function error(message: string, error?: Error | LogMetadata): void;
     /**
      * Log general message
      * @param {string} message - Log message
-     * @param {Object} [metadata] - Additional metadata
+     * @param {LogMetadata} [metadata] - Additional metadata
      */
-    function log(message: string, metadata?: Object): void;
+    function log(message: string, metadata?: LogMetadata): void;
 }
+export type NotionParent = {
+    /**
+     * - Parent type
+     */
+    type: "page_id" | "database_id" | "workspace";
+    /**
+     * - Page ID if type is 'page_id'
+     */
+    page_id?: string | undefined;
+    /**
+     * - Database ID if type is 'database_id'
+     */
+    database_id?: string | undefined;
+};
+export type NotionPageCreationData = {
+    /**
+     * - Parent object
+     */
+    parent: NotionParent;
+    /**
+     * - Page properties
+     */
+    properties?: Record<string, any> | undefined;
+    /**
+     * - Child blocks
+     */
+    children?: any[] | undefined;
+};
+export type NotionDatabaseCreationData = {
+    /**
+     * - Parent object
+     */
+    parent: NotionParent;
+    /**
+     * - Database title
+     */
+    title: Array<any>;
+    /**
+     * - Database properties
+     */
+    properties: Record<string, any>;
+};
+export type NotionBlockData = {
+    /**
+     * - Block type
+     */
+    type: string;
+    /**
+     * - Block properties
+     */
+    properties?: Record<string, any> | undefined;
+};
+export type ValidationResult = {
+    /**
+     * - Whether validation passed
+     */
+    valid: boolean;
+    /**
+     * - Array of error messages
+     */
+    errors: string[];
+};
+export type LogMetadata = Record<string, any>;
 //# sourceMappingURL=validation.d.ts.map

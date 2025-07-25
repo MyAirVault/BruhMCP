@@ -66,12 +66,29 @@ export function validateBearerToken(bearerToken: string): Promise<TokenValidatio
  */
 export function isTokenExpired(tokenData: TokenData, bufferMinutes?: number): boolean;
 /**
+ * Notion API user response
+ * @typedef {Object} NotionUserResponse
+ * @property {string} id - User ID
+ * @property {string} name - User name
+ * @property {string} type - User type
+ * @property {string} avatar_url - Avatar URL
+ */
+/**
  * User information from token
  * @typedef {Object} UserInfo
  * @property {string} id - User ID
  * @property {string} name - User name
  * @property {string} type - User type
  * @property {string} avatarUrl - Avatar URL
+ */
+/**
+ * Notion OAuth token API response
+ * @typedef {Object} NotionTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token (optional)
+ * @property {number} [expires_in] - Token expiration in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
  */
 /**
  * Extract user information from Bearer token
@@ -196,6 +213,27 @@ export type TokenData = {
     expiresAt: number;
 };
 /**
+ * Notion API user response
+ */
+export type NotionUserResponse = {
+    /**
+     * - User ID
+     */
+    id: string;
+    /**
+     * - User name
+     */
+    name: string;
+    /**
+     * - User type
+     */
+    type: string;
+    /**
+     * - Avatar URL
+     */
+    avatar_url: string;
+};
+/**
  * User information from token
  */
 export type UserInfo = {
@@ -215,5 +253,30 @@ export type UserInfo = {
      * - Avatar URL
      */
     avatarUrl: string;
+};
+/**
+ * Notion OAuth token API response
+ */
+export type NotionTokenResponse = {
+    /**
+     * - Access token
+     */
+    access_token: string;
+    /**
+     * - Refresh token (optional)
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Token expiration in seconds
+     */
+    expires_in?: number | undefined;
+    /**
+     * - Token type
+     */
+    token_type?: string | undefined;
+    /**
+     * - Token scope
+     */
+    scope?: string | undefined;
 };
 //# sourceMappingURL=oauthValidation.d.ts.map

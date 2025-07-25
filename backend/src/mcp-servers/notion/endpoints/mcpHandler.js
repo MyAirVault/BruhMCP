@@ -14,6 +14,22 @@ import {
 	getPageSchema
 } from './schemas.js';
 
+// Import types from notionFormatting.js
+/**
+ * @typedef {import('../utils/notionFormatting.js').NotionRichText} NotionRichText
+ * @typedef {import('../utils/notionFormatting.js').NotionUser} NotionUser
+ * @typedef {import('../utils/notionFormatting.js').NotionParent} NotionParent
+ * @typedef {import('../utils/notionFormatting.js').NotionProperty} NotionProperty
+ * @typedef {import('../utils/notionFormatting.js').NotionFilter} NotionFilter
+ * @typedef {import('../utils/notionFormatting.js').NotionSort} NotionSort
+ * @typedef {import('../utils/notionFormatting.js').NotionPage} NotionPage
+ * @typedef {import('../utils/notionFormatting.js').NotionDatabase} NotionDatabase
+ * @typedef {import('../utils/notionFormatting.js').NotionBlock} NotionBlock
+ * @typedef {import('../utils/notionFormatting.js').NotionSearchResponse} NotionSearchResponse
+ * @typedef {import('../utils/notionFormatting.js').NotionBlocksResponse} NotionBlocksResponse
+ * @typedef {import('../utils/notionFormatting.js').NotionQueryResponse} NotionQueryResponse
+ */
+
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -26,42 +42,81 @@ import {
  * @typedef {Object} NotionSearchOptions
  * @property {number} [page_size] - Number of results to return
  * @property {string} [start_cursor] - Pagination cursor
- * @property {Object} [sort] - Sort criteria
- * @property {Object} [filter] - Filter criteria
+ * @property {ZodSearchSort} [sort] - Sort criteria
+ * @property {ZodSearchFilter} [filter] - Filter criteria
+ */
+
+/**
+ * @typedef {Object} ZodSearchFilter
+ * @property {'page'|'database'} [value] - Filter by type
+ * @property {string} [property] - Filter property
+ */
+
+/**
+ * @typedef {Object} ZodSearchSort
+ * @property {'ascending'|'descending'} [direction] - Sort direction
+ * @property {'created_time'|'last_edited_time'} [timestamp] - Sort timestamp
+ */
+
+/**
+ * @typedef {Object} ZodParent
+ * @property {'page_id'|'database_id'} [type] - Parent type
+ * @property {string} [page_id] - Page ID
+ * @property {string} [database_id] - Database ID
+ */
+
+/**
+ * @typedef {Record<string, Object>} ZodProperties
+ * Properties from Zod schema as generic objects
+ */
+
+/**
+ * @typedef {Object[]} ZodBlocks
+ * Blocks from Zod schema as generic objects
+ */
+
+/**
+ * @typedef {Object[]} ZodRichTextArray
+ * Rich text from Zod schema as generic objects
+ */
+
+/**
+ * @typedef {Object[]} ZodSorts
+ * Sorts from Zod schema as generic objects
  */
 
 /**
  * @typedef {Object} NotionPageCreateData
- * @property {Object} parent - Parent page or database
- * @property {Object} [properties] - Page properties
- * @property {Array<Object>} [children] - Page content blocks
+ * @property {ZodParent} parent - Parent page or database
+ * @property {ZodProperties} [properties] - Page properties
+ * @property {ZodBlocks} [children] - Page content blocks
  */
 
 /**
  * @typedef {Object} NotionPageUpdateData
- * @property {Object} [properties] - Properties to update
+ * @property {ZodProperties} [properties] - Properties to update
  * @property {boolean} [archived] - Archive status
  */
 
 /**
  * @typedef {Object} NotionDatabaseQueryOptions
  * @property {Object} [filter] - Filter criteria
- * @property {Array<Object>} [sorts] - Sort criteria
+ * @property {ZodSorts} [sorts] - Sort criteria
  * @property {string} [start_cursor] - Pagination cursor
  * @property {number} [page_size] - Number of results
  */
 
 /**
  * @typedef {Object} NotionDatabaseCreateData
- * @property {Object} parent - Parent page
- * @property {Array<Object>} title - Database title
- * @property {Record<string, Object>} properties - Database properties schema
+ * @property {ZodParent} parent - Parent page
+ * @property {ZodRichTextArray} title - Database title
+ * @property {ZodProperties} properties - Database properties schema
  */
 
 /**
  * @typedef {Object} NotionDatabaseUpdateData
- * @property {Array<Object>} [title] - Database title
- * @property {Record<string, Object>} [properties] - Database properties schema
+ * @property {ZodRichTextArray} [title] - Database title
+ * @property {ZodProperties} [properties] - Database properties schema
  */
 
 /**
@@ -106,11 +161,17 @@ export class NotionMCPHandler {
 			"search",
 			"Search for pages and databases in Notion",
 			searchPagesSchema,
-			async ({ query, page_size, start_cursor, sort, filter }) => {
+			async ({ query, sort, filter }) => {
 				console.log(`🔧 Tool call: search for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.search(query, { page_size, start_cursor, sort, filter });
+					// Build search args with proper type casting
+					const searchArgs = { 
+						query,
+						...(filter && { filter: /** @type {{value: string, property: string}} */ (filter) }),
+						...(sort && { sort: /** @type {{direction: 'ascending' | 'descending', timestamp: 'last_edited_time'}} */ (sort) })
+					};
+					const result = await notionService.search(searchArgs);
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -133,7 +194,7 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: get_page for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.getPage(page_id);
+					const result = await notionService.getPage({ pageId: page_id });
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -153,14 +214,13 @@ export class NotionMCPHandler {
 			"Get blocks/content of a page",
 			{
 				page_id: z.string().describe("Page ID"),
-				start_cursor: z.string().optional().describe("Pagination cursor"),
-				page_size: z.number().min(1).max(100).optional().default(100).describe("Number of blocks to return")
+				start_cursor: z.string().optional().describe("Pagination cursor")
 			},
-			async ({ page_id, start_cursor, page_size }) => {
+			async ({ page_id, start_cursor }) => {
 				console.log(`🔧 Tool call: get_page_blocks for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.getPageBlocks(page_id, start_cursor);
+					const result = await notionService.getPageBlocks({ pageId: page_id, start_cursor });
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -191,7 +251,13 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: create_page for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.createPage({ parent, properties, children });
+					// Build create page args with proper type casting
+					const createPageArgs = { 
+						parent: /** @type {NotionParent} */ (parent),
+						properties: /** @type {Record<string, NotionProperty>} */ (properties || {}),
+						...(children && { children: /** @type {NotionBlock[]} */ (children) })
+					};
+					const result = await notionService.createPage(createPageArgs);
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -218,7 +284,13 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: update_page for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.updatePage(page_id, { properties, archived });
+					// Build update page args with proper type casting
+					const updatePageArgs = { 
+						pageId: page_id,
+						...(properties && { properties: /** @type {Record<string, NotionProperty>} */ (properties) }),
+						...(archived !== undefined && { archived })
+					};
+					const result = await notionService.updatePage(updatePageArgs);
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -243,7 +315,7 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: get_database for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.getDatabase(database_id);
+					const result = await notionService.getDatabase({ databaseId: database_id });
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -272,7 +344,22 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: query_database for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.queryDatabase(database_id, { filter, sorts, start_cursor, page_size });
+					// Build query database args with proper type casting
+					/** @type {{ databaseId: string, filter?: NotionFilter, sorts?: NotionSort[], start_cursor?: string, page_size?: number }} */
+					const queryArgs = { databaseId: database_id };
+					if (filter) {
+						queryArgs.filter = /** @type {NotionFilter} */ (filter);
+					}
+					if (sorts) {
+						queryArgs.sorts = /** @type {NotionSort[]} */ (sorts);
+					}
+					if (start_cursor) {
+						queryArgs.start_cursor = start_cursor;
+					}
+					if (page_size) {
+						queryArgs.page_size = page_size;
+					}
+					const result = await notionService.queryDatabase(queryArgs);
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -302,7 +389,13 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: create_database for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.createDatabase({ parent, title, properties });
+					// Build create database args with proper type casting
+					const createDbArgs = {
+						parent: /** @type {NotionParent} */ (parent),
+						title: /** @type {NotionRichText[]} */ (title),
+						properties: /** @type {Record<string, NotionProperty>} */ (properties)
+					};
+					const result = await notionService.createDatabase(createDbArgs);
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -329,7 +422,13 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: update_database for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.updateDatabase(database_id, { title, properties });
+					// Build update database args with proper type casting
+					const updateDbArgs = { 
+						databaseId: database_id,
+						...(title && { title: /** @type {NotionRichText[]} */ (title) }),
+						...(properties && { properties: /** @type {Record<string, NotionProperty>} */ (properties) })
+					};
+					const result = await notionService.updateDatabase(updateDbArgs);
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -355,7 +454,12 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: append_blocks for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.appendBlocks(page_id, children);
+					// Build append blocks args with proper type casting
+					const appendArgs = {
+						blockId: page_id,
+						children: /** @type {NotionBlock[]} */ (children)
+					};
+					const result = await notionService.appendBlocks(appendArgs);
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -380,7 +484,7 @@ export class NotionMCPHandler {
 				console.log(`🔧 Tool call: delete_block for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.deleteBlock(block_id);
+					const result = await notionService.deleteBlock({ blockId: block_id });
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -399,7 +503,7 @@ export class NotionMCPHandler {
 			console.log(`🔧 Tool call: get_current_user for ${this.serviceConfig.name}`);
 			try {
 				const notionService = new NotionService({ bearerToken: this.bearerToken });
-				const result = await notionService.getCurrentUser();
+				const result = await notionService.getCurrentUser({});
 				return {
 					content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 				};
@@ -417,14 +521,13 @@ export class NotionMCPHandler {
 			"list_users",
 			"List all users",
 			{
-				start_cursor: z.string().optional().describe("Pagination cursor"),
-				page_size: z.number().min(1).max(100).optional().default(100).describe("Number of users to return")
+				start_cursor: z.string().optional().describe("Pagination cursor")
 			},
-			async ({ start_cursor, page_size }) => {
+			async ({ start_cursor }) => {
 				console.log(`🔧 Tool call: list_users for ${this.serviceConfig.name}`);
 				try {
 					const notionService = new NotionService({ bearerToken: this.bearerToken });
-					const result = await notionService.listUsers(start_cursor);
+					const result = await notionService.listUsers({ start_cursor });
 					return {
 						content: [{ type: 'text', text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }]
 					};
@@ -443,23 +546,24 @@ export class NotionMCPHandler {
 	 * Handle incoming MCP request using session-based transport
 	 * @param {import('express').Request} req - Express request object
 	 * @param {import('express').Response} res - Express response object
-	 * @param {Object} message - MCP message
+	 * @param {MCPRequest} message - MCP message
 	 * @returns {Promise<void>}
 	 */
 	async handleMCPRequest(req, res, message) {
 		try {
 			const sessionId = req.headers['mcp-session-id'];
+		const sessionIdString = Array.isArray(sessionId) ? sessionId[0] : sessionId;
 			console.log(`🔧 Processing MCP request - Session ID: ${sessionId}`);
 			console.log(`📨 Is Initialize Request: ${isInitializeRequest(message)}`);
 			
 			/** @type {StreamableHTTPServerTransport} */
 			let transport;
 
-			if (sessionId && this.transports[sessionId]) {
+			if (sessionIdString && this.transports[sessionIdString]) {
 				// Reuse existing transport
-				console.log(`♻️  Reusing existing transport for session: ${sessionId}`);
-				transport = this.transports[sessionId];
-			} else if (!sessionId && isInitializeRequest(message)) {
+				console.log(`♻️  Reusing existing transport for session: ${sessionIdString}`);
+				transport = this.transports[sessionIdString];
+			} else if (!sessionIdString && isInitializeRequest(message)) {
 				// Create new transport only for initialization requests
 				console.log(`🚀 Creating new transport for initialization request`);
 				transport = new StreamableHTTPServerTransport({
@@ -491,7 +595,7 @@ export class NotionMCPHandler {
 						code: -32000,
 						message: 'Bad Request: No valid session ID provided and not an initialize request',
 					},
-					id: message?.id || null,
+					id: (message && typeof message === 'object' && 'id' in message) ? message.id : null,
 				});
 				return;
 			}
@@ -507,7 +611,7 @@ export class NotionMCPHandler {
 			// Return proper JSON-RPC error response
 			res.json({
 				jsonrpc: '2.0',
-				id: message?.id || null,
+				id: (message && typeof message === 'object' && 'id' in message) ? message.id : null,
 				error: {
 					code: -32603,
 					message: 'Internal error',

@@ -7,6 +7,26 @@ import { makeNotionRequest } from './requestHandler.js';
 import { formatNotionResponse } from '../../utils/notionFormatting.js';
 
 /**
+ * @typedef {import('../../utils/notionFormatting.js').NotionRichText} NotionRichText
+ * @typedef {import('../../utils/notionFormatting.js').NotionUser} NotionUser 
+ * @typedef {import('../../utils/notionFormatting.js').NotionParent} NotionParent
+ * @typedef {import('../../utils/notionFormatting.js').NotionDatabase} NotionDatabase
+ * @typedef {import('../../utils/notionFormatting.js').NotionPage} NotionPage
+ * @typedef {import('../../utils/notionFormatting.js').NotionQueryResponse} NotionQueryResponse
+ * @typedef {import('../../utils/notionFormatting.js').NotionResponseData} NotionResponseData
+ */
+
+
+/**
+ * @typedef {import('../../utils/notionFormatting.js').NotionFilter} NotionFilter
+ * @typedef {import('../../utils/notionFormatting.js').NotionSort} NotionSort
+ */
+
+/**
+ * @typedef {import('../../utils/notionFormatting.js').NotionProperty} NotionProperty
+ */
+
+/**
  * @typedef {Object} GetDatabaseArgs
  * @property {string} databaseId - The database ID to retrieve
  */
@@ -14,73 +34,34 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
 /**
  * @typedef {Object} QueryDatabaseArgs
  * @property {string} databaseId - The database ID to query
- * @property {Object} [filter] - Filter conditions for the query
- * @property {Array<Object>} [sorts] - Sort conditions for the query
+ * @property {NotionFilter} [filter] - Filter conditions for the query
+ * @property {NotionSort[]} [sorts] - Sort conditions for the query
  * @property {number} [page_size] - Number of results per page (max 100)
- * @property {string|null} [start_cursor] - Pagination cursor
+ * @property {string} [start_cursor] - Pagination cursor
  */
 
 /**
  * @typedef {Object} CreateDatabaseArgs
- * @property {Object} parent - Parent page or workspace information
- * @property {Array<Object>} title - Database title as rich text array
- * @property {Record<string, Object>} properties - Database properties schema
+ * @property {NotionParent} parent - Parent page or workspace information
+ * @property {NotionRichText[]} title - Database title as rich text array
+ * @property {Record<string, NotionProperty>} properties - Database properties schema
  * @property {boolean} [is_inline] - Whether the database is inline
  */
 
 /**
  * @typedef {Object} UpdateDatabaseArgs
  * @property {string} databaseId - The database ID to update
- * @property {Array<Object>} [title] - Updated title as rich text array
- * @property {Record<string, Object>} [properties] - Updated properties schema
+ * @property {NotionRichText[]} [title] - Updated title as rich text array
+ * @property {Record<string, NotionProperty>} [properties] - Updated properties schema
  * @property {boolean} [is_inline] - Whether the database is inline
  */
 
-/**
- * @typedef {Object} NotionApiResponse
- * @property {Object} parent - Parent information
- * @property {string} id - Object ID
- * @property {string} object - Object type
- * @property {string} url - Object URL
- * @property {string} created_time - Creation timestamp
- * @property {string} last_edited_time - Last edit timestamp
- * @property {Object} created_by - Creator information
- * @property {Object} last_edited_by - Last editor information
- * @property {Object} properties - Object properties
- * @property {boolean} archived - Archive status
- * @property {Array<Object>} [title] - Title rich text array
- */
-
-/**
- * @typedef {Object} NotionQueryApiResponse
- * @property {Array<NotionApiResponse>} results - Query results
- * @property {boolean} has_more - Whether there are more results
- * @property {string} [next_cursor] - Next pagination cursor
- */
-
-/**
- * @typedef {Object} FormattedResponse
- * @property {string} action - The action performed
- * @property {string} timestamp - Response timestamp
- * @property {boolean} success - Success status
- */
-
-/**
- * @typedef {FormattedResponse} DatabaseResponse
- * @property {Object} database - Formatted database data
- */
-
-/**
- * @typedef {FormattedResponse} QueryResponse
- * @property {string} databaseId - The queried database ID
- * @property {Object} results - Formatted query results
- */
 
 /**
  * Get database
  * @param {GetDatabaseArgs} args - Database arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<DatabaseResponse>} Database data
+ * @returns {Promise<Record<string, unknown>>} Database data
  */
 export async function getDatabase(args, bearerToken) {
 	const { databaseId } = args;
@@ -89,7 +70,7 @@ export async function getDatabase(args, bearerToken) {
 
 	return formatNotionResponse({
 		action: 'get_database',
-		database: result,
+		database: /** @type {NotionDatabase} */ (result),
 	});
 }
 
@@ -97,17 +78,27 @@ export async function getDatabase(args, bearerToken) {
  * Query database
  * @param {QueryDatabaseArgs} args - Database query arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<QueryResponse>} Query results
+ * @returns {Promise<Record<string, unknown>>} Query results
  */
 export async function queryDatabase(args, bearerToken) {
-	const { databaseId, filter = {}, sorts = [], page_size = 100, start_cursor = null } = args;
+	const { databaseId, filter, sorts = [], page_size = 100, start_cursor } = args;
 
+	/** @type {Record<string, unknown>} */
 	const queryOptions = {
-		filter,
-		sorts,
 		page_size: Math.min(page_size, 100),
-		...(start_cursor && { start_cursor }),
 	};
+
+	if (filter) {
+		queryOptions.filter = filter;
+	}
+
+	if (sorts.length > 0) {
+		queryOptions.sorts = sorts;
+	}
+
+	if (start_cursor) {
+		queryOptions.start_cursor = start_cursor;
+	}
 
 	const result = await makeNotionRequest(`/databases/${databaseId}/query`, bearerToken, {
 		method: 'POST',
@@ -117,7 +108,7 @@ export async function queryDatabase(args, bearerToken) {
 	return formatNotionResponse({
 		action: 'query_database',
 		databaseId,
-		results: result.results || [],
+		results: /** @type {NotionPage[]} */ (/** @type {NotionQueryResponse} */ (result).results || []),
 	});
 }
 
@@ -125,11 +116,12 @@ export async function queryDatabase(args, bearerToken) {
  * Create database
  * @param {CreateDatabaseArgs} args - Database creation arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<DatabaseResponse>} Created database
+ * @returns {Promise<Record<string, unknown>>} Created database
  */
 export async function createDatabase(args, bearerToken) {
 	const { parent, title, properties, is_inline = false } = args;
 
+	/** @type {Record<string, unknown>} */
 	const databaseData = {
 		parent,
 		title,
@@ -137,10 +129,10 @@ export async function createDatabase(args, bearerToken) {
 		is_inline,
 	};
 
-	const result = await makeNotionRequest('/databases', bearerToken, {
+	const result = /** @type {NotionDatabase} */ (await makeNotionRequest('/databases', bearerToken, {
 		method: 'POST',
 		body: databaseData,
-	});
+	}));
 
 	return formatNotionResponse({
 		action: 'create_database',
@@ -152,21 +144,30 @@ export async function createDatabase(args, bearerToken) {
  * Update database
  * @param {UpdateDatabaseArgs} args - Database update arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<DatabaseResponse>} Updated database
+ * @returns {Promise<Record<string, unknown>>} Updated database
  */
 export async function updateDatabase(args, bearerToken) {
-	const { databaseId, title = [], properties = {}, is_inline = false } = args;
+	const { databaseId, title, properties, is_inline } = args;
 
-	const updateData = {
-		title,
-		properties,
-		is_inline,
-	};
+	/** @type {Record<string, unknown>} */
+	const updateData = {};
 
-	const result = await makeNotionRequest(`/databases/${databaseId}`, bearerToken, {
+	if (title !== undefined) {
+		updateData.title = title;
+	}
+
+	if (properties !== undefined) {
+		updateData.properties = properties;
+	}
+
+	if (is_inline !== undefined) {
+		updateData.is_inline = is_inline;
+	}
+
+	const result = /** @type {NotionDatabase} */ (await makeNotionRequest(`/databases/${databaseId}`, bearerToken, {
 		method: 'PATCH',
 		body: updateData,
-	});
+	}));
 
 	return formatNotionResponse({
 		action: 'update_database',

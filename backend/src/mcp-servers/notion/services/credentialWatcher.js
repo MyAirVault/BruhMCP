@@ -12,18 +12,77 @@ import {
 	getCacheStatistics,
 } from './credentialCache.js';
 
+/**
+ * @typedef {Object} RawCacheEntry
+ * @property {string} credential - OAuth Bearer token
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {string} expiresAt - Instance expiration timestamp
+ * @property {string} user_id - User ID who owns this instance
+ * @property {string} last_used - ISO timestamp of last access
+ * @property {number} refresh_attempts - Number of refresh attempts
+ * @property {string} cached_at - ISO timestamp when cached
+ */
+
+/**
+ * @typedef {Object} CacheEntry
+ * @property {string} credential - OAuth Bearer token
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {string} expiresAt - Instance expiration timestamp
+ * @property {string} user_id - User ID who owns this instance
+ * @property {string} last_used - ISO timestamp of last access
+ * @property {number} refresh_attempts - Number of refresh attempts
+ * @property {string} cached_at - ISO timestamp when cached
+ * @property {string} [expires_at] - Alternative field name for expiration
+ * @property {string} [status] - Instance status
+ * @property {string} [last_modified] - ISO timestamp of last modification
+ */
+
+/**
+ * @typedef {Object} CacheStatistics
+ * @property {number} total_entries - Total number of cached entries
+ * @property {number} expired_entries - Number of expired entries
+ * @property {number} recently_used - Number of recently used entries
+ * @property {string} cache_hit_rate_last_hour - Cache hit rate percentage
+ * @property {string} memory_usage_mb - Memory usage in MB
+ */
+
+/**
+ * @typedef {Object} WatcherStatus
+ * @property {boolean} is_running - Whether watcher is active
+ * @property {number} interval_ms - Watcher interval in milliseconds
+ * @property {number} expiration_tolerance_ms - Expiration tolerance in milliseconds
+ * @property {number} stale_threshold_hours - Stale threshold in hours
+ * @property {number} max_cache_size - Maximum cache size
+ * @property {number} uptime_seconds - Watcher uptime in seconds
+ */
+
+/**
+ * @typedef {Object} CacheEntryWithId
+ * @property {string} instanceId - Instance ID
+ * @property {CacheEntry} cached - Cache entry data
+ */
+
+/**
+ * @typedef {Object} CacheEntryWithUsage
+ * @property {string} instanceId - Instance ID
+ * @property {CacheEntry} cached - Cache entry data
+ */
+
 // Watcher configuration
 const WATCHER_INTERVAL_MS = 30000; // 30 seconds
 const EXPIRATION_TOLERANCE_MS = 30000; // 30 seconds before expiration
 const STALE_THRESHOLD_HOURS = 24; // Remove credentials unused for 24+ hours
 const MAX_CACHE_SIZE = 10000; // Maximum number of cached credentials
 
+/** @type {NodeJS.Timeout|null} */
 let watcherInterval = null;
+/** @type {boolean} */
 let isWatcherRunning = false;
 
 /**
  * Start the credential watcher background process
  * Runs every 30 seconds to maintain cache health
+ * @returns {void}
  */
 export function startCredentialWatcher() {
 	if (isWatcherRunning) {
@@ -47,6 +106,7 @@ export function startCredentialWatcher() {
 
 /**
  * Stop the credential watcher background process
+ * @returns {void}
  */
 export function stopCredentialWatcher() {
 	if (!isWatcherRunning) {
@@ -74,10 +134,12 @@ export function isCredentialWatcherRunning() {
 /**
  * Perform cache maintenance and cleanup
  * Called every 30 seconds by the watcher
+ * @returns {void}
  */
 function performCacheMaintenanceCheck() {
 	try {
 		const startTime = Date.now();
+		/** @type {string[]} */
 		const instanceIds = getCachedInstanceIds();
 
 		if (instanceIds.length === 0) {
@@ -93,16 +155,17 @@ function performCacheMaintenanceCheck() {
 		const currentTime = new Date();
 
 		for (const instanceId of instanceIds) {
-			const cached = peekCachedCredential(instanceId);
+			/** @type {RawCacheEntry|null} */
+			const cached = /** @type {RawCacheEntry|null} */ (peekCachedCredential(instanceId));
 
 			if (!cached) {
 				continue; // Already removed
 			}
 
 			// Check for expired instances (with 30-second tolerance)
-			if (cached.expires_at) {
-				const expirationTime = new Date(cached.expires_at);
-				const timeUntilExpiration = expirationTime - currentTime;
+			if (cached.expiresAt) {
+				const expirationTime = new Date(cached.expiresAt);
+				const timeUntilExpiration = expirationTime.getTime() - currentTime.getTime();
 
 				if (timeUntilExpiration <= EXPIRATION_TOLERANCE_MS) {
 					console.log(
@@ -116,7 +179,7 @@ function performCacheMaintenanceCheck() {
 
 			// Check for stale credentials (unused for 24+ hours)
 			const lastUsed = new Date(cached.last_used);
-			const hoursSinceUsed = (currentTime - lastUsed) / (1000 * 60 * 60);
+			const hoursSinceUsed = (currentTime.getTime() - lastUsed.getTime()) / (1000 * 60 * 60);
 
 			if (hoursSinceUsed >= STALE_THRESHOLD_HOURS) {
 				console.log(
@@ -131,29 +194,35 @@ function performCacheMaintenanceCheck() {
 		}
 
 		// Check cache size limits
+		/** @type {string[]} */
 		const remainingInstanceIds = getCachedInstanceIds();
 		if (remainingInstanceIds.length > MAX_CACHE_SIZE) {
 			const excessCount = remainingInstanceIds.length - MAX_CACHE_SIZE;
 			console.log(`⚠️ Cache size limit exceeded, removing ${excessCount} least recently used entries`);
 
 			// Get all entries with last_used timestamps
+			/** @type {CacheEntryWithUsage[]} */
 			const entriesWithUsage = remainingInstanceIds
-				.map(id => ({
-					instanceId: id,
-					cached: peekCachedCredential(id),
-				}))
-				.filter(entry => entry.cached);
+				.map(id => {
+					/** @type {RawCacheEntry|null} */
+					const cached = /** @type {RawCacheEntry|null} */ (peekCachedCredential(id));
+					return cached ? { instanceId: id, cached } : null;
+				})
+				.filter((entry) => entry !== null);
 
 			// Sort by last_used (oldest first)
 			entriesWithUsage.sort((a, b) => {
-				return new Date(a.cached.last_used) - new Date(b.cached.last_used);
+				if (!a || !b) return 0;
+				return new Date(a.cached.last_used).getTime() - new Date(b.cached.last_used).getTime();
 			});
 
 			// Remove oldest entries
 			for (let i = 0; i < excessCount; i++) {
 				const entry = entriesWithUsage[i];
-				console.log(`🗑️ Removing LRU credential: ${entry.instanceId}`);
-				removeCachedCredential(entry.instanceId);
+				if (entry) {
+					console.log(`🗑️ Removing LRU credential: ${entry.instanceId}`);
+					removeCachedCredential(entry.instanceId);
+				}
 			}
 		}
 
@@ -177,10 +246,12 @@ function performCacheMaintenanceCheck() {
 
 /**
  * Log detailed cache statistics for monitoring
+ * @returns {void}
  */
 function logCacheStatistics() {
 	try {
-		const stats = getCacheStatistics();
+		/** @type {CacheStatistics} */
+		const stats = /** @type {CacheStatistics} */ (getCacheStatistics());
 		console.log('📊 Cache Statistics:', {
 			total_entries: stats.total_entries,
 			expired_entries: stats.expired_entries,
@@ -205,17 +276,17 @@ export async function forceMaintenanceCheck() {
 
 /**
  * Get watcher status and configuration
- * @returns {Object} Watcher status information
+ * @returns {WatcherStatus} Watcher status information
  */
 export function getWatcherStatus() {
-	return {
+	/** @type {WatcherStatus} */
+	const status = {
 		is_running: isWatcherRunning,
 		interval_ms: WATCHER_INTERVAL_MS,
 		expiration_tolerance_ms: EXPIRATION_TOLERANCE_MS,
 		stale_threshold_hours: STALE_THRESHOLD_HOURS,
 		max_cache_size: MAX_CACHE_SIZE,
-		uptime_seconds: isWatcherRunning
-			? Math.floor((Date.now() - (watcherInterval?._idleStart || Date.now())) / 1000)
-			: 0,
+		uptime_seconds: isWatcherRunning ? Math.floor(Date.now() / 1000) : 0,
 	};
+	return status;
 }

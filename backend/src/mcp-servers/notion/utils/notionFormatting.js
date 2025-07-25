@@ -48,6 +48,24 @@
  */
 
 /**
+ * @typedef {Object} NotionFilter
+ * @property {string} [property] - Property name to filter
+ * @property {string} [relation] - Relation filter
+ * @property {string} [rollup] - Rollup filter
+ * @property {string} [formula] - Formula filter
+ * @property {string} [timestamp] - Timestamp filter
+ * @property {Object} [and] - AND filter condition
+ * @property {Object} [or] - OR filter condition
+ */
+
+/**
+ * @typedef {Object} NotionSort
+ * @property {string} [property] - Property name to sort by
+ * @property {string} [timestamp] - Timestamp to sort by ('created_time' or 'last_edited_time')
+ * @property {'ascending'|'descending'} direction - Sort direction
+ */
+
+/**
  * @typedef {Object} NotionPage
  * @property {string} id - Page ID
  * @property {string} object - Object type
@@ -227,6 +245,7 @@
  * @property {NotionUser} [user] - User object
  * @property {NotionUser[]} [users] - Users array
  * @property {boolean} [hasMore] - Has more flag
+ * @property {string} [next_cursor] - Next cursor for pagination
  * @property {string} [method] - HTTP method
  * @property {string} [path] - API path
  * @property {unknown} [result] - Raw result

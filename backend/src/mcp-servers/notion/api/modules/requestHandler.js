@@ -10,8 +10,8 @@ const NOTION_API_VERSION = '2022-06-28';
  * Make authenticated request to Notion API
  * @param {string} endpoint - API endpoint
  * @param {string} bearerToken - OAuth Bearer token
- * @param {Object} options - Request options
- * @returns {Object} API response
+ * @param {{method?: string, headers?: Record<string, string>, body?: unknown}} options - Request options
+ * @returns {Promise<Record<string, unknown>>} API response
  */
 export async function makeNotionRequest(endpoint, bearerToken, options = {}) {
 	const url = `${NOTION_BASE_URL}${endpoint}`;
@@ -33,7 +33,7 @@ export async function makeNotionRequest(endpoint, bearerToken, options = {}) {
 
 	console.log(`📡 Notion API Request: ${requestOptions.method} ${url}`);
 
-	const response = await fetch(url, requestOptions);
+	const response = await fetch(url, /** @type {RequestInit} */ (requestOptions));
 
 	if (!response.ok) {
 		const errorText = await response.text();

@@ -8,34 +8,36 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
 
 /**
  * Make raw API call to Notion
- * @param {Object} args - Raw API call arguments
+ * @param {{endpoint: string, method?: 'GET' | 'POST' | 'PATCH' | 'DELETE', body?: Record<string, unknown>}} args - Raw API call arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} API response
+ * @returns {Promise<Record<string, unknown>>} API response
  */
 export async function makeRawApiCall(args, bearerToken) {
-	const { method, path, params = {} } = args;
+	const { endpoint, method = 'GET', body = {} } = args;
 
 	const options = {
 		method: method.toUpperCase(),
 	};
 
+	let finalEndpoint = endpoint;
+
 	if (method.toUpperCase() === 'GET') {
-		// For GET requests, add params as query parameters
-		if (Object.keys(params).length > 0) {
-			const queryString = new URLSearchParams(params).toString();
-			path += `?${queryString}`;
+		// For GET requests, add body as query parameters
+		if (Object.keys(body).length > 0) {
+			const queryString = new URLSearchParams(/** @type {Record<string, string>} */ (body)).toString();
+			finalEndpoint += `?${queryString}`;
 		}
 	} else {
-		// For other methods, add params as request body
-		options.body = params;
+		// For other methods, add body as request body
+		options.body = body;
 	}
 
-	const result = await makeNotionRequest(path, bearerToken, options);
+	const result = await makeNotionRequest(finalEndpoint, bearerToken, options);
 
 	return formatNotionResponse({
 		action: 'raw_api_call',
 		method,
-		path,
+		path: finalEndpoint,
 		result,
 	});
 }

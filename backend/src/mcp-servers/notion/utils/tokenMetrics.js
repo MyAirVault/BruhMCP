@@ -4,7 +4,40 @@
  */
 
 /**
+ * @typedef {Object} TokenMetric
+ * @property {string} instanceId - Instance ID
+ * @property {string} method - Method used for refresh
+ * @property {boolean} success - Whether the refresh was successful
+ * @property {string|null} errorType - Type of error if failed
+ * @property {string|null} errorMessage - Error message if failed
+ * @property {number} duration - Duration in milliseconds
+ * @property {string} timestamp - ISO timestamp
+ * @property {number} startTime - Start timestamp
+ * @property {number} endTime - End timestamp
+ */
+
+/**
+ * @typedef {Object} MethodStats
+ * @property {number} total - Total requests for this method
+ * @property {number} successful - Successful requests
+ * @property {number} failed - Failed requests
+ */
+
+/**
+ * @typedef {Object} TokenRefreshStats
+ * @property {number} totalRequests - Total number of requests
+ * @property {number} successRate - Success rate percentage
+ * @property {number} averageDuration - Average duration in ms
+ * @property {Record<string, MethodStats>} methodBreakdown - Breakdown by method
+ * @property {Record<string, number>} errorBreakdown - Breakdown by error type
+ * @property {Object} timeRange - Time range of metrics
+ * @property {string|undefined} timeRange.earliest - Earliest timestamp
+ * @property {string|undefined} timeRange.latest - Latest timestamp
+ */
+
+/**
  * In-memory metrics store (in production, this would be replaced with a proper metrics system)
+ * @type {Map<string, TokenMetric>}
  */
 const metricsStore = new Map();
 
@@ -13,8 +46,8 @@ const metricsStore = new Map();
  * @param {string} instanceId - Instance ID
  * @param {string} method - Method used for refresh (oauth_service, direct_oauth)
  * @param {boolean} success - Whether the refresh was successful
- * @param {string} errorType - Type of error if failed
- * @param {string} errorMessage - Error message if failed
+ * @param {string|null} errorType - Type of error if failed
+ * @param {string|null} errorMessage - Error message if failed
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
  */
@@ -54,24 +87,24 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
 /**
  * Get token refresh metrics for an instance
  * @param {string} instanceId - Instance ID
- * @returns {Array} Array of metrics
+ * @returns {TokenMetric[]} Array of metrics
  */
 export function getTokenRefreshMetrics(instanceId) {
 	const metrics = [];
 
-	for (const [key, metric] of metricsStore.entries()) {
+	for (const [, metric] of metricsStore.entries()) {
 		if (metric.instanceId === instanceId) {
 			metrics.push(metric);
 		}
 	}
 
-	return metrics.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+	return metrics.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 /**
  * Get aggregated token refresh statistics
- * @param {string} instanceId - Instance ID (optional)
- * @returns {Object} Aggregated statistics
+ * @param {string|null} instanceId - Instance ID (optional)
+ * @returns {TokenRefreshStats} Aggregated statistics
  */
 export function getTokenRefreshStats(instanceId = null) {
 	const relevantMetrics = instanceId ? getTokenRefreshMetrics(instanceId) : Array.from(metricsStore.values());
@@ -83,33 +116,40 @@ export function getTokenRefreshStats(instanceId = null) {
 			averageDuration: 0,
 			methodBreakdown: {},
 			errorBreakdown: {},
+			timeRange: {
+				earliest: undefined,
+				latest: undefined,
+			},
 		};
 	}
 
 	const successful = relevantMetrics.filter(m => m.success);
-	const failed = relevantMetrics.filter(m => !m.success);
 
+	/** @type {Record<string, MethodStats>} */
 	const methodBreakdown = {};
+	/** @type {Record<string, number>} */
 	const errorBreakdown = {};
 
 	relevantMetrics.forEach(metric => {
 		// Method breakdown
-		if (!methodBreakdown[metric.method]) {
-			methodBreakdown[metric.method] = { total: 0, successful: 0, failed: 0 };
+		const method = metric.method;
+		if (!methodBreakdown[method]) {
+			methodBreakdown[method] = { total: 0, successful: 0, failed: 0 };
 		}
-		methodBreakdown[metric.method].total++;
+		methodBreakdown[method].total++;
 		if (metric.success) {
-			methodBreakdown[metric.method].successful++;
+			methodBreakdown[method].successful++;
 		} else {
-			methodBreakdown[metric.method].failed++;
+			methodBreakdown[method].failed++;
 		}
 
 		// Error breakdown
 		if (!metric.success && metric.errorType) {
-			if (!errorBreakdown[metric.errorType]) {
-				errorBreakdown[metric.errorType] = 0;
+			const errorType = metric.errorType;
+			if (!errorBreakdown[errorType]) {
+				errorBreakdown[errorType] = 0;
 			}
-			errorBreakdown[metric.errorType]++;
+			errorBreakdown[errorType]++;
 		}
 	});
 
@@ -153,7 +193,7 @@ export function clearAllMetrics() {
 
 /**
  * Export metrics for external monitoring systems
- * @returns {Array} All metrics
+ * @returns {TokenMetric[]} All metrics
  */
 export function exportMetrics() {
 	return Array.from(metricsStore.values());

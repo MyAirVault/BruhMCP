@@ -46,8 +46,7 @@ export {
  */
 export class NotionService {
 	/**
-	 * @param {Object} config - Service configuration
-	 * @param {string} config.bearerToken - OAuth Bearer token
+	 * @param {{bearerToken: string}} config - Service configuration
 	 */
 	constructor(config) {
 		/** @type {string} */
@@ -110,7 +109,7 @@ export class NotionService {
 
 	/**
 	 * Query database with filters and sorts
-	 * @param {{databaseId: string, filter?: Object, sorts?: Object[], start_cursor?: string, page_size?: number}} args - Database query arguments
+	 * @param {{databaseId: string, filter?: import('../utils/notionFormatting.js').NotionFilter, sorts?: import('../utils/notionFormatting.js').NotionSort[], start_cursor?: string, page_size?: number}} args - Database query arguments
 	 * @returns {Promise<Record<string, unknown>>} Query results
 	 */
 	async queryDatabase(args) {
@@ -119,7 +118,7 @@ export class NotionService {
 
 	/**
 	 * Create a new database
-	 * @param {{parent: import('../utils/notionFormatting.js').NotionParent, title: import('../utils/notionFormatting.js').NotionRichText[], properties: Record<string, Object>}} args - Database creation arguments
+	 * @param {{parent: import('../utils/notionFormatting.js').NotionParent, title: import('../utils/notionFormatting.js').NotionRichText[], properties: Record<string, import('../utils/notionFormatting.js').NotionProperty>}} args - Database creation arguments
 	 * @returns {Promise<Record<string, unknown>>} Created database
 	 */
 	async createDatabase(args) {
@@ -128,7 +127,7 @@ export class NotionService {
 
 	/**
 	 * Update database properties
-	 * @param {{databaseId: string, title?: import('../utils/notionFormatting.js').NotionRichText[], properties?: Record<string, Object>}} args - Database update arguments
+	 * @param {{databaseId: string, title?: import('../utils/notionFormatting.js').NotionRichText[], properties?: Record<string, import('../utils/notionFormatting.js').NotionProperty>}} args - Database update arguments
 	 * @returns {Promise<Record<string, unknown>>} Updated database
 	 */
 	async updateDatabase(args) {
@@ -141,7 +140,8 @@ export class NotionService {
 	 * @returns {Promise<Record<string, unknown>>} Append results
 	 */
 	async appendBlocks(args) {
-		return await appendBlocks(args, this.bearerToken);
+		const { blockId, children } = args;
+		return await appendBlocks({ pageId: blockId, children }, this.bearerToken);
 	}
 
 	/**

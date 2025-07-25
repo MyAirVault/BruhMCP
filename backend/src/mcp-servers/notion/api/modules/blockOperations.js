@@ -8,9 +8,9 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
 
 /**
  * Append blocks to a page
- * @param {Object} args - Append blocks arguments
+ * @param {{pageId: string, children: import('../../utils/notionFormatting.js').NotionBlock[]}} args - Append blocks arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Response
+ * @returns {Promise<Record<string, unknown>>} Response
  */
 export async function appendBlocks(args, bearerToken) {
 	const { pageId, children } = args;
@@ -23,15 +23,15 @@ export async function appendBlocks(args, bearerToken) {
 	return formatNotionResponse({
 		action: 'append_blocks',
 		pageId,
-		blocks: result.results || [],
+		blocks: /** @type {import('../../utils/notionFormatting.js').NotionBlock[]} */ (result.results || []),
 	});
 }
 
 /**
  * Delete block
- * @param {Object} args - Delete block arguments
+ * @param {{blockId: string}} args - Delete block arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Response
+ * @returns {Promise<Record<string, unknown>>} Response
  */
 export async function deleteBlock(args, bearerToken) {
 	const { blockId } = args;
@@ -43,6 +43,6 @@ export async function deleteBlock(args, bearerToken) {
 	return formatNotionResponse({
 		action: 'delete_block',
 		blockId,
-		deleted: result.archived || false,
+		deleted: /** @type {boolean} */ (result.archived || false),
 	});
 }

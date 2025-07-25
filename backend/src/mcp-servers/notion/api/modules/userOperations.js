@@ -8,24 +8,24 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
 
 /**
  * Get current user
- * @param {Object} args - User arguments
+ * @param {Record<string, never>} args - User arguments (empty object)
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} User data
+ * @returns {Promise<Record<string, unknown>>} User data
  */
 export async function getCurrentUser(args, bearerToken) {
 	const result = await makeNotionRequest('/users/me', bearerToken);
 
 	return formatNotionResponse({
 		action: 'get_current_user',
-		user: result,
+		user: /** @type {import('../../utils/notionFormatting.js').NotionUser} */ (result),
 	});
 }
 
 /**
  * List users
- * @param {Object} args - List users arguments
+ * @param {{start_cursor?: string, page_size?: number}} args - List users arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Users list
+ * @returns {Promise<Record<string, unknown>>} Users list
  */
 export async function listUsers(args, bearerToken) {
 	const { start_cursor = null, page_size = 100 } = args;
@@ -43,8 +43,8 @@ export async function listUsers(args, bearerToken) {
 
 	return formatNotionResponse({
 		action: 'list_users',
-		users: result.results || [],
-		hasMore: result.has_more || false,
-		nextCursor: result.next_cursor || null,
+		users: /** @type {import('../../utils/notionFormatting.js').NotionUser[]} */ (result.results || []),
+		hasMore: /** @type {boolean} */ (result.has_more || false),
+		next_cursor: /** @type {string|null} */ (result.next_cursor || null),
 	});
 }

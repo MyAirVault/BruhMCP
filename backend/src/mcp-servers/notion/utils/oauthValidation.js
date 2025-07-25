@@ -108,7 +108,7 @@ export async function validateBearerToken(bearerToken) {
             throw new Error(`Token validation failed: ${response.status} ${response.statusText}`);
         }
         
-        const userInfo = await response.json();
+        const userInfo = /** @type {NotionUserResponse} */ (await response.json());
         
         console.log(`✅ Notion Bearer token validated successfully`);
         
@@ -140,8 +140,20 @@ export async function validateBearerToken(bearerToken) {
  */
 export function isTokenExpired(tokenData, bufferMinutes = 5) {
     // Notion tokens don't expire
+    // Parameters are kept for API compatibility but not used
+    void tokenData;
+    void bufferMinutes;
     return false;
 }
+
+/**
+ * Notion API user response
+ * @typedef {Object} NotionUserResponse
+ * @property {string} id - User ID
+ * @property {string} name - User name
+ * @property {string} type - User type
+ * @property {string} avatar_url - Avatar URL
+ */
 
 /**
  * User information from token
@@ -150,6 +162,16 @@ export function isTokenExpired(tokenData, bufferMinutes = 5) {
  * @property {string} name - User name
  * @property {string} type - User type
  * @property {string} avatarUrl - Avatar URL
+ */
+
+/**
+ * Notion OAuth token API response
+ * @typedef {Object} NotionTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token (optional)
+ * @property {number} [expires_in] - Token expiration in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Token scope
  */
 
 /**
@@ -176,7 +198,7 @@ export async function getUserInfoFromToken(bearerToken) {
             throw new Error(`Failed to get user info: ${response.status} ${response.statusText}`);
         }
         
-        const userInfo = await response.json();
+        const userInfo = /** @type {NotionUserResponse} */ (await response.json());
         
         console.log(`✅ Retrieved Notion user info for: ${userInfo.name}`);
         
@@ -228,11 +250,12 @@ export async function refreshBearerTokenDirect(refreshData) {
             const errorData = await response.json().catch(() => ({}));
             const errorMessage = `Direct token refresh failed: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`;
             const error = new Error(errorMessage);
-            error.status = response.status;
-            throw error;
+            /** @type {Error & {status: number}} */
+            const errorWithStatus = Object.assign(error, { status: response.status });
+            throw errorWithStatus;
         }
         
-        const tokens = await response.json();
+        const tokens = /** @type {NotionTokenResponse} */ (await response.json());
         
         // Validate response contains required fields
         if (!tokens.access_token) {
@@ -252,11 +275,12 @@ export async function refreshBearerTokenDirect(refreshData) {
         console.error('Direct Notion OAuth token refresh failed:', error);
         
         // Enhanced error handling for common OAuth errors
-        if (error.message.includes('invalid_grant')) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('invalid_grant')) {
             throw new Error('invalid_grant: Invalid refresh token - user may need to re-authorize');
-        } else if (error.message.includes('invalid_client')) {
+        } else if (errorMessage.includes('invalid_client')) {
             throw new Error('invalid_client: Invalid OAuth client credentials');
-        } else if (error.message.includes('invalid_request')) {
+        } else if (errorMessage.includes('invalid_request')) {
             throw new Error('invalid_request: Invalid token refresh request format');
         }
         

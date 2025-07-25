@@ -4,11 +4,58 @@
  */
 
 /**
+ * @typedef {Error & {
+ *   errorType?: string,
+ *   statusCode?: number,
+ *   originalError?: Error,
+ *   response?: {
+ *     status: number,
+ *     data?: { message?: string }
+ *   },
+ *   code?: string
+ * }} ExtendedError
+ */
+
+/**
+ * @typedef {Object} OAuthStatusUpdate
+ * @property {string} status
+ * @property {string|null} accessToken
+ * @property {string|null} refreshToken
+ * @property {Date|null} tokenExpiresAt
+ * @property {string|null} scope
+ */
+
+/**
+ * @typedef {Object} TokenRefreshResponse
+ * @property {string} instanceId
+ * @property {string} error
+ * @property {string} errorCode
+ * @property {boolean} requiresReauth
+ */
+
+/**
+ * @typedef {Object} ErrorResponse
+ * @property {string} message
+ * @property {number} code
+ * @property {number} statusCode
+ * @property {string} details
+ */
+
+/**
+ * @typedef {Object} OAuthErrorObject
+ * @property {string} errorType
+ * @property {string} message
+ * @property {number} statusCode
+ * @property {Error} [originalError]
+ * @property {string} timestamp
+ */
+
+/**
  * Handle token refresh failures with appropriate error mapping
  * @param {string} instanceId - The instance ID
- * @param {Error} error - The refresh error
- * @param {Function} updateOAuthStatus - Function to update OAuth status
- * @returns {Promise<Object>} Error response object
+ * @param {ExtendedError} error - The refresh error
+ * @param {function(string, OAuthStatusUpdate): Promise<void>} updateOAuthStatus - Function to update OAuth status
+ * @returns {Promise<TokenRefreshResponse>} Error response object
  */
 export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
 	// Map different error types to appropriate responses
@@ -75,9 +122,10 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
 
 /**
  * Log OAuth errors with appropriate context
- * @param {Error} error - The OAuth error
+ * @param {ExtendedError} error - The OAuth error
  * @param {string} operation - The operation that failed
  * @param {string} instanceId - The instance ID
+ * @returns {void}
  */
 export function logOAuthError(error, operation, instanceId) {
 	console.error(`🔴 OAuth ${operation} failed for instance ${instanceId}:`, {
@@ -92,8 +140,8 @@ export function logOAuthError(error, operation, instanceId) {
  * Create standardized OAuth error response
  * @param {string} errorType - The error type
  * @param {string} message - Error message
- * @param {Object} metadata - Additional error metadata
- * @returns {Object} Standardized error object
+ * @param {{originalError?: Error} & Object} [metadata={}] - Additional error metadata
+ * @returns {OAuthErrorObject} Standardized error object
  */
 export function createOAuthError(errorType, message, metadata = {}) {
 	return {
@@ -130,8 +178,8 @@ function getStatusCodeForErrorType(errorType) {
 
 /**
  * Handle Notion-specific API errors and OAuth errors
- * @param {Error} error - The error to handle
- * @returns {Object} Formatted error response
+ * @param {ExtendedError} error - The error to handle
+ * @returns {ErrorResponse} Formatted error response
  */
 export function handleNotionError(error) {
 	// Default error structure

@@ -43,6 +43,22 @@
  * @property {Object} [rollup] - Rollup value
  */
 /**
+ * @typedef {Object} NotionFilter
+ * @property {string} [property] - Property name to filter
+ * @property {string} [relation] - Relation filter
+ * @property {string} [rollup] - Rollup filter
+ * @property {string} [formula] - Formula filter
+ * @property {string} [timestamp] - Timestamp filter
+ * @property {Object} [and] - AND filter condition
+ * @property {Object} [or] - OR filter condition
+ */
+/**
+ * @typedef {Object} NotionSort
+ * @property {string} [property] - Property name to sort by
+ * @property {string} [timestamp] - Timestamp to sort by ('created_time' or 'last_edited_time')
+ * @property {'ascending'|'descending'} direction - Sort direction
+ */
+/**
  * @typedef {Object} NotionPage
  * @property {string} id - Page ID
  * @property {string} object - Object type
@@ -207,6 +223,7 @@
  * @property {NotionUser} [user] - User object
  * @property {NotionUser[]} [users] - Users array
  * @property {boolean} [hasMore] - Has more flag
+ * @property {string} [next_cursor] - Next cursor for pagination
  * @property {string} [method] - HTTP method
  * @property {string} [path] - API path
  * @property {unknown} [result] - Raw result
@@ -382,6 +399,50 @@ export type NotionProperty = {
      * - Rollup value
      */
     rollup?: Object | undefined;
+};
+export type NotionFilter = {
+    /**
+     * - Property name to filter
+     */
+    property?: string | undefined;
+    /**
+     * - Relation filter
+     */
+    relation?: string | undefined;
+    /**
+     * - Rollup filter
+     */
+    rollup?: string | undefined;
+    /**
+     * - Formula filter
+     */
+    formula?: string | undefined;
+    /**
+     * - Timestamp filter
+     */
+    timestamp?: string | undefined;
+    /**
+     * - AND filter condition
+     */
+    and?: Object | undefined;
+    /**
+     * - OR filter condition
+     */
+    or?: Object | undefined;
+};
+export type NotionSort = {
+    /**
+     * - Property name to sort by
+     */
+    property?: string | undefined;
+    /**
+     * - Timestamp to sort by ('created_time' or 'last_edited_time')
+     */
+    timestamp?: string | undefined;
+    /**
+     * - Sort direction
+     */
+    direction: "ascending" | "descending";
 };
 export type NotionPage = {
     /**
@@ -886,6 +947,10 @@ export type NotionResponseData = {
      * - Has more flag
      */
     hasMore?: boolean | undefined;
+    /**
+     * - Next cursor for pagination
+     */
+    next_cursor?: string | undefined;
     /**
      * - HTTP method
      */
