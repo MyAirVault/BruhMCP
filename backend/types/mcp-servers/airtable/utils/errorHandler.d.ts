@@ -3,9 +3,9 @@
  * @param {Error} err - Error object
  * @param {import('express').Request} req - Request object
  * @param {import('express').Response} res - Response object
- * @param {import('express').NextFunction} next - Next middleware
+ * @param {import('express').NextFunction} _next - Next middleware
  */
-export function errorMiddleware(err: Error, req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): void;
+export function errorMiddleware(err: Error, req: import("express").Request, res: import("express").Response, _next: import("express").NextFunction): void;
 /**
  * Async error wrapper
  * @param {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} fn - Async function to wrap
@@ -143,10 +143,10 @@ export class AirtableErrorHandler {
     /**
      * Create MCP error response
      * @param {AirtableError} error - Airtable error
-     * @param {string|number} id - Request ID
+     * @param {string|number|null} id - Request ID
      * @returns {Object}
      */
-    static toMCPError(error: AirtableError, id?: string | number): Object;
+    static toMCPError(error: AirtableError, id?: string | number | null): Object;
     /**
      * Get MCP error code from Airtable error
      * @param {AirtableError} error - Airtable error
@@ -156,9 +156,12 @@ export class AirtableErrorHandler {
     /**
      * Create HTTP error response
      * @param {AirtableError} error - Airtable error
-     * @returns {Object}
+     * @returns {{status: number, body: Object}}
      */
-    static toHTTPError(error: AirtableError): Object;
+    static toHTTPError(error: AirtableError): {
+        status: number;
+        body: Object;
+    };
     /**
      * Check if error is retryable
      * @param {AirtableError} error - Airtable error

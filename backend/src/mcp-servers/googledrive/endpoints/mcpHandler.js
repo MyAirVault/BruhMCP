@@ -9,6 +9,13 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
+/**
+ * @typedef {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest} JSONRPCRequest
+ * @typedef {import('@modelcontextprotocol/sdk/types.js').JSONRPCMessage} JSONRPCMessage
+ * @typedef {import('express').Request} ExpressRequest
+ * @typedef {import('express').Response} ExpressResponse
+ */
+
 // Import API functions
 import { 
   listFiles, 
@@ -31,6 +38,19 @@ import {
  * @property {string} displayName
  * @property {string} version
  * @property {string[]} scopes
+ */
+
+/**
+ * @typedef {Object} MCPToolResult
+ * @property {boolean} [isError]
+ * @property {Array<{type: string, text: string}>} content
+ */
+
+/**
+ * @typedef {Object} MCPMessage
+ * @property {string} method
+ * @property {string|number} [id]
+ * @property {Object} [params]
  */
 
 export class GoogleDriveMCPHandler {
@@ -79,7 +99,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error listing files:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error listing files: ${error.message}` }]
+						content: [{ type: 'text', text: `Error listing files: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -104,7 +124,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error getting file metadata:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error getting file metadata: ${error.message}` }]
+						content: [{ type: 'text', text: `Error getting file metadata: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -130,7 +150,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error downloading file:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error downloading file: ${error.message}` }]
+						content: [{ type: 'text', text: `Error downloading file: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -157,7 +177,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error uploading file:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error uploading file: ${error.message}` }]
+						content: [{ type: 'text', text: `Error uploading file: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -182,7 +202,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error creating folder:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error creating folder: ${error.message}` }]
+						content: [{ type: 'text', text: `Error creating folder: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -206,7 +226,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error deleting file:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error deleting file: ${error.message}` }]
+						content: [{ type: 'text', text: `Error deleting file: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -232,7 +252,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error copying file:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error copying file: ${error.message}` }]
+						content: [{ type: 'text', text: `Error copying file: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -258,7 +278,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error moving file:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error moving file: ${error.message}` }]
+						content: [{ type: 'text', text: `Error moving file: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -287,7 +307,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error sharing file:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error sharing file: ${error.message}` }]
+						content: [{ type: 'text', text: `Error sharing file: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -313,7 +333,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error searching files:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error searching files: ${error.message}` }]
+						content: [{ type: 'text', text: `Error searching files: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -337,7 +357,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error getting file permissions:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error getting file permissions: ${error.message}` }]
+						content: [{ type: 'text', text: `Error getting file permissions: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -359,7 +379,7 @@ export class GoogleDriveMCPHandler {
 					console.error(`❌ Error getting drive info:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error getting drive info: ${error.message}` }]
+						content: [{ type: 'text', text: `Error getting drive info: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -368,21 +388,21 @@ export class GoogleDriveMCPHandler {
 
 	/**
 	 * Handle incoming MCP request using session-based transport
-	 * @param {import('express').Request} req - Express request object
-	 * @param {import('express').Response} res - Express response object
-	 * @param {import('@modelcontextprotocol/sdk/types.js').Request} message - MCP message
+	 * @param {ExpressRequest} req - Express request object
+	 * @param {ExpressResponse} res - Express response object
+	 * @param {JSONRPCRequest} message - MCP message
 	 * @returns {Promise<void>}
 	 */
 	async handleMCPRequest(req, res, message) {
 		try {
-			const sessionId = req.headers['mcp-session-id'];
+			const sessionId = Array.isArray(req.headers['mcp-session-id']) ? req.headers['mcp-session-id'][0] : req.headers['mcp-session-id'];
 			console.log(`🔧 Processing MCP request - Session ID: ${sessionId}`);
 			console.log(`📨 Is Initialize Request: ${isInitializeRequest(message)}`);
 			
 			/** @type {StreamableHTTPServerTransport} */
 			let transport;
 
-			if (sessionId && this.transports[sessionId]) {
+			if (typeof sessionId === 'string' && this.transports[sessionId]) {
 				// Reuse existing transport
 				console.log(`♻️  Reusing existing transport for session: ${sessionId}`);
 				transport = this.transports[sessionId];
@@ -418,7 +438,7 @@ export class GoogleDriveMCPHandler {
 						code: -32000,
 						message: 'Bad Request: No valid session ID provided and not an initialize request',
 					},
-					id: message?.id || null,
+					id: message && 'id' in message ? message.id : null,
 				});
 				return;
 			}
@@ -428,17 +448,17 @@ export class GoogleDriveMCPHandler {
 			await transport.handleRequest(req, res, message);
 			console.log(`✅ Request handled successfully`);
 			
-		} catch (/** @type {Error} */ error) {
+		} catch (error) {
 			console.error('❌ StreamableHTTP processing error:', error);
 
 			// Return proper JSON-RPC error response
 			res.json({
 				jsonrpc: '2.0',
-				id: message?.id || null,
+				id: message && 'id' in message ? message.id : null,
 				error: {
 					code: -32603,
 					message: 'Internal error',
-					data: { details: error.message },
+					data: { details: error instanceof Error ? error.message : String(error) },
 				},
 			});
 		}

@@ -5,7 +5,19 @@
 
 import { fetchWithRetry } from '../utils/fetchWithRetry.js';
 import { logOAuthError } from '../utils/oauthErrorHandler.js';
-import { DropboxApiArgs, DropboxListFolderResponse, DropboxFileMetadata, DropboxSearchResponse, DropboxSharedLinksResponse, DropboxSpaceUsage, DropboxAPIError } from '../../../types/dropbox.js';
+
+/**
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxApiArgs} DropboxApiArgs
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxListFolderResponse} DropboxListFolderResponse
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxFileMetadata} DropboxFileMetadata
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxFolder} DropboxFolder
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxSearchResponse} DropboxSearchResponse
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxSearchMatch} DropboxSearchMatch
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxSharedLinksResponse} DropboxSharedLinksResponse
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxSharedLink} DropboxSharedLink
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxSpaceUsage} DropboxSpaceUsage
+ * @typedef {import('../../../types/dropbox.d.ts').DropboxAPIError} DropboxAPIError
+ */
 
 /**
  * Base Dropbox API class
@@ -25,7 +37,7 @@ export class DropboxAPI {
   /**
    * Make authenticated API request
    * @param {string} endpoint - API endpoint path
-   * @param {Object} options - Request options
+   * @param {RequestInit} options - Request options
    * @returns {Promise<Response>} Response from Dropbox API
    * @throws {Error} If request fails or authentication is invalid
    */
@@ -48,6 +60,7 @@ export class DropboxAPI {
     });
 
     if (!response.ok) {
+      /** @type {any} */
       const error = await response.json().catch(() => ({ error_summary: response.statusText }));
       const errorMessage = `Dropbox API error: ${error.error_summary || response.statusText}`;
       
@@ -56,12 +69,15 @@ export class DropboxAPI {
       
       // Create detailed error for better debugging
       const detailedError = new Error(errorMessage);
-      detailedError.status = response.status;
-      detailedError.statusText = response.statusText;
-      detailedError.endpoint = endpoint;
-      detailedError.dropboxError = error;
+      // Cast to DropboxAPIError to add custom properties
+      /** @type {DropboxAPIError} */
+      const typedError = /** @type {DropboxAPIError} */ (detailedError);
+      typedError.status = response.status;
+      typedError.statusText = response.statusText;
+      typedError.endpoint = endpoint;
+      typedError.dropboxError = error;
       
-      throw detailedError;
+      throw typedError;
     }
 
     return response;
@@ -69,6 +85,10 @@ export class DropboxAPI {
 
   /**
    * List files and folders
+   * @param {string} path - Path to list files from
+   * @param {boolean} recursive - Whether to list recursively
+   * @param {number} limit - Maximum number of files to return
+   * @returns {Promise<DropboxListFolderResponse>}
    */
   async listFiles(path = '', recursive = false, limit = 100) {
     const response = await this.makeRequest('/files/list_folder', {
@@ -80,11 +100,13 @@ export class DropboxAPI {
       })
     });
 
-    return await response.json();
+    return /** @type {DropboxListFolderResponse} */ (await response.json());
   }
 
   /**
    * Get file metadata
+   * @param {string} path - Path to the file
+   * @returns {Promise<DropboxFileMetadata>}
    */
   async getFileMetadata(path) {
     const response = await this.makeRequest('/files/get_metadata', {
@@ -92,11 +114,14 @@ export class DropboxAPI {
       body: JSON.stringify({ path })
     });
 
-    return await response.json();
+    return /** @type {DropboxFileMetadata} */ (await response.json());
   }
 
   /**
    * Create folder
+   * @param {string} path - Path where to create the folder
+   * @param {boolean} autorename - Whether to autorename if folder exists
+   * @returns {Promise<{metadata: DropboxFileMetadata}>}
    */
   async createFolder(path, autorename = false) {
     const response = await this.makeRequest('/files/create_folder_v2', {
@@ -107,11 +132,13 @@ export class DropboxAPI {
       })
     });
 
-    return await response.json();
+    return /** @type {{metadata: DropboxFileMetadata}} */ (await response.json());
   }
 
   /**
    * Delete file or folder
+   * @param {string} path - Path to the file or folder to delete
+   * @returns {Promise<{metadata: DropboxFileMetadata}>}
    */
   async deleteFile(path) {
     const response = await this.makeRequest('/files/delete_v2', {
@@ -119,11 +146,15 @@ export class DropboxAPI {
       body: JSON.stringify({ path })
     });
 
-    return await response.json();
+    return /** @type {{metadata: DropboxFileMetadata}} */ (await response.json());
   }
 
   /**
    * Move file or folder
+   * @param {string} fromPath - Source path
+   * @param {string} toPath - Destination path
+   * @param {boolean} autorename - Whether to autorename if destination exists
+   * @returns {Promise<{metadata: DropboxFileMetadata}>}
    */
   async moveFile(fromPath, toPath, autorename = false) {
     const response = await this.makeRequest('/files/move_v2', {
@@ -135,11 +166,15 @@ export class DropboxAPI {
       })
     });
 
-    return await response.json();
+    return /** @type {{metadata: DropboxFileMetadata}} */ (await response.json());
   }
 
   /**
    * Copy file or folder
+   * @param {string} fromPath - Source path
+   * @param {string} toPath - Destination path
+   * @param {boolean} autorename - Whether to autorename if destination exists
+   * @returns {Promise<{metadata: DropboxFileMetadata}>}
    */
   async copyFile(fromPath, toPath, autorename = false) {
     const response = await this.makeRequest('/files/copy_v2', {
@@ -151,11 +186,16 @@ export class DropboxAPI {
       })
     });
 
-    return await response.json();
+    return /** @type {{metadata: DropboxFileMetadata}} */ (await response.json());
   }
 
   /**
    * Search files
+   * @param {string} query - Search query
+   * @param {string} path - Path to search in
+   * @param {number} maxResults - Maximum number of results
+   * @param {string} fileStatus - File status filter
+   * @returns {Promise<DropboxSearchResponse>}
    */
   async searchFiles(query, path = '', maxResults = 100, fileStatus = 'active') {
     const response = await this.makeRequest('/files/search_v2', {
@@ -170,11 +210,13 @@ export class DropboxAPI {
       })
     });
 
-    return await response.json();
+    return /** @type {DropboxSearchResponse} */ (await response.json());
   }
 
   /**
    * Get shared links
+   * @param {string} path - Path to get shared links for
+   * @returns {Promise<DropboxSharedLinksResponse>}
    */
   async getSharedLinks(path) {
     const response = await this.makeRequest('/sharing/list_shared_links', {
@@ -185,11 +227,14 @@ export class DropboxAPI {
       })
     });
 
-    return await response.json();
+    return /** @type {DropboxSharedLinksResponse} */ (await response.json());
   }
 
   /**
    * Create shared link
+   * @param {string} path - Path to create shared link for
+   * @param {boolean} shortUrl - Whether to create a short URL
+   * @returns {Promise<DropboxSharedLink>}
    */
   async createSharedLink(path, shortUrl = false) {
     const response = await this.makeRequest('/sharing/create_shared_link_with_settings', {
@@ -202,22 +247,25 @@ export class DropboxAPI {
       })
     });
 
-    return await response.json();
+    return /** @type {DropboxSharedLink} */ (await response.json());
   }
 
   /**
    * Get space usage
+   * @returns {Promise<DropboxSpaceUsage>}
    */
   async getSpaceUsage() {
     const response = await this.makeRequest('/users/get_space_usage', {
       method: 'POST'
     });
 
-    return await response.json();
+    return /** @type {DropboxSpaceUsage} */ (await response.json());
   }
 
   /**
    * Download file
+   * @param {string} path - Path to the file to download
+   * @returns {Promise<{data: ReadableStream, metadata: DropboxFileMetadata}>}
    */
   async downloadFile(path) {
     const response = await this.makeRequest('/files/download', {
@@ -229,13 +277,17 @@ export class DropboxAPI {
     });
 
     return {
-      data: response.body,
-      metadata: JSON.parse(response.headers.get('dropbox-api-result') || '{}')
+      data: response.body || new ReadableStream(),
+      metadata: /** @type {DropboxFileMetadata} */ (JSON.parse(response.headers.get('dropbox-api-result') || '{}'))
     };
   }
 
   /**
    * Upload file
+   * @param {string} path - Path where to upload the file
+   * @param {string|Buffer} content - File content
+   * @param {boolean} overwrite - Whether to overwrite if file exists
+   * @returns {Promise<DropboxFileMetadata>}
    */
   async uploadFile(path, content, overwrite = false) {
     const response = await this.makeRequest('/files/upload', {
@@ -252,7 +304,7 @@ export class DropboxAPI {
       body: content
     });
 
-    return await response.json();
+    return /** @type {DropboxFileMetadata} */ (await response.json());
   }
 }
 
@@ -262,10 +314,17 @@ export class DropboxAPI {
 
 /**
  * List files in a directory
+ * @param {DropboxApiArgs} args - Arguments for listing files
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, entries: (DropboxFileMetadata | DropboxFolder)[], has_more: boolean, cursor: string}>}
  */
 export async function listFiles(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path = '', recursive = false, limit = 100 } = args;
+  
+  if (!path && path !== '') {
+    throw new Error('Path parameter is required');
+  }
   
   try {
     const result = await api.listFiles(path, recursive, limit);
@@ -287,10 +346,17 @@ export async function listFiles(args, bearerToken) {
 
 /**
  * Get file metadata
+ * @param {DropboxApiArgs} args - Arguments containing the path
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
 export async function getFileMetadata(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path } = args;
+  
+  if (!path) {
+    throw new Error('Path parameter is required');
+  }
   
   const result = await api.getFileMetadata(path);
   
@@ -302,10 +368,17 @@ export async function getFileMetadata(args, bearerToken) {
 
 /**
  * Create a new folder
+ * @param {DropboxApiArgs} args - Arguments containing path and autorename option
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
 export async function createFolder(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path, autorename = false } = args;
+  
+  if (!path) {
+    throw new Error('Path parameter is required');
+  }
   
   const result = await api.createFolder(path, autorename);
   
@@ -317,10 +390,17 @@ export async function createFolder(args, bearerToken) {
 
 /**
  * Delete a file or folder
+ * @param {DropboxApiArgs} args - Arguments containing the path
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
 export async function deleteFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path } = args;
+  
+  if (!path) {
+    throw new Error('Path parameter is required');
+  }
   
   const result = await api.deleteFile(path);
   
@@ -332,10 +412,17 @@ export async function deleteFile(args, bearerToken) {
 
 /**
  * Move a file or folder
+ * @param {DropboxApiArgs} args - Arguments containing fromPath, toPath, and autorename option
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
 export async function moveFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { fromPath, toPath, autorename = false } = args;
+  
+  if (!fromPath || !toPath) {
+    throw new Error('fromPath and toPath parameters are required');
+  }
   
   const result = await api.moveFile(fromPath, toPath, autorename);
   
@@ -347,10 +434,17 @@ export async function moveFile(args, bearerToken) {
 
 /**
  * Copy a file or folder
+ * @param {DropboxApiArgs} args - Arguments containing fromPath, toPath, and autorename option
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
 export async function copyFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { fromPath, toPath, autorename = false } = args;
+  
+  if (!fromPath || !toPath) {
+    throw new Error('fromPath and toPath parameters are required');
+  }
   
   const result = await api.copyFile(fromPath, toPath, autorename);
   
@@ -362,10 +456,17 @@ export async function copyFile(args, bearerToken) {
 
 /**
  * Search files
+ * @param {DropboxApiArgs} args - Arguments containing query, path, maxResults, and fileStatus
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, matches: DropboxSearchMatch[], has_more: boolean}>}
  */
 export async function searchFiles(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { query, path = '', maxResults = 100, fileStatus = 'active' } = args;
+  
+  if (!query) {
+    throw new Error('Query parameter is required');
+  }
   
   const result = await api.searchFiles(query, path, maxResults, fileStatus);
   
@@ -378,10 +479,17 @@ export async function searchFiles(args, bearerToken) {
 
 /**
  * Get shared links
+ * @param {DropboxApiArgs} args - Arguments containing the path
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, links: DropboxSharedLink[]}>}
  */
 export async function getSharedLinks(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path } = args;
+  
+  if (!path) {
+    throw new Error('Path parameter is required');
+  }
   
   const result = await api.getSharedLinks(path);
   
@@ -393,10 +501,17 @@ export async function getSharedLinks(args, bearerToken) {
 
 /**
  * Create shared link
+ * @param {DropboxApiArgs} args - Arguments containing path and shortUrl option
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, url: string, link: DropboxSharedLink}>}
  */
 export async function createSharedLink(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path, shortUrl = false } = args;
+  
+  if (!path) {
+    throw new Error('Path parameter is required');
+  }
   
   const result = await api.createSharedLink(path, shortUrl);
   
@@ -409,8 +524,10 @@ export async function createSharedLink(args, bearerToken) {
 
 /**
  * Get space usage
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, used: number, allocated: number, usage_percent: string}>}
  */
-export async function getSpaceUsage(args, bearerToken) {
+export async function getSpaceUsage(bearerToken) {
   const api = new DropboxAPI(bearerToken);
   
   const result = await api.getSpaceUsage();
@@ -431,10 +548,17 @@ export async function getSpaceUsage(args, bearerToken) {
 
 /**
  * Download file
+ * @param {DropboxApiArgs} args - Arguments containing path and localPath
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, size: number, metadata: DropboxFileMetadata}>}
  */
 export async function downloadFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path, localPath } = args;
+  
+  if (!path || !localPath) {
+    throw new Error('path and localPath parameters are required');
+  }
   
   const result = await api.downloadFile(path);
   
@@ -448,10 +572,17 @@ export async function downloadFile(args, bearerToken) {
 
 /**
  * Upload file
+ * @param {DropboxApiArgs} args - Arguments containing localPath, dropboxPath, and overwrite option
+ * @param {string} bearerToken - Bearer token for authentication
+ * @returns {Promise<{message: string, size: number, metadata: DropboxFileMetadata}>}
  */
 export async function uploadFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { localPath, dropboxPath, overwrite = false } = args;
+  
+  if (!localPath || !dropboxPath) {
+    throw new Error('localPath and dropboxPath parameters are required');
+  }
   
   // In a real implementation, you would read from localPath
   const content = 'file content would go here';

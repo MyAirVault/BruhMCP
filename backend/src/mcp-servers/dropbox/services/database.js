@@ -65,7 +65,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
 /**
  * Update instance usage tracking
  * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
 export async function updateInstanceUsage(instanceId) {
   try {

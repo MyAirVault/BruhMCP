@@ -12,6 +12,8 @@ import { debug } from './logger.js';
  * @typedef {import('../middleware/types.js').SlackFile} SlackFile
  * @typedef {import('../middleware/types.js').SlackFileUploadResult} SlackFileUploadResult
  * @typedef {import('../middleware/types.js').SlackMessageEdit} SlackMessageEdit
+ * @typedef {import('../middleware/types.js').SlackBlock} SlackBlock
+ * @typedef {import('../middleware/types.js').SlackField} SlackField
  */
 
 /**
@@ -30,7 +32,7 @@ import { debug } from './logger.js';
  * @property {string} [bot_id] - Bot ID
  * @property {string} [username] - Username
  * @property {FormattedAttachment[]} [attachments] - Attachments
- * @property {Object[]} [blocks] - Message blocks
+ * @property {SlackBlock[]} [blocks] - Message blocks
  * @property {FormattedReaction[]} [reactions] - Reactions
  * @property {FormattedFile[]} [files] - Files
  * @property {FormattedMessageEdit} [edited] - Edit information
@@ -54,7 +56,7 @@ import { debug } from './logger.js';
  * @property {string} [footer] - Footer
  * @property {string} [footer_icon] - Footer icon
  * @property {number} [ts] - Timestamp
- * @property {Object[]} [fields] - Fields
+ * @property {SlackField[]} [fields] - Fields
  */
 
 /**
@@ -116,7 +118,7 @@ import { debug } from './logger.js';
 
 /**
  * Format a Slack message response
- * @param {SlackMessage|Object|null} message - Raw Slack message object
+ * @param {SlackMessage|null} message - Raw Slack message object
  * @returns {FormattedMessage|null} Formatted message
  */
 export function formatMessageResponse(message) {

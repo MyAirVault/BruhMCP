@@ -31,6 +31,7 @@ declare global {
 			instanceId?: string;
 			userId?: string;
 			cacheHit?: boolean;
+			bearerToken?: string;
 		}
 	}
 }

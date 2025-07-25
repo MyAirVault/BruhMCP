@@ -16,9 +16,9 @@
  * Fetch with retry and curl fallback
  * @param {string} url - URL to fetch
  * @param {FetchOptions} [options] - Request options
- * @returns {Promise<Response | MockResponse>} Response data
+ * @returns {Promise<import('node-fetch').Response | MockResponse>} Response data
  */
-export function fetchWithRetry(url: string, options?: FetchOptions): Promise<Response | MockResponse>;
+export function fetchWithRetry(url: string, options?: FetchOptions): Promise<import("node-fetch").Response | MockResponse>;
 export type FetchOptions = {
     /**
      * - Request headers

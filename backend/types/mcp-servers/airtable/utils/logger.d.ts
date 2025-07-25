@@ -28,7 +28,7 @@ export function measurePerformance(operation: string, fn: Function): Function;
  */
 export const serviceLogger: Logger;
 export namespace logLevel {
-    function setLevel(level: any): void;
+    function setLevel(level: string): void;
     function getLevel(): string | undefined;
     function isDebugEnabled(): boolean;
 }
@@ -154,10 +154,10 @@ declare class Logger {
     child(subComponent: string, context?: Object): Logger;
     /**
      * Log with additional context
-     * @param {string} level - Log level
+     * @param {'debug' | 'info' | 'warn' | 'error'} level - Log level
      * @param {string} message - Message
      * @param {Object} metadata - Metadata
      */
-    withContext(level: string, message: string, metadata?: Object): void;
+    withContext(level: "debug" | "info" | "warn" | "error", message: string, metadata?: Object): void;
 }
 //# sourceMappingURL=logger.d.ts.map

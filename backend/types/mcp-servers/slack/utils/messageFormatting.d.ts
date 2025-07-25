@@ -102,10 +102,10 @@
  */
 /**
  * Format a Slack message response
- * @param {SlackMessage} message - Raw Slack message object
+ * @param {SlackMessage|Object|null} message - Raw Slack message object
  * @returns {FormattedMessage|null} Formatted message
  */
-export function formatMessageResponse(message: SlackMessage): FormattedMessage | null;
+export function formatMessageResponse(message: SlackMessage | Object | null): FormattedMessage | null;
 /**
  * Format a Slack attachment
  * @param {SlackAttachment} attachment - Raw Slack attachment object

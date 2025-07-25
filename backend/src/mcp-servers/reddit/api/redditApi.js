@@ -6,6 +6,221 @@
 import { formatRedditResponse, formatRedditErrorMessage } from '../utils/redditFormatting.js';
 
 /**
+ * @typedef {Object} RequestOptions
+ * @property {string} [method] - HTTP method
+ * @property {Record<string, string>} [headers] - Request headers
+ * @property {string|URLSearchParams} [body] - Request body
+ */
+
+/**
+ * @typedef {Object} RedditUser
+ * @property {string} id - User ID
+ * @property {string} name - Username
+ * @property {string} [icon_img] - User icon URL
+ * @property {number} link_karma - Link karma
+ * @property {number} comment_karma - Comment karma
+ * @property {boolean} is_gold - Gold status
+ * @property {boolean} is_mod - Moderator status
+ * @property {boolean} verified - Verified status
+ * @property {number} created_utc - Creation timestamp
+ */
+
+/**
+ * @typedef {Object} RedditSubreddit
+ * @property {string} id - Subreddit ID
+ * @property {string} display_name - Subreddit name
+ * @property {string} title - Subreddit title
+ * @property {string} public_description - Public description
+ * @property {string} description - Full description
+ * @property {number} subscribers - Subscriber count
+ * @property {boolean} over18 - NSFW flag
+ * @property {string} icon_img - Icon URL
+ * @property {string} banner_img - Banner URL
+ * @property {number} created_utc - Creation timestamp
+ */
+
+/**
+ * @typedef {Object} RedditPost
+ * @property {string} id - Post ID
+ * @property {string} title - Post title
+ * @property {string} author - Author username
+ * @property {string} subreddit - Subreddit name
+ * @property {string} [selftext] - Self text content
+ * @property {string} [url] - Post URL
+ * @property {number} score - Post score
+ * @property {number} ups - Upvotes
+ * @property {number} downs - Downvotes
+ * @property {number} num_comments - Comment count
+ * @property {boolean} over_18 - NSFW flag
+ * @property {boolean} spoiler - Spoiler flag
+ * @property {number} created_utc - Creation timestamp
+ * @property {string} permalink - Post permalink
+ */
+
+/**
+ * @typedef {Object} RedditComment
+ * @property {string} id - Comment ID
+ * @property {string} author - Author username
+ * @property {string} body - Comment body
+ * @property {number} score - Comment score
+ * @property {number} ups - Upvotes
+ * @property {number} downs - Downvotes
+ * @property {string} parent_id - Parent ID
+ * @property {number} created_utc - Creation timestamp
+ * @property {string} permalink - Comment permalink
+ * @property {RedditComment[]} [replies] - Nested replies
+ */
+
+/**
+ * @typedef {Object} RedditApiResponse
+ * @property {Object} data - Response data
+ * @property {Object} [json] - JSON response data
+ */
+
+/**
+ * @typedef {Object} RedditListingResponse
+ * @property {Object} data - Listing data
+ * @property {Object[]} data.children - Child items
+ * @property {string} [data.after] - After cursor
+ * @property {string} [data.before] - Before cursor
+ */
+
+/**
+ * @typedef {Object} RedditSubmissionResponse
+ * @property {Object} json - JSON response
+ * @property {Object} json.data - Response data
+ * @property {string} json.data.id - Submission ID
+ * @property {Array<string[]>} [json.errors] - Error array
+ */
+
+/**
+ * @typedef {Object} RedditCommentResponse
+ * @property {Object} json - JSON response
+ * @property {Object} json.data - Response data
+ * @property {Object[]} json.data.things - Comment things
+ * @property {Array<string[]>} [json.errors] - Error array
+ */
+
+/**
+ * @typedef {Object} RedditMessageResponse
+ * @property {Object} json - JSON response
+ * @property {Array<string[]>} [json.errors] - Error array
+ */
+
+/**
+ * @typedef {Object} GetSubredditInfoArgs
+ * @property {string} subreddit - Subreddit name
+ */
+
+/**
+ * @typedef {Object} GetSubredditPostsArgs
+ * @property {string} subreddit - Subreddit name
+ * @property {string} [sort] - Sort type
+ * @property {number} [limit] - Post limit
+ * @property {string} [time] - Time frame
+ */
+
+/**
+ * @typedef {Object} GetPostByIdArgs
+ * @property {string} postId - Post ID
+ */
+
+/**
+ * @typedef {Object} GetPostCommentsArgs
+ * @property {string} postId - Post ID
+ * @property {string} [sort] - Sort type
+ * @property {number} [limit] - Comment limit
+ */
+
+/**
+ * @typedef {Object} SubmitPostArgs
+ * @property {string} subreddit - Subreddit name
+ * @property {string} title - Post title
+ * @property {string} [text] - Post text
+ * @property {string} [url] - Post URL
+ * @property {string} [kind] - Post kind
+ * @property {boolean} [nsfw] - NSFW flag
+ * @property {boolean} [spoiler] - Spoiler flag
+ */
+
+/**
+ * @typedef {Object} SubmitCommentArgs
+ * @property {string} parent - Parent ID
+ * @property {string} text - Comment text
+ */
+
+/**
+ * @typedef {Object} VoteArgs
+ * @property {string} postId - Post ID
+ * @property {string} commentId - Comment ID
+ * @property {number} direction - Vote direction
+ */
+
+/**
+ * @typedef {Object} GetUserInfoArgs
+ * @property {string} username - Username
+ */
+
+/**
+ * @typedef {Object} GetUserPostsArgs
+ * @property {string} username - Username
+ * @property {string} [sort] - Sort type
+ * @property {number} [limit] - Post limit
+ * @property {string} [time] - Time frame
+ */
+
+/**
+ * @typedef {Object} GetUserCommentsArgs
+ * @property {string} username - Username
+ * @property {string} [sort] - Sort type
+ * @property {number} [limit] - Comment limit
+ * @property {string} [time] - Time frame
+ */
+
+/**
+ * @typedef {Object} SearchPostsArgs
+ * @property {string} query - Search query
+ * @property {string} [subreddit] - Subreddit name
+ * @property {string} [sort] - Sort type
+ * @property {number} [limit] - Result limit
+ * @property {string} [time] - Time frame
+ */
+
+/**
+ * @typedef {Object} SearchSubredditsArgs
+ * @property {string} query - Search query
+ * @property {number} [limit] - Result limit
+ */
+
+/**
+ * @typedef {Object} GetInboxMessagesArgs
+ * @property {string} [filter] - Message filter
+ * @property {number} [limit] - Message limit
+ */
+
+/**
+ * @typedef {Object} SendMessageArgs
+ * @property {string} to - Recipient username
+ * @property {string} subject - Message subject
+ * @property {string} text - Message text
+ */
+
+/**
+ * @typedef {Object} MarkAsReadArgs
+ * @property {string[]} messageIds - Message IDs
+ */
+
+/**
+ * @typedef {Object} GetSubscriptionsArgs
+ * @property {number} [limit] - Subscription limit
+ */
+
+/**
+ * @typedef {Object} SubscribeArgs
+ * @property {string} subreddit - Subreddit name
+ */
+
+/**
  * Base configuration for Reddit API
  */
 const REDDIT_API_BASE_URL = 'https://oauth.reddit.com';
@@ -15,8 +230,8 @@ const USER_AGENT = 'MCP-Reddit-Service/1.0';
  * Make authenticated Reddit API request
  * @param {string} endpoint - API endpoint path
  * @param {string} bearerToken - OAuth bearer token
- * @param {Object} options - Request options
- * @returns {Promise<Object>} API response
+ * @param {RequestOptions} [options] - Request options
+ * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse>} API response
  */
 export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
   const url = `${REDDIT_API_BASE_URL}${endpoint}`;
@@ -45,7 +260,7 @@ export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
       throw new Error(`Reddit API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
-    return await response.json();
+    return /** @type {unknown} */ (await response.json());
   } catch (error) {
     console.error(`Reddit API request failed: ${endpoint}`, error);
     throw error;
@@ -55,7 +270,7 @@ export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
 /**
  * Get current user information
  * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<Object>} User information
+ * @returns {Promise<RedditUser>} User information
  */
 export async function getCurrentUser(bearerToken) {
   return await makeRedditRequest('/api/v1/me', bearerToken);
@@ -63,14 +278,13 @@ export async function getCurrentUser(bearerToken) {
 
 /**
  * Get subreddit information
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
+ * @param {GetSubredditInfoArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subreddit info
  */
 export async function getSubredditInfo(args, bearerToken) {
   try {
-    const response = await makeRedditRequest(`/r/${args.subreddit}/about`, bearerToken);
+    const response = /** @type {RedditApiResponse} */ (await makeRedditRequest(`/r/${args.subreddit}/about`, bearerToken));
     const subredditData = response.data;
     
     return formatRedditResponse({
@@ -79,17 +293,13 @@ export async function getSubredditInfo(args, bearerToken) {
       ...subredditData
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_subreddit_info', error));
+    throw new Error(formatRedditErrorMessage('get_subreddit_info', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Get posts from a subreddit
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
- * @param {string} args.sort - Sort type (hot, new, rising, top)
- * @param {number} args.limit - Number of posts to fetch
- * @param {string} args.time - Time frame for 'top' sort
+ * @param {GetSubredditPostsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted posts data
  */
@@ -104,9 +314,9 @@ export async function getSubredditPosts(args, bearerToken) {
     }
     
     const endpoint = `/r/${subreddit}/${sort}?${params.toString()}`;
-    const response = await makeRedditRequest(endpoint, bearerToken);
+    const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
     
-    const posts = response.data.children.map(child => child.data);
+    const posts = response.data.children.map(/** @param {any} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'get_subreddit_posts',
@@ -115,21 +325,20 @@ export async function getSubredditPosts(args, bearerToken) {
       posts
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_subreddit_posts', error));
+    throw new Error(formatRedditErrorMessage('get_subreddit_posts', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Get post by ID
- * @param {Object} args - Arguments object
- * @param {string} args.postId - Post ID
+ * @param {GetPostByIdArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted post data
  */
 export async function getPostById(args, bearerToken) {
   try {
     const { postId } = args;
-    const response = await makeRedditRequest(`/by_id/t3_${postId}`, bearerToken);
+    const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(`/by_id/t3_${postId}`, bearerToken));
     
     if (!response.data.children || response.data.children.length === 0) {
       throw new Error('Post not found');
@@ -142,16 +351,13 @@ export async function getPostById(args, bearerToken) {
       post
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_post_by_id', error));
+    throw new Error(formatRedditErrorMessage('get_post_by_id', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Get post comments
- * @param {Object} args - Arguments object
- * @param {string} args.postId - Post ID
- * @param {string} args.sort - Comment sorting method
- * @param {number} args.limit - Number of comments to retrieve
+ * @param {GetPostCommentsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted comments data
  */
@@ -163,10 +369,10 @@ export async function getPostComments(args, bearerToken) {
     params.append('limit', limit.toString());
     
     const endpoint = `/comments/${postId}?${params.toString()}`;
-    const response = await makeRedditRequest(endpoint, bearerToken);
+    const response = /** @type {RedditListingResponse[]} */ (await makeRedditRequest(endpoint, bearerToken));
     
     // Reddit returns an array with post data and comments
-    const comments = response[1].data.children.map(child => child.data);
+    const comments = response[1].data.children.map(/** @param {any} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'get_post_comments',
@@ -174,20 +380,13 @@ export async function getPostComments(args, bearerToken) {
       comments
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_post_comments', error));
+    throw new Error(formatRedditErrorMessage('get_post_comments', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Submit a new post
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit to submit to
- * @param {string} args.title - Post title
- * @param {string} args.text - Post text (for self posts)
- * @param {string} args.url - Post URL (for link posts)
- * @param {string} args.kind - Post kind ('self' or 'link')
- * @param {boolean} args.nsfw - Mark post as NSFW
- * @param {boolean} args.spoiler - Mark post as spoiler
+ * @param {SubmitPostArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted submission response
  */
@@ -214,10 +413,10 @@ export async function submitPost(args, bearerToken) {
       formData.append('spoiler', 'true');
     }
     
-    const response = await makeRedditRequest('/api/submit', bearerToken, {
+    const response = /** @type {RedditSubmissionResponse} */ (await makeRedditRequest('/api/submit', bearerToken, {
       method: 'POST',
       body: formData
-    });
+    }));
     
     if (response.json && response.json.errors && response.json.errors.length > 0) {
       // Reddit API errors are arrays of [field, message, error_type]
@@ -237,15 +436,13 @@ export async function submitPost(args, bearerToken) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('submit_post', error));
+    throw new Error(formatRedditErrorMessage('submit_post', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Submit a comment
- * @param {Object} args - Arguments object
- * @param {string} args.parent - Parent post or comment ID
- * @param {string} args.text - Comment text
+ * @param {SubmitCommentArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted comment response
  */
@@ -257,10 +454,10 @@ export async function submitComment(args, bearerToken) {
     formData.append('parent', parent);
     formData.append('text', text);
     
-    const response = await makeRedditRequest('/api/comment', bearerToken, {
+    const response = /** @type {RedditCommentResponse} */ (await makeRedditRequest('/api/comment', bearerToken, {
       method: 'POST',
       body: formData
-    });
+    }));
     
     if (response.json && response.json.errors && response.json.errors.length > 0) {
       // Reddit API errors are arrays of [field, message, error_type]
@@ -278,15 +475,13 @@ export async function submitComment(args, bearerToken) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('submit_comment', error));
+    throw new Error(formatRedditErrorMessage('submit_comment', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Vote on a post
- * @param {Object} args - Arguments object
- * @param {string} args.postId - Post ID to vote on
- * @param {number} args.direction - Vote direction (1, 0, -1)
+ * @param {VoteArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted vote response
  */
@@ -310,15 +505,13 @@ export async function voteOnPost(args, bearerToken) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('vote_on_post', error));
+    throw new Error(formatRedditErrorMessage('vote_on_post', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Vote on a comment
- * @param {Object} args - Arguments object
- * @param {string} args.commentId - Comment ID to vote on
- * @param {number} args.direction - Vote direction (1, 0, -1)
+ * @param {VoteArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted vote response
  */
@@ -342,21 +535,20 @@ export async function voteOnComment(args, bearerToken) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('vote_on_comment', error));
+    throw new Error(formatRedditErrorMessage('vote_on_comment', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Get user information
- * @param {Object} args - Arguments object
- * @param {string} args.username - Username
+ * @param {GetUserInfoArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user info
  */
 export async function getUserInfo(args, bearerToken) {
   try {
     const { username } = args;
-    const response = await makeRedditRequest(`/user/${username}/about`, bearerToken);
+    const response = /** @type {RedditApiResponse} */ (await makeRedditRequest(`/user/${username}/about`, bearerToken));
     const user = response.data;
     
     return formatRedditResponse({
@@ -364,17 +556,13 @@ export async function getUserInfo(args, bearerToken) {
       user
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_user_info', error));
+    throw new Error(formatRedditErrorMessage('get_user_info', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Get user's posts
- * @param {Object} args - Arguments object
- * @param {string} args.username - Username
- * @param {string} args.sort - Sort type
- * @param {number} args.limit - Number of posts
- * @param {string} args.time - Time frame
+ * @param {GetUserPostsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user posts
  */
@@ -390,8 +578,9 @@ export async function getUserPosts(args, bearerToken) {
     
     const endpoint = `/user/${username}/submitted/${sort}?${params.toString()}`;
     const response = await makeRedditRequest(endpoint, bearerToken);
-    
-    const posts = response.data.children.map(child => child.data);
+    const responseData = /** @type {Record<string, unknown>} */ (response);
+    const children = /** @type {Record<string, unknown>[]} */ (responseData.data?.children || []);
+    const posts = children.map(/** @param {Record<string, unknown>} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'get_user_posts',
@@ -399,17 +588,13 @@ export async function getUserPosts(args, bearerToken) {
       posts
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_user_posts', error));
+    throw new Error(formatRedditErrorMessage('get_user_posts', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Get user's comments
- * @param {Object} args - Arguments object
- * @param {string} args.username - Username
- * @param {string} args.sort - Sort type
- * @param {number} args.limit - Number of comments
- * @param {string} args.time - Time frame
+ * @param {GetUserCommentsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user comments
  */
@@ -425,8 +610,9 @@ export async function getUserComments(args, bearerToken) {
     
     const endpoint = `/user/${username}/comments/${sort}?${params.toString()}`;
     const response = await makeRedditRequest(endpoint, bearerToken);
-    
-    const comments = response.data.children.map(child => child.data);
+    const responseData = /** @type {Record<string, unknown>} */ (response);
+    const children = /** @type {Record<string, unknown>[]} */ (responseData.data?.children || []);
+    const comments = children.map(/** @param {Record<string, unknown>} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'get_user_comments',
@@ -434,18 +620,13 @@ export async function getUserComments(args, bearerToken) {
       comments
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_user_comments', error));
+    throw new Error(formatRedditErrorMessage('get_user_comments', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Search posts
- * @param {Object} args - Arguments object
- * @param {string} args.query - Search query
- * @param {string} args.subreddit - Subreddit to search (optional)
- * @param {string} args.sort - Sort type
- * @param {number} args.limit - Number of results
- * @param {string} args.time - Time frame
+ * @param {SearchPostsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted search results
  */
@@ -467,8 +648,8 @@ export async function searchPosts(args, bearerToken) {
       `/r/${subreddit}/search?${params.toString()}` : 
       `/search?${params.toString()}`;
     
-    const response = await makeRedditRequest(endpoint, bearerToken);
-    const posts = response.data.children.map(child => child.data);
+    const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
+    const posts = response.data.children.map(/** @param {{data: RedditPost}} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'search_posts',
@@ -476,15 +657,13 @@ export async function searchPosts(args, bearerToken) {
       posts
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('search_posts', error));
+    throw new Error(formatRedditErrorMessage('search_posts', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Search subreddits
- * @param {Object} args - Arguments object
- * @param {string} args.query - Search query
- * @param {number} args.limit - Number of results
+ * @param {SearchSubredditsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted search results
  */
@@ -496,8 +675,8 @@ export async function searchSubreddits(args, bearerToken) {
     params.append('limit', limit.toString());
     params.append('type', 'sr');
     
-    const response = await makeRedditRequest(`/search?${params.toString()}`, bearerToken);
-    const subreddits = response.data.children.map(child => child.data);
+    const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(`/search?${params.toString()}`, bearerToken));
+    const subreddits = response.data.children.map(/** @param {{data: RedditSubreddit}} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'search_subreddits',
@@ -505,16 +684,14 @@ export async function searchSubreddits(args, bearerToken) {
       subreddits
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('search_subreddits', error));
+    throw new Error(formatRedditErrorMessage('search_subreddits', /** @type {Error} */ (error)));
   }
 }
 
 
 /**
  * Get user's inbox messages
- * @param {Object} args - Arguments object
- * @param {string} args.filter - Filter type for inbox messages
- * @param {number} args.limit - Number of messages
+ * @param {GetInboxMessagesArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted inbox messages
  */
@@ -525,25 +702,22 @@ export async function getInboxMessages(args, bearerToken) {
     params.append('limit', limit.toString());
     
     const endpoint = `/message/inbox?${params.toString()}`;
-    const response = await makeRedditRequest(endpoint, bearerToken);
+    const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
     
-    const messages = response.data.children.map(child => child.data);
+    const messages = response.data.children.map(/** @param {{data: Record<string, string|number|boolean>}} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'get_inbox_messages',
       messages
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_inbox_messages', error));
+    throw new Error(formatRedditErrorMessage('get_inbox_messages', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Send a private message
- * @param {Object} args - Arguments object
- * @param {string} args.to - Recipient username
- * @param {string} args.subject - Message subject
- * @param {string} args.text - Message text
+ * @param {SendMessageArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted message response
  */
@@ -556,10 +730,10 @@ export async function sendMessage(args, bearerToken) {
     formData.append('subject', subject);
     formData.append('text', text);
     
-    const response = await makeRedditRequest('/api/compose', bearerToken, {
+    const response = /** @type {RedditMessageResponse} */ (await makeRedditRequest('/api/compose', bearerToken, {
       method: 'POST',
       body: formData
-    });
+    }));
     
     if (response.json && response.json.errors && response.json.errors.length > 0) {
       // Reddit API errors are arrays of [field, message, error_type]
@@ -575,14 +749,13 @@ export async function sendMessage(args, bearerToken) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('send_message', error));
+    throw new Error(formatRedditErrorMessage('send_message', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Mark messages as read
- * @param {Object} args - Arguments object
- * @param {Array<string>} args.messageIds - Array of message IDs to mark as read
+ * @param {MarkAsReadArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted response
  */
@@ -612,14 +785,13 @@ export async function markAsRead(args, bearerToken) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('mark_as_read', error));
+    throw new Error(formatRedditErrorMessage('mark_as_read', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Get user's subscribed subreddits
- * @param {Object} args - Arguments object
- * @param {number} args.limit - Number of subscriptions to return
+ * @param {GetSubscriptionsArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subscriptions
  */
@@ -630,23 +802,22 @@ export async function getSubscriptions(args, bearerToken) {
     params.append('limit', limit.toString());
     
     const endpoint = `/subreddits/mine/subscriber?${params.toString()}`;
-    const response = await makeRedditRequest(endpoint, bearerToken);
+    const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
     
-    const subscriptions = response.data.children.map(child => child.data);
+    const subscriptions = response.data.children.map(/** @param {{data: RedditSubreddit}} child */ child => child.data);
     
     return formatRedditResponse({
       action: 'get_subscriptions',
       subscriptions
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('get_subscriptions', error));
+    throw new Error(formatRedditErrorMessage('get_subscriptions', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Subscribe to a subreddit
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
+ * @param {SubscribeArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subscription response
  */
@@ -667,14 +838,13 @@ export async function subscribeToSubreddit(args, bearerToken) {
       subreddit
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('subscribe_to_subreddit', error));
+    throw new Error(formatRedditErrorMessage('subscribe_to_subreddit', /** @type {Error} */ (error)));
   }
 }
 
 /**
  * Unsubscribe from a subreddit
- * @param {Object} args - Arguments object
- * @param {string} args.subreddit - Subreddit name
+ * @param {SubscribeArgs} args - Arguments object
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted unsubscription response
  */
@@ -695,6 +865,6 @@ export async function unsubscribeFromSubreddit(args, bearerToken) {
       subreddit
     });
   } catch (error) {
-    throw new Error(formatRedditErrorMessage('unsubscribe_from_subreddit', error));
+    throw new Error(formatRedditErrorMessage('unsubscribe_from_subreddit', /** @type {Error} */ (error)));
   }
 }

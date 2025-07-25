@@ -6,14 +6,61 @@
 import { getTools } from '../endpoints/tools.js';
 
 /**
+ * @typedef {Object} JSONSchemaProperty
+ * @property {string} type - The property type
+ * @property {string} [description] - Property description
+ * @property {number} [minimum] - Minimum value for numbers
+ * @property {number} [maximum] - Maximum value for numbers
+ * @property {number} [minLength] - Minimum length for strings
+ * @property {number} [maxLength] - Maximum length for strings
+ * @property {string} [pattern] - Regex pattern for strings
+ * @property {number} [multipleOf] - Multiple of value for numbers
+ * @property {string[]} [enum] - Allowed enum values
+ * @property {number} [minItems] - Minimum items for arrays
+ * @property {number} [maxItems] - Maximum items for arrays
+ * @property {JSONSchemaProperty} [items] - Schema for array items
+ * @property {boolean|string|number} [default] - Default value
+ */
+
+/**
+ * @typedef {Object} JSONSchema
+ * @property {string} type - Schema type
+ * @property {Record<string, JSONSchemaProperty>} [properties] - Object properties
+ * @property {string[]} [required] - Required property names
+ * @property {number} [minimum] - Minimum value
+ * @property {number} [maximum] - Maximum value
+ * @property {number} [minLength] - Minimum length
+ * @property {number} [maxLength] - Maximum length
+ * @property {string} [pattern] - Regex pattern
+ * @property {number} [multipleOf] - Multiple of value
+ * @property {string[]} [enum] - Allowed enum values
+ * @property {number} [minItems] - Minimum items
+ * @property {number} [maxItems] - Maximum items
+ * @property {JSONSchemaProperty} [items] - Array item schema
+ */
+
+/**
+ * @typedef {Object} DropboxTool
+ * @property {string} name - Tool name
+ * @property {string} description - Tool description
+ * @property {JSONSchema} inputSchema - Input validation schema
+ */
+
+/**
+ * @typedef {Object} DropboxToolsData
+ * @property {DropboxTool[]} tools - Array of available tools
+ */
+
+/**
  * Validate tool arguments against schema
  * @param {string} toolName - Name of the tool
- * @param {Object} args - Arguments to validate
+ * @param {Record<string, unknown>} args - Arguments to validate
  * @throws {Error} Validation error if arguments are invalid
+ * @returns {void}
  */
 export function validateToolArguments(toolName, args) {
-  const toolsData = getTools();
-  const tool = toolsData.tools.find(t => t.name === toolName);
+  const toolsData = /** @type {DropboxToolsData} */ (getTools());
+  const tool = toolsData.tools.find(/** @param {DropboxTool} t */ t => t.name === toolName);
   
   if (!tool) {
     throw new Error(`Unknown tool: ${toolName}`);
@@ -29,9 +76,10 @@ export function validateToolArguments(toolName, args) {
 
 /**
  * Validate object against JSON schema
- * @param {Object} obj - Object to validate
- * @param {Object} schema - JSON schema
+ * @param {Record<string, unknown>} obj - Object to validate
+ * @param {JSONSchema} schema - JSON schema
  * @param {string} context - Context for error messages
+ * @returns {void}
  */
 function validateObject(obj, schema, context) {
   if (schema.type !== 'object') {
@@ -63,9 +111,10 @@ function validateObject(obj, schema, context) {
 
 /**
  * Validate individual property
- * @param {any} value - Value to validate
- * @param {Object} schema - Property schema
+ * @param {unknown} value - Value to validate
+ * @param {JSONSchemaProperty} schema - Property schema
  * @param {string} context - Context for error messages
+ * @returns {void}
  */
 function validateProperty(value, schema, context) {
   // Type validation
@@ -77,22 +126,22 @@ function validateProperty(value, schema, context) {
 
   // String validations
   if (schema.type === 'string') {
-    validateString(value, schema, context);
+    validateString(/** @type {string} */ (value), schema, context);
   }
 
   // Number validations
   if (schema.type === 'number') {
-    validateNumber(value, schema, context);
+    validateNumber(/** @type {number} */ (value), schema, context);
   }
 
   // Array validations
   if (schema.type === 'array') {
-    validateArray(value, schema, context);
+    validateArray(/** @type {unknown[]} */ (value), schema, context);
   }
 
   // Enum validation
   if (schema.enum) {
-    if (!schema.enum.includes(value)) {
+    if (!schema.enum.includes(/** @type {string} */ (value))) {
       throw new Error(`Invalid value for ${context}: must be one of [${schema.enum.join(', ')}]`);
     }
   }
@@ -100,7 +149,7 @@ function validateProperty(value, schema, context) {
 
 /**
  * Validate value type
- * @param {any} value - Value to validate
+ * @param {unknown} value - Value to validate
  * @param {string} expectedType - Expected type
  * @returns {boolean} True if type is valid
  */
@@ -124,8 +173,9 @@ function validateType(value, expectedType) {
 /**
  * Validate string property
  * @param {string} value - String value
- * @param {Object} schema - String schema
+ * @param {JSONSchemaProperty} schema - String schema
  * @param {string} context - Context for error messages
+ * @returns {void}
  */
 function validateString(value, schema, context) {
   if (schema.minLength && value.length < schema.minLength) {
@@ -145,15 +195,16 @@ function validateString(value, schema, context) {
 
   // Path validation for specific fields
   if (context.includes('path') || context.includes('Path')) {
-    validatePathField(value, context);
+    validatePathField(/** @type {string} */ (value), context);
   }
 }
 
 /**
  * Validate number property
  * @param {number} value - Number value
- * @param {Object} schema - Number schema
+ * @param {JSONSchemaProperty} schema - Number schema
  * @param {string} context - Context for error messages
+ * @returns {void}
  */
 function validateNumber(value, schema, context) {
   if (schema.minimum !== undefined && value < schema.minimum) {
@@ -171,9 +222,10 @@ function validateNumber(value, schema, context) {
 
 /**
  * Validate array property
- * @param {Array} value - Array value
- * @param {Object} schema - Array schema
+ * @param {unknown[]} value - Array value
+ * @param {JSONSchemaProperty} schema - Array schema
  * @param {string} context - Context for error messages
+ * @returns {void}
  */
 function validateArray(value, schema, context) {
   if (schema.minItems && value.length < schema.minItems) {
@@ -186,8 +238,9 @@ function validateArray(value, schema, context) {
 
   // Validate array items
   if (schema.items) {
+    const itemsSchema = schema.items;
     value.forEach((item, index) => {
-      validateProperty(item, schema.items, `${context}[${index}]`);
+      validateProperty(item, itemsSchema, `${context}[${index}]`);
     });
   }
 }
@@ -196,6 +249,7 @@ function validateArray(value, schema, context) {
  * Validate path field format
  * @param {string} value - Path value
  * @param {string} context - Context for error messages
+ * @returns {void}
  */
 function validatePathField(value, context) {
   if (!value || value.trim() === '') {
@@ -223,6 +277,7 @@ function validatePathField(value, context) {
  * Validate Dropbox search query
  * @param {string} query - Search query
  * @throws {Error} If query contains invalid patterns
+ * @returns {void}
  */
 export function validateDropboxQuery(query) {
   if (!query || typeof query !== 'string') {
@@ -253,6 +308,7 @@ export function validateDropboxQuery(query) {
  * Validate file path format
  * @param {string} path - Dropbox file path
  * @throws {Error} If path format is invalid
+ * @returns {void}
  */
 export function validateDropboxPath(path) {
   if (!path || typeof path !== 'string') {
@@ -305,8 +361,9 @@ export function sanitizePath(path) {
 /**
  * Validate file size
  * @param {number} size - File size in bytes
- * @param {number} maxSize - Maximum allowed size
+ * @param {number} [maxSize=157286400] - Maximum allowed size (150MB default)
  * @throws {Error} If size is invalid
+ * @returns {void}
  */
 export function validateFileSize(size, maxSize = 150 * 1024 * 1024) { // 150MB default
   if (typeof size !== 'number' || isNaN(size) || size < 0) {

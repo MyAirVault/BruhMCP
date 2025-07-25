@@ -3,34 +3,59 @@
  * Handles OAuth Bearer token authentication and credential caching
  */
 
-import { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata } from '../services/credentialCache.js';
+// @ts-check
+
+import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
 import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
-import { exchangeOAuthForBearer, refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauthValidation.js';
+import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauthValidation.js';
 import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
 import { ErrorResponses } from '../../../utils/errorResponse.js';
 import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauthErrorHandler.js';
 import { recordTokenRefreshMetrics } from '../utils/tokenMetrics.js';
 
 /**
+ * @typedef {import('./types.js').CachedCredential} CachedCredential
+ * @typedef {import('./types.js').DatabaseInstance} DatabaseInstance
+ * @typedef {import('./types.js').NewOAuthTokens} NewOAuthTokens
+ * @typedef {import('./types.js').ExpressRequest} ExpressRequest
+ * @typedef {import('./types.js').ExpressResponse} ExpressResponse
+ * @typedef {import('./types.js').ExpressNext} ExpressNext
+ * @typedef {import('./types.js').TokenRefreshOptions} TokenRefreshOptions
+ */
+
+/**
  * Create credential authentication middleware for OAuth Bearer tokens
- * @returns {Function} Express middleware function
+ * @returns {function(ExpressRequest, ExpressResponse, ExpressNext): Promise<void>} Express middleware function
  */
 export function createCredentialAuthMiddleware() {
+  /**
+   * @param {ExpressRequest} req - Express request object
+   * @param {ExpressResponse} res - Express response object
+   * @param {ExpressNext} next - Express next function
+   * @returns {Promise<void>}
+   */
   return async (req, res, next) => {
     const { instanceId } = req.params;
+    
+    if (!instanceId) {
+      return ErrorResponses.validation(res, 'Missing instance ID', [], {
+        metadata: { expectedParameter: 'instanceId' }
+      });
+    }
     
     // Validate instance ID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(instanceId)) {
-      return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
+      return ErrorResponses.validation(res, 'Invalid instance ID format', [], {
         instanceId,
-        expectedFormat: 'UUID v4'
+        metadata: { expectedFormat: 'UUID v4' }
       });
     }
 
     try {
       // Check credential cache first (fast path)
-      let cachedCredential = getCachedCredential(instanceId);
+      /** @type {CachedCredential | null} */
+      let cachedCredential = /** @type {CachedCredential | null} */ (getCachedCredential(instanceId));
       
       if (cachedCredential && cachedCredential.bearerToken) {
         console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`);
@@ -39,9 +64,11 @@ export function createCredentialAuthMiddleware() {
         req.userId = cachedCredential.user_id;
         
         // Update usage tracking asynchronously
-        updateInstanceUsage(instanceId).catch(err => {
+        try {
+          await updateInstanceUsage(instanceId);
+        } catch (err) {
           console.error('Failed to update usage tracking:', err);
-        });
+        }
         
         return next();
       }
@@ -49,12 +76,13 @@ export function createCredentialAuthMiddleware() {
       console.log(`⏳ OAuth Bearer token cache miss for instance: ${instanceId}, performing database lookup`);
 
       // Cache miss - lookup credentials from database
-      const instance = await lookupInstanceCredentials(instanceId, 'reddit');
+      /** @type {DatabaseInstance | null} */
+      const instance = /** @type {DatabaseInstance | null} */ (await lookupInstanceCredentials(instanceId, 'reddit'));
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'reddit'
+          metadata: { service: 'reddit' }
         });
       }
 
@@ -62,7 +90,7 @@ export function createCredentialAuthMiddleware() {
       if (!instance.service_active) {
         return ErrorResponses.serviceUnavailable(res, 'Reddit service is currently disabled', {
           instanceId,
-          service: 'reddit'
+          metadata: { service: 'reddit' }
         });
       }
 
@@ -70,14 +98,14 @@ export function createCredentialAuthMiddleware() {
       if (instance.status === 'inactive') {
         return ErrorResponses.forbidden(res, 'Instance is paused', {
           instanceId,
-          status: instance.status
+          metadata: { status: instance.status }
         });
       }
 
       if (instance.status === 'expired') {
         return ErrorResponses.forbidden(res, 'Instance has expired', {
           instanceId,
-          status: instance.status
+          metadata: { status: instance.status }
         });
       }
 
@@ -93,7 +121,7 @@ export function createCredentialAuthMiddleware() {
       if (instance.auth_type !== 'oauth' || !instance.client_id || !instance.client_secret) {
         return ErrorResponses.internal(res, 'Invalid OAuth credentials configuration', {
           instanceId,
-          authType: instance.auth_type
+          metadata: { authType: instance.auth_type }
         });
       }
 
@@ -110,7 +138,7 @@ export function createCredentialAuthMiddleware() {
         if (!cachedCredential) {
           setCachedCredential(instanceId, {
             bearerToken: accessToken,
-            refreshToken: refreshToken,
+            refreshToken: refreshToken || '',
             expiresAt: tokenExpiresAt,
             user_id: instance.user_id
           });
@@ -133,6 +161,7 @@ export function createCredentialAuthMiddleware() {
         let usedMethod = 'oauth_service';
         
         try {
+          /** @type {NewOAuthTokens} */
           let newTokens;
           
           // Try to refresh the token using available method
@@ -144,13 +173,15 @@ export function createCredentialAuthMiddleware() {
             });
             usedMethod = 'oauth_service';
           } catch (refreshError) {
-            console.log(`⚠️  Primary OAuth refresh failed: ${refreshError.message}`);
+            /** @type {Error} */
+            const errorObj = refreshError instanceof Error ? refreshError : new Error(String(refreshError));
+            console.log(`⚠️  Primary OAuth refresh failed: ${errorObj.message}`);
             
             // Try direct OAuth as fallback only for specific error types
-            const isServiceUnavailable = refreshError.message.includes('OAuth service error') || 
-                                       refreshError.message.includes('Failed to start OAuth service') ||
-                                       refreshError.message.includes('ECONNREFUSED') ||
-                                       refreshError.message.includes('timeout');
+            const isServiceUnavailable = errorObj.message.includes('OAuth service error') || 
+                                       errorObj.message.includes('Failed to start OAuth service') ||
+                                       errorObj.message.includes('ECONNREFUSED') ||
+                                       errorObj.message.includes('timeout');
             
             if (isServiceUnavailable) {
               console.log(`🔄 Attempting direct OAuth fallback for instance: ${instanceId}`);
@@ -162,7 +193,7 @@ export function createCredentialAuthMiddleware() {
               usedMethod = 'direct_oauth';
             } else {
               // Re-throw for non-service-availability errors
-              throw refreshError;
+              throw errorObj;
             }
           }
 
@@ -174,8 +205,8 @@ export function createCredentialAuthMiddleware() {
             instanceId, 
             usedMethod, 
             true, // success
-            null, // errorType
-            null, // errorMessage
+            '', // errorType
+            '', // errorMessage
             refreshStartTime, 
             refreshEndTime
           );
@@ -213,7 +244,7 @@ export function createCredentialAuthMiddleware() {
             await updateOAuthStatusWithLocking(instanceId, {
               status: 'completed',
               accessToken: newTokens.access_token,
-              refreshToken: newTokens.refresh_token || refreshToken,
+              refreshToken: newTokens.refresh_token || refreshToken || '',
               tokenExpiresAt: newExpiresAt,
               scope: newTokens.scope
             });
@@ -223,7 +254,7 @@ export function createCredentialAuthMiddleware() {
             await updateOAuthStatus(instanceId, {
               status: 'completed',
               accessToken: newTokens.access_token,
-              refreshToken: newTokens.refresh_token || refreshToken,
+              refreshToken: newTokens.refresh_token || refreshToken || '',
               tokenExpiresAt: newExpiresAt,
               scope: newTokens.scope
             });
@@ -238,6 +269,11 @@ export function createCredentialAuthMiddleware() {
 
           return next();
         } catch (refreshError) {
+          /** @type {Error & {errorType?: string, originalError?: string}} */
+          const errorObj = refreshError instanceof Error ? 
+            refreshError : 
+            new Error(typeof refreshError === 'string' ? refreshError : 'Token refresh failed');
+          
           const refreshEndTime = Date.now();
           
           // Record failed metrics
@@ -245,8 +281,8 @@ export function createCredentialAuthMiddleware() {
             instanceId, 
             usedMethod, 
             false, // failure
-            refreshError.errorType || 'UNKNOWN_ERROR',
-            refreshError.message || 'Token refresh failed',
+            errorObj.errorType || 'UNKNOWN_ERROR',
+            errorObj.message || 'Token refresh failed',
             refreshStartTime, 
             refreshEndTime
           );
@@ -257,34 +293,37 @@ export function createCredentialAuthMiddleware() {
             operation: 'refresh',
             status: 'failure',
             method: usedMethod,
-            errorType: refreshError.errorType || 'UNKNOWN_ERROR',
-            errorMessage: refreshError.message || 'Token refresh failed',
+            errorType: errorObj.errorType || 'UNKNOWN_ERROR',
+            errorMessage: errorObj.message || 'Token refresh failed',
             userId: instance.user_id,
             metadata: {
               responseTime: refreshEndTime - refreshStartTime,
-              originalError: refreshError.originalError || refreshError.message
+              originalError: errorObj.originalError || errorObj.message
             }
           }).catch(err => {
             console.error('Failed to create audit log:', err);
           });
 
           // Use centralized error handling
-          logOAuthError(refreshError, 'token refresh', instanceId);
+          logOAuthError(errorObj, 'token refresh', instanceId);
           
-          const errorResponse = await handleTokenRefreshFailure(instanceId, refreshError, updateOAuthStatus);
+          /** @type {{requiresReauth: boolean, error: string, errorCode?: string, instanceId: string}} */
+          const errorResponse = /** @type {{requiresReauth: boolean, error: string, errorCode?: string, instanceId: string}} */ (await handleTokenRefreshFailure(instanceId, errorObj, updateOAuthStatus));
           
           // If error requires re-authentication, return immediately
           if (errorResponse.requiresReauth) {
             return ErrorResponses.unauthorized(res, errorResponse.error, {
               instanceId: errorResponse.instanceId,
-              error: errorResponse.error,
-              errorCode: errorResponse.errorCode,
-              requiresReauth: errorResponse.requiresReauth
+              metadata: {
+                error: errorResponse.error,
+                errorCode: errorResponse.errorCode,
+                requiresReauth: errorResponse.requiresReauth
+              }
             });
           }
           
           // For other errors, fall through to full OAuth exchange
-          console.log(`🔄 Falling back to full OAuth exchange due to refresh error: ${refreshError.message}`);
+          console.log(`🔄 Falling back to full OAuth exchange due to refresh error: ${errorObj.message}`);
         }
       }
 
@@ -312,22 +351,25 @@ export function createCredentialAuthMiddleware() {
       // Mark OAuth status as failed in database to indicate re-authentication needed
       await updateOAuthStatus(instanceId, {
         status: 'failed',
-        accessToken: null,
-        refreshToken: refreshToken, // Keep refresh token for potential retry
-        tokenExpiresAt: null,
-        scope: null
+        accessToken: undefined,
+        refreshToken: refreshToken || undefined, // Keep refresh token for potential retry
+        tokenExpiresAt: undefined,
+        scope: undefined
       });
       
       // Return specific error requiring re-authentication
       return ErrorResponses.unauthorized(res, 'OAuth authentication required - please re-authenticate', {
         instanceId,
-        error: 'No valid access token and refresh token failed',
-        requiresReauth: true,
-        errorCode: 'OAUTH_FLOW_REQUIRED'
+        metadata: {
+          error: 'No valid access token and refresh token failed',
+          requiresReauth: true,
+          errorCode: 'OAUTH_FLOW_REQUIRED'
+        }
       });
 
     } catch (error) {
       console.error('Credential authentication middleware error:', error);
+      /** @type {string} */
       const errorMessage = error instanceof Error ? error.message : String(error);
       return ErrorResponses.internal(res, 'Authentication system error', {
         instanceId,
@@ -339,36 +381,50 @@ export function createCredentialAuthMiddleware() {
 
 /**
  * Create lightweight authentication middleware for non-critical endpoints
- * @returns {Function} Express middleware function
+ * @returns {function(ExpressRequest, ExpressResponse, ExpressNext): Promise<void>} Express middleware function
  */
 export function createLightweightAuthMiddleware() {
+  /**
+   * @param {ExpressRequest} req - Express request object
+   * @param {ExpressResponse} res - Express response object
+   * @param {ExpressNext} next - Express next function
+   * @returns {Promise<void>}
+   */
   return async (req, res, next) => {
     const { instanceId } = req.params;
+    
+    if (!instanceId) {
+      return ErrorResponses.validation(res, 'Missing instance ID', [], {
+        metadata: { expectedParameter: 'instanceId' }
+      });
+    }
     
     // Validate instance ID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(instanceId)) {
-      return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
+      return ErrorResponses.validation(res, 'Invalid instance ID format', [], {
         instanceId,
-        expectedFormat: 'UUID v4'
+        metadata: { expectedFormat: 'UUID v4' }
       });
     }
 
     try {
       // Quick database lookup without credential exchange
-      const instance = await lookupInstanceCredentials(instanceId, 'reddit');
+      /** @type {DatabaseInstance | null} */
+      const instance = /** @type {DatabaseInstance | null} */ (await lookupInstanceCredentials(instanceId, 'reddit'));
       
       if (!instance) {
         return ErrorResponses.notFound(res, 'Instance', {
           instanceId,
-          service: 'reddit'
+          metadata: { service: 'reddit' }
         });
       }
 
       // Basic validation
       if (!instance.service_active) {
         return ErrorResponses.serviceUnavailable(res, 'Reddit service is currently disabled', {
-          instanceId
+          instanceId,
+          metadata: { service: 'reddit' }
         });
       }
 
@@ -379,6 +435,7 @@ export function createLightweightAuthMiddleware() {
 
     } catch (error) {
       console.error('Lightweight authentication middleware error:', error);
+      /** @type {string} */
       const errorMessage = error instanceof Error ? error.message : String(error);
       return ErrorResponses.internal(res, 'Authentication system error', {
         instanceId,
@@ -390,14 +447,21 @@ export function createLightweightAuthMiddleware() {
 
 /**
  * Create cache performance monitoring middleware for development
- * @returns {Function} Express middleware function
+ * @returns {function(ExpressRequest, ExpressResponse, ExpressNext): void} Express middleware function
  */
 export function createCachePerformanceMiddleware() {
+  /**
+   * @param {ExpressRequest} req - Express request object
+   * @param {ExpressResponse} res - Express response object
+   * @param {ExpressNext} next - Express next function
+   * @returns {void}
+   */
   return (req, res, next) => {
     const startTime = Date.now();
     
     // Override res.json to capture response time
     const originalJson = res.json;
+    /** @param {object} body */
     res.json = function(body) {
       const responseTime = Date.now() - startTime;
       

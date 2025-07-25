@@ -28,11 +28,11 @@ export function isObject(item: Object | null | undefined | string | number | boo
 export function chunkArray<T>(array: Array<T>, size: number): Array<Array<T>>;
 /**
  * Flatten nested array
- * @param {Array} arr - Array to flatten
+ * @param {Object[]} arr - Array to flatten
  * @param {number} [depth] - Depth to flatten (default: Infinity)
- * @returns {Array} Flattened array
+ * @returns {Object[]} Flattened array
  */
-export function flattenArray(arr: any[], depth?: number): any[];
+export function flattenArray(arr: Object[], depth?: number): Object[];
 /**
  * Remove duplicates from array
  * @template T
@@ -43,12 +43,11 @@ export function flattenArray(arr: any[], depth?: number): any[];
 export function uniqueArray<T>(array: Array<T>, keyFn?: ((item: T) => string | number) | null): Array<T>;
 /**
  * Group array items by key
- * @template T
- * @param {Array<T>} array - Array to group
- * @param {((item: T) => string) | string} keyFn - Key function or property name
- * @returns {Record<string, Array<T>>} Grouped object
+ * @param {Object[]} array - Array to group
+ * @param {((item: Object) => string) | string} keyFn - Key function or property name
+ * @returns {Record<string, Object[]>} Grouped object
  */
-export function groupBy<T>(array: Array<T>, keyFn: ((item: T) => string) | string): Record<string, Array<T>>;
+export function groupBy(array: Object[], keyFn: ((item: Object) => string) | string): Record<string, Object[]>;
 /**
  * @typedef {Object} SortKey
  * @property {string | ((item: Object) => string | number)} key - Sort key or function
@@ -82,27 +81,27 @@ export function pick<T extends Record<string, string | number | boolean | Object
 export function omit<T extends Record<string, string | number | boolean | Object>, K extends keyof T>(obj: T, keys: Array<K>): Omit<T, K>;
 /**
  * Get nested property value safely
- * @param {Record<string, string | number | boolean | Object>} obj - Source object
+ * @param {Record<string, Object>} obj - Source object
  * @param {string} path - Property path (e.g., 'a.b.c')
- * @param {string | number | boolean | Object | null} defaultValue - Default value if path not found
- * @returns {string | number | boolean | Object | null | undefined} Property value or default
+ * @param {Object | null} [defaultValue] - Default value if path not found
+ * @returns {Object | null | undefined} Property value or default
  */
-export function get(obj: Record<string, string | number | boolean | Object>, path: string, defaultValue?: string | number | boolean | Object | null): string | number | boolean | Object | null | undefined;
+export function get(obj: Record<string, Object>, path: string, defaultValue?: Object | null): Object | null | undefined;
 /**
  * Set nested property value safely
- * @param {Record<string, string | number | boolean | Object>} obj - Target object
+ * @param {Record<string, Object>} obj - Target object
  * @param {string} path - Property path (e.g., 'a.b.c')
- * @param {string | number | boolean | Object} value - Value to set
- * @returns {Record<string, string | number | boolean | Object>} Modified object
+ * @param {Object} value - Value to set
+ * @returns {Record<string, Object>} Modified object
  */
-export function set(obj: Record<string, string | number | boolean | Object>, path: string, value: string | number | boolean | Object): Record<string, string | number | boolean | Object>;
+export function set(obj: Record<string, Object>, path: string, value: Object): Record<string, Object>;
 /**
  * Transform object keys
- * @param {string | number | boolean | Object | Array<string | number | boolean | Object>} obj - Source object
+ * @param {Object | Object[]} obj - Source object
  * @param {(key: string) => string} transformFn - Key transformation function
- * @returns {string | number | boolean | Object | Array<string | number | boolean | Object>} Object with transformed keys
+ * @returns {Object | Object[]} Object with transformed keys
  */
-export function transformKeys(obj: string | number | boolean | Object | Array<string | number | boolean | Object>, transformFn: (key: string) => string): string | number | boolean | Object | Array<string | number | boolean | Object>;
+export function transformKeys(obj: Object | Object[], transformFn: (key: string) => string): Object | Object[];
 /**
  * Convert camelCase to snake_case
  * @param {string} str - String to convert

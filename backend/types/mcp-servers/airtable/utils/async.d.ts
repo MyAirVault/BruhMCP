@@ -44,21 +44,19 @@ export function measureExecutionTime<T>(fn: () => Promise<T>): Promise<Execution
 export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage?: string): Promise<T>;
 /**
  * Debounce function execution
- * @template {(...args: unknown[]) => unknown} T
- * @param {T} func - Function to debounce
+ * @param {Function} func - Function to debounce
  * @param {number} wait - Wait time in milliseconds
  * @param {boolean} [immediate] - Execute immediately on first call
- * @returns {T} Debounced function
+ * @returns {Function} Debounced function
  */
-export function debounce<T extends (...args: unknown[]) => unknown>(func: T, wait: number, immediate?: boolean): T;
+export function debounce(func: Function, wait: number, immediate?: boolean): Function;
 /**
  * Throttle function execution
- * @template {(...args: unknown[]) => unknown} T
- * @param {T} func - Function to throttle
+ * @param {Function} func - Function to throttle
  * @param {number} limit - Time limit in milliseconds
- * @returns {T} Throttled function
+ * @returns {Function} Throttled function
  */
-export function throttle<T extends (...args: unknown[]) => unknown>(func: T, limit: number): T;
+export function throttle(func: Function, limit: number): Function;
 /**
  * Execute functions in parallel with concurrency limit
  * @template T, R
@@ -76,12 +74,11 @@ export function parallelLimit<T, R>(items: Array<T>, fn: (item: T) => Promise<R>
  */
 /**
  * Create a circuit breaker
- * @template {(...args: unknown[]) => Promise<unknown>} T
- * @param {T} fn - Function to wrap
+ * @param {Function} fn - Function to wrap
  * @param {CircuitBreakerOptions} [options] - Circuit breaker options
- * @returns {T} Circuit breaker wrapped function
+ * @returns {Function} Circuit breaker wrapped function
  */
-export function circuitBreaker<T extends (...args: unknown[]) => Promise<unknown>>(fn: T, options?: CircuitBreakerOptions): T;
+export function circuitBreaker(fn: Function, options?: CircuitBreakerOptions): Function;
 export type RetryOptions = {
     /**
      * - Maximum number of attempts

@@ -8,16 +8,16 @@
  */
 /**
  * Format a Slack channel response
- * @param {SlackChannel|null} channel - Raw Slack channel object
+ * @param {SlackChannel|Object|null} channel - Raw Slack channel object
  * @returns {Object|null} Formatted channel
  */
-export function formatChannelResponse(channel: SlackChannel | null): Object | null;
+export function formatChannelResponse(channel: SlackChannel | Object | null): Object | null;
 /**
  * Format a Slack user response
- * @param {SlackUser|null} user - Raw Slack user object
+ * @param {SlackUser|Object|null} user - Raw Slack user object
  * @returns {Object|null} Formatted user
  */
-export function formatUserResponse(user: SlackUser | null): Object | null;
+export function formatUserResponse(user: SlackUser | Object | null): Object | null;
 /**
  * Format team information response
  * @param {SlackTeam|null} team - Team information from Slack API

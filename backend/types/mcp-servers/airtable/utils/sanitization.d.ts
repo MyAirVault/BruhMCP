@@ -1,10 +1,17 @@
 /**
  * Sanitize string input
  * @param {string} input - Input string to sanitize
- * @param {Object} options - Sanitization options
+ * @param {{removeHtml?: boolean, removeSqlInjection?: boolean, removeXss?: boolean, trimWhitespace?: boolean, maxLength?: number, allowedChars?: string|null}} [options] - Sanitization options
  * @returns {string}
  */
-export function sanitizeInput(input: string, options?: Object): string;
+export function sanitizeInput(input: string, options?: {
+    removeHtml?: boolean;
+    removeSqlInjection?: boolean;
+    removeXss?: boolean;
+    trimWhitespace?: boolean;
+    maxLength?: number;
+    allowedChars?: string | null;
+}): string;
 /**
  * Escape HTML entities
  * @param {string} input - Input string
@@ -19,17 +26,21 @@ export function escapeHtml(input: string): string;
 export function sanitizeFieldName(fieldName: string): string;
 /**
  * Sanitize Airtable record fields
- * @param {Record<string, any>} fields - Record fields to sanitize
- * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
+ * @param {Object.<string, string|number|boolean|string[]|Object|null|undefined>} fields - Record fields to sanitize
+ * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
-export function sanitizeRecordFields(fields: Record<string, any>): Record<string, string | number | boolean | string[] | null | undefined>;
+export function sanitizeRecordFields(fields: {
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
+}): {
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
+};
 /**
  * Sanitize object recursively
- * @param {Object} obj - Object to sanitize
- * @param {number} depth - Current depth (to prevent infinite recursion)
- * @returns {Object}
+ * @param {string|number|boolean|Object|null|undefined} obj - Object to sanitize
+ * @param {number} [depth=0] - Current depth (to prevent infinite recursion)
+ * @returns {string|number|boolean|Object|null|undefined}
  */
-export function sanitizeObject(obj: Object, depth?: number): Object;
+export function sanitizeObject(obj: string | number | boolean | Object | null | undefined, depth?: number): string | number | boolean | Object | null | undefined;
 /**
  * Sanitize URL
  * @param {string} url - URL to sanitize
@@ -62,10 +73,14 @@ export function sanitizePhoneNumber(phone: string): string;
 export function sanitizeFormula(formula: string): string;
 /**
  * Sanitize query parameters
- * @param {Record<string, any>} params - Query parameters to sanitize
- * @returns {Record<string, string | number | boolean | string[] | null | undefined>}
+ * @param {Object.<string, string|number|boolean|string[]|Object|null|undefined>} params - Query parameters to sanitize
+ * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
-export function sanitizeQueryParams(params: Record<string, any>): Record<string, string | number | boolean | string[] | null | undefined>;
+export function sanitizeQueryParams(params: {
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
+}): {
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
+};
 /**
  * Check if input contains malicious patterns
  * @param {string} input - Input to check
@@ -74,10 +89,10 @@ export function sanitizeQueryParams(params: Record<string, any>): Record<string,
 export function containsMaliciousPatterns(input: string): boolean;
 /**
  * Sanitize for logging (remove sensitive information)
- * @param {any} data - Data to sanitize for logging
- * @returns {any}
+ * @param {string|number|boolean|Object|null|undefined} data - Data to sanitize for logging
+ * @returns {string|number|boolean|Object|null|undefined}
  */
-export function sanitizeForLogging(data: any): any;
+export function sanitizeForLogging(data: string | number | boolean | Object | null | undefined): string | number | boolean | Object | null | undefined;
 /**
  * Create sanitization report
  * @param {string} original - Original input
@@ -87,11 +102,11 @@ export function sanitizeForLogging(data: any): any;
 export function createSanitizationReport(original: string, sanitized: string): Object;
 /**
  * Batch sanitize multiple inputs
- * @param {Array} inputs - Array of inputs to sanitize
- * @param {Function} sanitizer - Sanitization function
- * @returns {Array}
+ * @param {(string|number|boolean|Object|null|undefined)[]} inputs - Array of inputs to sanitize
+ * @param {function(string|number|boolean|Object|null|undefined): (string|number|boolean|Object|null|undefined)} [sanitizer=sanitizeInput] - Sanitization function
+ * @returns {(string|number|boolean|Object|null|undefined|null)[]}
  */
-export function batchSanitize(inputs: any[], sanitizer?: Function): any[];
+export function batchSanitize(inputs: (string | number | boolean | Object | null | undefined)[], sanitizer?: (arg0: string | number | boolean | Object | null | undefined) => (string | number | boolean | Object | null | undefined)): (string | number | boolean | Object | null | undefined | null)[];
 declare namespace _default {
     export { sanitizeInput };
     export { escapeHtml };
