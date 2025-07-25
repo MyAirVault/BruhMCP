@@ -7,6 +7,14 @@ import { getUserPlan, isUserPlanActive, deactivateAllUserInstances, createUserPl
 import { getUserInstanceCount } from '../db/queries/mcpInstances/index.js';
 
 /**
+ * Check if payments are disabled in local development
+ * @returns {boolean} True if payments are disabled
+ */
+export function isPaymentsDisabled() {
+	return process.env.DISABLE_PAYMENTS === 'true' && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local');
+}
+
+/**
  * Plan limits configuration
  * @typedef {Object} PlanConfig
  * @property {number|null} max_instances - Maximum active instances (null = unlimited)
@@ -33,6 +41,11 @@ export const PLAN_LIMITS = {
  * @returns {number|null} Max instances (null = unlimited)
  */
 export function getInstanceLimitForPlan(planType) {
+	// In local environment with payments disabled, give unlimited instances
+	if (isPaymentsDisabled()) {
+		return null; // unlimited
+	}
+	
 	const plan = PLAN_LIMITS[planType];
 	return plan ? plan.max_instances : PLAN_LIMITS.free.max_instances;
 }
@@ -43,6 +56,11 @@ export function getInstanceLimitForPlan(planType) {
  * @returns {boolean} True if plan has unlimited instances
  */
 export function isPlanUnlimited(planType) {
+	// In local environment with payments disabled, treat all plans as unlimited
+	if (isPaymentsDisabled()) {
+		return true;
+	}
+	
 	const plan = PLAN_LIMITS[planType];
 	return plan ? plan.max_instances === null : false;
 }

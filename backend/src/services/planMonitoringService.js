@@ -6,6 +6,7 @@
 /* global clearInterval, setTimeout */
 
 import { schedulePlanExpirationAgent, runPlanExpirationAgent, checkForExpiredUsers } from './planExpirationAgent.js';
+import { isPaymentsDisabled } from '../utils/planLimits.js';
 
 /**
  * Plan monitoring service instance
@@ -124,7 +125,10 @@ const planMonitoringService = new PlanMonitoringService();
 const autoStartEnabled = process.env.PLAN_MONITORING_AUTO_START !== 'false';
 const checkInterval = parseInt(process.env.PLAN_MONITORING_INTERVAL_MINUTES || '60') || 60;
 
-if (autoStartEnabled) {
+// Skip auto-start in local development with payments disabled
+const skipInLocalDev = isPaymentsDisabled();
+
+if (autoStartEnabled && !skipInLocalDev) {
 	// Start with a small delay to ensure database connections are ready
 	setTimeout(() => {
 		try {
@@ -133,6 +137,8 @@ if (autoStartEnabled) {
 			console.error('❌ Failed to auto-start Plan Monitoring Service:', error);
 		}
 	}, 10000); // 10 second delay
+} else if (skipInLocalDev) {
+	console.log('🚫 Plan Monitoring Service disabled in local development (DISABLE_PAYMENTS=true)');
 }
 
 export default planMonitoringService;
