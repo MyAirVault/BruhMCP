@@ -63,10 +63,10 @@ export function parseOAuthError(error) {
   }
   
   // Check for network errors
-  if (error.code === 'ECONNRESET' || 
-      error.code === 'ETIMEDOUT' || 
-      error.code === 'ENOTFOUND' ||
-      error.code === 'ECONNREFUSED' ||
+  if (/** @type {Error & {code?: string}} */ (error).code === 'ECONNRESET' || 
+      /** @type {Error & {code?: string}} */ (error).code === 'ETIMEDOUT' || 
+      /** @type {Error & {code?: string}} */ (error).code === 'ENOTFOUND' ||
+      /** @type {Error & {code?: string}} */ (error).code === 'ECONNREFUSED' ||
       error.name === 'AbortError') {
     return {
       type: OAUTH_ERROR_TYPES.NETWORK_ERROR,
@@ -105,20 +105,20 @@ export function parseOAuthError(error) {
  * @param {string} instanceId - Instance ID
  * @param {Error} error - Refresh error
  * @param {Function} updateOAuthStatus - Database update function
- * @returns {Object} Error response details
+ * @returns {Promise<{instanceId: string, error: string, errorCode: string, requiresReauth: boolean, shouldRetry: boolean, logLevel: string, originalError: string}>} Error response details
  */
 export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
   const errorAnalysis = parseOAuthError(error);
   
   console.log(`🔍 Reddit token refresh error analysis for ${instanceId}:`, {
-    type: errorAnalysis.type,
-    requiresReauth: errorAnalysis.requiresReauth,
-    shouldRetry: errorAnalysis.shouldRetry,
+    type: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).type,
+    requiresReauth: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).requiresReauth,
+    shouldRetry: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).shouldRetry,
     originalError: error.message
   });
   
   // Update database based on error type
-  if (errorAnalysis.requiresReauth) {
+  if (/** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).requiresReauth) {
     await updateOAuthStatus(instanceId, {
       status: 'failed',
       accessToken: null,
@@ -131,11 +131,11 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
   // Return error response details
   return {
     instanceId,
-    error: errorAnalysis.userMessage,
-    errorCode: errorAnalysis.type,
-    requiresReauth: errorAnalysis.requiresReauth,
-    shouldRetry: errorAnalysis.shouldRetry,
-    logLevel: errorAnalysis.logLevel,
+    error: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).userMessage,
+    errorCode: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).type,
+    requiresReauth: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).requiresReauth,
+    shouldRetry: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).shouldRetry,
+    logLevel: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).logLevel,
     originalError: error.message
   };
 }
@@ -153,7 +153,7 @@ export function shouldRetryOAuthError(error, attempt, maxAttempts) {
   }
   
   const errorAnalysis = parseOAuthError(error);
-  return errorAnalysis.shouldRetry;
+  return /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).shouldRetry;
 }
 
 /**
@@ -166,7 +166,7 @@ export function getRetryDelay(attempt, error) {
   const errorAnalysis = parseOAuthError(error);
   
   // Different delays for different error types
-  const baseDelay = errorAnalysis.type === OAUTH_ERROR_TYPES.NETWORK_ERROR ? 1000 : 2000;
+  const baseDelay = /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).type === OAUTH_ERROR_TYPES.NETWORK_ERROR ? 1000 : 2000;
   
   // Exponential backoff with jitter
   const exponentialDelay = baseDelay * Math.pow(2, attempt - 1);
@@ -186,7 +186,7 @@ export function logOAuthError(error, context, instanceId) {
   
   const logMessage = `Reddit OAuth error in ${context} for instance ${instanceId}: ${error.message}`;
   
-  switch (errorAnalysis.logLevel) {
+  switch (/** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).logLevel) {
     case 'error':
       console.error(`❌ ${logMessage}`);
       break;
@@ -212,15 +212,15 @@ export function createOAuthErrorResponse(instanceId, error, context) {
     success: false,
     instanceId,
     context,
-    error: errorAnalysis.userMessage,
-    errorCode: errorAnalysis.type,
-    requiresReauth: errorAnalysis.requiresReauth,
-    shouldRetry: errorAnalysis.shouldRetry,
+    error: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).userMessage,
+    errorCode: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).type,
+    requiresReauth: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).requiresReauth,
+    shouldRetry: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).shouldRetry,
     timestamp: new Date().toISOString(),
     metadata: {
       originalError: error.message,
-      errorType: errorAnalysis.type,
-      logLevel: errorAnalysis.logLevel
+      errorType: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).type,
+      logLevel: /** @type {{type: string, requiresReauth: boolean, shouldRetry: boolean, userMessage: string, logLevel: string}} */ (errorAnalysis).logLevel
     }
   };
 }

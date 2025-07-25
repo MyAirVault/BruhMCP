@@ -46,7 +46,7 @@ export function createResponseSizeLimitMiddleware(options = {}) {
     ...options
   };
   
-  return (req, res, next) => {
+  return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
     const operation = req.body?.method;
     const toolName = req.body?.params?.name;
     
@@ -55,12 +55,12 @@ export function createResponseSizeLimitMiddleware(options = {}) {
     }
     
     // Get size limit for this tool
-    const sizeLimit = config.toolLimits[toolName] || config.maxResponseSize;
+    const sizeLimit = /** @type {Record<string, number>} */ (config.toolLimits)[/** @type {keyof typeof config.toolLimits} */ (toolName)] || config.maxResponseSize;
     
     // Intercept response to check size
     const originalJson = res.json;
     
-    res.json = function(data) {
+    res.json = function(/** @type {Record<string, Record<string, Record<string, {result?: {content?: Array<{type: string, text: string}>}} | unknown>>} */ data) {
       try {
         // Calculate response size
         const responseString = JSON.stringify(data);

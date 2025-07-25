@@ -1,1 +1,1 @@
-{"version":3,"file":"tools.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/sheets/endpoints/tools.js"],"names":[],"mappings":"AAQA;;;;;GAKG;AACH,yCAJW,OAAO,yCAAyC,EAAE,SAAS,WAC3D,MAAM,eACN,MAAM,QAyNhB"}
+{"version":3,"file":"tools.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/sheets/endpoints/tools.js"],"names":[],"mappings":"AAQA;;;;;GAKG;AACH,yCAJW,OAAO,yCAAyC,EAAE,SAAS,WAC3D;IAAC,WAAW,EAAE,MAAM,CAAA;CAAC,eACrB,MAAM,QAyNhB"}

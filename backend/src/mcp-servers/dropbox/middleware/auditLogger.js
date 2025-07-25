@@ -4,6 +4,18 @@
  */
 
 /**
+ * @typedef {Object} AuditLogData
+ * @property {string} instanceId - Instance ID
+ * @property {string} userId - User ID
+ * @property {string} service - Service name
+ * @property {string} timestamp - Timestamp
+ * @property {string} event - Event type
+ * @property {boolean} success - Success indicator
+ * @property {string} [method] - Method used
+ * @property {string} [error] - Error message
+ */
+
+/**
  * Log OAuth flow initiation
  * @param {string} instanceId - The instance ID
  * @param {string} userId - User ID
@@ -30,6 +42,7 @@ export function logOAuthInitiation(instanceId, userId, clientId) {
  * @returns {void}
  */
 export function logOAuthCallback(instanceId, userId, success, error) {
+  /** @type {AuditLogData} */
   const logData = {
     instanceId,
     userId,
@@ -56,6 +69,7 @@ export function logOAuthCallback(instanceId, userId, success, error) {
  * @returns {void}
  */
 export function logTokenRefresh(instanceId, userId, success, method, error) {
+  /** @type {AuditLogData} */
   const logData = {
     instanceId,
     userId,
@@ -82,6 +96,7 @@ export function logTokenRefresh(instanceId, userId, success, method, error) {
  * @returns {void}
  */
 export function logTokenValidation(instanceId, userId, success, error) {
+  /** @type {AuditLogData} */
   const logData = {
     instanceId,
     userId,
@@ -107,6 +122,7 @@ export function logTokenValidation(instanceId, userId, success, error) {
  * @returns {void}
  */
 export function logInstanceRevocation(instanceId, userId, success, error) {
+  /** @type {AuditLogData} */
   const logData = {
     instanceId,
     userId,

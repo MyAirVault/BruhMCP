@@ -25,10 +25,15 @@ export function handleRefreshFailure(instanceId: string, error: Error): Object;
  * Create token refresh failure response
  * @param {import('./types.js').ExpressResponse} res - Express response
  * @param {string} instanceId - Instance ID
- * @param {Object} errorDetails - Error details
+ * @param {{error: string, errorCode: string, requiresReauth: boolean, instanceId: string}} errorDetails - Error details
  * @returns {any} Error response
  */
-export function createRefreshFailureResponse(res: import("./types.js").ExpressResponse, instanceId: string, errorDetails: Object): any;
+export function createRefreshFailureResponse(res: import("./types.js").ExpressResponse, _instanceId: any, errorDetails: {
+    error: string;
+    errorCode: string;
+    requiresReauth: boolean;
+    instanceId: string;
+}): any;
 /**
  * Create re-authentication required response
  * @param {import('./types.js').ExpressResponse} res - Express response

@@ -4,19 +4,20 @@
  * Based on Gmail MCP implementation patterns
  */
 
-import { getSessionStatistics } from '../services/handler-sessions.js';
-import { getCacheStatistics } from '../services/credential-cache.js';
-import { getWatcherStatus } from '../services/credential-watcher.js';
+import { getSessionStatistics } from '../services/handlerSessions.js';
+import { getCacheStatistics } from '../services/credentialCache.js';
+import { getWatcherStatus } from '../services/credentialWatcher.js';
 
 /**
  * Health check endpoint handler
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * @param {{params: {instanceId: string}}} req - Express request object
+ * @param {{json: Function, status: Function}} res - Express response object
  */
 async function healthCheck(req, res) {
   const { instanceId } = req.params;
   
   try {
+    /** @type {{status: string, timestamp: string, service: string, instanceId: string, uptime: number, version: string, details?: any}} */
     const healthData = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -39,7 +40,7 @@ async function healthCheck(req, res) {
         }
       };
     } catch (detailError) {
-      console.warn('⚠️  Could not fetch health details:', detailError.message);
+      console.warn('⚠️  Could not fetch health details:', detailError instanceof Error ? detailError.message : 'Unknown error');
       healthData.details = { error: 'Could not fetch detailed health information' };
     }
 
@@ -53,7 +54,7 @@ async function healthCheck(req, res) {
       timestamp: new Date().toISOString(),
       service: 'sheets-mcp',
       instanceId: instanceId,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }

@@ -7,7 +7,6 @@ import {
 	makeSheetsRequest,
 	createSpreadsheet as createSpreadsheetModule,
 	getSpreadsheet as getSpreadsheetModule,
-	getCells,
 	updateCells,
 	appendValues as appendValuesModule,
 	clearCells,
@@ -33,7 +32,7 @@ export class SheetsApi {
 	 * @returns {Promise<Object>} Created spreadsheet info
 	 */
 	async createSpreadsheet(title, sheetNames = ['Sheet1']) {
-		return createSpreadsheetModule(this.bearerToken, title, sheetNames);
+		return createSpreadsheetModule({ title, sheets: sheetNames.map(name => ({ title: name })) }, this.bearerToken);
 	}
 
 	/**
@@ -42,14 +41,14 @@ export class SheetsApi {
 	 * @returns {Promise<Object>} Spreadsheet metadata
 	 */
 	async getSpreadsheet(spreadsheetId) {
-		return getSpreadsheetModule(this.bearerToken, spreadsheetId);
+		return getSpreadsheetModule({ spreadsheetId, includeData: false }, this.bearerToken);
 	}
 
 	/**
 	 * Read values from a range
 	 * @param {string} spreadsheetId - Spreadsheet ID
 	 * @param {string} range - A1 notation range
-	 * @param {Object} options - Read options
+	 * @param {{majorDimension?: string, valueRenderOption?: string}} options - Read options
 	 * @returns {Promise<Object>} Range values
 	 */
 	async readRange(spreadsheetId, range, options = {}) {
@@ -67,17 +66,14 @@ export class SheetsApi {
 	 * Write values to a range
 	 * @param {string} spreadsheetId - Spreadsheet ID
 	 * @param {string} range - A1 notation range
-	 * @param {Array<Array>} values - 2D array of values
-	 * @param {Object} options - Write options
+	 * @param {Array<Array<any>>} values - 2D array of values
+	 * @param {{valueInputOption?: string}} options - Write options
 	 * @returns {Promise<Object>} Update result
 	 */
 	async writeRange(spreadsheetId, range, values, options = {}) {
 		return updateCells(
-			this.bearerToken,
-			spreadsheetId,
-			range,
-			values,
-			options.valueInputOption || 'USER_ENTERED'
+			{ spreadsheetId, range, values, valueInputOption: options.valueInputOption || 'USER_ENTERED' },
+			this.bearerToken
 		);
 	}
 
@@ -85,17 +81,14 @@ export class SheetsApi {
 	 * Append values to a sheet
 	 * @param {string} spreadsheetId - Spreadsheet ID
 	 * @param {string} range - A1 notation range
-	 * @param {Array<Array>} values - 2D array of values
-	 * @param {Object} options - Append options
+	 * @param {Array<Array<any>>} values - 2D array of values
+	 * @param {{valueInputOption?: string}} options - Append options
 	 * @returns {Promise<Object>} Append result
 	 */
 	async appendValues(spreadsheetId, range, values, options = {}) {
 		return appendValuesModule(
-			this.bearerToken,
-			spreadsheetId,
-			range,
-			values,
-			options.valueInputOption || 'USER_ENTERED'
+			{ spreadsheetId, range, values, valueInputOption: options.valueInputOption || 'USER_ENTERED' },
+			this.bearerToken
 		);
 	}
 
@@ -106,7 +99,7 @@ export class SheetsApi {
 	 * @returns {Promise<Object>} Clear result
 	 */
 	async clearRange(spreadsheetId, range) {
-		return clearCells(this.bearerToken, spreadsheetId, range);
+		return clearCells({ spreadsheetId, range }, this.bearerToken);
 	}
 
 	/**
@@ -116,17 +109,17 @@ export class SheetsApi {
 	 * @returns {Promise<Object>} Batch update result
 	 */
 	async batchUpdate(spreadsheetId, requests) {
-		return batchUpdateModule(this.bearerToken, spreadsheetId, requests);
+		return batchUpdateModule({ spreadsheetId, requests }, this.bearerToken);
 	}
 
 	/**
 	 * Add a new sheet to the spreadsheet
 	 * @param {string} spreadsheetId - Spreadsheet ID
 	 * @param {string} sheetName - Name for the new sheet
-	 * @param {number} [index] - Position to insert the sheet
+	 * @param {number} [_index] - Position to insert the sheet (unused)
 	 * @returns {Promise<Object>} Add sheet result
 	 */
-	async addSheet(spreadsheetId, sheetName, index) {
-		return addWorksheet(this.bearerToken, spreadsheetId, sheetName, index);
+	async addSheet(spreadsheetId, sheetName, _index) {
+		return addWorksheet({ spreadsheetId, title: sheetName, rows: 1000, cols: 26 }, this.bearerToken);
 	}
 }

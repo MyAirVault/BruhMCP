@@ -63,7 +63,7 @@ export async function handleRefreshFailure(instanceId, refreshError) {
   // Create a wrapper function to convert OAuthStatusUpdate to OAuthUpdateData
   /**
    * @param {string} instanceId
-   * @param {import('../utils/oauthErrorHandler.js').OAuthStatusUpdate} oauthStatusUpdate
+   * @param {{status: string, message: string, metadata?: Record<string, unknown>, accessToken?: string, refreshToken?: string, tokenExpiresAt?: number, scope?: string}} oauthStatusUpdate
    * @returns {Promise<void>}
    */
   const updateOAuthStatusWrapper = async (instanceId, oauthStatusUpdate) => {

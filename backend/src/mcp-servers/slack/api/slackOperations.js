@@ -23,14 +23,14 @@ const SLACK_API_BASE = 'https://slack.com/api';
  * @param {string} bearerToken - OAuth Bearer token
  * @param {string} instanceId - Instance ID for logging
  * @param {SlackRequestOptions} options - Request options
- * @returns {Promise<Object>} API response
+ * @returns {Promise<Record<string, any>>} API response
  */
 async function makeSlackRequest(endpoint, bearerToken, instanceId, options = {}) {
 	const url = `${SLACK_API_BASE}${endpoint}`;
 	const timer = createTimer(`Slack API ${options.method || 'GET'} ${endpoint}`, instanceId);
 
 	// Log request
-	logApiRequest(options.method || 'GET', endpoint, instanceId, options.body);
+	logApiRequest(options.method || 'GET', endpoint, instanceId, /** @type {Record<string, unknown>|undefined} */ (options.body));
 
 	const baseHeaders = {
 		Authorization: `Bearer ${bearerToken}`,
@@ -89,6 +89,7 @@ async function makeSlackRequest(endpoint, bearerToken, instanceId, options = {})
 			throw new Error(errorMessage);
 		}
 
+		/** @type {Record<string, any>} */
 		const data = await response.json();
 		
 		// Check for Slack-specific error in response
@@ -153,7 +154,7 @@ export class MessageOperations {
 					method: 'POST',
 					body: message
 				});
-				results.push({ success: true, result: formatMessageResponse(result) });
+				results.push({ success: true, result: formatMessageResponse(/** @type {import('../middleware/types.js').SlackMessage} */ (result)) });
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error);
 				results.push({ success: false, error: errorMessage });
@@ -177,7 +178,7 @@ export class MessageOperations {
 					method: 'POST',
 					body: update
 				});
-				results.push({ success: true, result: formatMessageResponse(result) });
+				results.push({ success: true, result: formatMessageResponse(/** @type {import('../middleware/types.js').SlackMessage} */ (result)) });
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error);
 				results.push({ success: false, error: errorMessage });
@@ -274,7 +275,7 @@ export class ChannelOperations {
 			const messageData = (typeof history === 'object' && history !== null && 'messages' in history && Array.isArray(history.messages)) ? history.messages : [];
 			
 			return {
-				channel: formatChannelResponse(channelData),
+				channel: formatChannelResponse(/** @type {import('../middleware/types.js').SlackChannel|null} */ (channelData)),
 				memberCount: memberData.length,
 				recentActivity: {
 					messageCount: messageData.length,
@@ -378,7 +379,7 @@ export class UserOperations {
 			const lastActivity = (typeof presence === 'object' && presence !== null && 'last_activity' in presence && typeof presence.last_activity === 'number') ? presence.last_activity : null;
 			
 			return {
-				user: formatUserResponse(userData),
+				user: formatUserResponse(/** @type {import('../middleware/types.js').SlackUser|null} */ (userData)),
 				presence: presenceStatus,
 				lastActivity: lastActivity
 			};
@@ -403,7 +404,7 @@ export class UserOperations {
 					body: { user: userId }
 				});
 				const userData = (typeof result === 'object' && result !== null && 'user' in result) ? result.user : null;
-				results.push({ userId, success: true, user: formatUserResponse(userData) });
+				results.push({ userId, success: true, user: formatUserResponse(/** @type {import('../middleware/types.js').SlackUser|null} */ (userData)) });
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error);
 				results.push({ userId, success: false, error: errorMessage });
@@ -472,7 +473,7 @@ export class FileOperations {
 				formData
 			});
 
-			return formatSlackResponse(result);
+			return /** @type {Record<string, any>} */ (result);
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			throw new Error(`Failed to upload file: ${errorMessage}`);
@@ -558,7 +559,8 @@ export class WorkspaceOperations {
 			const channelData = (typeof channels === 'object' && channels !== null && 'channels' in channels && Array.isArray(channels.channels)) ? channels.channels : [];
 			const userData = (typeof users === 'object' && users !== null && 'members' in users && Array.isArray(users.members)) ? users.members : [];
 			
-			return {
+			/** @type {{team: any, stats: {totalChannels: number, totalUsers: number, activeUsers: number}}} */
+			const result = {
 				team: teamData,
 				stats: {
 					totalChannels: channelData.length,
@@ -570,6 +572,7 @@ export class WorkspaceOperations {
 					).length
 				}
 			};
+			return result;
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			throw new Error(`Failed to get workspace stats: ${errorMessage}`);
@@ -583,6 +586,7 @@ export class WorkspaceOperations {
 	 * @returns {Promise<SearchResults>} Search results
 	 */
 	async comprehensiveSearch(query, types = ['messages', 'files']) {
+		/** @type {Record<string, any>} */
 		const results = {};
 		
 		for (const type of types) {
@@ -599,7 +603,7 @@ export class WorkspaceOperations {
 			}
 		}
 		
-		return results;
+		return /** @type {any} */ (results);
 	}
 }
 

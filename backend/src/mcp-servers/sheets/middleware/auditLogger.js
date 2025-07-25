@@ -32,7 +32,7 @@ export function logFailedTokenRefresh(instanceId, method, error, duration) {
 		method,
 		duration,
 		error: error.message,
-		errorType: error.errorType || 'UNKNOWN_ERROR'
+		errorType: (error instanceof Error && 'errorType' in error) ? error.errorType : 'UNKNOWN_ERROR'
 	});
 }
 

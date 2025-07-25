@@ -9,7 +9,7 @@ import { pool } from '../../../db/config.js';
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
  * @param {string} serviceName - Name of the MCP service (reddit)
- * @returns {Object|null} Instance credentials or null if not found
+ * @returns {Promise<Object|null>} Instance credentials or null if not found
  */
 export async function lookupInstanceCredentials(instanceId, serviceName) {
   try {
@@ -58,14 +58,14 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
     
   } catch (error) {
     console.error('Database lookup error:', error);
-    throw new Error(`Failed to lookup instance credentials: ${error.message}`);
+    throw new Error(`Failed to lookup instance credentials: ${/** @type {Error} */ (error).message}`);
   }
 }
 
 /**
  * Update instance usage tracking
  * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
 export async function updateInstanceUsage(instanceId) {
   try {
@@ -102,7 +102,7 @@ export async function updateInstanceUsage(instanceId) {
 /**
  * Get instance statistics
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Instance statistics or null if not found
+ * @returns {Promise<Object|null>} Instance statistics or null if not found
  */
 export async function getInstanceStatistics(instanceId) {
   try {
@@ -134,7 +134,7 @@ export async function getInstanceStatistics(instanceId) {
     
   } catch (error) {
     console.error('Database statistics query error:', error);
-    throw new Error(`Failed to get instance statistics: ${error.message}`);
+    throw new Error(`Failed to get instance statistics: ${/** @type {Error} */ (error).message}`);
   }
 }
 
@@ -142,7 +142,7 @@ export async function getInstanceStatistics(instanceId) {
  * Update instance status
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newStatus - New status (active, inactive, expired)
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
 export async function updateInstanceStatus(instanceId, newStatus) {
   try {
@@ -168,13 +168,13 @@ export async function updateInstanceStatus(instanceId, newStatus) {
     
   } catch (error) {
     console.error('Database status update error:', error);
-    throw new Error(`Failed to update instance status: ${error.message}`);
+    throw new Error(`Failed to update instance status: ${/** @type {Error} */ (error).message}`);
   }
 }
 
 /**
  * Get all active instances for Reddit service
- * @returns {Array} Array of active instance records
+ * @returns {Promise<Array<Object>>} Array of active instance records
  */
 export async function getActiveRedditInstances() {
   try {
@@ -204,7 +204,7 @@ export async function getActiveRedditInstances() {
     
   } catch (error) {
     console.error('Database active instances query error:', error);
-    throw new Error(`Failed to get active Reddit instances: ${error.message}`);
+    throw new Error(`Failed to get active Reddit instances: ${/** @type {Error} */ (error).message}`);
   }
 }
 
@@ -212,7 +212,7 @@ export async function getActiveRedditInstances() {
  * Validate instance exists and is accessible
  * @param {string} instanceId - UUID of the service instance
  * @param {string} userId - UUID of the user (for additional security)
- * @returns {boolean} True if instance is valid and accessible
+ * @returns {Promise<boolean>} True if instance is valid and accessible
  */
 export async function validateInstanceAccess(instanceId, userId) {
   try {
@@ -245,7 +245,7 @@ export async function validateInstanceAccess(instanceId, userId) {
 
 /**
  * Clean up expired instances
- * @returns {number} Number of instances marked as expired
+ * @returns {Promise<number>} Number of instances marked as expired
  */
 export async function cleanupExpiredInstances() {
   try {
@@ -275,6 +275,6 @@ export async function cleanupExpiredInstances() {
     
   } catch (error) {
     console.error('Database cleanup error:', error);
-    throw new Error(`Failed to cleanup expired instances: ${error.message}`);
+    throw new Error(`Failed to cleanup expired instances: ${/** @type {Error} */ (error).message}`);
   }
 }

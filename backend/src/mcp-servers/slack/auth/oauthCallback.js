@@ -7,7 +7,15 @@ import SlackOAuthHandler from '../oauth/oauthHandler.js';
 import { updateOAuthStatus } from '../../../db/queries/mcpInstances/index.js';
 
 /**
- * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').CallbackResult} CallbackResult
+ * @typedef {Object} CallbackResult
+ * @property {boolean} success - Whether callback processing succeeded
+ * @property {string} message - Human readable message
+ * @property {Object} [tokens] - OAuth tokens if successful
+ * @property {string} [tokens.access_token] - Access token
+ * @property {string} [tokens.refresh_token] - Refresh token
+ * @property {number} [tokens.expires_in] - Token expiration in seconds
+ * @property {string} [tokens.scope] - Token scope
+ * @property {string} [tokens.team_id] - Slack team ID
  */
 
 /**
@@ -54,15 +62,14 @@ async function oauthCallback(code, state) {
 		const { instanceId } = stateData;
 
 		// Update instance with new tokens
-		const tokenExpiresAt = new Date(Date.now() + (callbackResult.tokens.expires_in * 1000));
+		const tokenExpiresAt = new Date(Date.now() + ((callbackResult.tokens?.expires_in || 3600) * 1000));
 
 		await updateOAuthStatus(instanceId, {
 			status: 'completed',
-			accessToken: callbackResult.tokens.access_token,
-			refreshToken: callbackResult.tokens.refresh_token,
+			accessToken: callbackResult.tokens?.access_token || '',
+			refreshToken: callbackResult.tokens?.refresh_token || '',
 			tokenExpiresAt: tokenExpiresAt,
-			scope: callbackResult.tokens.scope,
-			teamId: callbackResult.tokens.team_id
+			scope: callbackResult.tokens?.scope
 		});
 
 		console.log(`✅ Slack OAuth callback completed for instance: ${instanceId}`);

@@ -1,6 +1,17 @@
-export type RevocationResult = import("../../../services/mcp-auth-registry/types/serviceTypes.js").RevocationResult;
+export type RevocationResult = {
+    /**
+     * - Whether revocation succeeded
+     */
+    success: boolean;
+    /**
+     * - Human readable message
+     */
+    message: string;
+};
 /**
- * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevocationResult} RevocationResult
+ * @typedef {Object} RevocationResult
+ * @property {boolean} success - Whether revocation succeeded
+ * @property {string} message - Human readable message
  */
 /**
  * Revokes Slack OAuth tokens and cleans up instance

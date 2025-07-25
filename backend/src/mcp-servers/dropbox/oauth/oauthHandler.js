@@ -122,6 +122,7 @@ class DropboxOAuthHandler {
 				throw new Error(`Token exchange failed: ${errorData}`);
 			}
 
+			/** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */
 			const tokens = await tokenResponse.json();
 
 			if (!tokens.access_token) {
@@ -176,6 +177,7 @@ class DropboxOAuthHandler {
 				throw new Error(`Token refresh failed: ${errorData}`);
 			}
 
+			/** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */
 			const tokens = await tokenResponse.json();
 
 			return {

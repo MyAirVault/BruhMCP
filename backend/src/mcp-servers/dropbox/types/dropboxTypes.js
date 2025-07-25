@@ -5,7 +5,7 @@
 
 /**
  * @typedef {Object} DropboxFile
- * @property {string} '.tag' - File type tag
+ * @property {string} tag - File type tag
  * @property {string} name - File name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path
@@ -20,7 +20,7 @@
 
 /**
  * @typedef {Object} DropboxFolder
- * @property {string} '.tag' - Folder type tag
+ * @property {string} tag - Folder type tag
  * @property {string} name - Folder name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path
@@ -40,7 +40,7 @@
 
 /**
  * @typedef {Object} DropboxMetadata
- * @property {string} '.tag' - Entry type tag
+ * @property {string} tag - Entry type tag
  * @property {string} name - Entry name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path
@@ -70,7 +70,7 @@
 
 /**
  * @typedef {Object} DropboxSharedLink
- * @property {string} '.tag' - Link type tag
+ * @property {string} tag - Link type tag
  * @property {string} url - Shared link URL
  * @property {string} id - Link ID
  * @property {string} name - Link name
@@ -85,13 +85,13 @@
  * @typedef {Object} DropboxSpaceUsage
  * @property {number} used - Used space in bytes
  * @property {Object} allocation - Space allocation details
- * @property {string} allocation['.tag'] - Allocation type
+ * @property {string} allocation.tag - Allocation type
  * @property {number} allocation.allocated - Allocated space in bytes
  */
 
 /**
  * @typedef {Object} DropboxUploadResult
- * @property {string} '.tag' - Result type tag
+ * @property {string} tag - Result type tag
  * @property {string} name - File name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path
@@ -106,7 +106,7 @@
 
 /**
  * @typedef {Object} DropboxDeleteResult
- * @property {string} '.tag' - Result type tag
+ * @property {string} tag - Result type tag
  * @property {string} name - Entry name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path
@@ -115,7 +115,7 @@
 
 /**
  * @typedef {Object} DropboxMoveResult
- * @property {string} '.tag' - Result type tag
+ * @property {string} tag - Result type tag
  * @property {string} name - Entry name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path
@@ -124,7 +124,7 @@
 
 /**
  * @typedef {Object} DropboxCopyResult
- * @property {string} '.tag' - Result type tag
+ * @property {string} tag - Result type tag
  * @property {string} name - Entry name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path
@@ -133,7 +133,7 @@
 
 /**
  * @typedef {Object} DropboxCreateFolderResult
- * @property {string} '.tag' - Result type tag
+ * @property {string} tag - Result type tag
  * @property {string} name - Folder name
  * @property {string} path_lower - Lowercase path
  * @property {string} path_display - Display path

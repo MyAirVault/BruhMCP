@@ -44,26 +44,26 @@ export class RedditMCPHandler {
 	 * Setup MCP tools using Zod schemas
 	 */
 	setupTools() {
-		const toolsData = getTools();
+		const toolsData = /** @type {{tools: Array<{name: string, description: string, inputSchema: Object}>}} */ (getTools());
 		
 		// Convert JSON schemas to Zod schemas and register tools
-		toolsData.tools.forEach(tool => {
+		toolsData.tools.forEach(/** @param {{name: string, description: string, inputSchema: Object}} tool */ tool => {
 			const zodSchema = this.convertJsonSchemaToZod(tool.inputSchema);
 			
 			this.server.tool(
 				tool.name,
 				tool.description,
-				zodSchema,
-				async (args) => {
+				zodSchema.shape,
+				async (args, _extra) => {
 					console.log(`🔧 Tool call: ${tool.name} for ${this.serviceConfig.name}`);
 					try {
 						const result = await executeToolCall(tool.name, args, this.bearerToken);
-						return result;
+						return /** @type {{content: Array<{type: 'text', text: string}>, isError?: boolean}} */ (result);
 					} catch (error) {
 						console.error(`❌ Error executing ${tool.name}:`, error);
 						return {
 							isError: true,
-							content: [{ type: 'text', text: `Error executing ${tool.name}: ${error.message}` }]
+							content: [{ type: 'text', text: `Error executing ${tool.name}: ${/** @type {Error} */ (error).message}` }]
 						};
 					}
 				}
@@ -74,29 +74,30 @@ export class RedditMCPHandler {
 	/**
 	 * Convert JSON schema to Zod schema
 	 * @param {Object} jsonSchema - JSON schema object
-	 * @returns {Object} Zod schema
+	 * @returns {import('zod').ZodObject<Record<string, import('zod').ZodType>>} Zod schema
 	 */
 	convertJsonSchemaToZod(jsonSchema) {
+		/** @type {Record<string, import('zod').ZodType>} */
 		const zodSchema = {};
 		
-		if (jsonSchema.properties) {
-			Object.entries(jsonSchema.properties).forEach(([key, prop]) => {
+		if (/** @type {{properties?: Record<string, Object>}} */ (jsonSchema).properties) {
+			Object.entries(/** @type {{properties: Record<string, Object>}} */ (jsonSchema).properties).forEach(([key, prop]) => {
 				let zodType;
 				
-				switch (prop.type) {
+				switch (/** @type {{type: string, enum?: string[], minimum?: number, maximum?: number, description?: string, default?: any, items?: {type: string}}} */ (prop).type) {
 					case 'string':
 						zodType = z.string();
-						if (prop.enum) {
-							zodType = z.enum(prop.enum);
+						if (/** @type {{enum?: string[]}} */ (prop).enum) {
+							zodType = z.enum(/** @type {[string, ...string[]]} */ (/** @type {{enum: string[]}} */ (prop).enum));
 						}
 						break;
 					case 'number':
 						zodType = z.number();
-						if (prop.minimum !== undefined) {
-							zodType = zodType.min(prop.minimum);
+						if (/** @type {{minimum?: number}} */ (prop).minimum !== undefined) {
+							zodType = zodType.min(/** @type {{minimum: number}} */ (prop).minimum);
 						}
-						if (prop.maximum !== undefined) {
-							zodType = zodType.max(prop.maximum);
+						if (/** @type {{maximum?: number}} */ (prop).maximum !== undefined) {
+							zodType = zodType.max(/** @type {{maximum: number}} */ (prop).maximum);
 						}
 						break;
 					case 'boolean':
@@ -104,23 +105,32 @@ export class RedditMCPHandler {
 						break;
 					case 'array':
 						zodType = z.array(z.string()); // Default to string array
-						if (prop.items && prop.items.type === 'string') {
+						if (/** @type {{items?: {type: string}}} */ (prop).items && /** @type {{items: {type: string}}} */ (prop).items.type === 'string') {
 							zodType = z.array(z.string());
 						}
 						break;
 					default:
-						zodType = z.any();
+						zodType = z.string(); // Default to string for unknown types
 				}
 				
 				// Add description if available
-				if (prop.description) {
-					zodType = zodType.describe(prop.description);
+				if (/** @type {{description?: string}} */ (prop).description) {
+					zodType = zodType.describe(/** @type {{description: string}} */ (prop).description);
 				}
 				
 				// Add default value if available
-				if (prop.default !== undefined) {
-					zodType = zodType.optional().default(prop.default);
-				} else if (!jsonSchema.required || !jsonSchema.required.includes(key)) {
+				const propDefault = /** @type {{default?: string | number | boolean}} */ (prop).default;
+				if (propDefault !== undefined) {
+					if (typeof propDefault === 'string') {
+						zodType = /** @type {import('zod').ZodString} */ (zodType).optional().default(propDefault);
+					} else if (typeof propDefault === 'number') {
+						zodType = /** @type {import('zod').ZodNumber} */ (zodType).optional().default(propDefault);
+					} else if (typeof propDefault === 'boolean') {
+						zodType = /** @type {import('zod').ZodBoolean} */ (zodType).optional().default(propDefault);
+					} else {
+						zodType = zodType.optional();
+					}
+				} else if (!/** @type {{required?: string[]}} */ (jsonSchema).required || !/** @type {{required: string[]}} */ (jsonSchema).required.includes(key)) {
 					zodType = zodType.optional();
 				}
 				
@@ -128,7 +138,7 @@ export class RedditMCPHandler {
 			});
 		}
 		
-		return zodSchema;
+		return z.object(zodSchema);
 	}
 
 	/**
@@ -220,7 +230,7 @@ export class RedditMCPHandler {
 
 	/**
 	 * Get handler statistics
-	 * @returns {Object} Handler statistics
+	 * @returns {{serviceName: string, displayName: string, version: string, activeSessions: number, initialized: boolean, availableTools: number, bearerTokenPresent: boolean}} Handler statistics
 	 */
 	getStatistics() {
 		return {
@@ -229,7 +239,7 @@ export class RedditMCPHandler {
 			version: this.serviceConfig.version,
 			activeSessions: Object.keys(this.transports).length,
 			initialized: this.initialized,
-			availableTools: getTools().tools.length,
+			availableTools: /** @type {{tools: Array<Object>}} */ (getTools()).tools.length,
 			bearerTokenPresent: !!this.bearerToken
 		};
 	}
@@ -242,10 +252,10 @@ export class RedditMCPHandler {
 		
 		// Close all active transports
 		const cleanupPromises = Object.values(this.transports).map(transport => {
-			return new Promise((resolve) => {
+			return /** @type {Promise<void>} */ (new Promise((resolve) => {
 				transport.close();
-				resolve();
-			});
+				resolve(undefined);
+			}));
 		});
 		
 		await Promise.all(cleanupPromises);

@@ -9,12 +9,17 @@
  */
 export function formatSlackTimestamp(ts: string): string | null;
 /**
+ * @typedef {Object} SlackUser
+ * @property {string} id - User ID
+ * @property {string} name - User name
+ */
+/**
  * Format Slack message text with user mentions
  * @param {string} text - Raw message text
- * @param {Object[]} users - Array of user objects for mention resolution
+ * @param {SlackUser[]} users - Array of user objects for mention resolution
  * @returns {string} Formatted text with resolved mentions
  */
-export function formatSlackText(text: string, users?: Object[]): string;
+export function formatSlackText(text: string, users?: SlackUser[]): string;
 /**
  * Sanitize content for safe display
  * @param {string} content - Content to sanitize
@@ -28,4 +33,14 @@ export function sanitizeContent(content: string): string;
  * @returns {string} Truncated text
  */
 export function truncateText(text: string, maxLength?: number): string;
+export type SlackUser = {
+    /**
+     * - User ID
+     */
+    id: string;
+    /**
+     * - User name
+     */
+    name: string;
+};
 //# sourceMappingURL=textFormatting.d.ts.map

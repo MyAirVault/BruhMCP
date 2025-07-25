@@ -208,8 +208,12 @@ export interface CachedCredentials {
   bearerToken: string;
   refreshToken: string;
   expiresAt: number;
-  userId: string;
-  lastUsed?: Date;
+  user_id: string;
+  last_used?: string;
+  refresh_attempts?: number;
+  cached_at?: string;
+  last_modified?: number;
+  status?: string;
 }
 
 export interface ServiceConfig {

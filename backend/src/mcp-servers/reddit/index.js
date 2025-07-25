@@ -19,7 +19,7 @@ import express from 'express';
 import cors from 'cors';
 import { healthCheck } from './endpoints/health.js';
 import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
-import { createRedditApiRateLimitMiddleware, createStrictRateLimitMiddleware, getRateLimitStatistics } from './middleware/rateLimit.js';
+import { createRedditApiRateLimitMiddleware, getRateLimitStatistics } from './middleware/rateLimit.js';
 import { createResponseCacheMiddleware, createCacheInvalidationMiddleware } from './middleware/responseCache.js';
 import { createResponseSizeLimitMiddleware, getSizeLimits } from './middleware/responseSizeLimit.js';
 import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
@@ -65,16 +65,16 @@ app.use('/:instanceId/*', createMCPLoggingMiddleware(SERVICE_CONFIG.name));
 app.use('/:instanceId/*', createMCPOperationMiddleware(SERVICE_CONFIG.name));
 
 // Add rate limiting middleware
-app.use('/:instanceId/*', createRedditApiRateLimitMiddleware());
+app.use('/:instanceId/*', /** @type {import('express').RequestHandler} */ (createRedditApiRateLimitMiddleware()));
 
 // Add response caching middleware (before authentication for better performance)
-app.use('/:instanceId', createResponseCacheMiddleware({ enabled: true }));
+app.use('/:instanceId', /** @type {import('express').RequestHandler} */ (createResponseCacheMiddleware({ enabled: true })));
 
 // Add cache invalidation middleware
-app.use('/:instanceId', createCacheInvalidationMiddleware());
+app.use('/:instanceId', /** @type {import('express').RequestHandler} */ (createCacheInvalidationMiddleware()));
 
 // Add response size limiting middleware
-app.use('/:instanceId', createResponseSizeLimitMiddleware());
+app.use('/:instanceId', /** @type {import('express').RequestHandler} */ (createResponseSizeLimitMiddleware()));
 
 // Add cache performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
@@ -90,7 +90,7 @@ app.post('/cache-tokens', async (req, res) => {
       res.status(400).json({
         error: 'Instance ID and tokens are required'
       });
-      return 
+      return; 
     }
 
     // Cache tokens using existing credential cache
@@ -115,7 +115,7 @@ app.post('/cache-tokens', async (req, res) => {
     console.error('Token caching error:', error);
     res.status(500).json({
       error: 'Failed to cache tokens',
-      details: error.message
+      details: /** @type {Error} */ (error).message
     });
   }
 });
@@ -140,7 +140,7 @@ app.get('/health', (_, res) => {
 // Instance-based endpoints with multi-tenant routing
 
 // OAuth well-known endpoint for OAuth 2.0 discovery
-app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
+app.get('/.well-known/oauth-authorization-server/:instanceId', (_req, res) => {
   res.json({
     issuer: `https://oauth.reddit.com`,
     authorization_endpoint: 'https://oauth.reddit.com/authorize',
@@ -237,9 +237,9 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
-      req.instanceId,
+      /** @type {string} */ (/** @type {import('express').Request & {instanceId: string}} */ (req).instanceId),
       SERVICE_CONFIG,
-      req.bearerToken || ''
+      /** @type {string} */ (/** @type {import('express').Request & {bearerToken: string}} */ (req).bearerToken) || ''
     );
     
     // Process the MCP message with persistent handler (using new SDK signature)
@@ -267,9 +267,9 @@ app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
   try {
     // Get or create persistent handler for this instance
     const mcpHandler = getOrCreateHandler(
-      req.instanceId,
+      /** @type {string} */ (/** @type {import('express').Request & {instanceId: string}} */ (req).instanceId),
       SERVICE_CONFIG,
-      req.bearerToken || ''
+      /** @type {string} */ (/** @type {import('express').Request & {bearerToken: string}} */ (req).bearerToken) || ''
     );
     
     // Process the MCP message with persistent handler (using new SDK signature)
@@ -321,7 +321,7 @@ if (process.env.NODE_ENV === 'development') {
 // Error handling middleware with logging
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
-app.use((err, req, res, next) => {
+app.use(/** @param {Error} err @param {import('express').Request} _req @param {import('express').Response} res @param {import('express').NextFunction} _next */ (err, _req, res, _next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);
   ErrorResponses.internal(res, 'Internal server error', {

@@ -22,6 +22,29 @@
  */
 
 /**
+ * Dropbox account info response from API
+ * @typedef {Object} DropboxAccountInfo
+ * @property {string} account_id - Dropbox account ID
+ * @property {string} email - User email address
+ * @property {boolean} email_verified - Email verification status
+ * @property {Object} name - User name object
+ * @property {string} name.display_name - Display name
+ * @property {string} name.given_name - Given name
+ * @property {string} name.surname - Surname
+ * @property {string} locale - User locale
+ */
+
+/**
+ * Dropbox OAuth token response from API
+ * @typedef {Object} DropboxTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token (optional)
+ * @property {number} [expires_in] - Token expiration in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Granted scopes
+ */
+
+/**
  * Exchange OAuth credentials for Bearer token via OAuth service
  * @param {OAuthCredentials} credentials - OAuth credentials
  * @returns {Promise<TokenResponse>} Token response with access_token and refresh_token
@@ -106,7 +129,7 @@ export async function validateBearerToken(bearerToken) {
             throw new Error(`Token validation failed: ${response.status} ${response.statusText}`);
         }
         
-        const accountInfo = await response.json();
+        const accountInfo = /** @type {DropboxAccountInfo} */ (await response.json());
         
         console.log(`✅ Bearer token validated successfully`);
         return {
@@ -185,7 +208,7 @@ export async function getUserInfoFromToken(bearerToken) {
             throw new Error(`Failed to get user info: ${response.status} ${response.statusText}`);
         }
         
-        const userInfo = await response.json();
+        const userInfo = /** @type {DropboxAccountInfo} */ (await response.json());
         console.log(`✅ Retrieved user info for: ${userInfo.email}`);
         return {
             accountId: userInfo.account_id,
@@ -239,7 +262,7 @@ export async function refreshBearerTokenDirect(refreshData) {
             throw new Error(`Dropbox OAuth refresh failed: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
-        const tokens = await response.json();
+        const tokens = /** @type {DropboxTokenResponse} */ (await response.json());
         
         if (!tokens.access_token) {
             throw new Error('No access token received from Dropbox OAuth refresh');

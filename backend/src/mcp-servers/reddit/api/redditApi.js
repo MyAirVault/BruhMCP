@@ -221,6 +221,18 @@ import { formatRedditResponse, formatRedditErrorMessage } from '../utils/redditF
  */
 
 /**
+ * @typedef {Object} RedditMessage
+ * @property {string} id - Message ID
+ * @property {string} author - Author username
+ * @property {string} subject - Message subject
+ * @property {string} body - Message body
+ * @property {number} created_utc - Creation timestamp
+ * @property {boolean} new - New message flag
+ * @property {string} [parent_id] - Parent message ID
+ */
+
+
+/**
  * Base configuration for Reddit API
  */
 const REDDIT_API_BASE_URL = 'https://oauth.reddit.com';
@@ -231,7 +243,7 @@ const USER_AGENT = 'MCP-Reddit-Service/1.0';
  * @param {string} endpoint - API endpoint path
  * @param {string} bearerToken - OAuth bearer token
  * @param {RequestOptions} [options] - Request options
- * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse>} API response
+ * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse|[RedditListingResponse, RedditListingResponse]>} API response
  */
 export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
   const url = `${REDDIT_API_BASE_URL}${endpoint}`;
@@ -260,7 +272,7 @@ export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
       throw new Error(`Reddit API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
-    return /** @type {unknown} */ (await response.json());
+    return /** @type {RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse|[RedditListingResponse, RedditListingResponse]} */ (await response.json());
   } catch (error) {
     console.error(`Reddit API request failed: ${endpoint}`, error);
     throw error;
@@ -273,7 +285,8 @@ export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
  * @returns {Promise<RedditUser>} User information
  */
 export async function getCurrentUser(bearerToken) {
-  return await makeRedditRequest('/api/v1/me', bearerToken);
+  const response = await makeRedditRequest('/api/v1/me', bearerToken);
+  return /** @type {RedditUser} */ (/** @type {RedditApiResponse} */ (response).data);
 }
 
 /**
@@ -316,7 +329,7 @@ export async function getSubredditPosts(args, bearerToken) {
     const endpoint = `/r/${subreddit}/${sort}?${params.toString()}`;
     const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
     
-    const posts = response.data.children.map(/** @param {any} child */ child => child.data);
+    const posts = /** @type {Array<{data: import('../utils/redditFormatting.js').RedditPost}>} */ (response.data.children).map(child => /** @type {import('../utils/redditFormatting.js').RedditPost} */ (child.data));
     
     return formatRedditResponse({
       action: 'get_subreddit_posts',
@@ -344,7 +357,7 @@ export async function getPostById(args, bearerToken) {
       throw new Error('Post not found');
     }
     
-    const post = response.data.children[0].data;
+    const post = /** @type {import('../utils/redditFormatting.js').RedditPost} */ (/** @type {Array<{data: import('../utils/redditFormatting.js').RedditPost}>} */ (response.data.children)[0].data);
     
     return formatRedditResponse({
       action: 'get_post_by_id',
@@ -369,10 +382,11 @@ export async function getPostComments(args, bearerToken) {
     params.append('limit', limit.toString());
     
     const endpoint = `/comments/${postId}?${params.toString()}`;
-    const response = /** @type {RedditListingResponse[]} */ (await makeRedditRequest(endpoint, bearerToken));
+    const response = /** @type {[RedditListingResponse, RedditListingResponse]} */ (await makeRedditRequest(endpoint, bearerToken));
     
     // Reddit returns an array with post data and comments
-    const comments = response[1].data.children.map(/** @param {any} child */ child => child.data);
+    const commentsResponse = response[1];
+    const comments = /** @type {Array<{data: import('../utils/redditFormatting.js').RedditComment}>} */ (commentsResponse.data.children).map(child => /** @type {import('../utils/redditFormatting.js').RedditComment} */ (child.data));
     
     return formatRedditResponse({
       action: 'get_post_comments',
@@ -466,7 +480,7 @@ export async function submitComment(args, bearerToken) {
       throw new Error(errorMessage);
     }
     
-    const commentId = response.json.data.things[0].data.id;
+    const commentId = /** @type {{data: {id: string}}} */ (response.json.data.things[0]).data.id;
     
     return formatRedditResponse({
       action: 'submit_comment',
@@ -549,7 +563,7 @@ export async function getUserInfo(args, bearerToken) {
   try {
     const { username } = args;
     const response = /** @type {RedditApiResponse} */ (await makeRedditRequest(`/user/${username}/about`, bearerToken));
-    const user = response.data;
+    const user = /** @type {import('../utils/redditFormatting.js').RedditUser} */ (response.data);
     
     return formatRedditResponse({
       action: 'get_user_info',
@@ -578,9 +592,9 @@ export async function getUserPosts(args, bearerToken) {
     
     const endpoint = `/user/${username}/submitted/${sort}?${params.toString()}`;
     const response = await makeRedditRequest(endpoint, bearerToken);
-    const responseData = /** @type {Record<string, unknown>} */ (response);
+    const responseData = /** @type {{data?: {children?: Record<string, unknown>[]}} & Record<string, unknown>} */ (response);
     const children = /** @type {Record<string, unknown>[]} */ (responseData.data?.children || []);
-    const posts = children.map(/** @param {Record<string, unknown>} child */ child => child.data);
+    const posts = /** @type {import('../utils/redditFormatting.js').RedditPost[]} */ (children.map(/** @param {Record<string, unknown>} child */ child => child.data));
     
     return formatRedditResponse({
       action: 'get_user_posts',
@@ -610,9 +624,9 @@ export async function getUserComments(args, bearerToken) {
     
     const endpoint = `/user/${username}/comments/${sort}?${params.toString()}`;
     const response = await makeRedditRequest(endpoint, bearerToken);
-    const responseData = /** @type {Record<string, unknown>} */ (response);
+    const responseData = /** @type {{data?: {children?: Record<string, unknown>[]}} & Record<string, unknown>} */ (response);
     const children = /** @type {Record<string, unknown>[]} */ (responseData.data?.children || []);
-    const comments = children.map(/** @param {Record<string, unknown>} child */ child => child.data);
+    const comments = /** @type {import('../utils/redditFormatting.js').RedditComment[]} */ (children.map(/** @param {Record<string, unknown>} child */ child => child.data));
     
     return formatRedditResponse({
       action: 'get_user_comments',
@@ -649,7 +663,7 @@ export async function searchPosts(args, bearerToken) {
       `/search?${params.toString()}`;
     
     const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
-    const posts = response.data.children.map(/** @param {{data: RedditPost}} child */ child => child.data);
+    const posts = /** @type {Array<{data: import('../utils/redditFormatting.js').RedditPost}>} */ (response.data.children).map(child => /** @type {import('../utils/redditFormatting.js').RedditPost} */ (child.data));
     
     return formatRedditResponse({
       action: 'search_posts',
@@ -676,7 +690,7 @@ export async function searchSubreddits(args, bearerToken) {
     params.append('type', 'sr');
     
     const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(`/search?${params.toString()}`, bearerToken));
-    const subreddits = response.data.children.map(/** @param {{data: RedditSubreddit}} child */ child => child.data);
+    const subreddits = /** @type {Array<{data: import('../utils/redditFormatting.js').RedditSubreddit}>} */ (response.data.children).map(child => /** @type {import('../utils/redditFormatting.js').RedditSubreddit} */ (child.data));
     
     return formatRedditResponse({
       action: 'search_subreddits',
@@ -697,14 +711,14 @@ export async function searchSubreddits(args, bearerToken) {
  */
 export async function getInboxMessages(args, bearerToken) {
   try {
-    const { filter = 'all', limit = 25 } = args;
+    const { limit = 25 } = args;
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
     
     const endpoint = `/message/inbox?${params.toString()}`;
     const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
     
-    const messages = response.data.children.map(/** @param {{data: Record<string, string|number|boolean>}} child */ child => child.data);
+    const messages = /** @type {Array<{data: RedditMessage}>} */ (response.data.children).map(child => /** @type {RedditMessage} */ (child.data));
     
     return formatRedditResponse({
       action: 'get_inbox_messages',
@@ -804,7 +818,7 @@ export async function getSubscriptions(args, bearerToken) {
     const endpoint = `/subreddits/mine/subscriber?${params.toString()}`;
     const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(endpoint, bearerToken));
     
-    const subscriptions = response.data.children.map(/** @param {{data: RedditSubreddit}} child */ child => child.data);
+    const subscriptions = /** @type {Array<{data: import('../utils/redditFormatting.js').RedditSubreddit}>} */ (response.data.children).map(child => /** @type {import('../utils/redditFormatting.js').RedditSubreddit} */ (child.data));
     
     return formatRedditResponse({
       action: 'get_subscriptions',

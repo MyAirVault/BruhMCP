@@ -22,6 +22,7 @@ export async function createSpreadsheet(params, bearerToken) {
 		throw new Error(validation.error);
 	}
 
+	/** @type {{properties: {title: string}, sheets?: Array<any>}} */
 	const requestBody = {
 		properties: {
 			title: params.title
@@ -46,7 +47,12 @@ export async function createSpreadsheet(params, bearerToken) {
 		body: requestBody
 	});
 
-	return formatSheetsResponse.spreadsheet(response);
+	/** @type {import('../../types/index.js').CreateSpreadsheetResponse} */
+	const result = {
+		...formatSheetsResponse.spreadsheet(response),
+		properties: response.properties || { title: params.title, spreadsheetId: response.spreadsheetId }
+	};
+	return result;
 }
 
 /**
@@ -92,11 +98,10 @@ export async function listSpreadsheets(params, bearerToken) {
 		"trashed=false"
 	].join(' and ');
 
-	const queryParams = new URLSearchParams({
-		q: query,
-		pageSize: params.pageSize || 100,
-		fields: 'nextPageToken,files(id,name,createdTime,modifiedTime,webViewLink)'
-	});
+	const queryParams = new URLSearchParams();
+	queryParams.set('q', query);
+	queryParams.set('pageSize', String(params.pageSize || 100));
+	queryParams.set('fields', 'nextPageToken,files(id,name,createdTime,modifiedTime,webViewLink)');
 
 	if (params.pageToken) {
 		queryParams.set('pageToken', params.pageToken);

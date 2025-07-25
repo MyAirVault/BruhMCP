@@ -19,6 +19,27 @@
  * @property {string} scope - Granted scopes
  */
 /**
+ * Dropbox account info response from API
+ * @typedef {Object} DropboxAccountInfo
+ * @property {string} account_id - Dropbox account ID
+ * @property {string} email - User email address
+ * @property {boolean} email_verified - Email verification status
+ * @property {Object} name - User name object
+ * @property {string} name.display_name - Display name
+ * @property {string} name.given_name - Given name
+ * @property {string} name.surname - Surname
+ * @property {string} locale - User locale
+ */
+/**
+ * Dropbox OAuth token response from API
+ * @typedef {Object} DropboxTokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token (optional)
+ * @property {number} [expires_in] - Token expiration in seconds
+ * @property {string} [token_type] - Token type
+ * @property {string} [scope] - Granted scopes
+ */
+/**
  * Exchange OAuth credentials for Bearer token via OAuth service
  * @param {OAuthCredentials} credentials - OAuth credentials
  * @returns {Promise<TokenResponse>} Token response with access_token and refresh_token
@@ -129,6 +150,60 @@ export type TokenResponse = {
      * - Granted scopes
      */
     scope: string;
+};
+/**
+ * Dropbox account info response from API
+ */
+export type DropboxAccountInfo = {
+    /**
+     * - Dropbox account ID
+     */
+    account_id: string;
+    /**
+     * - User email address
+     */
+    email: string;
+    /**
+     * - Email verification status
+     */
+    email_verified: boolean;
+    /**
+     * - User name object
+     */
+    name: {
+        display_name: string;
+        given_name: string;
+        surname: string;
+    };
+    /**
+     * - User locale
+     */
+    locale: string;
+};
+/**
+ * Dropbox OAuth token response from API
+ */
+export type DropboxTokenResponse = {
+    /**
+     * - Access token
+     */
+    access_token: string;
+    /**
+     * - Refresh token (optional)
+     */
+    refresh_token?: string | undefined;
+    /**
+     * - Token expiration in seconds
+     */
+    expires_in?: number | undefined;
+    /**
+     * - Token type
+     */
+    token_type?: string | undefined;
+    /**
+     * - Granted scopes
+     */
+    scope?: string | undefined;
 };
 /**
  * Refresh token data

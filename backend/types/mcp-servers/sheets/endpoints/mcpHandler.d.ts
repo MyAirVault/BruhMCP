@@ -24,9 +24,11 @@ export class SheetsMCPHandler {
     /**
      * Get or create transport for a session
      * @param {string} sessionId - Session identifier
+     * @param {import('express').Request} [_req] - Express request object (unused)
+     * @param {import('express').Response} [_res] - Express response object (unused)
      * @returns {StreamableHTTPServerTransport} Transport instance
      */
-    getTransport(sessionId: string): StreamableHTTPServerTransport;
+    getTransport(sessionId: string, _req?: import("express").Request, _res?: import("express").Response): StreamableHTTPServerTransport;
     /**
      * Handle MCP request using new SDK signature
      * @param {import('express').Request} req - Express request object

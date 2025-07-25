@@ -12,8 +12,30 @@ const WATCHER_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const TOKEN_REFRESH_THRESHOLD = 10 * 60 * 1000; // Refresh tokens with less than 10 minutes left
 const MAX_REFRESH_ATTEMPTS = 3;
 
+/**
+ * Watcher statistics tracking
+ * @typedef {Object} WatcherStatistics
+ * @property {string|null} lastRun - ISO timestamp of last run
+ * @property {number} totalRuns - Total number of runs
+ * @property {number} tokensRefreshed - Number of tokens successfully refreshed
+ * @property {number} refreshFailures - Number of refresh failures
+ * @property {number} entriesCleanedUp - Number of cache entries cleaned up
+ * @property {boolean} isRunning - Whether the watcher is currently running
+ */
+
+/**
+ * Cached credential object from cache service
+ * @typedef {Object} CachedCredential
+ * @property {string} bearerToken - OAuth Bearer token
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {number} expiresAt - Token expiration timestamp in milliseconds
+ * @property {number} [refresh_attempts] - Number of refresh attempts made
+ */
+
 // Watcher state
+/** @type {NodeJS.Timeout|null} */
 let watcherInterval = null;
+/** @type {WatcherStatistics} */
 let watcherStats = {
   lastRun: null,
   totalRuns: 0,
@@ -50,8 +72,18 @@ export function stopCredentialWatcher() {
 }
 
 /**
+ * Watcher status information
+ * @typedef {Object} WatcherStatus
+ * @property {boolean} isRunning - Whether the watcher is running
+ * @property {number} intervalMinutes - Watcher interval in minutes
+ * @property {number} refreshThresholdMinutes - Token refresh threshold in minutes
+ * @property {number} maxRefreshAttempts - Maximum refresh attempts
+ * @property {WatcherStatistics & {nextRunIn: string}} statistics - Watcher statistics with next run info
+ */
+
+/**
  * Get watcher status and statistics
- * @returns {Object} Watcher status information
+ * @returns {WatcherStatus} Watcher status information
  */
 export function getWatcherStatus() {
   return {
@@ -104,7 +136,9 @@ async function runCredentialWatcher() {
 
     // Clean up invalid cache entries
     const cleanupCount = cleanupInvalidCacheEntries('watcher_cleanup');
-    watcherStats.entriesCleanedUp += cleanupCount;
+    if (typeof cleanupCount === 'number') {
+      watcherStats.entriesCleanedUp += cleanupCount;
+    }
 
     const duration = Date.now() - startTime;
     console.log(`✅ Google Drive credential watcher cycle completed in ${duration}ms`);
@@ -126,8 +160,18 @@ async function checkAndRefreshToken(instanceId) {
     return;
   }
 
+  // Type assertion for cached credential - check structure is valid
+  if (!(typeof cached === 'object' && 'bearerToken' in cached && 'refreshToken' in cached && 'expiresAt' in cached)) {
+    console.warn(`⚠️  Invalid cached credential structure for ${instanceId}, removing from cache`);
+    cleanupInvalidCacheEntries('invalid_structure');
+    return;
+  }
+
+  /** @type {CachedCredential} */
+  const typedCached = /** @type {CachedCredential} */ (cached);
+
   const now = Date.now();
-  const timeUntilExpiry = cached.expiresAt - now;
+  const timeUntilExpiry = typedCached.expiresAt - now;
 
   // Skip if token doesn't need refresh yet
   if (timeUntilExpiry > TOKEN_REFRESH_THRESHOLD) {
@@ -137,7 +181,7 @@ async function checkAndRefreshToken(instanceId) {
   }
 
   // Check if we've already tried too many times
-  const refreshAttempts = cached.refresh_attempts || 0;
+  const refreshAttempts = typedCached.refresh_attempts || 0;
   if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
     console.log(`⚠️  Max refresh attempts reached for instance ${instanceId}, removing from cache`);
     cleanupInvalidCacheEntries('max_attempts_reached');
@@ -151,7 +195,8 @@ async function checkAndRefreshToken(instanceId) {
     incrementRefreshAttempts(instanceId);
 
     // Get instance credentials from database
-    const instance = await lookupInstanceCredentials(instanceId, 'gmail');
+    /** @type {import('./database.js').GoogleDriveInstanceCredentials|null} */
+    const instance = await lookupInstanceCredentials(instanceId, 'googledrive');
     
     if (!instance || !instance.client_id || !instance.client_secret) {
       console.log(`❌ Invalid instance credentials for ${instanceId}, removing from cache`);
@@ -161,7 +206,7 @@ async function checkAndRefreshToken(instanceId) {
 
     // Refresh the Bearer token
     const newTokens = await refreshBearerToken({
-      refreshToken: cached.refreshToken,
+      refreshToken: typedCached.refreshToken,
       clientId: instance.client_id,
       clientSecret: instance.client_secret
     });
@@ -169,7 +214,7 @@ async function checkAndRefreshToken(instanceId) {
     // Update cache with new tokens
     updateCachedCredentialMetadata(instanceId, {
       bearerToken: newTokens.access_token,
-      refreshToken: newTokens.refresh_token || cached.refreshToken,
+      refreshToken: newTokens.refresh_token || typedCached.refreshToken,
       expiresAt: Date.now() + (newTokens.expires_in * 1000)
     });
 
@@ -181,11 +226,13 @@ async function checkAndRefreshToken(instanceId) {
     console.log(`✅ Successfully refreshed token for instance ${instanceId} (expires in ${newExpiryMinutes} minutes)`);
 
   } catch (error) {
-    console.error(`❌ Failed to refresh token for instance ${instanceId}:`, error);
+    /** @type {Error} */
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`❌ Failed to refresh token for instance ${instanceId}:`, err);
     watcherStats.refreshFailures++;
     
     // If refresh failed due to invalid refresh token, remove from cache
-    if (error.message.includes('invalid_grant') || error.message.includes('invalid_request')) {
+    if (err.message.includes('invalid_grant') || err.message.includes('invalid_request')) {
       console.log(`🗑️  Removing instance ${instanceId} from cache due to invalid refresh token`);
       cleanupInvalidCacheEntries('invalid_refresh_token');
     }
@@ -195,7 +242,7 @@ async function checkAndRefreshToken(instanceId) {
 /**
  * Force refresh a specific instance token
  * @param {string} instanceId - Instance ID to refresh
- * @returns {boolean} True if refresh was successful
+ * @returns {Promise<boolean>} True if refresh was successful
  */
 export async function forceRefreshInstanceToken(instanceId) {
   try {
@@ -203,7 +250,9 @@ export async function forceRefreshInstanceToken(instanceId) {
     await checkAndRefreshToken(instanceId);
     return true;
   } catch (error) {
-    console.error(`❌ Force refresh failed for instance ${instanceId}:`, error);
+    /** @type {Error} */
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`❌ Force refresh failed for instance ${instanceId}:`, err);
     return false;
   }
 }
@@ -214,5 +263,6 @@ export async function forceRefreshInstanceToken(instanceId) {
  */
 export function manualCleanup() {
   console.log('🧹 Running manual cache cleanup...');
-  return cleanupInvalidCacheEntries('manual_cleanup');
+  const result = cleanupInvalidCacheEntries('manual_cleanup');
+  return typeof result === 'number' ? result : 0;
 }

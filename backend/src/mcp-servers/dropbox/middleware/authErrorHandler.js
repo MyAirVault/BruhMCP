@@ -6,7 +6,7 @@
 /// <reference path="./types.js" />
 
 import { ErrorResponses } from '../../../utils/errorResponse.js';
-import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauthErrorHandler.js';
+import { logOAuthError } from '../utils/oauthErrorHandler.js';
 import { updateOAuthStatus } from '../../../db/queries/mcpInstances/index.js';
 
 /**
@@ -51,7 +51,7 @@ export function createLightweightSystemErrorResponse(res, instanceId, error) {
  */
 export async function handleRefreshFailure(instanceId, refreshError) {
   // Log the OAuth error
-  logOAuthError(instanceId, refreshError);
+  logOAuthError(refreshError, 'token_refresh', instanceId);
   
   // Handle different types of token refresh failures
   const errorType = refreshError.errorType || 'UNKNOWN_ERROR';
@@ -112,9 +112,9 @@ export function createAuthErrorResponse(res, instanceId, errorResult) {
   if (requiresReauth) {
     return ErrorResponses.unauthorized(res, message, {
       instanceId,
-      requiresReauth: true,
-      errorType,
       metadata: {
+        requiresReauth: true,
+        errorType,
         action: 'Please re-authenticate with Dropbox to continue using this instance'
       }
     });
@@ -122,24 +122,30 @@ export function createAuthErrorResponse(res, instanceId, errorResult) {
   
   switch (statusCode) {
     case 429:
-      return ErrorResponses.tooManyRequests(res, message, {
+      return ErrorResponses.rateLimited(res, message, {
         instanceId,
-        errorType,
-        metadata: { retryAfter: '60 seconds' }
+        metadata: { 
+          errorType,
+          retryAfter: '60 seconds' 
+        }
       });
       
     case 503:
       return ErrorResponses.serviceUnavailable(res, message, {
         instanceId,
-        errorType,
-        metadata: { service: 'Dropbox OAuth' }
+        metadata: { 
+          errorType,
+          service: 'Dropbox OAuth' 
+        }
       });
       
     default:
       return ErrorResponses.internal(res, message, {
         instanceId,
-        errorType,
-        metadata: { originalError: errorType }
+        metadata: { 
+          errorType,
+          originalError: errorType 
+        }
       });
   }
 }

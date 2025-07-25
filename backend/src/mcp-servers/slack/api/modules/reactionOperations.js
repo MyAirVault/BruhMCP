@@ -6,10 +6,36 @@
 import { makeSlackRequest } from './requestHandler.js';
 
 /**
+ * @typedef {Object} ReactionArgs
+ * @property {string} channel - Channel ID
+ * @property {string} timestamp - Message timestamp
+ * @property {string} name - Reaction name (emoji)
+ */
+
+/**
+ * @typedef {Object} GetReactionsArgs
+ * @property {string} channel - Channel ID
+ * @property {string} timestamp - Message timestamp
+ */
+
+/**
+ * @typedef {Object} SlackReactionResponse
+ * @property {boolean} ok - Success indicator
+ * @property {string} [error] - Error message
+ */
+
+/**
+ * @typedef {Object} ReactionResult
+ * @property {boolean} ok - Success indicator
+ * @property {string} summary - Summary message
+ * @property {string} [error] - Error message
+ */
+
+/**
  * Add a reaction to a message
- * @param {Object} args - Reaction arguments
+ * @param {ReactionArgs} args - Reaction arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Add reaction result
+ * @returns {Promise<ReactionResult>} Add reaction result
  */
 export async function addReaction(args, bearerToken) {
 	const { channel, timestamp, name } = args;
@@ -31,9 +57,9 @@ export async function addReaction(args, bearerToken) {
 
 /**
  * Remove a reaction from a message
- * @param {Object} args - Reaction arguments
+ * @param {ReactionArgs} args - Reaction arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Remove reaction result
+ * @returns {Promise<ReactionResult>} Remove reaction result
  */
 export async function removeReaction(args, bearerToken) {
 	const { channel, timestamp, name } = args;
@@ -55,9 +81,9 @@ export async function removeReaction(args, bearerToken) {
 
 /**
  * Get reactions for a message
- * @param {Object} args - Query arguments
+ * @param {GetReactionsArgs} args - Query arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Reactions result
+ * @returns {Promise<ReactionResult>} Reactions result
  */
 export async function getReactions(args, bearerToken) {
 	const { channel, timestamp } = args;

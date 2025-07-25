@@ -1,23 +1,65 @@
 /**
+ * @typedef {Object} SyncStats
+ * @property {number} checked - Number of cache entries checked
+ * @property {number} synced - Number of entries synced with database
+ * @property {number} removed - Number of entries removed
+ * @property {number} errors - Number of errors encountered
+ * @property {number} start_time - Start time in milliseconds
+ * @property {number} [duration_ms] - Duration in milliseconds
+ * @property {string} [error] - Error message if sync failed
+ */
+
+/**
+ * @typedef {Object} CleanupStats
+ * @property {number} total_checked - Total entries checked
+ * @property {number} expired_removed - Number of expired entries removed
+ * @property {number} invalid_removed - Number of invalid entries removed
+ * @property {number} stale_removed - Number of stale entries removed
+ */
+
+/**
+ * @typedef {Object} CachedCredential
+ * @property {string} bearerToken - OAuth access token
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {number} expiresAt - Token expiration timestamp
+ * @property {number} last_modified - Last modification timestamp
+ * @property {number} [refresh_attempts] - Number of refresh attempts
+ */
+
+/**
+ * @typedef {Object} DatabaseTokens
+ * @property {string} access_token - OAuth access token from database
+ * @property {string} refresh_token - OAuth refresh token from database
+ * @property {number} expires_at - Token expiration timestamp from database
+ */
+
+/**
+ * @typedef {Object} SyncController
+ * @property {() => void} stop - Function to stop the sync service
+ * @property {() => Promise<SyncStats>} runSync - Function to manually run sync
+ */
+
+/**
  * Cache synchronization service for Google Drive MCP
  * Handles background sync with database
  */
 
 import { googleDriveCredentialCache } from './cacheCore.js';
-import { getCacheStatistics } from './cacheStatistics.js';
 import { cleanupInvalidCacheEntries } from './cacheMaintenance.js';
-import { getOAuthTokensForInstanceSync, updateOAuthTokenMetadataSync } from '../database.js';
+import { lookupInstanceCredentials } from '../database.js';
 
 // Background sync state
+/** @type {NodeJS.Timeout | null} */
 let syncInterval = null;
 
 /**
  * Perform background cache synchronization
- * @returns {Promise<Object>} Sync statistics
+ * @returns {Promise<SyncStats>} Sync statistics
  */
 async function backgroundCacheSync() {
 	console.log('🔄 Starting background cache sync...');
 	
+	/** @type {SyncStats} */
 	const stats = {
 		checked: 0,
 		synced: 0,
@@ -37,36 +79,45 @@ async function backgroundCacheSync() {
 			
 			try {
 				// Get current tokens from database
-				const dbTokens = await getOAuthTokensForInstanceSync(instanceId);
+				const dbInstance = await lookupInstanceCredentials(instanceId, 'googledrive');
 				
-				if (!dbTokens) {
+				if (!dbInstance) {
 					// Instance no longer exists in database
 					googleDriveCredentialCache.delete(instanceId);
 					stats.removed++;
 					continue;
 				}
 				
+				/** @type {CachedCredential} */
+				const typedCached = cached;
+				
 				// Check if cache is outdated
-				if (cached.bearerToken !== dbTokens.access_token || 
-					cached.refreshToken !== dbTokens.refresh_token) {
+				if (typedCached.bearerToken !== dbInstance.access_token || 
+					typedCached.refreshToken !== dbInstance.refresh_token) {
 					// Update cache with database values
-					cached.bearerToken = dbTokens.access_token;
-					cached.refreshToken = dbTokens.refresh_token;
-					cached.expiresAt = dbTokens.expires_at;
-					cached.last_modified = Date.now();
+					if (dbInstance.access_token) {
+						typedCached.bearerToken = dbInstance.access_token;
+					}
+					if (dbInstance.refresh_token) {
+						typedCached.refreshToken = dbInstance.refresh_token;
+					}
+					// Handle token expiration - convert string to number if needed
+					if (dbInstance.token_expires_at) {
+						const expiresAt = typeof dbInstance.token_expires_at === 'string' 
+							? new Date(dbInstance.token_expires_at).getTime()
+							: dbInstance.token_expires_at;
+						typedCached.expiresAt = expiresAt;
+					} else {
+						typedCached.expiresAt = Date.now() + 3600000; // Default 1 hour
+					}
+					typedCached.last_modified = Date.now();
 					stats.synced++;
 					console.log(`🔄 Synced cache with database for instance: ${instanceId}`);
 				}
 				
-				// Update database metadata with cache stats
-				await updateOAuthTokenMetadataSync(instanceId, {
-					last_cache_sync: Date.now(),
-					cache_status: 'synced',
-					refresh_attempts: cached.refresh_attempts || 0
-				});
-				
 			} catch (error) {
-				console.error(`Error syncing instance ${instanceId}:`, error.message);
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				console.error(`Error syncing instance ${instanceId}:`, errorMessage);
 				stats.errors++;
 			}
 		}
@@ -76,8 +127,9 @@ async function backgroundCacheSync() {
 		console.log(`📊 Sync stats: ${stats.checked} checked, ${stats.synced} synced, ${stats.removed} removed, ${stats.errors} errors`);
 		
 	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		console.error('❌ Background cache sync failed:', error);
-		stats.error = error.message;
+		stats.error = errorMessage;
 	}
 	
 	return stats;
@@ -86,7 +138,7 @@ async function backgroundCacheSync() {
 /**
  * Start background cache synchronization service
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
- * @returns {Object} Sync service controller
+ * @returns {SyncController} Sync service controller
  */
 export function startBackgroundCacheSync(intervalMinutes = 5) {
 	const intervalMs = intervalMinutes * 60 * 1000;
@@ -104,7 +156,10 @@ export function startBackgroundCacheSync(intervalMinutes = 5) {
 	
 	return {
 		stop: () => {
-			clearInterval(syncInterval);
+			if (syncInterval) {
+				clearInterval(syncInterval);
+				syncInterval = null;
+			}
 			console.log(`⏹️ Stopped background cache sync service`);
 		},
 		runSync: () => backgroundCacheSync()

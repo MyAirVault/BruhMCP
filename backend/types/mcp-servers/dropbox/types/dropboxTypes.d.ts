@@ -1,8 +1,8 @@
 export type DropboxFile = {
     /**
-     * '.tag' - File type tag
+     * - File type tag
      */
-    "": string;
+    tag: string;
     /**
      * - File name
      */
@@ -46,9 +46,9 @@ export type DropboxFile = {
 };
 export type DropboxFolder = {
     /**
-     * '.tag' - Folder type tag
+     * - Folder type tag
      */
-    "": string;
+    tag: string;
     /**
      * - Folder name
      */
@@ -83,9 +83,9 @@ export type DropboxListResponse = {
 };
 export type DropboxMetadata = {
     /**
-     * '.tag' - Entry type tag
+     * - Entry type tag
      */
-    "": string;
+    tag: string;
     /**
      * - Entry name
      */
@@ -156,9 +156,9 @@ export type DropboxSearchResult = {
 };
 export type DropboxSharedLink = {
     /**
-     * '.tag' - Link type tag
+     * - Link type tag
      */
-    "": string;
+    tag: string;
     /**
      * - Shared link URL
      */
@@ -200,17 +200,16 @@ export type DropboxSpaceUsage = {
     /**
      * - Space allocation details
      */
-    allocation: Object;
-    /**
-     * - Allocated space in bytes
-     */
-    allocated: number;
+    allocation: {
+        tag: string;
+        allocated: number;
+    };
 };
 export type DropboxUploadResult = {
     /**
-     * '.tag' - Result type tag
+     * - Result type tag
      */
-    "": string;
+    tag: string;
     /**
      * - File name
      */
@@ -254,9 +253,9 @@ export type DropboxUploadResult = {
 };
 export type DropboxDeleteResult = {
     /**
-     * '.tag' - Result type tag
+     * - Result type tag
      */
-    "": string;
+    tag: string;
     /**
      * - Entry name
      */
@@ -276,9 +275,9 @@ export type DropboxDeleteResult = {
 };
 export type DropboxMoveResult = {
     /**
-     * '.tag' - Result type tag
+     * - Result type tag
      */
-    "": string;
+    tag: string;
     /**
      * - Entry name
      */
@@ -298,9 +297,9 @@ export type DropboxMoveResult = {
 };
 export type DropboxCopyResult = {
     /**
-     * '.tag' - Result type tag
+     * - Result type tag
      */
-    "": string;
+    tag: string;
     /**
      * - Entry name
      */
@@ -320,9 +319,9 @@ export type DropboxCopyResult = {
 };
 export type DropboxCreateFolderResult = {
     /**
-     * '.tag' - Result type tag
+     * - Result type tag
      */
-    "": string;
+    tag: string;
     /**
      * - Folder name
      */

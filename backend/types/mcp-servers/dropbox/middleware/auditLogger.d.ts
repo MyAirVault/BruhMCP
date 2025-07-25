@@ -3,6 +3,17 @@
  * Handles security event tracking and compliance logging
  */
 /**
+ * @typedef {Object} AuditLogData
+ * @property {string} instanceId - Instance ID
+ * @property {string} userId - User ID
+ * @property {string} service - Service name
+ * @property {string} timestamp - Timestamp
+ * @property {string} event - Event type
+ * @property {boolean} success - Success indicator
+ * @property {string} [method] - Method used
+ * @property {string} [error] - Error message
+ */
+/**
  * Log OAuth flow initiation
  * @param {string} instanceId - The instance ID
  * @param {string} userId - User ID
@@ -67,4 +78,38 @@ export function logSecurityEvent(event: string, instanceId: string, userId: stri
  * @returns {void}
  */
 export function logAPIRequest(instanceId: string, userId: string, endpoint: string, method: string, statusCode: number): void;
+export type AuditLogData = {
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - User ID
+     */
+    userId: string;
+    /**
+     * - Service name
+     */
+    service: string;
+    /**
+     * - Timestamp
+     */
+    timestamp: string;
+    /**
+     * - Event type
+     */
+    event: string;
+    /**
+     * - Success indicator
+     */
+    success: boolean;
+    /**
+     * - Method used
+     */
+    method?: string | undefined;
+    /**
+     * - Error message
+     */
+    error?: string | undefined;
+};
 //# sourceMappingURL=auditLogger.d.ts.map

@@ -110,12 +110,11 @@ export async function executeToolCall(toolName, args, bearerToken) {
       formattedResponse = result;
     } else {
       // Transform result to DropboxResponseData format
-      /** @type {import('../utils/dropboxFormatting.js').DropboxResponseData} */
-      const responseData = {
+      const responseData = /** @type {import('../utils/dropboxFormatting.js').DropboxResponseData} */ ({
         action: toolName,
         timestamp: new Date().toISOString(),
         ...result
-      };
+      });
       formattedResponse = formatDropboxResponse(responseData);
     }
     

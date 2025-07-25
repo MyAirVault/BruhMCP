@@ -11,12 +11,12 @@ import { getCachedResponse, setCachedResponse } from '../services/responseCache.
 const CACHE_MAPPINGS = {
   'get_subreddit_info': {
     type: 'subreddit_info',
-    getParams: (args) => ({ subreddit: args.subreddit }),
+    getParams: (/** @type {Record<string, string>} */ args) => ({ subreddit: args.subreddit }),
     ttl: 10 * 60 * 1000 // 10 minutes
   },
   'get_subreddit_posts': {
     type: 'subreddit_posts',
-    getParams: (args) => ({ 
+    getParams: (/** @type {Record<string, string|number>} */ args) => ({ 
       subreddit: args.subreddit, 
       sort: args.sort || 'hot', 
       limit: args.limit || 25,
@@ -26,12 +26,12 @@ const CACHE_MAPPINGS = {
   },
   'get_user_info': {
     type: 'user_info',
-    getParams: (args) => ({ username: args.username }),
+    getParams: (/** @type {Record<string, string>} */ args) => ({ username: args.username }),
     ttl: 5 * 60 * 1000 // 5 minutes
   },
   'get_user_posts': {
     type: 'user_posts',
-    getParams: (args) => ({ 
+    getParams: (/** @type {Record<string, string|number>} */ args) => ({ 
       username: args.username,
       sort: args.sort || 'new',
       limit: args.limit || 25,
@@ -41,7 +41,7 @@ const CACHE_MAPPINGS = {
   },
   'get_user_comments': {
     type: 'user_comments',
-    getParams: (args) => ({ 
+    getParams: (/** @type {Record<string, string|number>} */ args) => ({ 
       username: args.username,
       sort: args.sort || 'new',
       limit: args.limit || 25,
@@ -51,12 +51,12 @@ const CACHE_MAPPINGS = {
   },
   'get_subscriptions': {
     type: 'subscriptions',
-    getParams: (args) => ({ limit: args.limit || 100 }),
+    getParams: (/** @type {Record<string, number>} */ args) => ({ limit: args.limit || 100 }),
     ttl: 5 * 60 * 1000 // 5 minutes
   },
   'search_posts': {
     type: 'search_results',
-    getParams: (args) => ({ 
+    getParams: (/** @type {Record<string, string|number>} */ args) => ({ 
       query: args.query,
       subreddit: args.subreddit || '',
       sort: args.sort || 'relevance',
@@ -67,7 +67,7 @@ const CACHE_MAPPINGS = {
   },
   'search_subreddits': {
     type: 'search_results',
-    getParams: (args) => ({ 
+    getParams: (/** @type {Record<string, string|number>} */ args) => ({ 
       query: args.query,
       limit: args.limit || 25
     }),
@@ -80,14 +80,14 @@ const CACHE_MAPPINGS = {
  * @param {Object} options - Cache options
  * @returns {Function} Middleware function
  */
-export function createResponseCacheMiddleware(options = {}) {
+export function createResponseCacheMiddleware(options = /** @type {{enabled?: boolean, skipCacheForErrors?: boolean, skipCacheForPrivate?: boolean}} */ ({})) {
   const { 
     enabled = true,
     skipCacheForErrors = true,
     skipCacheForPrivate = true
-  } = options;
+  } = /** @type {{enabled?: boolean, skipCacheForErrors?: boolean, skipCacheForPrivate?: boolean}} */ (options);
   
-  return (req, res, next) => {
+  return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
     if (!enabled) {
       return next();
     }
@@ -101,7 +101,7 @@ export function createResponseCacheMiddleware(options = {}) {
     }
     
     const toolName = req.body.params.name;
-    const cacheMapping = CACHE_MAPPINGS[toolName];
+    const cacheMapping = /** @type {typeof CACHE_MAPPINGS} */ (CACHE_MAPPINGS)[/** @type {keyof typeof CACHE_MAPPINGS} */ (toolName)];
     
     if (!cacheMapping) {
       return next();
@@ -147,7 +147,7 @@ export function createResponseCacheMiddleware(options = {}) {
     // Cache miss - intercept response to cache it
     const originalJson = res.json;
     
-    res.json = function(data) {
+    res.json = function(/** @type {Record<string, Record<string, Record<string, {type: string, text: string}[]>>} */ data) {
       try {
         // Check if response should be cached
         const shouldCache = !skipCacheForErrors || !data.error;
@@ -155,8 +155,8 @@ export function createResponseCacheMiddleware(options = {}) {
         if (shouldCache && data.result && data.result.content) {
           // Extract the text content to cache
           const textContent = data.result.content
-            .filter(item => item.type === 'text')
-            .map(item => item.text)
+            .filter((/** @type {{type: string}} */ item) => item.type === 'text')
+            .map((/** @type {{text: string}} */ item) => item.text)
             .join('');
           
           if (textContent) {
@@ -219,7 +219,7 @@ function isPrivateOperation(toolName) {
  * @returns {Function} Middleware function
  */
 export function createCacheInvalidationMiddleware() {
-  return (req, res, next) => {
+  return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
     const operation = req.body?.method;
     const toolName = req.body?.params?.name;
     
@@ -237,7 +237,7 @@ export function createCacheInvalidationMiddleware() {
       'unsubscribe_from_subreddit': ['subscriptions']
     };
     
-    const typesToInvalidate = invalidationMappings[toolName];
+    const typesToInvalidate = /** @type {Record<string, string[]>} */ (invalidationMappings)[/** @type {keyof typeof invalidationMappings} */ (toolName)];
     
     if (!typesToInvalidate) {
       return next();
@@ -246,7 +246,7 @@ export function createCacheInvalidationMiddleware() {
     // Intercept response to invalidate cache after successful operations
     const originalJson = res.json;
     
-    res.json = function(data) {
+    res.json = function(/** @type {Record<string, Record<string, boolean>|Record<string, unknown>>} */ data) {
       try {
         // Only invalidate if operation was successful
         if (!data.error && data.result) {

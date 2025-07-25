@@ -100,6 +100,19 @@
  * How input data should be interpreted
  */
 /**
+ * @typedef {Object} BorderStyle
+ * @property {string} [style] - Border style
+ * @property {Color} [color] - Border color
+ * @property {number} [width] - Border width
+ */
+/**
+ * @typedef {Object} Borders
+ * @property {BorderStyle} [top] - Top border
+ * @property {BorderStyle} [bottom] - Bottom border
+ * @property {BorderStyle} [left] - Left border
+ * @property {BorderStyle} [right] - Right border
+ */
+/**
  * @typedef {Object} CellFormat
  * @property {TextFormat} [textFormat] - Text formatting
  * @property {Color} [backgroundColor] - Background color
@@ -356,6 +369,38 @@ export type ValueRenderOption = "FORMATTED_VALUE" | "UNFORMATTED_VALUE" | "FORMU
  * How input data should be interpreted
  */
 export type ValueInputOption = "RAW" | "USER_ENTERED";
+export type BorderStyle = {
+    /**
+     * - Border style
+     */
+    style?: string | undefined;
+    /**
+     * - Border color
+     */
+    color?: Color | undefined;
+    /**
+     * - Border width
+     */
+    width?: number | undefined;
+};
+export type Borders = {
+    /**
+     * - Top border
+     */
+    top?: BorderStyle | undefined;
+    /**
+     * - Bottom border
+     */
+    bottom?: BorderStyle | undefined;
+    /**
+     * - Left border
+     */
+    left?: BorderStyle | undefined;
+    /**
+     * - Right border
+     */
+    right?: BorderStyle | undefined;
+};
 export type CellFormat = {
     /**
      * - Text formatting
@@ -368,7 +413,7 @@ export type CellFormat = {
     /**
      * - Cell borders
      */
-    borders?: Borders;
+    borders?: Borders | undefined;
     /**
      * - Horizontal alignment
      */

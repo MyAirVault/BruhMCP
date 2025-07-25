@@ -1,8 +1,15 @@
 export default healthCheck;
 /**
  * Health check endpoint handler
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * @param {{params: {instanceId: string}}} req - Express request object
+ * @param {{json: Function, status: Function}} res - Express response object
  */
-declare function healthCheck(req: Object, res: Object): Promise<void>;
+declare function healthCheck(req: {
+    params: {
+        instanceId: string;
+    };
+}, res: {
+    json: Function;
+    status: Function;
+}): Promise<void>;
 //# sourceMappingURL=health.d.ts.map

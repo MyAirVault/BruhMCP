@@ -23,22 +23,22 @@ const tokenMetrics = {
  * @param {string} method - Refresh method ('oauth_service' or 'direct_oauth')
  * @param {boolean} success - Whether refresh was successful
  * @param {string} errorType - Error type if failed
- * @param {string} errorMessage - Error message if failed
+ * @param {string} _errorMessage - Error message if failed (unused)
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
  */
-export function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
+export function recordTokenRefreshMetrics(instanceId, method, success, errorType, _errorMessage, startTime, endTime) {
   const duration = endTime - startTime;
   
   // Update overall metrics
   tokenMetrics.refreshAttempts++;
-  tokenMetrics.lastRefreshTime = new Date().toISOString();
+  tokenMetrics.lastRefreshTime = /** @type {string|null} */ (new Date().toISOString());
   
   // Update method-specific metrics
-  if (tokenMetrics.methodSuccessRates[method]) {
-    tokenMetrics.methodSuccessRates[method].attempts++;
+  if (/** @type {keyof typeof tokenMetrics.methodSuccessRates} */ (method) in tokenMetrics.methodSuccessRates) {
+    /** @type {any} */ (tokenMetrics.methodSuccessRates)[method].attempts++;
     if (success) {
-      tokenMetrics.methodSuccessRates[method].successes++;
+      /** @type {any} */ (tokenMetrics.methodSuccessRates)[method].successes++;
     }
   }
   
@@ -58,7 +58,7 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
     
     // Track error types
     if (errorType) {
-      tokenMetrics.errorsByType[errorType] = (tokenMetrics.errorsByType[errorType] || 0) + 1;
+      /** @type {any} */ (tokenMetrics.errorsByType)[errorType] = (/** @type {any} */ (tokenMetrics.errorsByType)[errorType] || 0) + 1;
     }
     
     console.log(`❌ Reddit token refresh metrics - Instance: ${instanceId}, Method: ${method}, Error: ${errorType}, Duration: ${duration}ms`);
@@ -74,9 +74,9 @@ export function getTokenMetrics() {
   const successRate = totalAttempts > 0 ? (tokenMetrics.refreshSuccesses / totalAttempts * 100).toFixed(2) : 0;
   
   // Calculate method success rates
-  const methodRates = {};
+  const methodRates = /** @type {Record<string, any>} */ ({});
   for (const [method, stats] of Object.entries(tokenMetrics.methodSuccessRates)) {
-    methodRates[method] = {
+    /** @type {any} */ (methodRates)[method] = {
       attempts: stats.attempts,
       successes: stats.successes,
       successRate: stats.attempts > 0 ? (stats.successes / stats.attempts * 100).toFixed(2) : 0
@@ -87,7 +87,7 @@ export function getTokenMetrics() {
     totalAttempts,
     totalSuccesses: tokenMetrics.refreshSuccesses,
     totalFailures: tokenMetrics.refreshFailures,
-    successRate: parseFloat(successRate),
+    successRate: parseFloat(/** @type {string} */ (successRate)),
     averageRefreshTimeMs: Math.round(tokenMetrics.averageRefreshTime),
     lastRefreshTime: tokenMetrics.lastRefreshTime,
     errorsByType: { ...tokenMetrics.errorsByType },
@@ -118,7 +118,7 @@ export function resetTokenMetrics() {
  * @returns {Object} Metrics summary
  */
 export function getMetricsSummary() {
-  const metrics = getTokenMetrics();
+  const metrics = /** @type {any} */ (getTokenMetrics());
   
   return {
     service: 'reddit',
@@ -128,7 +128,7 @@ export function getMetricsSummary() {
     averageResponseTime: metrics.averageRefreshTimeMs,
     lastActivity: metrics.lastRefreshTime,
     topErrors: Object.entries(metrics.errorsByType)
-      .sort(([, a], [, b]) => b - a)
+      .sort(([, a], [, b]) => (/** @type {number} */ (b)) - (/** @type {number} */ (a)))
       .slice(0, 5)
       .map(([error, count]) => ({ error, count }))
   };
@@ -139,7 +139,7 @@ export function getMetricsSummary() {
  * @returns {boolean} True if performance is healthy
  */
 export function isTokenRefreshHealthy() {
-  const metrics = getTokenMetrics();
+  const metrics = /** @type {any} */ (getTokenMetrics());
   
   // Consider healthy if:
   // - Success rate > 90%
@@ -158,7 +158,7 @@ export function isTokenRefreshHealthy() {
  * Log periodic metrics summary
  */
 export function logMetricsSummary() {
-  const metrics = getTokenMetrics();
+  const metrics = /** @type {any} */ (getTokenMetrics());
   
   if (metrics.totalAttempts === 0) {
     console.log('📊 Reddit token metrics: No refresh attempts recorded');

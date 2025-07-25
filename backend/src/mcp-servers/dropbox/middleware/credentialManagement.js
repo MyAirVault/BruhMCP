@@ -80,17 +80,17 @@ export function getTokenInfo(cachedCredential, instance) {
  * @returns {void}
  */
 export function cacheNewTokens(instanceId, accessToken, refreshToken, expiresAt, userId) {
-  setCachedCredential(instanceId, {
+  setCachedCredential(instanceId, /** @type {import('../../../types/dropbox.d.ts').CachedCredentials} */ ({
     bearerToken: accessToken,
     refreshToken: refreshToken,
     expiresAt: expiresAt,
     user_id: userId,
-    last_used: Date.now(),
+    last_used: new Date().toISOString(),
     refresh_attempts: 0,
-    cached_at: Date.now(),
+    cached_at: new Date().toISOString(),
     last_modified: Date.now(),
     status: 'completed'
-  });
+  }));
   
   console.log(`✅ Cached new Bearer token for instance: ${instanceId}`);
 }
@@ -137,7 +137,7 @@ export function isTokenExpired(expiresAt, bufferMinutes = 10) {
 
 /**
  * Validate instance and user authorization
- * @param {import('./types.js').DatabaseInstance} [instance] - Database instance record
+ * @param {import('./types.js').DatabaseInstance | null} instance - Database instance record
  * @param {string} expectedUserId - Expected user ID
  * @returns {boolean} True if instance exists and belongs to the user
  */

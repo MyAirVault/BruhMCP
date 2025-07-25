@@ -1,4 +1,97 @@
 /**
+ * @typedef {Object} CachedCredential
+ * @property {string} bearerToken - OAuth Bearer access token
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {number} expiresAt - Token expiration timestamp
+ * @property {string} user_id - User ID who owns this instance
+ * @property {string} last_used - ISO timestamp of last usage
+ * @property {number} refresh_attempts - Number of refresh attempts
+ * @property {string} cached_at - ISO timestamp when cached
+ * @property {string} [status] - Instance status
+ * @property {string} [last_modified] - ISO timestamp of last modification
+ * @property {string} [last_refresh_attempt] - ISO timestamp of last refresh attempt
+ * @property {string} [last_successful_refresh] - ISO timestamp of last successful refresh
+ * @property {string} [scope] - OAuth scope
+ */
+
+/**
+ * @typedef {Object} TokenData
+ * @property {string} bearerToken - OAuth Bearer access token
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {number} expiresAt - Token expiration timestamp
+ * @property {string} user_id - User ID who owns this instance
+ */
+
+/**
+ * @typedef {Object} CacheStatistics
+ * @property {number} total_entries - Total number of cached entries
+ * @property {number} expired_entries - Number of expired entries
+ * @property {number} recently_used - Number of recently used entries
+ * @property {string|number} cache_hit_rate_last_hour - Cache hit rate percentage
+ * @property {number} average_expiry_minutes - Average expiry time in minutes
+ * @property {string} memory_usage_mb - Memory usage in MB
+ */
+
+/**
+ * @typedef {Object} CredentialUpdate
+ * @property {string} [status] - New instance status
+ * @property {number} [expiresAt] - New token expiration timestamp
+ * @property {string} [bearerToken] - New bearer token
+ * @property {string} [refreshToken] - New refresh token
+ */
+
+/**
+ * @typedef {Object} SyncOptions
+ * @property {boolean} [forceRefresh] - Force refresh from database
+ * @property {boolean} [updateDatabase] - Update database if cache is newer
+ */
+
+/**
+ * @typedef {Object} BackgroundSyncOptions
+ * @property {number} [maxInstances] - Maximum instances to sync per run
+ * @property {boolean} [removeOrphaned] - Remove orphaned cache entries
+ */
+
+/**
+ * @typedef {Object} SyncResults
+ * @property {number} total - Total instances processed
+ * @property {number} synced - Successfully synced instances
+ * @property {number} errors - Number of errors
+ * @property {number} orphaned - Number of orphaned instances
+ * @property {number} skipped - Number of skipped instances
+ */
+
+/**
+ * @typedef {Object} SyncController
+ * @property {() => void} stop - Function to stop the sync service
+ * @property {() => Promise<SyncResults>} runSync - Function to run sync manually
+ */
+
+/**
+ * @typedef {Object} InstanceCredentials
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {string} oauth_status - OAuth status (pending, completed, failed, expired)
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {string|null} expires_at - Expiration timestamp
+ * @property {number} usage_count - Usage count
+ * @property {string|null} custom_name - Custom name for the instance
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} mcp_service_name - MCP service name
+ * @property {string} display_name - Service display name
+ * @property {string} auth_type - Service type ('api_key' or 'oauth')
+ * @property {boolean} service_active - Whether the service is active
+ * @property {number} port - Service port
+ * @property {string|null} api_key - API key (only for api_key type services)
+ * @property {string|null} client_id - OAuth client ID
+ * @property {string|null} client_secret - OAuth client secret
+ * @property {string|null} access_token - OAuth access token
+ * @property {string|null} refresh_token - OAuth refresh token
+ * @property {string|null} token_expires_at - Token expiration timestamp
+ * @property {string|null} oauth_completed_at - OAuth completion timestamp
+ */
+
+/**
  * Credential cache service for Dropbox MCP instance management
  * Phase 2: OAuth Bearer Token Management and Caching System implementation
  * 
@@ -7,6 +100,7 @@
  */
 
 // Global credential cache for Dropbox service instances
+/** @type {Map<string, CachedCredential>} */
 const dropboxCredentialCache = new Map();
 
 /**
@@ -22,7 +116,7 @@ export function initializeCredentialCache() {
 /**
  * Get cached credential for an instance
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cached credential data or null if not found/expired
+ * @returns {CachedCredential|null} Cached credential data or null if not found/expired
  */
 export function getCachedCredential(instanceId) {
 	const cached = dropboxCredentialCache.get(instanceId);
@@ -48,11 +142,7 @@ export function getCachedCredential(instanceId) {
 /**
  * Store OAuth tokens in cache
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} tokenData - Token data to cache
- * @param {string} tokenData.bearerToken - OAuth Bearer access token
- * @param {string} tokenData.refreshToken - OAuth refresh token
- * @param {number} tokenData.expiresAt - Token expiration timestamp
- * @param {string} tokenData.user_id - User ID who owns this instance
+ * @param {TokenData} tokenData - Token data to cache
  */
 export function setCachedCredential(instanceId, tokenData) {
 	const cacheEntry = {
@@ -84,7 +174,7 @@ export function removeCachedCredential(instanceId) {
 
 /**
  * Get cache statistics for monitoring
- * @returns {Object} Cache statistics
+ * @returns {CacheStatistics} Cache statistics
  */
 export function getCacheStatistics() {
 	const totalEntries = dropboxCredentialCache.size;
@@ -97,7 +187,7 @@ export function getCacheStatistics() {
 	
 	const recentlyUsed = entries.filter(entry => {
 		const lastUsed = new Date(entry.last_used);
-		const hoursSinceUsed = (now - lastUsed) / (1000 * 60 * 60);
+		const hoursSinceUsed = (now - lastUsed.getTime()) / (1000 * 60 * 60);
 		return hoursSinceUsed < 1;
 	}).length;
 	
@@ -155,7 +245,7 @@ export function clearCredentialCache() {
 /**
  * Get cache entry without updating last_used (for monitoring)
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cache entry or null
+ * @returns {CachedCredential|null} Cache entry or null
  */
 export function peekCachedCredential(instanceId) {
 	return dropboxCredentialCache.get(instanceId) || null;
@@ -165,11 +255,7 @@ export function peekCachedCredential(instanceId) {
  * Update cached token metadata without changing the tokens themselves
  * Used for status changes and token refresh to keep cache in sync
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} updates - Updates to apply to cache entry
- * @param {string} [updates.status] - New instance status
- * @param {number} [updates.expiresAt] - New token expiration timestamp
- * @param {string} [updates.bearerToken] - New bearer token
- * @param {string} [updates.refreshToken] - New refresh token
+ * @param {CredentialUpdate} updates - Updates to apply to cache entry
  * @returns {boolean} True if cache entry was updated, false if not found
  */
 export function updateCachedCredentialMetadata(instanceId, updates) {
@@ -290,9 +376,7 @@ export function resetRefreshAttempts(instanceId) {
  * Synchronize cache with database for consistency
  * This function ensures cache and database are in sync during failure scenarios
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} options - Sync options
- * @param {boolean} [options.forceRefresh] - Force refresh from database
- * @param {boolean} [options.updateDatabase] - Update database if cache is newer
+ * @param {SyncOptions} [options] - Sync options
  * @returns {Promise<boolean>} True if sync was successful
  */
 export async function syncCacheWithDatabase(instanceId, options = {}) {
@@ -300,7 +384,6 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
-		const { getMCPInstanceById } = await import('../../../db/queries/mcpInstances/index.js');
 		const { lookupInstanceCredentials } = await import('./database.js');
 		
 		// Get current cache state
@@ -319,8 +402,8 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		}
 		
 		// Check if database has newer data
-		const dbTokenTimestamp = dbInstance.credentials_updated_at ? 
-			new Date(dbInstance.credentials_updated_at).getTime() : 0;
+		const dbTokenTimestamp = dbInstance.oauth_completed_at ? 
+			new Date(dbInstance.oauth_completed_at).getTime() : 0;
 		const cacheTimestamp = cachedCredential?.cached_at ? 
 			new Date(cachedCredential.cached_at).getTime() : 0;
 		
@@ -361,14 +444,14 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 			const { updateOAuthStatus } = await import('../../../db/queries/mcpInstances/index.js');
 			
 			const tokenExpiresAt = cachedCredential.expiresAt ? 
-				new Date(cachedCredential.expiresAt) : null;
+				new Date(cachedCredential.expiresAt) : undefined;
 			
 			await updateOAuthStatus(instanceId, {
 				status: 'completed',
 				accessToken: cachedCredential.bearerToken,
 				refreshToken: cachedCredential.refreshToken,
 				tokenExpiresAt: tokenExpiresAt,
-				scope: cachedCredential.scope || null
+				scope: cachedCredential.scope || undefined
 			});
 			
 			console.log(`✅ Updated database from cache for instance: ${instanceId}`);
@@ -388,10 +471,8 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 /**
  * Background synchronization for all cached instances
  * This function runs periodically to ensure cache-database consistency
- * @param {Object} options - Sync options
- * @param {number} [options.maxInstances] - Maximum instances to sync per run
- * @param {boolean} [options.removeOrphaned] - Remove orphaned cache entries
- * @returns {Promise<Object>} Sync results
+ * @param {BackgroundSyncOptions} [options] - Sync options
+ * @returns {Promise<SyncResults>} Sync results
  */
 export async function backgroundCacheSync(options = {}) {
 	const { maxInstances = 50, removeOrphaned = true } = options;
@@ -451,7 +532,7 @@ export async function backgroundCacheSync(options = {}) {
 /**
  * Start background cache synchronization service
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
- * @returns {Object} Sync service controller
+ * @returns {SyncController} Sync service controller
  */
 export function startBackgroundCacheSync(intervalMinutes = 5) {
 	const intervalMs = intervalMinutes * 60 * 1000;

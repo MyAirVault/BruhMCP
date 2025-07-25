@@ -7,10 +7,80 @@ import { makeNotionRequest } from './requestHandler.js';
 import { formatNotionResponse } from '../../utils/notionFormatting.js';
 
 /**
+ * @typedef {Object} GetDatabaseArgs
+ * @property {string} databaseId - The database ID to retrieve
+ */
+
+/**
+ * @typedef {Object} QueryDatabaseArgs
+ * @property {string} databaseId - The database ID to query
+ * @property {Object} [filter] - Filter conditions for the query
+ * @property {Array<Object>} [sorts] - Sort conditions for the query
+ * @property {number} [page_size] - Number of results per page (max 100)
+ * @property {string|null} [start_cursor] - Pagination cursor
+ */
+
+/**
+ * @typedef {Object} CreateDatabaseArgs
+ * @property {Object} parent - Parent page or workspace information
+ * @property {Array<Object>} title - Database title as rich text array
+ * @property {Record<string, Object>} properties - Database properties schema
+ * @property {boolean} [is_inline] - Whether the database is inline
+ */
+
+/**
+ * @typedef {Object} UpdateDatabaseArgs
+ * @property {string} databaseId - The database ID to update
+ * @property {Array<Object>} [title] - Updated title as rich text array
+ * @property {Record<string, Object>} [properties] - Updated properties schema
+ * @property {boolean} [is_inline] - Whether the database is inline
+ */
+
+/**
+ * @typedef {Object} NotionApiResponse
+ * @property {Object} parent - Parent information
+ * @property {string} id - Object ID
+ * @property {string} object - Object type
+ * @property {string} url - Object URL
+ * @property {string} created_time - Creation timestamp
+ * @property {string} last_edited_time - Last edit timestamp
+ * @property {Object} created_by - Creator information
+ * @property {Object} last_edited_by - Last editor information
+ * @property {Object} properties - Object properties
+ * @property {boolean} archived - Archive status
+ * @property {Array<Object>} [title] - Title rich text array
+ */
+
+/**
+ * @typedef {Object} NotionQueryApiResponse
+ * @property {Array<NotionApiResponse>} results - Query results
+ * @property {boolean} has_more - Whether there are more results
+ * @property {string} [next_cursor] - Next pagination cursor
+ */
+
+/**
+ * @typedef {Object} FormattedResponse
+ * @property {string} action - The action performed
+ * @property {string} timestamp - Response timestamp
+ * @property {boolean} success - Success status
+ */
+
+/**
+ * @typedef {FormattedResponse} DatabaseResponse
+ * @property {Object} database - Formatted database data
+ */
+
+/**
+ * @typedef {FormattedResponse} QueryResponse
+ * @property {string} databaseId - The queried database ID
+ * @property {Object} results - Formatted query results
+ */
+
+/**
  * Get database
- * @param {Object} args - Database arguments
+ * @param {GetDatabaseArgs} args - Database arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Database data
+ * @returns {Promise<DatabaseResponse>} Database data
  */
 export async function getDatabase(args, bearerToken) {
 	const { databaseId } = args;
@@ -25,9 +95,9 @@ export async function getDatabase(args, bearerToken) {
 
 /**
  * Query database
- * @param {Object} args - Database query arguments
+ * @param {QueryDatabaseArgs} args - Database query arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Query results
+ * @returns {Promise<QueryResponse>} Query results
  */
 export async function queryDatabase(args, bearerToken) {
 	const { databaseId, filter = {}, sorts = [], page_size = 100, start_cursor = null } = args;
@@ -48,16 +118,14 @@ export async function queryDatabase(args, bearerToken) {
 		action: 'query_database',
 		databaseId,
 		results: result.results || [],
-		hasMore: result.has_more || false,
-		nextCursor: result.next_cursor || null,
 	});
 }
 
 /**
  * Create database
- * @param {Object} args - Database creation arguments
+ * @param {CreateDatabaseArgs} args - Database creation arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Created database
+ * @returns {Promise<DatabaseResponse>} Created database
  */
 export async function createDatabase(args, bearerToken) {
 	const { parent, title, properties, is_inline = false } = args;
@@ -82,9 +150,9 @@ export async function createDatabase(args, bearerToken) {
 
 /**
  * Update database
- * @param {Object} args - Database update arguments
+ * @param {UpdateDatabaseArgs} args - Database update arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Object} Updated database
+ * @returns {Promise<DatabaseResponse>} Updated database
  */
 export async function updateDatabase(args, bearerToken) {
 	const { databaseId, title = [], properties = {}, is_inline = false } = args;

@@ -14,7 +14,9 @@ import { updateInstanceUsage } from '../services/database.js';
  * @returns {import('./types.js').CachedCredential|null} Cached credential or null
  */
 export function checkCachedCredentials(instanceId) {
-	return getCachedCredential(instanceId);
+	/** @type {import('./types.js').CachedCredential|null} */
+	const result = getCachedCredential(instanceId);
+	return result;
 }
 
 /**
@@ -28,7 +30,7 @@ export function hasCachedBearerToken(cachedCredential) {
 
 /**
  * Setup request with cached token
- * @param {import('./types.js').ExpressRequest} req - Express request
+ * @param {import('express').Request & {bearerToken?: string, instanceId?: string, userId?: string, oauth?: Object}} req - Express request
  * @param {import('./types.js').CachedCredential} cachedCredential - Cached credential
  * @param {string} instanceId - Instance ID
  * @returns {Promise<void>}
@@ -46,7 +48,9 @@ export async function setupRequestWithCachedToken(req, cachedCredential, instanc
 	};
 	
 	// Update usage tracking asynchronously
-	updateInstanceUsage(instanceId).catch(err => {
+	/** @type {Promise<boolean>} */
+	const updatePromise = updateInstanceUsage(instanceId);
+	updatePromise.catch(/** @param {Error} err */ (err) => {
 		console.error('Failed to update usage tracking:', err);
 	});
 }
@@ -82,7 +86,7 @@ export function isAccessTokenValid(accessToken, tokenExpiresAt) {
  * @param {string} accessToken - Access token
  * @param {number} tokenExpiresAt - Token expiration timestamp
  * @param {string} userId - User ID
- * @param {import('./types.js').ExpressRequest} req - Express request
+ * @param {import('express').Request & {bearerToken?: string, instanceId?: string, userId?: string, oauth?: Object}} req - Express request
  * @param {string|undefined} refreshToken - Refresh token
  * @param {import('./types.js').CachedCredential|null} cachedCredential - Existing cached credential
  * @returns {Promise<void>}
@@ -123,7 +127,7 @@ export async function cacheAndSetupToken(
 
 /**
  * Setup lightweight request (without OAuth)
- * @param {import('./types.js').ExpressRequest} req - Express request
+ * @param {import('express').Request & {bearerToken?: string, instanceId?: string, userId?: string, oauth?: Object}} req - Express request
  * @param {string} instanceId - Instance ID
  * @param {string} userId - User ID
  */

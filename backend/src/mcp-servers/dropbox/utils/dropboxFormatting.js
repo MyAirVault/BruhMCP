@@ -38,7 +38,7 @@
 
 /**
  * @typedef {Object} FormattedSearchMatch
- * @property {string} match_type - Type of match
+ * @property {{'.tag': 'filename' | 'content' | 'both'} | string} match_type - Type of match
  * @property {FormattedFileEntry} metadata - File metadata
  */
 

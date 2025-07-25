@@ -3,7 +3,7 @@
  * Express route handlers for the Sheets service
  */
 
-import { healthCheck } from './endpoints/health.js';
+import healthCheck from './endpoints/health.js';
 import { getOrCreateHandler } from './services/handlerSessions.js';
 import { ErrorResponses } from '../../utils/errorResponse.js';
 

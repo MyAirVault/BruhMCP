@@ -1,6 +1,5 @@
 // @ts-check
 import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
-import { slackOAuth } from '../../../oauth-service/providers/slack.js';
 
 /**
  * Slack OAuth credential validator
@@ -27,21 +26,16 @@ class SlackOAuthValidator extends BaseValidator {
       return createValidationResult(false, 'OAuth credentials must include client_id and client_secret', 'credentials');
     }
 
-    try {
-      // Use Slack OAuth provider to validate credentials format
-      const validation = await slackOAuth.validateCredentials(
-        credentials.client_id,
-        credentials.client_secret
-      );
-
-      if (validation.valid) {
-        return createValidationResult(true, null, null, this.getServiceInfo(credentials));
-      } else {
-        return createValidationResult(false, validation.error, validation.field);
-      }
-    } catch (error) {
-      return createValidationResult(false, `Failed to validate Slack OAuth credentials: ${error.message}`, 'credentials');
+    // Basic OAuth format validation for Slack
+    if (typeof credentials.client_id !== 'string' || credentials.client_id.length === 0) {
+      return createValidationResult(false, 'Client ID must be a non-empty string', 'client_id');
     }
+
+    if (typeof credentials.client_secret !== 'string' || credentials.client_secret.length === 0) {
+      return createValidationResult(false, 'Client secret must be a non-empty string', 'client_secret');
+    }
+
+    return createValidationResult(true, null, null, this.getServiceInfo(credentials));
   }
 
   /**

@@ -9,7 +9,9 @@ import { removeHandlerSession } from '../services/handlerSessions.js';
 import { deleteMCPInstance } from '../../../db/queries/mcpInstances/crud.js';
 
 /**
- * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevocationResult} RevocationResult
+ * @typedef {Object} RevocationResult
+ * @property {boolean} success - Whether revocation succeeded
+ * @property {string} message - Human readable message
  */
 
 /**
@@ -54,7 +56,8 @@ async function revokeInstance(instanceId, userId) {
 				await revokeToken(instance.access_token);
 				console.log(`✅ Successfully revoked Slack access token for instance: ${instanceId}`);
 			} catch (revokeError) {
-				console.warn(`⚠️ Failed to revoke Slack token (continuing with cleanup): ${revokeError.message}`);
+				const errorMessage = revokeError instanceof Error ? revokeError.message : String(revokeError);
+				console.warn(`⚠️ Failed to revoke Slack token (continuing with cleanup): ${errorMessage}`);
 				// Continue with cleanup even if revocation fails
 			}
 		}

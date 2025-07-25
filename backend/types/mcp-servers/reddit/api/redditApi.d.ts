@@ -3,9 +3,9 @@
  * @param {string} endpoint - API endpoint path
  * @param {string} bearerToken - OAuth bearer token
  * @param {RequestOptions} [options] - Request options
- * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse>} API response
+ * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse|[RedditListingResponse, RedditListingResponse]>} API response
  */
-export function makeRedditRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<RedditApiResponse | RedditListingResponse | RedditSubmissionResponse | RedditCommentResponse | RedditMessageResponse>;
+export function makeRedditRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<RedditApiResponse | RedditListingResponse | RedditSubmissionResponse | RedditCommentResponse | RedditMessageResponse | [RedditListingResponse, RedditListingResponse]>;
 /**
  * Get current user information
  * @param {string} bearerToken - OAuth bearer token
@@ -602,5 +602,35 @@ export type SubscribeArgs = {
      * - Subreddit name
      */
     subreddit: string;
+};
+export type RedditMessage = {
+    /**
+     * - Message ID
+     */
+    id: string;
+    /**
+     * - Author username
+     */
+    author: string;
+    /**
+     * - Message subject
+     */
+    subject: string;
+    /**
+     * - Message body
+     */
+    body: string;
+    /**
+     * - Creation timestamp
+     */
+    created_utc: number;
+    /**
+     * - New message flag
+     */
+    new: boolean;
+    /**
+     * - Parent message ID
+     */
+    parent_id?: string | undefined;
 };
 //# sourceMappingURL=redditApi.d.ts.map

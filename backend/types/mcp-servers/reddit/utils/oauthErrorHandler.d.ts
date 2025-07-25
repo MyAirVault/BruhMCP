@@ -9,9 +9,17 @@ export function parseOAuthError(error: Error): Object;
  * @param {string} instanceId - Instance ID
  * @param {Error} error - Refresh error
  * @param {Function} updateOAuthStatus - Database update function
- * @returns {Object} Error response details
+ * @returns {Promise<{instanceId: string, error: string, errorCode: string, requiresReauth: boolean, shouldRetry: boolean, logLevel: string, originalError: string}>} Error response details
  */
-export function handleTokenRefreshFailure(instanceId: string, error: Error, updateOAuthStatus: Function): Object;
+export function handleTokenRefreshFailure(instanceId: string, error: Error, updateOAuthStatus: Function): Promise<{
+    instanceId: string;
+    error: string;
+    errorCode: string;
+    requiresReauth: boolean;
+    shouldRetry: boolean;
+    logLevel: string;
+    originalError: string;
+}>;
 /**
  * Determine if error should trigger retry logic
  * @param {Error} error - OAuth error

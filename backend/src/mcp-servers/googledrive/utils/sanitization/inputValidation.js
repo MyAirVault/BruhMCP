@@ -6,10 +6,36 @@ import { sanitizeString } from './stringValidation.js';
 import { sanitizeInteger, sanitizeBoolean, sanitizeArray } from './typeValidation.js';
 
 /**
+ * @typedef {Object} ValidationConfig
+ * @property {'string'|'integer'|'boolean'|'array'|'object'} type - The expected type
+ * @property {boolean} [required] - Whether the field is required
+ * @property {*} [default] - Default value if not provided
+ * @property {Object} [options] - Type-specific options
+ * @property {function(*): boolean|string} [validator] - Custom validator function
+ */
+
+/**
+ * @typedef {Object.<string, ValidationConfig>} ValidationSchema
+ */
+
+/**
+ * @typedef {Object.<string, *>} InputObject
+ */
+
+/**
+ * @typedef {Object.<string, *>} SanitizedObject
+ */
+
+/**
+ * @typedef {Error & {validationErrors: string[]}} ValidationError
+ */
+
+/**
  * General input sanitization based on schema
- * @param {Object} input - Input object to sanitize
- * @param {Object} schema - Schema defining expected fields and types
- * @returns {Object} Sanitized input object
+ * @param {InputObject} input - Input object to sanitize
+ * @param {ValidationSchema} schema - Schema defining expected fields and types
+ * @returns {SanitizedObject} Sanitized input object
+ * @throws {ValidationError} When validation fails
  */
 export function sanitizeInput(input, schema) {
   if (!input || typeof input !== 'object') {
@@ -20,7 +46,9 @@ export function sanitizeInput(input, schema) {
     throw new Error('Schema must be an object');
   }
 
+  /** @type {SanitizedObject} */
   const sanitized = {};
+  /** @type {string[]} */
   const errors = [];
 
   // Process each field in schema
@@ -80,7 +108,8 @@ export function sanitizeInput(input, schema) {
       }
       
     } catch (error) {
-      errors.push(`${field}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      errors.push(`${field}: ${errorMessage}`);
     }
   }
   
@@ -92,7 +121,8 @@ export function sanitizeInput(input, schema) {
   }
   
   if (errors.length > 0) {
-    const error = new Error('Input validation failed');
+    /** @type {ValidationError} */
+    const error = /** @type {ValidationError} */ (new Error('Input validation failed'));
     error.validationErrors = errors;
     throw error;
   }

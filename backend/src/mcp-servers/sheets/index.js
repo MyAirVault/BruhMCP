@@ -153,7 +153,7 @@ app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 /**
  * Global error handler middleware
  */
-app.use((err, _req, res, _next) => {
+app.use(/** @type {import('express').ErrorRequestHandler} */ ((err, _req, res, _next) => {
 	console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
 	const errorMessage = err instanceof Error ? err.message : String(err);
 	res.status(500).json({
@@ -161,7 +161,7 @@ app.use((err, _req, res, _next) => {
 		message: errorMessage,
 		service: SERVICE_CONFIG.name,
 	});
-});
+}));
 
 // Start the server
 const server = app.listen(SERVICE_CONFIG.port, () => {

@@ -47,12 +47,14 @@ export class SheetsMCPHandler {
 	/**
 	 * Get or create transport for a session
 	 * @param {string} sessionId - Session identifier
+	 * @param {import('express').Request} [_req] - Express request object (unused)
+	 * @param {import('express').Response} [_res] - Express response object (unused)
 	 * @returns {StreamableHTTPServerTransport} Transport instance
 	 */
-	getTransport(sessionId) {
+	getTransport(sessionId, _req, _res) {
 		if (!this.transports[sessionId]) {
 			console.log(`📡 Creating new transport for session: ${sessionId}`);
-			this.transports[sessionId] = new StreamableHTTPServerTransport();
+			this.transports[sessionId] = new StreamableHTTPServerTransport({ sessionIdGenerator: () => randomUUID() });
 		}
 		return this.transports[sessionId];
 	}
@@ -65,11 +67,12 @@ export class SheetsMCPHandler {
 	 */
 	async handleMCPRequest(req, res, message) {
 		const sessionId = req.headers['x-session-id']?.toString() || randomUUID();
-		const transport = this.getTransport(sessionId);
+		const transport = this.getTransport(sessionId, req, res);
 		
 		// Connect server to transport if not connected
-		if (!transport.server) {
+		if (!this.initialized) {
 			await this.server.connect(transport);
+			this.initialized = true;
 		}
 		
 		// Handle initialize requests specially
@@ -79,7 +82,7 @@ export class SheetsMCPHandler {
 		}
 		
 		// Send request and get response
-		const response = await transport.handleRequest(message);
+		const response = await transport.handleRequest(req, res, message);
 		res.json(response);
 	}
 

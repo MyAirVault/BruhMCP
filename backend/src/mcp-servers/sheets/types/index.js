@@ -118,6 +118,21 @@
  */
 
 /**
+ * @typedef {Object} BorderStyle
+ * @property {string} [style] - Border style
+ * @property {Color} [color] - Border color
+ * @property {number} [width] - Border width
+ */
+
+/**
+ * @typedef {Object} Borders
+ * @property {BorderStyle} [top] - Top border
+ * @property {BorderStyle} [bottom] - Bottom border
+ * @property {BorderStyle} [left] - Left border
+ * @property {BorderStyle} [right] - Right border
+ */
+
+/**
  * @typedef {Object} CellFormat
  * @property {TextFormat} [textFormat] - Text formatting
  * @property {Color} [backgroundColor] - Background color

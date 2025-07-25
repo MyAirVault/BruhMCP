@@ -57,7 +57,7 @@ export function createCredentialAuthMiddleware() {
 			// Check credential cache first (fast path)
 			const cachedCredential = checkCachedCredentials(instanceId);
 			
-			if (hasCachedBearerToken(cachedCredential)) {
+			if (cachedCredential && hasCachedBearerToken(cachedCredential)) {
 				await setupRequestWithCachedToken(req, cachedCredential, instanceId);
 				return next();
 			}
@@ -106,18 +106,20 @@ export function createCredentialAuthMiddleware() {
 					}
 					
 					// Handle refresh failure
-					const errorDetails = handleRefreshFailure(instanceId, refreshResult.error);
+					const refreshError = refreshResult.error instanceof Error ? refreshResult.error : new Error(String(refreshResult.error));
+					const errorDetails = handleRefreshFailure(instanceId, refreshError);
 					
-					if (errorDetails.requiresReauth) {
+					if (errorDetails && typeof errorDetails === 'object' && 'requiresReauth' in errorDetails && errorDetails.requiresReauth) {
 						return createRefreshFailureResponse(res, instanceId, errorDetails);
 					}
 					
 					// For other errors, fall through to full OAuth exchange
-					logRefreshFallback(refreshResult.error);
+					logRefreshFallback(refreshError);
 					
 				} catch (error) {
-					logFailedTokenRefresh(instanceId, 'oauth_handler', error, 0);
-					return createSystemErrorResponse(res, instanceId, error);
+					const refreshError = error instanceof Error ? error : new Error(String(error));
+					logFailedTokenRefresh(instanceId, 'oauth_handler', refreshError, 0);
+					return createSystemErrorResponse(res, instanceId, refreshError);
 				}
 			}
 
@@ -131,7 +133,8 @@ export function createCredentialAuthMiddleware() {
 			return createReauthenticationResponse(res, instanceId);
 
 		} catch (error) {
-			return createSystemErrorResponse(res, instanceId, error);
+			const systemError = error instanceof Error ? error : new Error(String(error));
+			return createSystemErrorResponse(res, instanceId, systemError);
 		}
 	};
 }
@@ -159,16 +162,21 @@ export function createLightweightAuthMiddleware() {
 			const instance = await lookupInstanceCredentials(instanceId, 'sheets');
 			
 			// Basic validation without OAuth check
-			const validation = validateInstance(instance, res, instanceId, false);
+			/** @type {import('./types.js').DatabaseInstance | null} */
+			const dbInstance = instance;
+			const validation = validateInstance(dbInstance, res, instanceId, false);
 			if (!validation.isValid) {
 				return validation.errorResponse;
 			}
 
-			setupLightweightRequest(req, instanceId, instance.user_id);
+			if (dbInstance && typeof dbInstance === 'object' && 'user_id' in dbInstance) {
+				setupLightweightRequest(req, instanceId, dbInstance.user_id);
+			}
 			return next();
 
 		} catch (error) {
-			return createLightweightSystemErrorResponse(res, instanceId, error);
+			const systemError = error instanceof Error ? error : new Error(String(error));
+			return createLightweightSystemErrorResponse(res, instanceId, systemError);
 		}
 	};
 }

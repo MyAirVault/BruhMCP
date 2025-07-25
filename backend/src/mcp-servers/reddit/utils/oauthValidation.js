@@ -111,10 +111,10 @@ function extractTokenInfo(tokenData) {
 	}
 
 	return {
-		accessToken: tokenData.access_token || tokenData.accessToken || tokenData.bearerToken,
-		refreshToken: tokenData.refresh_token || tokenData.refreshToken,
-		tokenExpiresAt: tokenData.expires_at || tokenData.expiresAt || 
-			(tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : undefined)
+		accessToken: /** @type {{access_token?: string, accessToken?: string, bearerToken?: string}} */ (tokenData).access_token || /** @type {{accessToken?: string}} */ (tokenData).accessToken || /** @type {{bearerToken?: string}} */ (tokenData).bearerToken,
+		refreshToken: /** @type {{refresh_token?: string, refreshToken?: string}} */ (tokenData).refresh_token || /** @type {{refreshToken?: string}} */ (tokenData).refreshToken,
+		tokenExpiresAt: /** @type {{expires_at?: number, expiresAt?: number}} */ (tokenData).expires_at || /** @type {{expiresAt?: number}} */ (tokenData).expiresAt || 
+			(/** @type {{expires_in?: number}} */ (tokenData).expires_in ? Date.now() + (/** @type {{expires_in: number}} */ (tokenData).expires_in * 1000) : undefined)
 	};
 }
 
@@ -128,8 +128,8 @@ function validateOAuthCredentials(credentials) {
 		return { valid: false, error: 'Credentials must be an object' };
 	}
 
-	const clientId = credentials.client_id || credentials.clientId;
-	const clientSecret = credentials.client_secret || credentials.clientSecret;
+	const clientId = /** @type {{client_id?: string, clientId?: string}} */ (credentials).client_id || /** @type {{clientId?: string}} */ (credentials).clientId;
+	const clientSecret = /** @type {{client_secret?: string, clientSecret?: string}} */ (credentials).client_secret || /** @type {{clientSecret?: string}} */ (credentials).clientSecret;
 
 	if (!clientId) {
 		return { valid: false, error: 'Client ID is required' };
@@ -285,7 +285,7 @@ async function refreshBearerTokenDirect(refreshData) {
             throw new Error(`Reddit OAuth refresh failed: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
-        const tokens = await response.json();
+        const tokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number, token_type?: string, scope?: string}} */ (await response.json());
         
         if (!tokens.access_token) {
             throw new Error('No access token received from Reddit OAuth refresh');
@@ -294,11 +294,11 @@ async function refreshBearerTokenDirect(refreshData) {
         console.log(`✅ Direct Reddit OAuth token refresh successful`);
         
         return {
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token || refreshToken, // Reddit may not always return new refresh token
-            expires_in: tokens.expires_in || 3600, // Default to 1 hour if not provided
-            token_type: tokens.token_type || 'Bearer',
-            scope: tokens.scope || 'identity read vote submit flair edit privatemessages'
+            access_token: /** @type {{access_token: string}} */ (tokens).access_token,
+            refresh_token: /** @type {{refresh_token?: string}} */ (tokens).refresh_token || refreshToken, // Reddit may not always return new refresh token
+            expires_in: /** @type {{expires_in?: number}} */ (tokens).expires_in || 3600, // Default to 1 hour if not provided
+            token_type: /** @type {{token_type?: string}} */ (tokens).token_type || 'Bearer',
+            scope: /** @type {{scope?: string}} */ (tokens).scope || 'identity read vote submit flair edit privatemessages'
         };
     } catch (error) {
         console.error('Direct Reddit OAuth token refresh failed:', error);

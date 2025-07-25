@@ -9,7 +9,7 @@ import { SheetsApi } from '../api/sheetsApi.js';
 /**
  * Setup MCP tools for Google Sheets
  * @param {import('@modelcontextprotocol/sdk/server/mcp.js').McpServer} server - MCP server instance
- * @param {Object} handler - Handler instance with bearerToken property
+ * @param {{bearerToken: string}} handler - Handler instance with bearerToken property
  * @param {string} serviceName - Service name for logging
  */
 export function setupSheetsTools(server, handler, serviceName) {

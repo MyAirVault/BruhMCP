@@ -6,10 +6,35 @@
 import { pool } from '../../../db/config.js';
 
 /**
+ * Instance credentials with service information from database query
+ * @typedef {Object} InstanceCredentials
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {string} oauth_status - OAuth status (pending, completed, failed, expired)
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {string|null} expires_at - Expiration timestamp
+ * @property {number} usage_count - Usage count
+ * @property {string|null} custom_name - Custom name for the instance
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} mcp_service_name - MCP service name
+ * @property {string} display_name - Service display name
+ * @property {string} auth_type - Service type ('api_key' or 'oauth')
+ * @property {boolean} service_active - Whether the service is active
+ * @property {number} port - Service port
+ * @property {string|null} api_key - API key (only for api_key type services)
+ * @property {string|null} client_id - OAuth client ID
+ * @property {string|null} client_secret - OAuth client secret
+ * @property {string|null} access_token - OAuth access token
+ * @property {string|null} refresh_token - OAuth refresh token
+ * @property {string|null} token_expires_at - Token expiration timestamp
+ * @property {string|null} oauth_completed_at - OAuth completion timestamp
+ */
+
+/**
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
  * @param {string} serviceName - Name of the MCP service (dropbox)
- * @returns {Object|null} Instance credentials or null if not found
+ * @returns {Promise<InstanceCredentials|null>} Instance credentials or null if not found
  */
 export async function lookupInstanceCredentials(instanceId, serviceName) {
   try {
@@ -58,7 +83,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
     
   } catch (error) {
     console.error('Database lookup error:', error);
-    throw new Error(`Failed to lookup instance credentials: ${error.message}`);
+    throw new Error(`Failed to lookup instance credentials: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -93,16 +118,31 @@ export async function updateInstanceUsage(instanceId) {
     return true;
     
   } catch (error) {
-    console.error('Database usage update error:', error);
+    console.error('Database usage update error:', error instanceof Error ? error.message : String(error));
     // Don't throw error - usage tracking is not critical
     return false;
   }
 }
 
 /**
+ * Instance statistics from database query
+ * @typedef {Object} InstanceStatistics
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {number} usage_count - Usage count
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} created_at - Creation timestamp
+ * @property {string|null} expires_at - Expiration timestamp
+ * @property {string|null} custom_name - Custom name for the instance
+ * @property {string} mcp_service_name - MCP service name
+ * @property {string} display_name - Service display name
+ */
+
+/**
  * Get instance statistics
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Instance statistics or null if not found
+ * @returns {Promise<InstanceStatistics|null>} Instance statistics or null if not found
  */
 export async function getInstanceStatistics(instanceId) {
   try {
@@ -134,7 +174,7 @@ export async function getInstanceStatistics(instanceId) {
     
   } catch (error) {
     console.error('Database statistics query error:', error);
-    throw new Error(`Failed to get instance statistics: ${error.message}`);
+    throw new Error(`Failed to get instance statistics: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -142,7 +182,7 @@ export async function getInstanceStatistics(instanceId) {
  * Update instance status
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newStatus - New status (active, inactive, expired)
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
 export async function updateInstanceStatus(instanceId, newStatus) {
   try {
@@ -168,13 +208,24 @@ export async function updateInstanceStatus(instanceId, newStatus) {
     
   } catch (error) {
     console.error('Database status update error:', error);
-    throw new Error(`Failed to update instance status: ${error.message}`);
+    throw new Error(`Failed to update instance status: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 /**
+ * Active Dropbox instance record from database query
+ * @typedef {Object} ActiveDropboxInstance
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {number} usage_count - Usage count
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} created_at - Creation timestamp
+ * @property {string|null} custom_name - Custom name for the instance
+ */
+
+/**
  * Get all active instances for Dropbox service
- * @returns {Array} Array of active instance records
+ * @returns {Promise<ActiveDropboxInstance[]>} Array of active instance records
  */
 export async function getActiveDropboxInstances() {
   try {
@@ -204,7 +255,7 @@ export async function getActiveDropboxInstances() {
     
   } catch (error) {
     console.error('Database active instances query error:', error);
-    throw new Error(`Failed to get active Dropbox instances: ${error.message}`);
+    throw new Error(`Failed to get active Dropbox instances: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -212,7 +263,7 @@ export async function getActiveDropboxInstances() {
  * Validate instance exists and is accessible
  * @param {string} instanceId - UUID of the service instance
  * @param {string} userId - UUID of the user (for additional security)
- * @returns {boolean} True if instance is valid and accessible
+ * @returns {Promise<boolean>} True if instance is valid and accessible
  */
 export async function validateInstanceAccess(instanceId, userId) {
   try {
@@ -245,7 +296,7 @@ export async function validateInstanceAccess(instanceId, userId) {
 
 /**
  * Clean up expired instances
- * @returns {number} Number of instances marked as expired
+ * @returns {Promise<number>} Number of instances marked as expired
  */
 export async function cleanupExpiredInstances() {
   try {
@@ -275,6 +326,6 @@ export async function cleanupExpiredInstances() {
     
   } catch (error) {
     console.error('Database cleanup error:', error);
-    throw new Error(`Failed to cleanup expired instances: ${error.message}`);
+    throw new Error(`Failed to cleanup expired instances: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

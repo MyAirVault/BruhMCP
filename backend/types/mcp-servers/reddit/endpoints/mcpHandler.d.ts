@@ -24,9 +24,9 @@ export class RedditMCPHandler {
     /**
      * Convert JSON schema to Zod schema
      * @param {Object} jsonSchema - JSON schema object
-     * @returns {Object} Zod schema
+     * @returns {import('zod').ZodObject<Record<string, import('zod').ZodType>>} Zod schema
      */
-    convertJsonSchemaToZod(jsonSchema: Object): Object;
+    convertJsonSchemaToZod(jsonSchema: Object): import("zod").ZodObject<Record<string, import("zod").ZodType>>;
     /**
      * Handle incoming MCP request using session-based transport
      * @param {any} req - Express request object
@@ -42,9 +42,17 @@ export class RedditMCPHandler {
     updateBearerToken(newBearerToken: string): void;
     /**
      * Get handler statistics
-     * @returns {Object} Handler statistics
+     * @returns {{serviceName: string, displayName: string, version: string, activeSessions: number, initialized: boolean, availableTools: number, bearerTokenPresent: boolean}} Handler statistics
      */
-    getStatistics(): Object;
+    getStatistics(): {
+        serviceName: string;
+        displayName: string;
+        version: string;
+        activeSessions: number;
+        initialized: boolean;
+        availableTools: number;
+        bearerTokenPresent: boolean;
+    };
     /**
      * Cleanup handler and close all sessions
      */

@@ -53,9 +53,15 @@ This checklist provides step-by-step instructions for adding a new OAuth-based M
 - [ ] Export function named exactly `oauthCallback(code, state)`
 - [ ] Import OAuth handler and database queries
 - [ ] Validate state parameter for CSRF protection
+- [ ] **CRITICAL**: Parse state parameter to extract `instanceId` and `userId`:
+  ```javascript
+  const stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+  const { instanceId, userId } = stateData;
+  ```
+- [ ] Use `userId` for authorization when retrieving instance data
 - [ ] Exchange authorization code for access/refresh tokens
 - [ ] Store tokens in database with encrypted storage
-- [ ] Update instance oauth_status to 'completed'
+- [ ] Update instance oauth_status to 'completed' using extracted `instanceId`
 - [ ] Return object: `{ success, message, data: { instanceId, tokens, status } }`
 
 **File:** `auth/revokeInstance.js`
@@ -65,7 +71,36 @@ This checklist provides step-by-step instructions for adding a new OAuth-based M
 - [ ] Clean up cached credentials and sessions
 - [ ] Return standardized revocation result
 
-### 3. OAuth Handler Implementation (`oauth/`)
+### 3. **CRITICAL OAuth State Management Pattern**
+
+**⚠️ SECURITY REQUIREMENT**: The OAuth state parameter MUST contain both `userId` and `instanceId` for proper authorization and security. This pattern is essential for:
+- CSRF protection
+- Multi-tenant authorization  
+- Correct instance association
+- Security audit trails
+
+**State Creation Pattern** (in OAuth handler `initiateFlow()`):
+```javascript
+const state = Buffer.from(
+  JSON.stringify({
+    instanceId,  // ← REQUIRED: Links callback to correct instance
+    userId,      // ← REQUIRED: Ensures user owns the instance  
+    timestamp: Date.now(),
+    service: '{serviceName}',
+  })
+).toString('base64');
+```
+
+**State Parsing Pattern** (in OAuth callback handler):
+```javascript
+const stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+const { instanceId, userId } = stateData;
+
+// Use userId for authorization when retrieving instance
+const instance = await getMCPInstanceById(instanceId, userId);
+```
+
+### 4. OAuth Handler Implementation (`oauth/`)
 
 **File:** `oauth/oauthHandler.js`
 - [ ] Create service-specific OAuth handler class (e.g., `GitHubOAuthHandler`)
@@ -76,6 +111,23 @@ This checklist provides step-by-step instructions for adding a new OAuth-based M
   - `initiateFlow(instanceId, userId, credentials)` - Generate auth URL with state
   - `handleCallback(code, state)` - Exchange code for tokens
   - `refreshToken(refreshToken, credentials)` - Refresh expired tokens
+- [ ] **CRITICAL**: In `initiateFlow()`, create state parameter with both `instanceId` and `userId`:
+  ```javascript
+  const state = Buffer.from(
+    JSON.stringify({
+      instanceId,
+      userId,
+      timestamp: Date.now(),
+      service: '{serviceName}',
+    })
+  ).toString('base64');
+  ```
+- [ ] **CRITICAL**: In `handleCallback()`, parse state to extract both values:
+  ```javascript
+  const stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+  const { instanceId, userId } = stateData;
+  ```
+- [ ] Use `userId` for authorization when retrieving instance credentials from database
 - [ ] Include proper error handling for OAuth flow failures
 - [ ] Handle provider-specific OAuth quirks and requirements
 
@@ -427,7 +479,9 @@ logger.security('OAuth state validation failed', {
 ### Pre-Deployment Testing:
 - [ ] Service starts without errors on assigned port
 - [ ] Health endpoints return proper status
-- [ ] OAuth flow initiation generates valid authorization URL
+- [ ] OAuth flow initiation generates valid authorization URL with proper state parameter
+- [ ] **CRITICAL**: Verify state parameter contains both `userId` and `instanceId`
+- [ ] **CRITICAL**: Verify OAuth callback correctly parses and uses `userId` for authorization
 - [ ] OAuth callback successfully exchanges code for tokens
 - [ ] Token refresh works with real refresh tokens
 - [ ] MCP tools respond correctly with OAuth authentication
@@ -444,16 +498,18 @@ logger.security('OAuth state validation failed', {
 
 ## Common Pitfalls to Avoid
 
-1. **OAuth Flow Security**: Always validate state parameters for CSRF protection
-2. **Token Storage**: Use encrypted storage for refresh tokens and access tokens
-3. **Token Refresh**: Implement proactive refresh before expiration, not reactive
-4. **Error Handling**: Distinguish between recoverable and non-recoverable OAuth errors
-5. **Scope Management**: Request minimal required scopes, handle scope changes
-6. **Rate Limiting**: Respect provider rate limits and implement backoff strategies
-7. **Multi-tenant**: Ensure complete isolation between user instances
-8. **Caching**: Implement proper cache invalidation strategies
-9. **Session Management**: Coordinate token updates with active MCP sessions
-10. **Circuit Breakers**: Implement proper fallback mechanisms for provider outages
+1. **OAuth State Management**: Always include BOTH `userId` and `instanceId` in state parameter for security and authorization
+2. **OAuth Flow Security**: Always validate state parameters for CSRF protection  
+3. **User Authorization**: Use `userId` from state to verify user owns the instance before processing callback
+4. **Token Storage**: Use encrypted storage for refresh tokens and access tokens
+5. **Token Refresh**: Implement proactive refresh before expiration, not reactive
+6. **Error Handling**: Distinguish between recoverable and non-recoverable OAuth errors
+7. **Scope Management**: Request minimal required scopes, handle scope changes
+8. **Rate Limiting**: Respect provider rate limits and implement backoff strategies
+9. **Multi-tenant**: Ensure complete isolation between user instances
+10. **Caching**: Implement proper cache invalidation strategies
+11. **Session Management**: Coordinate token updates with active MCP sessions
+12. **Circuit Breakers**: Implement proper fallback mechanisms for provider outages
 
 ## Dependencies
 

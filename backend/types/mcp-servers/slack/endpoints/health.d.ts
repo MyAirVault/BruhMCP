@@ -6,9 +6,9 @@
 export function healthCheck(serviceConfig: Object): Object;
 /**
  * Get detailed health status for Slack MCP service
- * @returns {Object} Health status object
+ * @returns {Promise<Object>} Health status object
  */
-export function getHealthStatus(): Object;
+export function getHealthStatus(): Promise<Object>;
 /**
  * Get basic health status (lightweight)
  * @returns {Object} Basic health status

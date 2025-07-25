@@ -23,7 +23,7 @@ async function acquireSyncLock(instanceId) {
 		await new Promise(resolve => setTimeout(resolve, 10));
 	}
 	
-	const lockPromise = new Promise(resolve => {
+	const _lockPromise = new Promise(resolve => {
 		syncLocks.set(instanceId, resolve);
 	});
 	
@@ -127,7 +127,7 @@ export function getCacheStatistics() {
 	
 	const recentlyUsed = entries.filter(entry => {
 		const lastUsed = new Date(entry.last_used);
-		const hoursSinceUsed = (now - lastUsed) / (1000 * 60 * 60);
+		const hoursSinceUsed = (now - lastUsed.getTime()) / (1000 * 60 * 60);
 		return hoursSinceUsed < 1;
 	}).length;
 	
@@ -333,7 +333,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
-		const { getMCPInstanceById } = await import('../../../db/queries/mcpInstances/index.js');
+		const { getMCPInstanceById: _getMCPInstanceById } = await import('../../../db/queries/mcpInstances/index.js');
 		const { lookupInstanceCredentials } = await import('./database.js');
 		
 		// Get current cache state
@@ -352,10 +352,10 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		}
 		
 		// Check if database has newer data
-		const dbTokenTimestamp = dbInstance.credentials_updated_at ? 
-			new Date(dbInstance.credentials_updated_at).getTime() : 0;
+		const dbTokenTimestamp = /** @type {{credentials_updated_at?: string}} */ (dbInstance).credentials_updated_at ? 
+			new Date(/** @type {{credentials_updated_at: string}} */ (dbInstance).credentials_updated_at).getTime() : 0;
 		const cacheTimestamp = cachedCredential?.cached_at ? 
-			new Date(cachedCredential.cached_at).getTime() : 0;
+			new Date(/** @type {{cached_at: string}} */ (cachedCredential).cached_at).getTime() : 0;
 		
 		const dbIsNewer = dbTokenTimestamp > cacheTimestamp;
 		const cacheIsNewer = cacheTimestamp > dbTokenTimestamp;
@@ -365,21 +365,21 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 			console.log(`🔄 Syncing cache from database for instance: ${instanceId} (force: ${forceRefresh}, dbNewer: ${dbIsNewer})`);
 			
 			// Update cache with database data
-			if (dbInstance.access_token && dbInstance.refresh_token) {
-				const tokenExpiresAt = dbInstance.token_expires_at ? 
-					new Date(dbInstance.token_expires_at).getTime() : 
+			if (/** @type {{access_token?: string, refresh_token?: string}} */ (dbInstance).access_token && /** @type {{access_token: string, refresh_token: string}} */ (dbInstance).refresh_token) {
+				const tokenExpiresAt = /** @type {{token_expires_at?: string}} */ (dbInstance).token_expires_at ? 
+					new Date(/** @type {{token_expires_at: string}} */ (dbInstance).token_expires_at).getTime() : 
 					Date.now() + (3600 * 1000); // Default 1 hour
 				
 				setCachedCredential(instanceId, {
-					bearerToken: dbInstance.access_token,
-					refreshToken: dbInstance.refresh_token,
+					bearerToken: /** @type {{access_token: string}} */ (dbInstance).access_token,
+					refreshToken: /** @type {{refresh_token: string}} */ (dbInstance).refresh_token,
 					expiresAt: tokenExpiresAt,
-					user_id: dbInstance.user_id
+					user_id: /** @type {{user_id: string}} */ (dbInstance).user_id
 				});
 				
 				// Update session bearer token if session exists
 				const { updateSessionBearerToken } = await import('./handlerSessions.js');
-				updateSessionBearerToken(instanceId, dbInstance.access_token);
+				updateSessionBearerToken(instanceId, /** @type {{access_token: string}} */ (dbInstance).access_token);
 				
 				console.log(`✅ Updated cache from database for instance: ${instanceId}`);
 			} else {
@@ -397,15 +397,15 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 			
 			const { updateOAuthStatus } = await import('../../../db/queries/mcpInstances/index.js');
 			
-			const tokenExpiresAt = cachedCredential.expiresAt ? 
-				new Date(cachedCredential.expiresAt) : null;
+			const tokenExpiresAt = /** @type {{expiresAt?: number}} */ (cachedCredential).expiresAt ? 
+				new Date(/** @type {{expiresAt: number}} */ (cachedCredential).expiresAt) : null;
 			
 			await updateOAuthStatus(instanceId, {
 				status: 'completed',
-				accessToken: cachedCredential.bearerToken,
-				refreshToken: cachedCredential.refreshToken,
-				tokenExpiresAt: tokenExpiresAt,
-				scope: cachedCredential.scope || null
+				accessToken: /** @type {{bearerToken: string}} */ (cachedCredential).bearerToken,
+				refreshToken: /** @type {{refreshToken: string}} */ (cachedCredential).refreshToken,
+				tokenExpiresAt: tokenExpiresAt || undefined,
+				scope: /** @type {{scope?: string}} */ (cachedCredential).scope || undefined
 			});
 			
 			console.log(`✅ Updated database from cache for instance: ${instanceId}`);

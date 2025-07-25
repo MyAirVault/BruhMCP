@@ -73,6 +73,11 @@ export function createRateLimitMiddleware(options = {}) {
 		...options,
 	};
 
+	/**
+	 * @param {import('express').Request & {instanceId?: string}} req
+	 * @param {import('express').Response} res
+	 * @param {import('express').NextFunction} next
+	 */
 	return (req, res, next) => {
 		const instanceId = req.instanceId || req.params.instanceId;
 		const route = getRoutePattern(req.path);
@@ -85,7 +90,7 @@ export function createRateLimitMiddleware(options = {}) {
 		}
 
 		// Check route-specific rate limit
-		const routeConfig = RATE_LIMIT_CONFIG.routes[route];
+		const routeConfig = /** @type {typeof RATE_LIMIT_CONFIG.routes} */ (RATE_LIMIT_CONFIG.routes)[/** @type {keyof typeof RATE_LIMIT_CONFIG.routes} */ (route)];
 		if (routeConfig) {
 			const routeKey = `route:${instanceId}:${route}`;
 			if (isRateLimited(routeKey, routeConfig, now)) {
@@ -116,7 +121,7 @@ export function createRateLimitMiddleware(options = {}) {
 /**
  * Checks if a key is rate limited
  * @param {string} key - Rate limit key
- * @param {Object} config - Rate limit configuration
+ * @param {{requests: number, window: number}} config - Rate limit configuration
  * @param {number} now - Current timestamp
  * @returns {boolean} True if rate limited
  */
@@ -127,7 +132,7 @@ function isRateLimited(key, config, now) {
 	}
 
 	// Clean up old requests
-	record.requests = record.requests.filter(timestamp => now - timestamp < config.window);
+	record.requests = record.requests.filter(/** @param {number} timestamp */ (timestamp) => now - timestamp < config.window);
 
 	return record.requests.length >= config.requests;
 }
@@ -135,7 +140,7 @@ function isRateLimited(key, config, now) {
 /**
  * Records a request for rate limiting
  * @param {string} key - Rate limit key
- * @param {Object} config - Rate limit configuration
+ * @param {{requests: number, window: number}} config - Rate limit configuration
  * @param {number} now - Current timestamp
  */
 function recordRequest(key, config, now) {
@@ -152,7 +157,7 @@ function recordRequest(key, config, now) {
 	record.requests.push(now);
 
 	// Clean up old requests
-	record.requests = record.requests.filter(timestamp => now - timestamp < config.window);
+	record.requests = record.requests.filter(/** @param {number} timestamp */ (timestamp) => now - timestamp < config.window);
 
 	// Clean up old records
 	if (now - record.firstRequest > config.window * 2) {
@@ -162,9 +167,9 @@ function recordRequest(key, config, now) {
 
 /**
  * Adds rate limit headers to response
- * @param {Object} res - Express response object
+ * @param {import('express').Response} res - Express response object
  * @param {string} key - Rate limit key
- * @param {Object} config - Rate limit configuration
+ * @param {{requests: number, window: number}} config - Rate limit configuration
  * @param {number} now - Current timestamp
  */
 function addRateLimitHeaders(res, key, config, now) {
@@ -191,7 +196,7 @@ function addRateLimitHeaders(res, key, config, now) {
 
 /**
  * Sends rate limit exceeded response
- * @param {Object} res - Express response object
+ * @param {import('express').Response} res - Express response object
  * @param {string} message - Error message
  */
 function sendRateLimitResponse(res, message) {
@@ -322,7 +327,7 @@ export function getRateLimitStatistics() {
 
 	// Sort and get top keys
 	keyStats.sort((a, b) => b.requestCount - a.requestCount);
-	stats.topKeys = keyStats.slice(0, 10);
+	stats.topKeys = /** @type {Array<{key: string, requestCount: number, lastRequest: number}>} */ (keyStats.slice(0, 10));
 
 	return stats;
 }
@@ -395,7 +400,7 @@ export function isInstanceRateLimited(instanceId) {
  * @returns {Object} Remaining request information
  */
 export function getInstanceRemainingRequests(instanceId) {
-	const now = Date.now();
+	const _now = Date.now();
 	const globalKey = `global:${instanceId}`;
 	const instanceKey = `instance:${instanceId}`;
 

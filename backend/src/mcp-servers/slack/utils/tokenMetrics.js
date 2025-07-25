@@ -4,6 +4,40 @@
  */
 
 /**
+ * @typedef {Object} MetricsOverview
+ * @property {string} successRate - Success rate percentage
+ * @property {string} directFallbackRate - Direct fallback rate percentage
+ */
+
+/**
+ * @typedef {Object} MetricsPerformance
+ * @property {string} averageLatency - Average latency string
+ * @property {string} maxLatency - Maximum latency string
+ */
+
+/**
+ * @typedef {Object} MetricsSummary
+ * @property {MetricsOverview} overview - Overview metrics
+ * @property {MetricsPerformance} performance - Performance metrics
+ */
+
+/**
+ * @typedef {Object} InstanceMetric
+ * @property {number} attempts - Number of attempts
+ * @property {number} successes - Number of successes
+ * @property {number} failures - Number of failures
+ * @property {Object|null} lastAttempt - Last attempt data
+ * @property {number} averageLatency - Average latency
+ */
+
+/**
+ * @typedef {Object} DailyStat
+ * @property {number} attempts - Daily attempts
+ * @property {number} successes - Daily successes
+ * @property {number} failures - Daily failures
+ */
+
+/**
  * Metrics storage and management
  */
 class TokenMetrics {
@@ -20,9 +54,9 @@ class TokenMetrics {
       maxLatency: 0,
       minLatency: Infinity,
       lastReset: Date.now(),
-      errorsByType: /** @type {Record<string, number>} */ ({}),
-      dailyStats: /** @type {Record<string, any>} */ ({}),
-      instanceMetrics: /** @type {Record<string, any>} */ ({})
+      errorsByType: /** @type {Object.<string, number>} */ ({}),
+      dailyStats: /** @type {Object.<string, DailyStat>} */ ({}),
+      instanceMetrics: /** @type {Object.<string, InstanceMetric>} */ ({})
     };
   }
 
@@ -294,27 +328,29 @@ class TokenMetrics {
     const warnings = [];
 
     // Check success rate
-    const successRate = parseFloat(summary.overview.successRate);
+    const overview = summary.overview || { successRate: '0%', directFallbackRate: '0%' };
+    const successRate = parseFloat(overview.successRate || '0');
     if (successRate < 95) {
-      issues.push(`Low success rate: ${summary.overview.successRate}`);
+      issues.push(`Low success rate: ${overview.successRate || '0%'}`);
     } else if (successRate < 98) {
-      warnings.push(`Success rate below target: ${summary.overview.successRate}`);
+      warnings.push(`Success rate below target: ${overview.successRate || '0%'}`);
     }
 
     // Check direct fallback rate
-    const fallbackRate = parseFloat(summary.overview.directFallbackRate);
+    const fallbackRate = parseFloat(overview.directFallbackRate || '0');
     if (fallbackRate > 20) {
-      issues.push(`High fallback rate: ${summary.overview.directFallbackRate}`);
+      issues.push(`High fallback rate: ${overview.directFallbackRate || '0%'}`);
     } else if (fallbackRate > 10) {
-      warnings.push(`Elevated fallback rate: ${summary.overview.directFallbackRate}`);
+      warnings.push(`Elevated fallback rate: ${overview.directFallbackRate || '0%'}`);
     }
 
     // Check latency
-    const avgLatency = parseInt(summary.performance.averageLatency);
+    const performance = summary.performance || { averageLatency: '0ms', maxLatency: '0ms' };
+    const avgLatency = parseInt(performance.averageLatency || '0');
     if (avgLatency > 5000) {
-      issues.push(`High average latency: ${summary.performance.averageLatency}`);
+      issues.push(`High average latency: ${performance.averageLatency || '0ms'}`);
     } else if (avgLatency > 2000) {
-      warnings.push(`Elevated latency: ${summary.performance.averageLatency}`);
+      warnings.push(`Elevated latency: ${performance.averageLatency || '0ms'}`);
     }
 
     // Check error patterns

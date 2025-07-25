@@ -41,9 +41,7 @@ export async function setupRequestWithCachedToken(req, cachedCredential, instanc
   req.userId = cachedCredential.user_id;
   
   // Update usage tracking asynchronously
-  updateInstanceUsage(instanceId).catch((/** @type {Error} */ err) => {
-    console.error('Failed to update usage tracking:', err);
-  });
+  updateInstanceUsage(instanceId);
 }
 
 /**
@@ -112,9 +110,7 @@ export async function cacheAndSetupToken(
   req.userId = userId;
 
   // Update usage tracking
-  updateInstanceUsage(instanceId).catch((/** @type {Error} */ err) => {
-    console.error('Failed to update usage tracking:', err);
-  });
+  updateInstanceUsage(instanceId);
 }
 
 /**
@@ -149,9 +145,7 @@ export async function setupRequestWithNewTokens(req, accessToken, instanceId, us
   req.userId = userId;
 
   // Update usage tracking
-  updateInstanceUsage(instanceId).catch((/** @type {Error} */ err) => {
-    console.error('Failed to update usage tracking:', err);
-  });
+  updateInstanceUsage(instanceId);
 }
 
 /**

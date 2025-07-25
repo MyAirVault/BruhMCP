@@ -16,9 +16,15 @@ export function formatSlackTimestamp(ts) {
 }
 
 /**
+ * @typedef {Object} SlackUser
+ * @property {string} id - User ID
+ * @property {string} name - User name
+ */
+
+/**
  * Format Slack message text with user mentions
  * @param {string} text - Raw message text
- * @param {Object[]} users - Array of user objects for mention resolution
+ * @param {SlackUser[]} users - Array of user objects for mention resolution
  * @returns {string} Formatted text with resolved mentions
  */
 export function formatSlackText(text, users = []) {
@@ -63,9 +69,11 @@ export function formatSlackText(text, users = []) {
 	if (linkMatches) {
 		linkMatches.forEach(match => {
 			const parts = match.match(/<(https?:\/\/[^|>]+)(\|([^>]+))?>/);
-			const url = parts[1];
-			const linkText = parts[3] || url;
-			formattedText = formattedText.replace(match, `[${linkText}](${url})`);
+			if (parts && parts[1]) {
+				const url = parts[1];
+				const linkText = parts[3] || url;
+				formattedText = formattedText.replace(match, `[${linkText}](${url})`);
+			}
 		});
 	}
 

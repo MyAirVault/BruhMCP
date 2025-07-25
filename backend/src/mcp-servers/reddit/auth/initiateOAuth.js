@@ -52,13 +52,13 @@ async function initiateOAuth(credentials, userId, instanceId) {
 
 		console.log(`✅ Reddit OAuth initiated for instance: ${instanceId}`);
 
-		return {
+		return /** @type {OAuthResult & {instanceId: string}} */ ({
 			success: true,
 			authUrl: oauthResult.authUrl,
 			state: oauthResult.state,
 			instanceId: instanceId,
 			message: 'Reddit OAuth flow initiated successfully',
-		};
+		});
 	} catch (error) {
 		console.error('Reddit OAuth initiation error:', error);
 		return {

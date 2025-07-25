@@ -2,43 +2,43 @@
  * Lookup instance credentials from database
  * @param {string} instanceId - UUID of the service instance
  * @param {string} serviceName - Name of the MCP service (reddit)
- * @returns {Object|null} Instance credentials or null if not found
+ * @returns {Promise<Object|null>} Instance credentials or null if not found
  */
-export function lookupInstanceCredentials(instanceId: string, serviceName: string): Object | null;
+export function lookupInstanceCredentials(instanceId: string, serviceName: string): Promise<Object | null>;
 /**
  * Update instance usage tracking
  * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
-export function updateInstanceUsage(instanceId: string): boolean;
+export function updateInstanceUsage(instanceId: string): Promise<boolean>;
 /**
  * Get instance statistics
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Instance statistics or null if not found
+ * @returns {Promise<Object|null>} Instance statistics or null if not found
  */
-export function getInstanceStatistics(instanceId: string): Object | null;
+export function getInstanceStatistics(instanceId: string): Promise<Object | null>;
 /**
  * Update instance status
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newStatus - New status (active, inactive, expired)
- * @returns {boolean} True if update was successful
+ * @returns {Promise<boolean>} True if update was successful
  */
-export function updateInstanceStatus(instanceId: string, newStatus: string): boolean;
+export function updateInstanceStatus(instanceId: string, newStatus: string): Promise<boolean>;
 /**
  * Get all active instances for Reddit service
- * @returns {Array} Array of active instance records
+ * @returns {Promise<Array<Object>>} Array of active instance records
  */
-export function getActiveRedditInstances(): any[];
+export function getActiveRedditInstances(): Promise<Array<Object>>;
 /**
  * Validate instance exists and is accessible
  * @param {string} instanceId - UUID of the service instance
  * @param {string} userId - UUID of the user (for additional security)
- * @returns {boolean} True if instance is valid and accessible
+ * @returns {Promise<boolean>} True if instance is valid and accessible
  */
-export function validateInstanceAccess(instanceId: string, userId: string): boolean;
+export function validateInstanceAccess(instanceId: string, userId: string): Promise<boolean>;
 /**
  * Clean up expired instances
- * @returns {number} Number of instances marked as expired
+ * @returns {Promise<number>} Number of instances marked as expired
  */
-export function cleanupExpiredInstances(): number;
+export function cleanupExpiredInstances(): Promise<number>;
 //# sourceMappingURL=database.d.ts.map

@@ -57,7 +57,7 @@ export function handleRefreshFailure(instanceId, error) {
 	return {
 		requiresReauth,
 		error: error.message || 'Token refresh failed',
-		errorCode: error.errorType || 'TOKEN_REFRESH_FAILED',
+		errorCode: (error instanceof Error && 'errorType' in error) ? error.errorType : 'TOKEN_REFRESH_FAILED',
 		instanceId
 	};
 }
@@ -66,15 +66,12 @@ export function handleRefreshFailure(instanceId, error) {
  * Create token refresh failure response
  * @param {import('./types.js').ExpressResponse} res - Express response
  * @param {string} instanceId - Instance ID
- * @param {Object} errorDetails - Error details
+ * @param {{error: string, errorCode: string, requiresReauth: boolean, instanceId: string}} errorDetails - Error details
  * @returns {any} Error response
  */
-export function createRefreshFailureResponse(res, instanceId, errorDetails) {
+export function createRefreshFailureResponse(res, _instanceId, errorDetails) {
 	return ErrorResponses.unauthorized(res, errorDetails.error, {
-		instanceId: errorDetails.instanceId,
-		error: errorDetails.error,
-		errorCode: errorDetails.errorCode,
-		requiresReauth: errorDetails.requiresReauth
+		instanceId: errorDetails.instanceId
 	});
 }
 
@@ -86,10 +83,7 @@ export function createRefreshFailureResponse(res, instanceId, errorDetails) {
  */
 export function createReauthenticationResponse(res, instanceId) {
 	return ErrorResponses.unauthorized(res, 'OAuth authentication required - please re-authenticate', {
-		instanceId,
-		error: 'No valid access token and refresh token failed',
-		requiresReauth: true,
-		errorCode: 'OAUTH_FLOW_REQUIRED'
+		instanceId
 	});
 }
 

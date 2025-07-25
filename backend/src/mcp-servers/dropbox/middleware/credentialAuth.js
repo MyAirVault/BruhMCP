@@ -262,7 +262,7 @@ export function createCredentialAuthMiddleware() {
           // Record successful metrics
           recordTokenRefreshMetrics(
             instanceId, 
-            usedMethod, 
+            /** @type {'oauth_service' | 'direct_oauth'} */ (usedMethod), 
             true, // success
             '', // errorType
             '', // errorMessage
@@ -340,7 +340,7 @@ export function createCredentialAuthMiddleware() {
           // Record failed metrics
           recordTokenRefreshMetrics(
             instanceId, 
-            usedMethod, 
+            /** @type {'oauth_service' | 'direct_oauth'} */ (usedMethod), 
             false, // failure
             errorObj.errorType,
             errorObj.message,

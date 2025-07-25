@@ -56,9 +56,9 @@ export function setupRequestWithNewTokens(req: import("./types.js").ExpressReque
 export function isTokenExpired(expiresAt: number, bufferMinutes?: number): boolean;
 /**
  * Validate instance and user authorization
- * @param {import('./types.js').DatabaseInstance} [instance] - Database instance record
+ * @param {import('./types.js').DatabaseInstance | null} instance - Database instance record
  * @param {string} expectedUserId - Expected user ID
  * @returns {boolean} True if instance exists and belongs to the user
  */
-export function validateInstanceOwnership(instance?: import("./types.js").DatabaseInstance, expectedUserId: string): boolean;
+export function validateInstanceOwnership(instance: import("./types.js").DatabaseInstance | null, expectedUserId: string): boolean;
 //# sourceMappingURL=credentialManagement.d.ts.map

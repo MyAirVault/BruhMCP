@@ -57,7 +57,6 @@ async function initiateOAuth(credentials, userId, instanceId) {
 			success: true,
 			authUrl: oauthResult.authUrl,
 			state: oauthResult.state,
-			instanceId: instanceId,
 			message: 'Google Sheets OAuth flow initiated successfully',
 		};
 	} catch (error) {

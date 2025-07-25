@@ -41,10 +41,105 @@ export function resetTokenMetrics(): void;
  */
 export function getAggregatedTokenMetrics(): Object;
 export default tokenMetrics;
+export type MetricsOverview = {
+    /**
+     * - Success rate percentage
+     */
+    successRate: string;
+    /**
+     * - Direct fallback rate percentage
+     */
+    directFallbackRate: string;
+};
+export type MetricsPerformance = {
+    /**
+     * - Average latency string
+     */
+    averageLatency: string;
+    /**
+     * - Maximum latency string
+     */
+    maxLatency: string;
+};
+export type MetricsSummary = {
+    /**
+     * - Overview metrics
+     */
+    overview: MetricsOverview;
+    /**
+     * - Performance metrics
+     */
+    performance: MetricsPerformance;
+};
+export type InstanceMetric = {
+    /**
+     * - Number of attempts
+     */
+    attempts: number;
+    /**
+     * - Number of successes
+     */
+    successes: number;
+    /**
+     * - Number of failures
+     */
+    failures: number;
+    /**
+     * - Last attempt data
+     */
+    lastAttempt: Object | null;
+    /**
+     * - Average latency
+     */
+    averageLatency: number;
+};
+export type DailyStat = {
+    /**
+     * - Daily attempts
+     */
+    attempts: number;
+    /**
+     * - Daily successes
+     */
+    successes: number;
+    /**
+     * - Daily failures
+     */
+    failures: number;
+};
 declare const tokenMetrics: TokenMetrics;
 /**
  * Token Refresh Metrics System for Slack MCP
  * Tracks performance and reliability metrics for OAuth token operations
+ */
+/**
+ * @typedef {Object} MetricsOverview
+ * @property {string} successRate - Success rate percentage
+ * @property {string} directFallbackRate - Direct fallback rate percentage
+ */
+/**
+ * @typedef {Object} MetricsPerformance
+ * @property {string} averageLatency - Average latency string
+ * @property {string} maxLatency - Maximum latency string
+ */
+/**
+ * @typedef {Object} MetricsSummary
+ * @property {MetricsOverview} overview - Overview metrics
+ * @property {MetricsPerformance} performance - Performance metrics
+ */
+/**
+ * @typedef {Object} InstanceMetric
+ * @property {number} attempts - Number of attempts
+ * @property {number} successes - Number of successes
+ * @property {number} failures - Number of failures
+ * @property {Object|null} lastAttempt - Last attempt data
+ * @property {number} averageLatency - Average latency
+ */
+/**
+ * @typedef {Object} DailyStat
+ * @property {number} attempts - Daily attempts
+ * @property {number} successes - Daily successes
+ * @property {number} failures - Daily failures
  */
 /**
  * Metrics storage and management
@@ -62,9 +157,15 @@ declare class TokenMetrics {
         maxLatency: number;
         minLatency: number;
         lastReset: number;
-        errorsByType: Record<string, number>;
-        dailyStats: Record<string, any>;
-        instanceMetrics: Record<string, any>;
+        errorsByType: {
+            [x: string]: number;
+        };
+        dailyStats: {
+            [x: string]: DailyStat;
+        };
+        instanceMetrics: {
+            [x: string]: InstanceMetric;
+        };
     };
     /**
      * Record a token refresh attempt

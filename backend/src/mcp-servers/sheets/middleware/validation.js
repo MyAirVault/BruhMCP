@@ -25,8 +25,7 @@ export function isValidInstanceId(instanceId) {
  */
 export function createInstanceIdValidationError(res, instanceId) {
 	return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
-		instanceId,
-		expectedFormat: 'UUID v4'
+		instanceId
 	});
 }
 
@@ -44,8 +43,7 @@ export function validateInstance(instance, res, instanceId, checkOAuth = false) 
 		return {
 			isValid: false,
 			errorResponse: ErrorResponses.notFound(res, 'Instance', {
-				instanceId,
-				service: 'sheets'
+				instanceId
 			})
 		};
 	}
@@ -55,8 +53,7 @@ export function validateInstance(instance, res, instanceId, checkOAuth = false) 
 		return {
 			isValid: false,
 			errorResponse: ErrorResponses.serviceUnavailable(res, 'Google Sheets service is currently disabled', {
-				instanceId,
-				service: 'sheets'
+				instanceId
 			})
 		};
 	}
@@ -66,8 +63,7 @@ export function validateInstance(instance, res, instanceId, checkOAuth = false) 
 		return {
 			isValid: false,
 			errorResponse: ErrorResponses.forbidden(res, 'Instance is paused', {
-				instanceId,
-				status: instance.status
+				instanceId
 			})
 		};
 	}
@@ -76,8 +72,7 @@ export function validateInstance(instance, res, instanceId, checkOAuth = false) 
 		return {
 			isValid: false,
 			errorResponse: ErrorResponses.forbidden(res, 'Instance has expired', {
-				instanceId,
-				status: instance.status
+				instanceId
 			})
 		};
 	}
@@ -87,8 +82,7 @@ export function validateInstance(instance, res, instanceId, checkOAuth = false) 
 		return {
 			isValid: false,
 			errorResponse: ErrorResponses.forbidden(res, 'Instance has expired', {
-				instanceId,
-				expiresAt: instance.expires_at
+				instanceId
 			})
 		};
 	}
@@ -99,8 +93,7 @@ export function validateInstance(instance, res, instanceId, checkOAuth = false) 
 			return {
 				isValid: false,
 				errorResponse: ErrorResponses.internal(res, 'Invalid OAuth credentials configuration', {
-					instanceId,
-					authType: instance.auth_type
+					instanceId
 				})
 			};
 		}

@@ -11,17 +11,7 @@ import { z } from 'zod';
 import { NotionService } from '../api/notionApi.js';
 import {
 	searchPagesSchema,
-	getPageSchema,
-	getPageChildrenSchema,
-	createPageSchema,
-	updatePageSchema,
-	getDatabaseSchema,
-	queryDatabaseSchema,
-	createDatabaseSchema,
-	updateDatabaseSchema,
-	appendBlockChildrenSchema,
-	getUserSchema,
-	listUsersSchema
+	getPageSchema
 } from './schemas.js';
 
 /**
@@ -30,6 +20,61 @@ import {
  * @property {string} displayName
  * @property {string} version
  * @property {string[]} scopes
+ */
+
+/**
+ * @typedef {Object} NotionSearchOptions
+ * @property {number} [page_size] - Number of results to return
+ * @property {string} [start_cursor] - Pagination cursor
+ * @property {Object} [sort] - Sort criteria
+ * @property {Object} [filter] - Filter criteria
+ */
+
+/**
+ * @typedef {Object} NotionPageCreateData
+ * @property {Object} parent - Parent page or database
+ * @property {Object} [properties] - Page properties
+ * @property {Array<Object>} [children] - Page content blocks
+ */
+
+/**
+ * @typedef {Object} NotionPageUpdateData
+ * @property {Object} [properties] - Properties to update
+ * @property {boolean} [archived] - Archive status
+ */
+
+/**
+ * @typedef {Object} NotionDatabaseQueryOptions
+ * @property {Object} [filter] - Filter criteria
+ * @property {Array<Object>} [sorts] - Sort criteria
+ * @property {string} [start_cursor] - Pagination cursor
+ * @property {number} [page_size] - Number of results
+ */
+
+/**
+ * @typedef {Object} NotionDatabaseCreateData
+ * @property {Object} parent - Parent page
+ * @property {Array<Object>} title - Database title
+ * @property {Record<string, Object>} properties - Database properties schema
+ */
+
+/**
+ * @typedef {Object} NotionDatabaseUpdateData
+ * @property {Array<Object>} [title] - Database title
+ * @property {Record<string, Object>} [properties] - Database properties schema
+ */
+
+/**
+ * @typedef {Object} MCPRequest
+ * @property {string} [id] - Request ID
+ * @property {string} method - Method name
+ * @property {Object} [params] - Parameters
+ */
+
+/**
+ * @typedef {Object} MCPToolResult
+ * @property {Array<{type: string, text: string}>} content - Response content
+ * @property {boolean} [isError] - Whether this is an error response
  */
 
 export class NotionMCPHandler {
@@ -73,7 +118,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error searching Notion:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error searching Notion: ${error.message}` }]
+						content: [{ type: 'text', text: `Error searching Notion: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -96,7 +141,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error getting page:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error getting page: ${error.message}` }]
+						content: [{ type: 'text', text: `Error getting page: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -123,7 +168,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error getting page blocks:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error getting page blocks: ${error.message}` }]
+						content: [{ type: 'text', text: `Error getting page blocks: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -154,7 +199,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error creating page:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error creating page: ${error.message}` }]
+						content: [{ type: 'text', text: `Error creating page: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -181,7 +226,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error updating page:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error updating page: ${error.message}` }]
+						content: [{ type: 'text', text: `Error updating page: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -206,7 +251,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error getting database:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error getting database: ${error.message}` }]
+						content: [{ type: 'text', text: `Error getting database: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -235,7 +280,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error querying database:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error querying database: ${error.message}` }]
+						content: [{ type: 'text', text: `Error querying database: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -265,7 +310,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error creating database:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error creating database: ${error.message}` }]
+						content: [{ type: 'text', text: `Error creating database: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -292,7 +337,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error updating database:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error updating database: ${error.message}` }]
+						content: [{ type: 'text', text: `Error updating database: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -318,7 +363,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error appending blocks:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error appending blocks: ${error.message}` }]
+						content: [{ type: 'text', text: `Error appending blocks: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -343,7 +388,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error deleting block:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error deleting block: ${error.message}` }]
+						content: [{ type: 'text', text: `Error deleting block: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -362,7 +407,7 @@ export class NotionMCPHandler {
 				console.error(`❌ Error getting current user:`, error);
 				return {
 					isError: true,
-					content: [{ type: 'text', text: `Error getting current user: ${error.message}` }]
+					content: [{ type: 'text', text: `Error getting current user: ${error instanceof Error ? error.message : String(error)}` }]
 				};
 			}
 		});
@@ -387,7 +432,7 @@ export class NotionMCPHandler {
 					console.error(`❌ Error listing users:`, error);
 					return {
 						isError: true,
-						content: [{ type: 'text', text: `Error listing users: ${error.message}` }]
+						content: [{ type: 'text', text: `Error listing users: ${error instanceof Error ? error.message : String(error)}` }]
 					};
 				}
 			}
@@ -456,7 +501,7 @@ export class NotionMCPHandler {
 			await transport.handleRequest(req, res, message);
 			console.log(`✅ Request handled successfully`);
 			
-		} catch (/** @type {any} */ error) {
+		} catch (error) {
 			console.error('❌ StreamableHTTP processing error:', error);
 
 			// Return proper JSON-RPC error response
@@ -466,7 +511,7 @@ export class NotionMCPHandler {
 				error: {
 					code: -32603,
 					message: 'Internal error',
-					data: { details: error.message },
+					data: { details: error instanceof Error ? error.message : String(error) },
 				},
 			});
 		}

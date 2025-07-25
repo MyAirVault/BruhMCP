@@ -7,10 +7,48 @@ import { makeSlackRequest } from './requestHandler.js';
 import { formatFile } from '../../utils/slackFormatting.js';
 
 /**
+ * @typedef {Object} UploadFileArgs
+ * @property {string} channels - Channel IDs to upload to
+ * @property {string} content - File content
+ * @property {string} filename - File name
+ * @property {string} [title] - File title
+ * @property {string} [filetype] - File type
+ * @property {string} [initial_comment] - Initial comment
+ */
+
+/**
+ * @typedef {Object} FileInfoArgs
+ * @property {string} file - File ID
+ */
+
+/**
+ * @typedef {import('../../middleware/types.js').SlackFile} SlackFile
+ */
+
+/**
+ * @typedef {Object} SlackFileResponse
+ * @property {boolean} ok - Success indicator
+ * @property {SlackFile} [file] - File object
+ * @property {string} [error] - Error message
+ */
+
+/**
+ * @typedef {import('../../utils/messageFormatting.js').FormattedFile} FormattedFile
+ */
+
+/**
+ * @typedef {Object} FileUploadResult
+ * @property {boolean} ok - Success indicator
+ * @property {FormattedFile|null} file - Formatted file object
+ * @property {string} summary - Summary message
+ * @property {string} [error] - Error message
+ */
+
+/**
  * Upload a file to Slack
- * @param {Object} args - Upload arguments
+ * @param {UploadFileArgs} args - Upload arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Upload result
+ * @returns {Promise<FileUploadResult>} Upload result
  */
 export async function uploadFile(args, bearerToken) {
 	const { channels, content, filename, title, filetype, initial_comment } = args;
@@ -24,6 +62,7 @@ export async function uploadFile(args, bearerToken) {
 	if (filetype) formData.append('filetype', filetype);
 	if (initial_comment) formData.append('initial_comment', initial_comment);
 
+	/** @type {SlackFileResponse} */
 	const response = await makeSlackRequest('/files.upload', bearerToken, {
 		method: 'POST',
 		formData,
@@ -37,15 +76,24 @@ export async function uploadFile(args, bearerToken) {
 }
 
 /**
+ * @typedef {Object} FileInfoResult
+ * @property {boolean} ok - Success indicator
+ * @property {FormattedFile|null} file - Formatted file object
+ * @property {string} summary - Summary message
+ * @property {string} [error] - Error message
+ */
+
+/**
  * Get information about a file
- * @param {Object} args - Query arguments
+ * @param {FileInfoArgs} args - Query arguments
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} File info result
+ * @returns {Promise<FileInfoResult>} File info result
  */
 export async function getFileInfo(args, bearerToken) {
 	const { file } = args;
 
 	const params = new URLSearchParams({ file });
+	/** @type {SlackFileResponse} */
 	const response = await makeSlackRequest(`/files.info?${params}`, bearerToken);
 
 	return {

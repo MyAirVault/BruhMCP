@@ -260,7 +260,7 @@ if (process.env.NODE_ENV === 'development') {
 // Error handling middleware with logging
 app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
 
-app.use((/** @type {Error} */ err, /** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
+app.use((/** @type {Error} */ err, /** @type {import('express').Request} */ _req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ _next) => {
   console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
   const errorMessage = err instanceof Error ? err.message : String(err);
   ErrorResponses.internal(res, 'Internal server error', {

@@ -35,7 +35,7 @@ export async function formatCells(params, bearerToken) {
 		{}
 	);
 
-	const sheet = metadata.sheets.find(s => s.properties.title === sheetName);
+	const sheet = metadata.sheets.find(/** @param {any} s */ (s) => s.properties.title === sheetName);
 	if (!sheet) {
 		throw new Error(`Sheet "${sheetName}" not found`);
 	}
@@ -120,13 +120,18 @@ export async function batchUpdate(params, bearerToken) {
  * Convert A1 notation to grid range
  * @param {string} a1Notation - A1 notation (e.g., 'A1:B2')
  * @param {number} sheetId - Sheet ID
- * @returns {Object} Grid range object
+ * @returns {{sheetId: number, startRowIndex: number, startColumnIndex: number, endRowIndex: number, endColumnIndex: number}} Grid range object
  */
 function convertA1ToGridRange(a1Notation, sheetId) {
 	// Simple A1 to grid range conversion
 	// This is a simplified version - full implementation would handle all cases
+	/** @type {{sheetId: number, startRowIndex: number, startColumnIndex: number, endRowIndex: number, endColumnIndex: number}} */
 	const range = {
-		sheetId: sheetId
+		sheetId: sheetId,
+		startRowIndex: 0,
+		startColumnIndex: 0,
+		endRowIndex: 0,
+		endColumnIndex: 0
 	};
 
 	// Parse single cell or range
@@ -151,7 +156,7 @@ function convertA1ToGridRange(a1Notation, sheetId) {
 /**
  * Parse A1 cell notation
  * @param {string} cell - Cell reference (e.g., 'A1')
- * @returns {Object} Row and column indices
+ * @returns {{row: number, col: number}} Row and column indices
  */
 function parseA1Cell(cell) {
 	const match = cell.match(/^([A-Z]+)(\d+)$/);

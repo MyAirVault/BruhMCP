@@ -23,8 +23,8 @@ async function validateCredentials(credentials, userId) {
 		console.log('📨 Received credentials:', Object.keys(credentials));
 
 		// Check required fields - handle both formats
-		const clientId = credentials.client_id || credentials.clientId;
-		const clientSecret = credentials.client_secret || credentials.clientSecret;
+		const clientId = credentials.clientId;
+		const clientSecret = credentials.clientSecret;
 		
 		if (!credentials || !clientId || !clientSecret) {
 			return {
@@ -34,9 +34,10 @@ async function validateCredentials(credentials, userId) {
 		}
 
 		// Convert our credentials format to what the existing validator expects
+		/** @type {{clientId: string, clientSecret: string}} */
 		const sheetsCredentials = {
-			client_id: clientId,
-			client_secret: clientSecret
+			clientId: clientId,
+			clientSecret: clientSecret
 		};
 
 		// Create validator instance

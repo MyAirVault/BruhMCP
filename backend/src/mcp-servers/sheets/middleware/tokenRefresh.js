@@ -96,7 +96,7 @@ async function processFailedRefresh(instanceId, error, method, startTime) {
 		instanceId, 
 		method, 
 		false, // failure
-		error.errorType || 'UNKNOWN_ERROR',
+		(error instanceof Error && 'errorType' in error) ? error.errorType : 'UNKNOWN_ERROR',
 		error.message || 'Token refresh failed',
 		startTime, 
 		endTime
@@ -105,10 +105,10 @@ async function processFailedRefresh(instanceId, error, method, startTime) {
 	// Update OAuth status to failed
 	await updateOAuthStatus(instanceId, {
 		status: 'failed',
-		accessToken: null,
-		refreshToken: null,
-		tokenExpiresAt: null,
-		scope: null
+		accessToken: undefined,
+		refreshToken: undefined,
+		tokenExpiresAt: undefined,
+		scope: undefined
 	});
 }
 
@@ -129,7 +129,7 @@ export async function performTokenRefresh(instanceId, refreshToken, instance, re
 	try {
 		const newTokens = await attemptTokenRefresh(refreshToken, instance);
 		
-		const { bearerToken, expiresAt } = await processSuccessfulRefresh(
+		const { bearerToken } = await processSuccessfulRefresh(
 			instanceId, 
 			newTokens, 
 			refreshToken, 
@@ -139,10 +139,10 @@ export async function performTokenRefresh(instanceId, refreshToken, instance, re
 		);
 
 		// Setup request with new token
-		req.bearerToken = bearerToken;
-		req.instanceId = instanceId;
-		req.userId = instance.user_id;
-		req.oauth = {
+		/** @type {import('express').Request & {bearerToken?: string, instanceId?: string, userId?: string, oauth?: Object}} */ (req).bearerToken = bearerToken;
+		/** @type {import('express').Request & {bearerToken?: string, instanceId?: string, userId?: string, oauth?: Object}} */ (req).instanceId = instanceId;
+		/** @type {import('express').Request & {bearerToken?: string, instanceId?: string, userId?: string, oauth?: Object}} */ (req).userId = instance.user_id;
+		/** @type {import('express').Request & {bearerToken?: string, instanceId?: string, userId?: string, oauth?: Object}} */ (req).oauth = {
 			bearerToken: bearerToken,
 			instanceId: instanceId,
 			userId: instance.user_id
@@ -154,7 +154,8 @@ export async function performTokenRefresh(instanceId, refreshToken, instance, re
 		return { success: true, method };
 		
 	} catch (error) {
-		await processFailedRefresh(instanceId, error, method, startTime);
-		return { success: false, error };
+		const refreshError = error instanceof Error ? error : new Error(String(error));
+		await processFailedRefresh(instanceId, refreshError, method, startTime);
+		return { success: false, error: refreshError };
 	}
 }

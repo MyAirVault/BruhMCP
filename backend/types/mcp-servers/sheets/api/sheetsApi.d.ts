@@ -24,28 +24,35 @@ export class SheetsApi {
      * Read values from a range
      * @param {string} spreadsheetId - Spreadsheet ID
      * @param {string} range - A1 notation range
-     * @param {Object} options - Read options
+     * @param {{majorDimension?: string, valueRenderOption?: string}} options - Read options
      * @returns {Promise<Object>} Range values
      */
-    readRange(spreadsheetId: string, range: string, options?: Object): Promise<Object>;
+    readRange(spreadsheetId: string, range: string, options?: {
+        majorDimension?: string;
+        valueRenderOption?: string;
+    }): Promise<Object>;
     /**
      * Write values to a range
      * @param {string} spreadsheetId - Spreadsheet ID
      * @param {string} range - A1 notation range
-     * @param {Array<Array>} values - 2D array of values
-     * @param {Object} options - Write options
+     * @param {Array<Array<any>>} values - 2D array of values
+     * @param {{valueInputOption?: string}} options - Write options
      * @returns {Promise<Object>} Update result
      */
-    writeRange(spreadsheetId: string, range: string, values: Array<any[]>, options?: Object): Promise<Object>;
+    writeRange(spreadsheetId: string, range: string, values: Array<Array<any>>, options?: {
+        valueInputOption?: string;
+    }): Promise<Object>;
     /**
      * Append values to a sheet
      * @param {string} spreadsheetId - Spreadsheet ID
      * @param {string} range - A1 notation range
-     * @param {Array<Array>} values - 2D array of values
-     * @param {Object} options - Append options
+     * @param {Array<Array<any>>} values - 2D array of values
+     * @param {{valueInputOption?: string}} options - Append options
      * @returns {Promise<Object>} Append result
      */
-    appendValues(spreadsheetId: string, range: string, values: Array<any[]>, options?: Object): Promise<Object>;
+    appendValues(spreadsheetId: string, range: string, values: Array<Array<any>>, options?: {
+        valueInputOption?: string;
+    }): Promise<Object>;
     /**
      * Clear values from a range
      * @param {string} spreadsheetId - Spreadsheet ID
@@ -64,9 +71,9 @@ export class SheetsApi {
      * Add a new sheet to the spreadsheet
      * @param {string} spreadsheetId - Spreadsheet ID
      * @param {string} sheetName - Name for the new sheet
-     * @param {number} [index] - Position to insert the sheet
+     * @param {number} [_index] - Position to insert the sheet (unused)
      * @returns {Promise<Object>} Add sheet result
      */
-    addSheet(spreadsheetId: string, sheetName: string, index?: number): Promise<Object>;
+    addSheet(spreadsheetId: string, sheetName: string, _index?: number): Promise<Object>;
 }
 //# sourceMappingURL=sheetsApi.d.ts.map
