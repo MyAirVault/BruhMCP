@@ -12,6 +12,9 @@ logs/
 new-plan.txt
 backend/public/downloads/
 
+# === Frontend build output ===
+backend/public/
+
 # === Build output ===
 dist/
 build/
