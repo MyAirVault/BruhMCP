@@ -17,4 +17,12 @@ export function fetchWithRetry(url: string, options?: RequestInit, maxRetries?: 
  * @returns {Promise<Response>} Response object
  */
 export function fetchFileWithRetry(url: string, options?: RequestInit, maxRetries?: number, baseDelay?: number): Promise<Response>;
+/**
+ * Fetch with retry logic for Dropbox API
+ * Handles rate limiting and temporary errors
+ */
+export const MAX_RETRIES: 3;
+export const RETRY_DELAY: 1000;
+export const DEFAULT_TIMEOUT: 30000;
+export const LONG_TIMEOUT: 120000;
 //# sourceMappingURL=fetchWithRetry.d.ts.map

@@ -78,7 +78,7 @@
  * @property {string} team_name - Slack team name
  */
 
-import { pool } from '../../../db/config.js';
+const { pool  } = require('../../../db/config');
 
 /**
  * Lookup instance credentials from database
@@ -86,7 +86,7 @@ import { pool } from '../../../db/config.js';
  * @param {string} serviceName - Name of the MCP service (slack)
  * @returns {Promise<InstanceCredentials|null>} Instance credentials or null if not found
  */
-export async function lookupInstanceCredentials(instanceId, serviceName) {
+async function lookupInstanceCredentials(instanceId, serviceName) {
   try {
     
     const query = `
@@ -146,7 +146,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
-export async function updateInstanceUsage(instanceId) {
+async function updateInstanceUsage(instanceId) {
   try {
     
     const query = `
@@ -185,7 +185,7 @@ export async function updateInstanceUsage(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<InstanceStatistics|null>} Instance statistics or null if not found
  */
-export async function getInstanceStatistics(instanceId) {
+async function getInstanceStatistics(instanceId) {
   try {
     
     const query = `
@@ -230,7 +230,7 @@ export async function getInstanceStatistics(instanceId) {
  * @param {string} newStatus - New status (active, inactive, expired)
  * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
-export async function updateInstanceStatus(instanceId, newStatus) {
+async function updateInstanceStatus(instanceId, newStatus) {
   try {
     
     const query = `
@@ -264,7 +264,7 @@ export async function updateInstanceStatus(instanceId, newStatus) {
  * Get all active instances for Slack service
  * @returns {Promise<ActiveInstance[]>} Array of active instance records
  */
-export async function getActiveSlackInstances() {
+async function getActiveSlackInstances() {
   try {
     
     const query = `
@@ -307,7 +307,7 @@ export async function getActiveSlackInstances() {
  * @param {string} userId - UUID of the user (for additional security)
  * @returns {Promise<boolean>} Promise that resolves to true if instance is valid and accessible
  */
-export async function validateInstanceAccess(instanceId, userId) {
+async function validateInstanceAccess(instanceId, userId) {
   try {
     
     const query = `
@@ -342,7 +342,7 @@ export async function validateInstanceAccess(instanceId, userId) {
  * Clean up expired instances
  * @returns {Promise<number>} Number of instances marked as expired
  */
-export async function cleanupExpiredInstances() {
+async function cleanupExpiredInstances() {
   try {
     
     const query = `
@@ -381,7 +381,7 @@ export async function cleanupExpiredInstances() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<SlackWorkspaceInfo|null>} Workspace information or null if not found
  */
-export async function getSlackWorkspaceInfo(instanceId) {
+async function getSlackWorkspaceInfo(instanceId) {
   try {
     
     const query = `
@@ -423,7 +423,7 @@ export async function getSlackWorkspaceInfo(instanceId) {
  * @param {SlackTeamInfo} teamInfo - Team information object
  * @returns {Promise<boolean>} Promise that resolves to true if update was successful
  */
-export async function updateSlackTeamInfo(instanceId, teamInfo) {
+async function updateSlackTeamInfo(instanceId, teamInfo) {
   try {
     
     const query = `
@@ -453,3 +453,14 @@ export async function updateSlackTeamInfo(instanceId, teamInfo) {
     throw new Error(`Failed to update Slack team info: ${error.message}`);
   }
 }
+module.exports = {
+  lookupInstanceCredentials,
+  updateInstanceUsage,
+  getInstanceStatistics,
+  updateInstanceStatus,
+  getActiveSlackInstances,
+  validateInstanceAccess,
+  cleanupExpiredInstances,
+  getSlackWorkspaceInfo,
+  updateSlackTeamInfo
+};

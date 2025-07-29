@@ -3,8 +3,8 @@
  * Converts Figma layout properties to CSS-friendly format
  */
 
-import { isInAutoLayoutFlow, isFrame, isLayout, isRectangle } from '../utils/identity.js';
-import { generateCSSShorthand, pixelRound } from '../utils/common.js';
+const { isInAutoLayoutFlow, isFrame, isLayout, isRectangle } = require('../utils/identity.js');
+const { generateCSSShorthand, pixelRound } = require('../utils/common.js');
 
 /**
  * @typedef {Object} Point
@@ -65,7 +65,7 @@ import { generateCSSShorthand, pixelRound } from '../utils/common.js';
  * @param {FigmaNode|undefined} [parent] - Parent node
  * @returns {SimplifiedLayout}
  */
-export function buildSimplifiedLayout(n, parent) {
+function buildSimplifiedLayout(n, parent) {
 	const frameValues = buildSimplifiedFrameValues(n);
 	const layoutValues = buildSimplifiedLayoutValues(n, parent, frameValues.mode) || {};
 
@@ -320,3 +320,7 @@ function buildSimplifiedLayoutValues(n, parent, mode) {
 	return layoutValues;
 }
 
+
+module.exports = {
+	buildSimplifiedLayout
+};

@@ -3,7 +3,7 @@
  * Provides metrics and monitoring for the credential cache
  */
 
-import { getCacheMap } from './cacheCore.js';
+const { getCacheMap  } = require('./cacheCore');
 
 /**
  * @typedef {import('./cacheCore.js').CacheEntry} CacheEntry
@@ -34,7 +34,7 @@ import { getCacheMap } from './cacheCore.js';
  * Get comprehensive cache statistics
  * @returns {CacheStatistics} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
 	const cache = getCacheMap();
 	/** @type {CacheStatistics} */
 	const stats = {
@@ -105,7 +105,7 @@ export function getCacheStatistics() {
  * Get list of cached instance IDs
  * @returns {string[]} Array of instance IDs
  */
-export function getCachedInstanceIds() {
+function getCachedInstanceIds() {
 	return Array.from(getCacheMap().keys());
 }
 
@@ -123,7 +123,7 @@ export function getCachedInstanceIds() {
  * Get performance metrics for cache operations
  * @returns {CachePerformanceMetrics} Performance metrics
  */
-export function getCachePerformanceMetrics() {
+function getCachePerformanceMetrics() {
 	const cache = getCacheMap();
 	const stats = getCacheStatistics();
 	
@@ -161,3 +161,9 @@ function calculateCacheHealthScore(stats) {
 	
 	return Math.max(0, Math.min(100, Math.floor(score)));
 }
+
+module.exports = {
+	getCacheStatistics,
+	getCachedInstanceIds,
+	getCachePerformanceMetrics
+};

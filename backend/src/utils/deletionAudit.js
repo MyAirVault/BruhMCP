@@ -13,7 +13,7 @@
  * @param {string} deletionEvent.status - Deletion status (started, completed, failed)
  * @param {string} [deletionEvent.error] - Error message if deletion failed
  */
-export function logDeletionEvent(deletionEvent) {
+function logDeletionEvent(deletionEvent) {
 	const timestamp = new Date().toISOString();
 	const logEntry = {
 		timestamp,
@@ -52,7 +52,7 @@ export function logDeletionEvent(deletionEvent) {
  * @param {number} metrics.totalDuration - Total deletion duration in ms
  * @param {boolean} metrics.cacheCleanupSuccess - Whether cache cleanup succeeded
  */
-export function trackDeletionMetrics(metrics) {
+function trackDeletionMetrics(metrics) {
 	const timestamp = new Date().toISOString();
 	const metricsEntry = {
 		timestamp,
@@ -84,7 +84,7 @@ export function trackDeletionMetrics(metrics) {
  * @param {string} request.userId - User requesting deletion
  * @returns {Object} Validation result
  */
-export function validateDeletionRequest(request) {
+function validateDeletionRequest(request) {
 	const errors = [];
 
 	// Validate instance ID format (UUID)
@@ -120,7 +120,7 @@ export function validateDeletionRequest(request) {
  * @param {number} deletionResult.duration - Total operation duration
  * @returns {Object} Formatted deletion summary
  */
-export function generateDeletionSummary(deletionResult) {
+function generateDeletionSummary(deletionResult) {
 	return {
 		instance_id: deletionResult.instanceId,
 		service_type: deletionResult.serviceName,
@@ -141,7 +141,7 @@ export function generateDeletionSummary(deletionResult) {
  * @param {number} instance.usage_count - Total usage count
  * @returns {Object} Deletion permission result
  */
-export function checkDeletionPermission(instance) {
+function checkDeletionPermission(instance) {
 	const warnings = [];
 	let allowed = true;
 
@@ -178,7 +178,7 @@ export function checkDeletionPermission(instance) {
  * @param {string} instanceId - Instance ID that failed to delete
  * @returns {Object} Formatted error response
  */
-export function formatDeletionError(error, instanceId) {
+function formatDeletionError(error, instanceId) {
 	const errorMessage = error instanceof Error ? error.message : String(error);
 
 	// Map internal errors to user-friendly messages
@@ -219,3 +219,12 @@ function mapErrorToUserMessage(internalError) {
 	// Default user-friendly message
 	return 'Failed to delete instance - please contact support if the problem persists';
 }
+
+module.exports = {
+	logDeletionEvent,
+	trackDeletionMetrics,
+	validateDeletionRequest,
+	generateDeletionSummary,
+	checkDeletionPermission,
+	formatDeletionError
+};

@@ -3,10 +3,10 @@
  * Enhanced with caching and YAML formatting
  */
 
-import { z } from 'zod';
-import * as yaml from 'js-yaml';
-import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
+const { z  } = require('zod');
+const yaml = require('js-yaml');
+const { createLogger  } = require('../utils/logger.js');
+const { AirtableErrorHandler  } = require('../utils/errorHandler.js');
 
 const logger = createLogger('GetBaseSchemaTool');
 
@@ -33,7 +33,7 @@ const logger = createLogger('GetBaseSchemaTool');
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupGetBaseSchemaTool(server, airtableService, measurePerformance, serviceConfig) {
+function setupGetBaseSchemaTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
 		'get_base_schema',
 		'Get the schema for a specific Airtable base',
@@ -74,3 +74,5 @@ export function setupGetBaseSchemaTool(server, airtableService, measurePerforman
 		})
 	);
 }
+
+module.exports = setupGetBaseSchemaTool;

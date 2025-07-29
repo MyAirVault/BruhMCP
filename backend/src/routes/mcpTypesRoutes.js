@@ -6,9 +6,9 @@
  * @typedef {import('express').NextFunction} NextFunction
  */
 
-import { Router } from 'express';
-import { getMCPTypes } from '../controllers/mcpTypes/getMCPTypes.js';
-import { getMCPTypeByNameHandler } from '../controllers/mcpTypes/getMCPTypeByName.js';
+const { Router } = require('express');
+const { getMCPTypes } = require('../controllers/mcpTypes/getMCPTypes.js');
+const { getMCPTypeByNameHandler } = require('../controllers/mcpTypes/getMCPTypeByName.js');
 
 const router = Router();
 
@@ -18,4 +18,4 @@ router.get('/', getMCPTypes);
 // GET /api/v1/mcp-types/:name - Get specific MCP type by name
 router.get('/:name', getMCPTypeByNameHandler);
 
-export default router;
+module.exports = router;

@@ -3,7 +3,7 @@
  * Handles message, attachment, reaction, and file formatting
  */
 
-import { debug } from './logger.js';
+const { debug } = require('./logger');
 
 /**
  * @typedef {import('../middleware/types.js').SlackMessage} SlackMessage
@@ -121,7 +121,7 @@ import { debug } from './logger.js';
  * @param {SlackMessage|null} message - Raw Slack message object
  * @returns {FormattedMessage|null} Formatted message
  */
-export function formatMessageResponse(message) {
+function formatMessageResponse(message) {
 	if (!message) return null;
 
 	/** @type {FormattedMessage} */
@@ -131,7 +131,7 @@ export function formatMessageResponse(message) {
 		text: message.text,
 		user: message.user,
 		channel: message.channel,
-		timestamp: message.ts ? new Date(parseFloat(message.ts) * 1000).toISOString() : null
+		timestamp: message.ts ? new Date(parseFloat(message.ts) * 1000).toISOString() : null,
 	};
 
 	// Add thread information if available
@@ -150,7 +150,10 @@ export function formatMessageResponse(message) {
 
 	// Add attachments if available
 	if (message.attachments && Array.isArray(message.attachments) && message.attachments.length > 0) {
-		formatted.attachments = message.attachments.map(formatAttachment).filter((/** @type {FormattedAttachment | null} */ attachment) => attachment !== null);
+		/** @type {FormattedAttachment[]} */
+		formatted.attachments = message.attachments
+			.map(formatAttachment)
+			.filter(/** @return {attachment is FormattedAttachment} */ attachment => attachment !== null);
 	}
 
 	// Add blocks if available
@@ -160,12 +163,18 @@ export function formatMessageResponse(message) {
 
 	// Add reactions if available
 	if (message.reactions && Array.isArray(message.reactions) && message.reactions.length > 0) {
-		formatted.reactions = message.reactions.map(formatReaction).filter((/** @type {FormattedReaction | null} */ reaction) => reaction !== null);
+		/** @type {FormattedReaction[]} */
+		formatted.reactions = message.reactions
+			.map(formatReaction)
+			.filter(/** @return {reaction is FormattedReaction} */ reaction => reaction !== null);
 	}
 
 	// Add files if available
 	if (message.files && Array.isArray(message.files) && message.files.length > 0) {
-		formatted.files = message.files.map(formatFile).filter((/** @type {FormattedFile | null} */ file) => file !== null);
+		/** @type {FormattedFile[]} */
+		formatted.files = message.files
+			.map(formatFile)
+			.filter(/** @return {file is FormattedFile} */ file => file !== null);
 	}
 
 	// Add edited information if available
@@ -173,7 +182,7 @@ export function formatMessageResponse(message) {
 		formatted.edited = {
 			user: message.edited.user,
 			ts: message.edited.ts,
-			timestamp: new Date(parseFloat(message.edited.ts) * 1000).toISOString()
+			timestamp: new Date(parseFloat(message.edited.ts) * 1000).toISOString(),
 		};
 	}
 
@@ -185,7 +194,7 @@ export function formatMessageResponse(message) {
  * @param {SlackAttachment} attachment - Raw Slack attachment object
  * @returns {FormattedAttachment|null} Formatted attachment
  */
-export function formatAttachment(attachment) {
+function formatAttachment(attachment) {
 	if (!attachment) return null;
 
 	return {
@@ -204,7 +213,7 @@ export function formatAttachment(attachment) {
 		footer: attachment.footer,
 		footer_icon: attachment.footer_icon,
 		ts: attachment.ts,
-		fields: Array.isArray(attachment.fields) ? attachment.fields : []
+		fields: Array.isArray(attachment.fields) ? attachment.fields : [],
 	};
 }
 
@@ -213,13 +222,13 @@ export function formatAttachment(attachment) {
  * @param {SlackReaction} reaction - Raw Slack reaction object
  * @returns {FormattedReaction|null} Formatted reaction
  */
-export function formatReaction(reaction) {
+function formatReaction(reaction) {
 	if (!reaction) return null;
 
 	return {
 		name: reaction.name,
 		count: reaction.count,
-		users: Array.isArray(reaction.users) ? reaction.users : []
+		users: Array.isArray(reaction.users) ? reaction.users : [],
 	};
 }
 
@@ -228,7 +237,7 @@ export function formatReaction(reaction) {
  * @param {SlackFile} file - Raw Slack file object
  * @returns {FormattedFile|null} Formatted file
  */
-export function formatFile(file) {
+function formatFile(file) {
 	if (!file) return null;
 
 	return {
@@ -258,7 +267,7 @@ export function formatFile(file) {
 		permalink: file.permalink,
 		permalink_public: file.permalink_public,
 		created: file.created,
-		timestamp: file.timestamp
+		timestamp: file.timestamp,
 	};
 }
 
@@ -267,15 +276,23 @@ export function formatFile(file) {
  * @param {SlackFileUploadResult} uploadResult - File upload result
  * @returns {FormattedFileUploadResult|null} Formatted upload result
  */
-export function formatFileUploadResult(uploadResult) {
+function formatFileUploadResult(uploadResult) {
 	if (!uploadResult) return null;
-	
+
 	debug('Formatting file upload result', { fileId: uploadResult.file?.id });
-	
+
 	return {
 		ok: uploadResult.ok,
 		file: uploadResult.file ? formatFile(uploadResult.file) : null,
 		upload_time: new Date().toISOString(),
-		warning: uploadResult.warning
+		warning: uploadResult.warning,
 	};
 }
+
+module.exports = {
+	formatMessageResponse,
+	formatAttachment,
+	formatReaction,
+	formatFile,
+	formatFileUploadResult,
+};

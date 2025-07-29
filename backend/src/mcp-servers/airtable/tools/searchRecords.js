@@ -3,10 +3,10 @@
  * Enhanced search functionality across tables
  */
 
-import { z } from 'zod';
-import * as yaml from 'js-yaml';
-import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
+const { z  } = require('zod');
+const yaml = require('js-yaml');
+const { createLogger  } = require('../utils/logger.js');
+const { AirtableErrorHandler  } = require('../utils/errorHandler.js');
 
 const logger = createLogger('SearchRecordsTool');
 
@@ -37,7 +37,7 @@ const logger = createLogger('SearchRecordsTool');
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupSearchRecordsTool(server, airtableService, measurePerformance, serviceConfig) {
+function setupSearchRecordsTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
 		'search_records',
 		'Search for records across one or more tables in an Airtable base',
@@ -136,3 +136,5 @@ export function setupSearchRecordsTool(server, airtableService, measurePerforman
 		})
 	);
 }
+
+module.exports = setupSearchRecordsTool;

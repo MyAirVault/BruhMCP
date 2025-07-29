@@ -29,11 +29,11 @@ export type AuthRegistryConfig = {
  */
 export class MCPAuthRegistry {
     /** @type {import('./core/registry.js').ServiceRegistry} */
-    serviceRegistry: import("./core/registry.js").ServiceRegistry;
+    serviceRegistry: import('./core/registry.js').ServiceRegistry;
     /** @type {boolean} */
     initialized: boolean;
     /** @type {import('express').Router|null} */
-    router: import("express").Router | null;
+    router: import('express').Router | null;
     /** @type {NodeJS.Timeout|null} */
     discoveryInterval: NodeJS.Timeout | null;
     /**
@@ -41,12 +41,12 @@ export class MCPAuthRegistry {
      * @param {Partial<AuthRegistryConfig>} [config] - Registry configuration
      * @returns {Promise<void>}
      */
-    initialize(config?: Partial<AuthRegistryConfig>): Promise<void>;
+    initialize(config?: Partial<AuthRegistryConfig> | undefined): Promise<void>;
     /**
      * Gets the Express router for the auth registry
      * @returns {import('express').Router|null} Express router or null if not initialized
      */
-    getRouter(): import("express").Router | null;
+    getRouter(): import('express').Router | null;
     /**
      * Gets list of all available services
      * @returns {string[]} Array of service names
@@ -63,13 +63,13 @@ export class MCPAuthRegistry {
      * @param {string} serviceName - Name of the service
      * @returns {import('./types/serviceTypes.js').ServiceRegistryEntry|null} Service entry or null if not found
      */
-    getService(serviceName: string): import("./types/serviceTypes.js").ServiceRegistryEntry | null;
+    getService(serviceName: string): import('./types/serviceTypes.js').ServiceRegistryEntry | null;
     /**
      * Gets services by type
      * @param {import('./types/serviceTypes.js').ServiceType} type - Service type
      * @returns {string[]} Array of service names matching type
      */
-    getServicesByType(type: import("./types/serviceTypes.js").ServiceType): string[];
+    getServicesByType(type: import('./types/serviceTypes.js').ServiceType): string[];
     /**
      * Gets registry statistics
      * @returns {{initialized: boolean, totalServices: number, activeServices: number, servicesByType: Object.<string, number>, services?: string[]}} Registry statistics

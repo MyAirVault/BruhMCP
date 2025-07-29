@@ -4,50 +4,87 @@
  * Provides a single import point for all functions previously in mcpInstancesQueries.js
  */
 
-// Import and re-export all functions from each module
-export {
+// Import all functions from each module
+const {
 	getAllMCPInstances,
 	getMCPInstanceById,
 	updateMCPInstance,
 	deleteMCPInstance
-} from './crud.js';
+} = require('./crud.js');
 
-export {
+const {
 	toggleMCPInstance,
 	renewMCPInstance,
 	updateInstanceStatus,
 	renewInstanceExpiration
-} from './status.js';
+} = require('./status.js');
 
-export {
+const {
 	createMCPInstance,
 	createMCPInstanceWithLimitCheck
-} from './creation.js';
+} = require('./creation.js');
 
-export {
+const {
 	updateOAuthStatus,
 	updateOAuthStatusWithLocking
-} from './oauth.js';
+} = require('./oauth.js');
 
-export {
+const {
 	getInstancesByStatus,
 	getExpiredInstances,
 	getFailedOAuthInstances,
 	getPendingOAuthInstances,
 	bulkMarkInstancesExpired
-} from './maintenance.js';
+} = require('./maintenance.js');
 
-export {
+const {
 	getUserInstanceCount,
 	updateMCPServiceStats
-} from './statistics.js';
+} = require('./statistics.js');
 
-export {
+const {
 	createTokenAuditLog,
 	getTokenAuditLogs,
 	getTokenAuditStats,
 	cleanupTokenAuditLogs
-} from './audit.js';
+} = require('./audit.js');
 
-// Re-export all types for convenience
-export * from './types.js';
+// Re-export all functions
+module.exports = {
+	// From crud.js
+	getAllMCPInstances,
+	getMCPInstanceById,
+	updateMCPInstance,
+	deleteMCPInstance,
+	
+	// From status.js
+	toggleMCPInstance,
+	renewMCPInstance,
+	updateInstanceStatus,
+	renewInstanceExpiration,
+	
+	// From creation.js
+	createMCPInstance,
+	createMCPInstanceWithLimitCheck,
+	
+	// From oauth.js
+	updateOAuthStatus,
+	updateOAuthStatusWithLocking,
+	
+	// From maintenance.js
+	getInstancesByStatus,
+	getExpiredInstances,
+	getFailedOAuthInstances,
+	getPendingOAuthInstances,
+	bulkMarkInstancesExpired,
+	
+	// From statistics.js
+	getUserInstanceCount,
+	updateMCPServiceStats,
+	
+	// From audit.js
+	createTokenAuditLog,
+	getTokenAuditLogs,
+	getTokenAuditStats,
+	cleanupTokenAuditLogs
+};

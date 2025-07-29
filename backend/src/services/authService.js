@@ -1,8 +1,8 @@
 // @ts-check
-import { v4 as uuidv4 } from 'uuid';
-import { findOrCreateUser } from '../db/queries/userQueries.js';
-import { generateJWT } from '../utils/jwt.js';
-import { setInterval } from 'node:timers';
+const { v4: uuidv4 } = require('uuid');
+const { findOrCreateUser } = require('../db/queries/userQueries.js');
+const { generateJWT } = require('../utils/jwt.js');
+const { setInterval } = require('node:timers');
 
 class AuthService {
 	constructor() {
@@ -130,4 +130,5 @@ class AuthService {
 }
 
 // Export singleton instance
-export const authService = new AuthService();
+const authService = new AuthService();
+module.exports = { authService };

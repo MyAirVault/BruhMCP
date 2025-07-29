@@ -3,7 +3,7 @@
  * Standardized function for validating Figma API key credentials
  */
 
-import createFigmaValidator from '../validation/credentialValidator.js';
+const createFigmaValidator = require('../validation/credentialValidator.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -26,7 +26,7 @@ async function validateCredentials(credentials, userId) {
 		// Convert our credentials format to what the existing validator expects
 		// Frontend sends 'api_key', we need to handle both formats
 		const figmaCredentials = {
-			api_key: credentials.api_key || credentials.apiKey || credentials.apiToken
+			api_key: credentials.apiKey || credentials.apiToken || /** @type {any} */ (credentials).api_key
 		};
 
 		if (!figmaCredentials.api_key) {
@@ -77,4 +77,6 @@ async function validateCredentials(credentials, userId) {
 }
 
 
-export { validateCredentials };
+module.exports = {
+	validateCredentials
+};

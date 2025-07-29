@@ -2,9 +2,10 @@
  * Common utilities * Handles color parsing, variable generation, validation, and common operations
  */
 
-import { promises as fs, existsSync, constants } from 'fs';
-import { join } from 'path';
-import fetch from 'node-fetch';
+const fs = require('fs');
+const { existsSync, constants } = require('fs');
+const { join } = require('path');
+const { axiosGet } = require('../../../utils/axiosUtils.js');
 
 /**
  * Download Figma image and save it locally * @param {string} fileName - The filename to save as
@@ -12,12 +13,12 @@ import fetch from 'node-fetch';
  * @param {string} imageUrl - Image URL
  * @returns {Promise<string>} Full file path where the image was saved
  */
-export async function downloadFigmaImage(fileName, localPath, imageUrl) {
+async function downloadFigmaImage(fileName, localPath, imageUrl) {
 	try {
 		// Ensure local path exists with proper error handling
 		try {
 			if (!existsSync(localPath)) {
-				await fs.mkdir(localPath, { recursive: true });
+				await fs.promises.mkdir(localPath, { recursive: true });
 			}
 		} catch (dirError) {
 			const errorMessage = dirError instanceof Error ? dirError.message : String(dirError);
@@ -29,24 +30,22 @@ export async function downloadFigmaImage(fileName, localPath, imageUrl) {
 		
 		// Check if we can write to the directory
 		try {
-			await fs.access(localPath, constants.W_OK);
+			await fs.promises.access(localPath, constants.W_OK);
 		} catch (accessError) {
 			const errorMessage = accessError instanceof Error ? accessError.message : String(accessError);
 			throw new Error(`No write permission for directory ${localPath}: ${errorMessage}`);
 		}
 
-		// Use fetch to download the image
-		const response = await fetch(imageUrl, { method: "GET" });
+		// Use axios to download the image
+		const response = await axiosGet(imageUrl, {
+			responseType: 'arraybuffer'
+		});
 
-		if (!response.ok) {
-			throw new Error(`Failed to download image: ${response.statusText}`);
-		}
-
-		// Use buffer approach for compatibility with older node-fetch
-		const buffer = await response.buffer();
+		// Convert response data to buffer
+		const buffer = Buffer.from(response.data);
 		
 		// Write the buffer to file
-		await fs.writeFile(fullPath, buffer);
+		await fs.promises.writeFile(fullPath, buffer);
 		
 		return fullPath;
 	} catch (error) {
@@ -59,7 +58,7 @@ export async function downloadFigmaImage(fileName, localPath, imageUrl) {
  * Remove keys with empty arrays or empty objects from an object * @param {any} input - The input object or value
  * @returns {any} The processed object or the original value
  */
-export function removeEmptyKeys(input) {
+function removeEmptyKeys(input) {
 	// If not an object type or null, return directly
 	if (typeof input !== "object" || input === null) {
 		return input;
@@ -103,7 +102,7 @@ export function removeEmptyKeys(input) {
  * @param {number} opacity - Opacity value (0-1)
  * @returns {string} Color string in rgba format
  */
-export function hexToRgba(hex, opacity = 1) {
+function hexToRgba(hex, opacity = 1) {
 	// Remove possible # prefix
 	hex = hex.replace("#", "");
 
@@ -129,7 +128,7 @@ export function hexToRgba(hex, opacity = 1) {
  * @param {number} opacity - The opacity of the color, if not included in alpha channel
  * @returns {{ hex: string, opacity: number }} The converted color
  */
-export function convertColor(color, opacity = 1) {
+function convertColor(color, opacity = 1) {
 	const r = Math.round(color.r * 255);
 	const g = Math.round(color.g * 255);
 	const b = Math.round(color.b * 255);
@@ -149,7 +148,7 @@ export function convertColor(color, opacity = 1) {
  * @param {number} opacity - The opacity of the color, if not included in alpha channel
  * @returns {string} The converted color
  */
-export function formatRGBAColor(color, opacity = 1) {
+function formatRGBAColor(color, opacity = 1) {
 	const r = Math.round(color.r * 255);
 	const g = Math.round(color.g * 255);
 	const b = Math.round(color.b * 255);
@@ -163,7 +162,7 @@ export function formatRGBAColor(color, opacity = 1) {
  * Generate a 6-character random variable ID * @param {string} prefix - ID prefix
  * @returns {string} A 6-character random ID string with prefix
  */
-export function generateVarId(prefix = "var") {
+function generateVarId(prefix = "var") {
 	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	let result = "";
 
@@ -181,7 +180,7 @@ export function generateVarId(prefix = "var") {
  * @param {{ ignoreZero?: boolean, suffix?: string }} options - Options for generation
  * @returns {string|undefined} The generated shorthand
  */
-export function generateCSSShorthand(values, options = {}) {
+function generateCSSShorthand(values, options = {}) {
 	const { ignoreZero = true, suffix = "px" } = options;
 	const { top, right, bottom, left } = values;
 	
@@ -205,7 +204,7 @@ export function generateCSSShorthand(values, options = {}) {
  * @param {{ type: string, imageRef?: string, scaleMode?: string, color?: { r: number, g: number, b: number, a: number }, opacity?: number, gradientHandlePositions?: any[], gradientStops?: Array<{ position: number, color: { r: number, g: number, b: number, a: number } }> }} raw - The Figma paint to convert
  * @returns {string | { type: string, imageRef?: string, scaleMode?: string, gradientHandlePositions?: any[], gradientStops?: Array<{ position: number, color: { hex: string, opacity: number } }> }} The converted SimplifiedFill
  */
-export function parsePaint(raw) {
+function parsePaint(raw) {
 	if (raw.type === "IMAGE") {
 		return {
 			type: "IMAGE",
@@ -250,7 +249,7 @@ export function parsePaint(raw) {
  * @param {{ visible?: boolean }} element - The item to check
  * @returns {boolean} True if the item is visible, false otherwise
  */
-export function isVisible(element) {
+function isVisible(element) {
 	return element.visible ?? true;
 }
 
@@ -258,7 +257,7 @@ export function isVisible(element) {
  * Rounds a number to two decimal places, suitable for pixel value processing * @param {number} num - The number to be rounded
  * @returns {number} The rounded number with two decimal places
  */
-export function pixelRound(num) {
+function pixelRound(num) {
 	if (isNaN(num)) {
 		throw new TypeError(`Input must be a valid number`);
 	}
@@ -271,7 +270,7 @@ export function pixelRound(num) {
  * @param {string} name - Component name to convert
  * @returns {string} Valid variable key
  */
-export function createVariableKey(name) {
+function createVariableKey(name) {
 	if (!name || typeof name !== 'string') {
 		return 'unnamed';
 	}
@@ -298,6 +297,20 @@ export function createVariableKey(name) {
  * @param {any} value - Value to check
  * @returns {boolean} True if value exists
  */
-export function hasValue(value) {
+function hasValue(value) {
 	return value !== null && value !== undefined;
 }
+module.exports = {
+	downloadFigmaImage,
+	removeEmptyKeys,
+	hexToRgba,
+	convertColor,
+	formatRGBAColor,
+	generateVarId,
+	generateCSSShorthand,
+	parsePaint,
+	isVisible,
+	pixelRound,
+	createVariableKey,
+	hasValue
+};

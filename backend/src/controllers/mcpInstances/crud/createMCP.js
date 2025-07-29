@@ -3,17 +3,17 @@
  * Updated for Phase 2: Instance-based routing without process spawning
  */
 
-// import { randomUUID } from 'crypto'; // @ts-ignore - keeping for future functionality
-import { createMCPSchema } from '../schemas.js';
-import { calculateExpirationDate } from '../utils.js';
-import { ErrorResponses, formatZodErrors } from '../../../utils/errorResponse.js';
-import { updateMCPServiceStats, createMCPInstanceWithLimitCheck } from '../../../db/queries/mcpInstances/index.js';
-import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
-import { createMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
-import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
+// const { randomUUID } = require('crypto'); // @ts-ignore - keeping for future functionality
+const { createMCPSchema } = require('../schemas.js');
+const { calculateExpirationDate } = require('../utils.js');
+const { ErrorResponses, formatZodErrors } = require('../../../utils/errorResponse.js');
+const { updateMCPServiceStats, createMCPInstanceWithLimitCheck } = require('../../../db/queries/mcpInstances/index.js');
+const { getMCPTypeByName } = require('../../../db/queries/mcpTypesQueries.js');
+const { createMCPLogDirectory } = require('../../../utils/logDirectoryManager.js');
+const mcpInstanceLogger = require('../../../utils/mcpInstanceLogger.js');
 // Import new MCP Auth Registry
-import { authRegistry } from '../../../services/mcp-auth-registry/index.js';
-import { deleteMCPInstance } from '../../../db/queries/mcpInstances/crud.js';
+const { authRegistry } = require('../../../services/mcp-auth-registry/index.js');
+const { deleteMCPInstance } = require('../../../db/queries/mcpInstances/crud.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -71,7 +71,7 @@ import { deleteMCPInstance } from '../../../db/queries/mcpInstances/crud.js';
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  */
-export async function createMCP(req, res) {
+async function createMCP(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -92,7 +92,7 @@ export async function createMCP(req, res) {
 		const { mcp_type, custom_name, expiration_option, credentials } = validationResult.data;
 
 		// Get user plan for atomic limit checking
-		const { getUserPlan, isUserPlanActive } = await import('../../../db/queries/userPlansQueries.js');
+		const { getUserPlan, isUserPlanActive } = require('../../../db/queries/userPlansQueries.js');
 		const userPlan = await getUserPlan(userId);
 
 		if (!userPlan) {
@@ -362,3 +362,5 @@ export async function createMCP(req, res) {
 		});
 	}
 }
+
+module.exports = { createMCP };

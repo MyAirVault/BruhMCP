@@ -4,7 +4,7 @@
 
 /// <reference path="./types.js" />
 
-import { ErrorResponses } from '../../../utils/errorResponse.js';
+const { ErrorResponses  } = require('../../../utils/errorResponse');
 
 /**
  * Creates a system error response
@@ -13,7 +13,7 @@ import { ErrorResponses } from '../../../utils/errorResponse.js';
  * @param {Error|unknown} error - Error object
  * @returns {void}
  */
-export function createSystemErrorResponse(res, instanceId, error) {
+function createSystemErrorResponse(res, instanceId, error) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   console.error(`System error for instance ${instanceId}:`, errorMessage);
   
@@ -30,7 +30,7 @@ export function createSystemErrorResponse(res, instanceId, error) {
  * @param {Error|unknown} error - Error object
  * @returns {void}
  */
-export function createLightweightSystemErrorResponse(res, instanceId, error) {
+function createLightweightSystemErrorResponse(res, instanceId, error) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   console.error(`Lightweight auth system error for instance ${instanceId}:`, errorMessage);
   
@@ -47,7 +47,7 @@ export function createLightweightSystemErrorResponse(res, instanceId, error) {
  * @param {boolean} requiresReauth - Whether re-authentication is required
  * @returns {{requiresReauth: boolean, error: string}}
  */
-export function handleRefreshFailure(instanceId, error, requiresReauth) {
+function handleRefreshFailure(instanceId, error, requiresReauth) {
   if (requiresReauth) {
     console.error(`🔐 Re-authentication required for instance ${instanceId}: ${error}`);
   } else {
@@ -64,7 +64,7 @@ export function handleRefreshFailure(instanceId, error, requiresReauth) {
  * @param {string} error - Error message
  * @returns {void}
  */
-export function createRefreshFailureResponse(res, instanceId, error) {
+function createRefreshFailureResponse(res, instanceId, error) {
   ErrorResponses.unauthorized(res, 'Failed to refresh OAuth token', {
     instanceId,
     error,
@@ -78,7 +78,7 @@ export function createRefreshFailureResponse(res, instanceId, error) {
  * @param {string} instanceId - Instance ID
  * @returns {void}
  */
-export function createReauthenticationResponse(res, instanceId) {
+function createReauthenticationResponse(res, instanceId) {
   ErrorResponses.unauthorized(res, 'Re-authentication required', {
     instanceId,
     oauthStatus: 'expired',
@@ -92,7 +92,7 @@ export function createReauthenticationResponse(res, instanceId) {
  * @param {string} instanceId - Instance ID
  * @returns {void}
  */
-export function logRefreshFallback(instanceId) {
+function logRefreshFallback(instanceId) {
   console.log(`🔄 Attempting direct Google OAuth refresh for instance: ${instanceId}`);
 }
 
@@ -102,7 +102,7 @@ export function logRefreshFallback(instanceId) {
  * @param {string} instanceId - Instance ID
  * @returns {void}
  */
-export function createNoValidTokenResponse(res, instanceId) {
+function createNoValidTokenResponse(res, instanceId) {
   ErrorResponses.unauthorized(res, 'No valid OAuth token available', {
     instanceId,
     message: 'No valid access token or refresh token available. Please complete OAuth authentication.',
@@ -117,7 +117,7 @@ export function createNoValidTokenResponse(res, instanceId) {
  * @param {Error|unknown} error - Error object
  * @returns {void}
  */
-export function handleOAuthError(res, instanceId, error) {
+function handleOAuthError(res, instanceId, error) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   
   // Check for specific OAuth errors
@@ -143,3 +143,14 @@ export function handleOAuthError(res, instanceId, error) {
     createSystemErrorResponse(res, instanceId, error);
   }
 }
+
+module.exports = {
+  createSystemErrorResponse,
+  createLightweightSystemErrorResponse,
+  handleRefreshFailure,
+  createRefreshFailureResponse,
+  createReauthenticationResponse,
+  logRefreshFallback,
+  createNoValidTokenResponse,
+  handleOAuthError
+};

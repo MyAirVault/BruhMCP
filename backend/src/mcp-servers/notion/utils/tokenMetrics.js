@@ -51,7 +51,7 @@ const metricsStore = new Map();
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
  */
-export function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
+function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
 	const duration = endTime - startTime;
 	const timestamp = new Date().toISOString();
 
@@ -89,7 +89,7 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
  * @param {string} instanceId - Instance ID
  * @returns {TokenMetric[]} Array of metrics
  */
-export function getTokenRefreshMetrics(instanceId) {
+function getTokenRefreshMetrics(instanceId) {
 	const metrics = [];
 
 	for (const [, metric] of metricsStore.entries()) {
@@ -106,7 +106,7 @@ export function getTokenRefreshMetrics(instanceId) {
  * @param {string|null} instanceId - Instance ID (optional)
  * @returns {TokenRefreshStats} Aggregated statistics
  */
-export function getTokenRefreshStats(instanceId = null) {
+function getTokenRefreshStats(instanceId = null) {
 	const relevantMetrics = instanceId ? getTokenRefreshMetrics(instanceId) : Array.from(metricsStore.values());
 
 	if (relevantMetrics.length === 0) {
@@ -187,7 +187,7 @@ function cleanupMetrics(instanceId) {
 /**
  * Clear all metrics (for testing)
  */
-export function clearAllMetrics() {
+function clearAllMetrics() {
 	metricsStore.clear();
 }
 
@@ -195,6 +195,11 @@ export function clearAllMetrics() {
  * Export metrics for external monitoring systems
  * @returns {TokenMetric[]} All metrics
  */
-export function exportMetrics() {
+function exportMetrics() {
 	return Array.from(metricsStore.values());
 }
+
+module.exports = {
+	recordTokenRefreshMetrics,
+	exportMetrics
+};

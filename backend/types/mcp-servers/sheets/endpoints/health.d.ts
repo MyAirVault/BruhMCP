@@ -1,4 +1,4 @@
-export default healthCheck;
+export = healthCheck;
 /**
  * Health check endpoint handler
  * @param {{params: {instanceId: string}}} req - Express request object

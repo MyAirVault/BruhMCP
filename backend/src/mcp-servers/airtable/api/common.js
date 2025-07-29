@@ -2,9 +2,9 @@
  * Common constants and utilities for Airtable API modules
  */
 
-import fetch from 'node-fetch';
+const { axios } = require('../../../utils/axiosUtils.js');
 
-export const AIRTABLE_BASE_URL = 'https://api.airtable.com/v0';
+const AIRTABLE_BASE_URL = 'https://api.airtable.com/v0';
 
 /**
  * @typedef {Object} AirtableRecord
@@ -51,7 +51,7 @@ export const AIRTABLE_BASE_URL = 'https://api.airtable.com/v0';
  * @returns {Promise<void>}
  * @throws {Error} When API response indicates an error
  */
-export async function handleApiError(response, context) {
+async function handleApiError(response, context) {
 	if (!response.ok) {
 		if (response.status === 401) {
 			throw new Error('Invalid Airtable API key');
@@ -89,7 +89,7 @@ export async function handleApiError(response, context) {
  * @param {RequestOptions} [options] - Fetch options
  * @returns {Promise<import('node-fetch').Response>}
  */
-export async function makeAuthenticatedRequest(endpoint, apiKey, options = {}) {
+async function makeAuthenticatedRequest(endpoint, apiKey, options = {}) {
 	const url = endpoint.startsWith('http') ? endpoint : `${AIRTABLE_BASE_URL}${endpoint}`;
 	
 	/** @type {Record<string, string>} */
@@ -103,13 +103,27 @@ export async function makeAuthenticatedRequest(endpoint, apiKey, options = {}) {
 		Object.assign(headers, options.headers);
 	}
 	
-	/** @type {import('node-fetch').Response} */
-	const response = await fetch(url, {
-		...options,
+	const response = await axios({
+		method: options.method || 'GET',
+		url: url,
 		headers,
+		data: options.body,
+		...options
 	});
 
-	return response;
+	// Create a fetch-like response object for backwards compatibility
+	/** @type {any} */
+	const fetchLikeResponse = {
+		ok: response.status >= 200 && response.status < 300,
+		status: response.status,
+		statusText: response.statusText,
+		headers: response.headers,
+		data: response.data,
+		json: async () => response.data,
+		text: async () => typeof response.data === 'string' ? response.data : JSON.stringify(response.data)
+	};
+
+	return fetchLikeResponse;
 }
 
 /**
@@ -117,7 +131,7 @@ export async function makeAuthenticatedRequest(endpoint, apiKey, options = {}) {
  * @param {Record<string, string | number | boolean | string[] | undefined | null>} params - Query parameters
  * @returns {URLSearchParams}
  */
-export function buildQueryParams(params) {
+function buildQueryParams(params) {
 	const searchParams = new URLSearchParams();
 	
 	for (const [key, value] of Object.entries(params)) {
@@ -139,7 +153,7 @@ export function buildQueryParams(params) {
  * @param {string} type - Type of ID (base, table, record, etc.)
  * @throws {Error} If ID format is invalid
  */
-export function validateAirtableId(id, type) {
+function validateAirtableId(id, type) {
 	if (!id || typeof id !== 'string') {
 		throw new Error(`${type} ID must be a non-empty string`);
 	}
@@ -165,7 +179,7 @@ export function validateAirtableId(id, type) {
  * @param {string | number | boolean | Object | null | undefined} input - Input to sanitize
  * @returns {string | number | boolean | Object | null | undefined} Sanitized input
  */
-export function sanitizeInput(input) {
+function sanitizeInput(input) {
 	if (typeof input === 'string') {
 		return input.trim();
 	}
@@ -185,7 +199,7 @@ export function sanitizeInput(input) {
  * @param {string} operation - Operation type
  * @returns {Object | string | number | boolean | null} Formatted response
  */
-export function formatApiResponse(data, operation) {
+function formatApiResponse(data, operation) {
 	// Add metadata about the operation
 	if (data && typeof data === 'object') {
 		return {
@@ -199,3 +213,13 @@ export function formatApiResponse(data, operation) {
 	}
 	return data;
 }
+
+module.exports = {
+	AIRTABLE_BASE_URL,
+	handleApiError,
+	makeAuthenticatedRequest,
+	buildQueryParams,
+	validateAirtableId,
+	sanitizeInput,
+	formatApiResponse
+};

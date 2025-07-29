@@ -6,7 +6,7 @@
  * @param {string} email - Recipient email address
  * @returns {string} HTML email content
  */
-export function magicLinkEmailTemplate(magicLink, email) {
+function magicLinkEmailTemplate(magicLink, email) {
 	return `
 <!DOCTYPE html>
 <html lang="en">
@@ -227,3 +227,7 @@ export function magicLinkEmailTemplate(magicLink, email) {
 </body>
 </html>`;
 }
+
+module.exports = {
+	magicLinkEmailTemplate
+};

@@ -4,39 +4,36 @@
  */
 
 
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+const dotenv = require('dotenv');
+const { join } = require('path');
 
 // Load .env from backend root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const backendRoot = join(__dirname, '../../..');
 dotenv.config({ path: join(backendRoot, '.env') });
 
-import express from 'express';
-import cors from 'cors';
-import { healthCheck } from './endpoints/health.js';
-import {
+const express = require('express');
+const cors = require('cors');
+const { healthCheck } = require('./endpoints/health.js');
+const {
 	createCredentialAuthMiddleware,
 	createLightweightAuthMiddleware,
 	createCachePerformanceMiddleware,
-} from './middleware/credentialAuth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
-import {
+} = require('./middleware/credentialAuth.js');
+const { initializeCredentialCache, getCacheStatistics } = require('./services/credentialCache.js');
+const { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } = require('./services/credentialWatcher.js');
+const {
 	getOrCreateHandler,
 	startSessionCleanup,
 	stopSessionCleanup,
 	getSessionStatistics,
-} from './services/handlerSessions.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
-import {
+} = require('./services/handlerSessions.js');
+const { ErrorResponses } = require('../../utils/errorResponse.js');
+const {
 	createMCPLoggingMiddleware,
 	createMCPErrorMiddleware,
 	createMCPOperationMiddleware,
 	createMCPServiceLogger,
-} from '../../middleware/mcpLoggingMiddleware.js';
+} = require('../../middleware/mcpLoggingMiddleware.js');
 
 // Service configuration (from mcp-ports/gmail/config.json)
 const SERVICE_CONFIG = {
@@ -97,7 +94,7 @@ app.post('/cache-tokens', async (req, res) => {
 		}
 
 		// Cache tokens using existing credential cache
-		const { setCachedCredential } = await import('./services/credentialCache.js');
+		const { setCachedCredential } = require('./services/credentialCache.js');
 
 		setCachedCredential(instance_id, {
 			bearerToken: tokens.access_token,
@@ -294,6 +291,7 @@ app.use(/** @type {import('express').ErrorRequestHandler} */ (err, _req, res, _n
 	ErrorResponses.internal(res, 'Internal server error', {
 		metadata: { service: SERVICE_CONFIG.name, errorMessage },
 	});
+	return;
 });
 
 /**
@@ -360,4 +358,7 @@ process.on('SIGINT', () => {
 	});
 });
 
-export default app;
+
+
+
+module.exports = app;

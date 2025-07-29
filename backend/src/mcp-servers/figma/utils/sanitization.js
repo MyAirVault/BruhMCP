@@ -2,7 +2,7 @@
  * Sanitization utilities * Handles component definitions, component sets, and data sanitization
  */
 
-import { hasValue, generateVarId, createVariableKey } from './common.js';
+const { hasValue, generateVarId, createVariableKey } = require('./common.js');
 
 /**
  * @typedef {Object} DocumentationLink
@@ -94,7 +94,7 @@ import { hasValue, generateVarId, createVariableKey } from './common.js';
  * @param {GlobalVarsStore} globalVars - Global variables store
  * @returns {string[]} Sanitized component definitions
  */
-export function sanitizeComponents(components, globalVars) {
+function sanitizeComponents(components, globalVars) {
 	if (!components || typeof components !== 'object') {
 		return [];
 	}
@@ -117,7 +117,7 @@ export function sanitizeComponents(components, globalVars) {
  * @param {GlobalVarsStore} globalVars - Global variables store
  * @returns {string[]} Sanitized component set definitions
  */
-export function sanitizeComponentSets(componentSets, globalVars) {
+function sanitizeComponentSets(componentSets, globalVars) {
 	if (!componentSets || typeof componentSets !== 'object') {
 		return [];
 	}
@@ -141,7 +141,7 @@ export function sanitizeComponentSets(componentSets, globalVars) {
  * @param {GlobalVarsStore} globalVars - Global variables store
  * @returns {string|null} Sanitized component definition
  */
-export function sanitizeComponentDefinition(componentId, component, globalVars) {
+function sanitizeComponentDefinition(componentId, component, globalVars) {
 	if (!component || !componentId) return null;
 
 	const sanitized = /** @type {ComponentDefinition} */ ({
@@ -206,7 +206,7 @@ export function sanitizeComponentDefinition(componentId, component, globalVars) 
  * @param {GlobalVarsStore} globalVars - Global variables store
  * @returns {string|null} Sanitized component set definition
  */
-export function sanitizeComponentSetDefinition(setId, componentSet, globalVars) {
+function sanitizeComponentSetDefinition(setId, componentSet, globalVars) {
 	if (!componentSet || !setId) return null;
 
 	const sanitized = /** @type {ComponentSetDefinition} */ ({
@@ -260,7 +260,7 @@ export function sanitizeComponentSetDefinition(setId, componentSet, globalVars) 
  * @param {GlobalVarsStore} globalVars - Global variables store
  * @returns {string|null} Component properties object
  */
-export function processComponentProperties(node, globalVars) {
+function processComponentProperties(node, globalVars) {
 	if (!node || node.type !== 'INSTANCE') return null;
 
 	const properties = /** @type {ComponentInstanceProperties} */ ({
@@ -357,7 +357,7 @@ function sanitizeComponentProperty(propValue) {
  * @param {Record<string, any>} componentSets - Component sets data
  * @returns {ComponentMetadata} Component metadata summary
  */
-export function extractComponentMetadata(components, componentSets) {
+function extractComponentMetadata(components, componentSets) {
 	const metadata = /** @type {ComponentMetadata} */ ({
 		totalComponents: 0,
 		totalComponentSets: 0,
@@ -422,3 +422,11 @@ function extractComponentCategory(componentName) {
 
 	return 'other';
 }
+module.exports = {
+	sanitizeComponents,
+	sanitizeComponentSets,
+	sanitizeComponentDefinition,
+	sanitizeComponentSetDefinition,
+	processComponentProperties,
+	extractComponentMetadata
+};

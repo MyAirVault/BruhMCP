@@ -25,31 +25,6 @@ export function setCachedCredential(instanceId: string, tokenData: {
     user_id: string;
 }): void;
 /**
- * Remove credential from cache
- * @param {string} instanceId - UUID of the service instance
- */
-export function removeCachedCredential(instanceId: string): boolean;
-/**
- * Get cache statistics for monitoring
- * @returns {Object} Cache statistics
- */
-export function getCacheStatistics(): Object;
-/**
- * Get all cached instance IDs (for debugging/monitoring)
- * @returns {string[]} Array of cached instance IDs
- */
-export function getCachedInstanceIds(): string[];
-/**
- * Check if an instance is cached and token is valid
- * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if instance is cached and token is valid
- */
-export function isInstanceCached(instanceId: string): boolean;
-/**
- * Clear all cached credentials (for testing/restart)
- */
-export function clearCredentialCache(): void;
-/**
  * Get cache entry without updating last_used (for monitoring)
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cache entry or null
@@ -73,13 +48,6 @@ export function updateCachedCredentialMetadata(instanceId: string, updates: {
     refreshToken?: string | undefined;
 }): boolean;
 /**
- * Remove expired or inactive instances from cache
- * Called by background watcher and status change operations
- * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
- * @returns {number} Number of entries removed
- */
-export function cleanupInvalidCacheEntries(reason?: string): number;
-/**
  * Update refresh attempt count for an instance
  * @param {string} instanceId - UUID of the service instance
  * @returns {number} Current refresh attempt count
@@ -90,6 +58,23 @@ export function incrementRefreshAttempts(instanceId: string): number;
  * @param {string} instanceId - UUID of the service instance
  */
 export function resetRefreshAttempts(instanceId: string): void;
+/**
+ * Get all cached instance IDs (for debugging/monitoring)
+ * @returns {string[]} Array of cached instance IDs
+ */
+export function getCachedInstanceIds(): string[];
+/**
+ * Remove expired or inactive instances from cache
+ * Called by background watcher and status change operations
+ * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
+ * @returns {number} Number of entries removed
+ */
+export function cleanupInvalidCacheEntries(reason?: string): number;
+/**
+ * Get cache statistics for monitoring
+ * @returns {Object} Cache statistics
+ */
+export function getCacheStatistics(): Object;
 /**
  * Synchronize cache with database for consistency
  * This function ensures cache and database are in sync during failure scenarios
@@ -115,10 +100,4 @@ export function backgroundCacheSync(options?: {
     maxInstances?: number | undefined;
     removeOrphaned?: boolean | undefined;
 }): Promise<Object>;
-/**
- * Start background cache synchronization service
- * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
- * @returns {Object} Sync service controller
- */
-export function startBackgroundCacheSync(intervalMinutes?: number): Object;
 //# sourceMappingURL=credentialCache.d.ts.map

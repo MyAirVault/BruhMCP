@@ -47,11 +47,10 @@
  * @property {string|null} newestEntry - Newest entry timestamp
  */
 
-import { 
-	getCacheStatistics 
-} from './credentialCache.js';
-// import { lookupInstanceCredentials } from './database.js';
-// import SheetsOAuthHandler from '../oauth/oauthHandler.js';
+const { getCacheStatistics 
+ } = require('./credentialCache');
+// const { lookupInstanceCredentials  } = require('./database');
+// const SheetsOAuthHandler = require('../oauth/oauthHandler');
 
 // Watcher configuration
 const WATCHER_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -76,7 +75,7 @@ let watcherStats = {
  * Start the credential watcher service
  * @returns {NodeJS.Timeout} Watcher interval
  */
-export function startCredentialWatcher() {
+function startCredentialWatcher() {
 	if (watcherInterval) {
 		console.warn('⚠️ Google Sheets credential watcher already running');
 		return watcherInterval;
@@ -96,7 +95,7 @@ export function startCredentialWatcher() {
 /**
  * Stop the credential watcher service
  */
-export function stopCredentialWatcher() {
+function stopCredentialWatcher() {
 	if (watcherInterval) {
 		clearInterval(watcherInterval);
 		watcherInterval = null;
@@ -109,7 +108,7 @@ export function stopCredentialWatcher() {
  * Get watcher status
  * @returns {WatcherStatistics} Watcher status and statistics
  */
-export function getWatcherStatus() {
+function getWatcherStatus() {
 	return { ...watcherStats };
 }
 
@@ -210,3 +209,9 @@ async function runCredentialWatcher() {
 //		return false;
 //	}
 // }
+
+module.exports = {
+	startCredentialWatcher,
+	stopCredentialWatcher,
+	getWatcherStatus
+};

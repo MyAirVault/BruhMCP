@@ -1,11 +1,11 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
-// import { updateMCPTypeStats } from '../../../db/queries/mcpTypesQueries.js'; // Unused import
-import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
-import { pool } from '../../../db/config.js';
-// import { logDeletionEvent, trackDeletionMetrics } from '../../../utils/deletionAudit.js'; // Unused imports
-import loggingService from '../../../services/logging/loggingService.js';
-import { removeMCPLogDirectory } from '../../../utils/logDirectoryManager.js';
-import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
+const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/index.js');
+// const { updateMCPTypeStats } = require('../../../db/queries/mcpTypesQueries.js'); // Unused import
+const { invalidateInstanceCache } = require('../../../services/cacheInvalidationService.js');
+const { pool } = require('../../../db/config.js');
+// const { logDeletionEvent, trackDeletionMetrics } = require('../../../utils/deletionAudit.js'); // Unused imports
+const loggingService = require('../../../services/logging/loggingService.js');
+const { removeMCPLogDirectory } = require('../../../utils/logDirectoryManager.js');
+const mcpInstanceLogger = require('../../../utils/mcpInstanceLogger.js');
 
 /**
  * @typedef {Object} User
@@ -34,7 +34,7 @@ import mcpInstanceLogger from '../../../utils/mcpInstanceLogger.js';
  * @param {Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function deleteMCP(req, res) {
+async function deleteMCP(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -180,3 +180,5 @@ export async function deleteMCP(req, res) {
 		return;
 	}
 }
+
+module.exports = { deleteMCP };

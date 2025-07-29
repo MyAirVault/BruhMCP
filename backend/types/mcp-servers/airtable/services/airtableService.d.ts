@@ -1,3 +1,87 @@
+export type ServiceConfig = {
+    /**
+     * - API key for Airtable
+     */
+    airtableApiKey: string;
+    /**
+     * - Request timeout in milliseconds
+     */
+    timeout?: number | undefined;
+    /**
+     * - Number of retry attempts
+     */
+    retryAttempts?: number | undefined;
+    /**
+     * - Enable response optimization
+     */
+    useOptimization?: boolean | undefined;
+    /**
+     * - Enable response simplification
+     */
+    useSimplification?: boolean | undefined;
+};
+export type AirtableRecord = import('../api/common.js').AirtableRecord;
+export type AirtableBase = import('../api/common.js').AirtableBase;
+export type AirtableField = import('../api/common.js').AirtableField;
+export type AirtableTable = import('../api/common.js').AirtableTable;
+export type SortItem = {
+    /**
+     * - Field name to sort by
+     */
+    field: string;
+    /**
+     * - Sort direction
+     */
+    direction?: "asc" | "desc" | undefined;
+};
+export type QueryOptions = {
+    /**
+     * - Maximum number of records to return
+     */
+    maxRecords?: number | undefined;
+    /**
+     * - Fields to include
+     */
+    fields?: string[] | undefined;
+    /**
+     * - Formula to filter records
+     */
+    filterByFormula?: string | undefined;
+    /**
+     * - Sort configuration
+     */
+    sort?: SortItem[] | undefined;
+    /**
+     * - View ID or name
+     */
+    view?: string | undefined;
+    /**
+     * - Pagination offset
+     */
+    offset?: string | undefined;
+};
+export type SchemaCache = {
+    /**
+     * - Cached schema data
+     */
+    data: {
+        tables: Array<AirtableTable>;
+    };
+    /**
+     * - Cache timestamp
+     */
+    timestamp: number;
+};
+export type BatchResult = {
+    /**
+     * - Created records
+     */
+    records: Array<AirtableRecord>;
+    /**
+     * - Batch errors if any
+     */
+    errors?: Object[] | undefined;
+};
 export class AirtableService {
     /**
      * @param {ServiceConfig} config - Service configuration
@@ -148,88 +232,4 @@ export class AirtableService {
         timestamp: string;
     }>;
 }
-export type ServiceConfig = {
-    /**
-     * - API key for Airtable
-     */
-    airtableApiKey: string;
-    /**
-     * - Request timeout in milliseconds
-     */
-    timeout?: number | undefined;
-    /**
-     * - Number of retry attempts
-     */
-    retryAttempts?: number | undefined;
-    /**
-     * - Enable response optimization
-     */
-    useOptimization?: boolean | undefined;
-    /**
-     * - Enable response simplification
-     */
-    useSimplification?: boolean | undefined;
-};
-export type AirtableRecord = import("../api/common.js").AirtableRecord;
-export type AirtableBase = import("../api/common.js").AirtableBase;
-export type AirtableField = import("../api/common.js").AirtableField;
-export type AirtableTable = import("../api/common.js").AirtableTable;
-export type SortItem = {
-    /**
-     * - Field name to sort by
-     */
-    field: string;
-    /**
-     * - Sort direction
-     */
-    direction?: "asc" | "desc" | undefined;
-};
-export type QueryOptions = {
-    /**
-     * - Maximum number of records to return
-     */
-    maxRecords?: number | undefined;
-    /**
-     * - Fields to include
-     */
-    fields?: string[] | undefined;
-    /**
-     * - Formula to filter records
-     */
-    filterByFormula?: string | undefined;
-    /**
-     * - Sort configuration
-     */
-    sort?: SortItem[] | undefined;
-    /**
-     * - View ID or name
-     */
-    view?: string | undefined;
-    /**
-     * - Pagination offset
-     */
-    offset?: string | undefined;
-};
-export type SchemaCache = {
-    /**
-     * - Cached schema data
-     */
-    data: {
-        tables: Array<AirtableTable>;
-    };
-    /**
-     * - Cache timestamp
-     */
-    timestamp: number;
-};
-export type BatchResult = {
-    /**
-     * - Created records
-     */
-    records: Array<AirtableRecord>;
-    /**
-     * - Batch errors if any
-     */
-    errors?: Object[] | undefined;
-};
 //# sourceMappingURL=airtableService.d.ts.map

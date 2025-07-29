@@ -1,4 +1,8 @@
 /**
+ * Database connection pool
+ */
+export const pool: pg.Pool;
+/**
  * Test database connection
  * @returns {Promise<void>}
  */
@@ -13,9 +17,6 @@ export function checkDatabaseTables(): Promise<boolean>;
  * @returns {Promise<void>}
  */
 export function initializeDatabase(): Promise<void>;
-/**
- * Database connection pool
- */
-export const pool: pg.Pool;
-import pg from 'pg';
+import pg = require("pg");
+export { pool as db };
 //# sourceMappingURL=config.d.ts.map

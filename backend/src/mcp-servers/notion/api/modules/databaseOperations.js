@@ -3,8 +3,8 @@
  * Operations for managing Notion databases
  */
 
-import { makeNotionRequest } from './requestHandler.js';
-import { formatNotionResponse } from '../../utils/notionFormatting.js';
+const { makeNotionRequest  } = require('./requestHandler');
+const { formatNotionResponse  } = require('../../utils/notionFormatting');
 
 /**
  * @typedef {import('../../utils/notionFormatting.js').NotionRichText} NotionRichText
@@ -63,7 +63,7 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Database data
  */
-export async function getDatabase(args, bearerToken) {
+async function getDatabase(args, bearerToken) {
 	const { databaseId } = args;
 
 	const result = await makeNotionRequest(`/databases/${databaseId}`, bearerToken);
@@ -80,7 +80,7 @@ export async function getDatabase(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Query results
  */
-export async function queryDatabase(args, bearerToken) {
+async function queryDatabase(args, bearerToken) {
 	const { databaseId, filter, sorts = [], page_size = 100, start_cursor } = args;
 
 	/** @type {Record<string, unknown>} */
@@ -118,7 +118,7 @@ export async function queryDatabase(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Created database
  */
-export async function createDatabase(args, bearerToken) {
+async function createDatabase(args, bearerToken) {
 	const { parent, title, properties, is_inline = false } = args;
 
 	/** @type {Record<string, unknown>} */
@@ -146,7 +146,7 @@ export async function createDatabase(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Updated database
  */
-export async function updateDatabase(args, bearerToken) {
+async function updateDatabase(args, bearerToken) {
 	const { databaseId, title, properties, is_inline } = args;
 
 	/** @type {Record<string, unknown>} */
@@ -174,3 +174,9 @@ export async function updateDatabase(args, bearerToken) {
 		database: result,
 	});
 }
+module.exports = {
+  getDatabase,
+  queryDatabase,
+  createDatabase,
+  updateDatabase
+};

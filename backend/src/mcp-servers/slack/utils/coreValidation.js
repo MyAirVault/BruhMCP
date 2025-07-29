@@ -3,7 +3,7 @@
  * Basic validation functions for types, strings, numbers, etc.
  */
 
-import { logValidationError } from './logger.js';
+const { logValidationError } = require('./logger');
 
 /**
  * Validate type of value
@@ -11,7 +11,7 @@ import { logValidationError } from './logger.js';
  * @param {string} expectedType - Expected type
  * @returns {boolean} True if type is valid
  */
-export function validateType(value, expectedType) {
+function validateType(value, expectedType) {
 	if (expectedType === 'string') return typeof value === 'string';
 	if (expectedType === 'number') return typeof value === 'number' && !isNaN(value);
 	if (expectedType === 'boolean') return typeof value === 'boolean';
@@ -27,7 +27,7 @@ export function validateType(value, expectedType) {
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
-export function validateString(value, schema, context, instanceId = 'unknown') {
+function validateString(value, schema, context, instanceId = 'unknown') {
 	// Length validation
 	if (schema.minLength !== undefined && value.length < schema.minLength) {
 		const error = new Error(`${context} must be at least ${schema.minLength} characters long`);
@@ -67,7 +67,7 @@ export function validateString(value, schema, context, instanceId = 'unknown') {
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
-export function validateNumber(value, schema, context, instanceId = 'unknown') {
+function validateNumber(value, schema, context, instanceId = 'unknown') {
 	// Range validation
 	if (schema.minimum !== undefined && value < schema.minimum) {
 		const error = new Error(`${context} must be at least ${schema.minimum}`);
@@ -104,7 +104,7 @@ export function validateNumber(value, schema, context, instanceId = 'unknown') {
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
-export function validateArray(value, schema, context, instanceId = 'unknown') {
+function validateArray(value, schema, context, instanceId = 'unknown') {
 	// Length validation
 	if (schema.minItems !== undefined && value.length < schema.minItems) {
 		const error = new Error(`${context} must have at least ${schema.minItems} items`);
@@ -139,7 +139,7 @@ export function validateArray(value, schema, context, instanceId = 'unknown') {
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
-export function validateProperty(value, schema, context, instanceId = 'unknown') {
+function validateProperty(value, schema, context, instanceId = 'unknown') {
 	// Type validation
 	if (schema.type) {
 		if (!validateType(value, schema.type)) {
@@ -170,3 +170,11 @@ export function validateProperty(value, schema, context, instanceId = 'unknown')
 		throw error;
 	}
 }
+
+module.exports = {
+	validateType,
+	validateString,
+	validateNumber,
+	validateArray,
+	validateProperty
+};

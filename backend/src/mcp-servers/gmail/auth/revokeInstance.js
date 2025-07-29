@@ -3,7 +3,7 @@
  * Standardized function for revoking Gmail OAuth instances
  */
 
-import { deleteMCPInstance, getMCPInstanceById } from '../../../db/queries/mcpInstances/crud.js';
+const { deleteMCPInstance, getMCPInstanceById } = require('../../../db/queries/mcpInstances/crud.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevokeResult} RevokeResult
@@ -73,4 +73,8 @@ async function revokeInstance(instanceId, userId) {
 }
 
 
-export { revokeInstance };
+;
+
+module.exports = {
+	revokeInstance
+};

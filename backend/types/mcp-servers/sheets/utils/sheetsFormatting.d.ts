@@ -1,126 +1,3 @@
-export namespace formatSheetsResponse {
-    /**
-     * Format spreadsheet response
-     * @param {SpreadsheetResponse} response - Spreadsheet response
-     * @returns {{spreadsheetId: string, spreadsheetUrl: string, title: string, sheets: Array<{sheetId: number, title: string, index: number, rowCount: number, columnCount: number}>, namedRanges: Object[], developerMetadata: Object[]}} Formatted spreadsheet
-     */
-    function spreadsheet(response: SpreadsheetResponse): {
-        spreadsheetId: string;
-        spreadsheetUrl: string;
-        title: string;
-        sheets: Array<{
-            sheetId: number;
-            title: string;
-            index: number;
-            rowCount: number;
-            columnCount: number;
-        }>;
-        namedRanges: Object[];
-        developerMetadata: Object[];
-    };
-    /**
-     * Format values response
-     * @param {ValuesResponse} response - Values response
-     * @returns {{range: string, majorDimension: string, values: string[][]}} Formatted values
-     */
-    function values(response: ValuesResponse): {
-        range: string;
-        majorDimension: string;
-        values: string[][];
-    };
-    /**
-     * Format update result
-     * @param {UpdateResult} response - Update result response
-     * @returns {{spreadsheetId: string, updatedRange: string, updatedRows: number, updatedColumns: number, updatedCells: number}} Formatted update result
-     */
-    function updateResult(response: UpdateResult): {
-        spreadsheetId: string;
-        updatedRange: string;
-        updatedRows: number;
-        updatedColumns: number;
-        updatedCells: number;
-    };
-    /**
-     * Format append result
-     * @param {AppendResult} response - Append result response
-     * @returns {{spreadsheetId: string, tableRange: string, updates: {spreadsheetId: string, updatedRange: string, updatedRows: number, updatedColumns: number, updatedCells: number}}} Formatted append result
-     */
-    function appendResult(response: AppendResult): {
-        spreadsheetId: string;
-        tableRange: string;
-        updates: {
-            spreadsheetId: string;
-            updatedRange: string;
-            updatedRows: number;
-            updatedColumns: number;
-            updatedCells: number;
-        };
-    };
-    /**
-     * Format clear result
-     * @param {ClearResult} response - Clear result response
-     * @returns {{spreadsheetId: string, clearedRange: string}} Formatted clear result
-     */
-    function clearResult(response: ClearResult): {
-        spreadsheetId: string;
-        clearedRange: string;
-    };
-    /**
-     * Format batch update result
-     * @param {BatchUpdateResult} response - Batch update result response
-     * @returns {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} Formatted batch update result
-     */
-    function batchUpdateResult(response: BatchUpdateResult): {
-        spreadsheetId: string;
-        replies: Object[];
-        updatedSpreadsheet: Object;
-    };
-    /**
-     * Format files list response
-     * @param {FilesListResponse} response - Files list response
-     * @returns {{files: Array<{id: string, name: string, createdTime: string, modifiedTime: string, webViewLink: string}>, nextPageToken: string}} Formatted files list
-     */
-    function filesList(response: FilesListResponse): {
-        files: Array<{
-            id: string;
-            name: string;
-            createdTime: string;
-            modifiedTime: string;
-            webViewLink: string;
-        }>;
-        nextPageToken: string;
-    };
-    /**
-     * Format copy result
-     * @param {CopyResult} response - Copy result response
-     * @returns {{sheetId: number, sheetType: string, title: string}} Formatted copy result
-     */
-    function copyResult(response: CopyResult): {
-        sheetId: number;
-        sheetType: string;
-        title: string;
-    };
-    /**
-     * Format metadata response
-     * @param {SpreadsheetResponse} response - Spreadsheet metadata response
-     * @returns {{spreadsheetId: string, title: string, locale: string, autoRecalc: string, timeZone: string, defaultFormat: Object, sheets: Array<{sheetId: number, title: string, index: number, sheetType: string, gridProperties: GridProperties}>}} Formatted metadata
-     */
-    function metadata(response: SpreadsheetResponse): {
-        spreadsheetId: string;
-        title: string;
-        locale: string;
-        autoRecalc: string;
-        timeZone: string;
-        defaultFormat: Object;
-        sheets: Array<{
-            sheetId: number;
-            title: string;
-            index: number;
-            sheetType: string;
-            gridProperties: GridProperties;
-        }>;
-    };
-}
 export type SpreadsheetProperties = {
     /**
      * - Spreadsheet title
@@ -327,4 +204,127 @@ export type CopyResult = {
      */
     title: string;
 };
+export namespace formatSheetsResponse {
+    /**
+     * Format spreadsheet response
+     * @param {SpreadsheetResponse} response - Spreadsheet response
+     * @returns {{spreadsheetId: string, spreadsheetUrl: string, title: string, sheets: Array<{sheetId: number, title: string, index: number, rowCount: number, columnCount: number}>, namedRanges: Object[], developerMetadata: Object[]}} Formatted spreadsheet
+     */
+    function spreadsheet(response: SpreadsheetResponse): {
+        spreadsheetId: string;
+        spreadsheetUrl: string;
+        title: string;
+        sheets: {
+            sheetId: number;
+            title: string;
+            index: number;
+            rowCount: number;
+            columnCount: number;
+        }[];
+        namedRanges: Object[];
+        developerMetadata: Object[];
+    };
+    /**
+     * Format values response
+     * @param {ValuesResponse} response - Values response
+     * @returns {{range: string, majorDimension: string, values: string[][]}} Formatted values
+     */
+    function values(response: ValuesResponse): {
+        range: string;
+        majorDimension: string;
+        values: string[][];
+    };
+    /**
+     * Format update result
+     * @param {UpdateResult} response - Update result response
+     * @returns {{spreadsheetId: string, updatedRange: string, updatedRows: number, updatedColumns: number, updatedCells: number}} Formatted update result
+     */
+    function updateResult(response: UpdateResult): {
+        spreadsheetId: string;
+        updatedRange: string;
+        updatedRows: number;
+        updatedColumns: number;
+        updatedCells: number;
+    };
+    /**
+     * Format append result
+     * @param {AppendResult} response - Append result response
+     * @returns {{spreadsheetId: string, tableRange: string, updates: {spreadsheetId: string, updatedRange: string, updatedRows: number, updatedColumns: number, updatedCells: number}}} Formatted append result
+     */
+    function appendResult(response: AppendResult): {
+        spreadsheetId: string;
+        tableRange: string;
+        updates: {
+            spreadsheetId: string;
+            updatedRange: string;
+            updatedRows: number;
+            updatedColumns: number;
+            updatedCells: number;
+        };
+    };
+    /**
+     * Format clear result
+     * @param {ClearResult} response - Clear result response
+     * @returns {{spreadsheetId: string, clearedRange: string}} Formatted clear result
+     */
+    function clearResult(response: ClearResult): {
+        spreadsheetId: string;
+        clearedRange: string;
+    };
+    /**
+     * Format batch update result
+     * @param {BatchUpdateResult} response - Batch update result response
+     * @returns {{spreadsheetId: string, replies: Object[], updatedSpreadsheet: Object}} Formatted batch update result
+     */
+    function batchUpdateResult(response: BatchUpdateResult): {
+        spreadsheetId: string;
+        replies: Object[];
+        updatedSpreadsheet: Object;
+    };
+    /**
+     * Format files list response
+     * @param {FilesListResponse} response - Files list response
+     * @returns {{files: Array<{id: string, name: string, createdTime: string, modifiedTime: string, webViewLink: string}>, nextPageToken: string}} Formatted files list
+     */
+    function filesList(response: FilesListResponse): {
+        files: {
+            id: string;
+            name: string;
+            createdTime: string;
+            modifiedTime: string;
+            webViewLink: string;
+        }[];
+        nextPageToken: string;
+    };
+    /**
+     * Format copy result
+     * @param {CopyResult} response - Copy result response
+     * @returns {{sheetId: number, sheetType: string, title: string}} Formatted copy result
+     */
+    function copyResult(response: CopyResult): {
+        sheetId: number;
+        sheetType: string;
+        title: string;
+    };
+    /**
+     * Format metadata response
+     * @param {SpreadsheetResponse} response - Spreadsheet metadata response
+     * @returns {{spreadsheetId: string, title: string, locale: string, autoRecalc: string, timeZone: string, defaultFormat: Object, sheets: Array<{sheetId: number, title: string, index: number, sheetType: string, gridProperties: GridProperties}>}} Formatted metadata
+     */
+    function metadata(response: SpreadsheetResponse): {
+        spreadsheetId: string;
+        title: string;
+        locale: string;
+        autoRecalc: string;
+        timeZone: string;
+        defaultFormat: Object;
+        sheets: {
+            sheetId: number;
+            title: string;
+            index: number;
+            sheetType: string;
+            gridProperties: GridProperties;
+        }[];
+    };
+}
 //# sourceMappingURL=sheetsFormatting.d.ts.map

@@ -1,5 +1,5 @@
-export type ValidationResult = import("../../../services/mcp-auth-registry/types/serviceTypes.js").ValidationResult;
-export type CredentialsData = import("../../../services/mcp-auth-registry/types/serviceTypes.js").CredentialsData;
+export type ValidationResult = import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult;
+export type CredentialsData = import('../../../services/mcp-auth-registry/types/serviceTypes.js').CredentialsData;
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').CredentialsData} CredentialsData

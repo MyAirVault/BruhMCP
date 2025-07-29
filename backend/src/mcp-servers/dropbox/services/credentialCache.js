@@ -107,7 +107,7 @@ const dropboxCredentialCache = new Map();
  * Initialize the credential cache system
  * Called on service startup
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Dropbox OAuth credential cache system');
 	dropboxCredentialCache.clear();
 	console.log('✅ Dropbox OAuth credential cache initialized');
@@ -118,7 +118,7 @@ export function initializeCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {CachedCredential|null} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = dropboxCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -144,7 +144,7 @@ export function getCachedCredential(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @param {TokenData} tokenData - Token data to cache
  */
-export function setCachedCredential(instanceId, tokenData) {
+function setCachedCredential(instanceId, tokenData) {
 	const cacheEntry = {
 		bearerToken: tokenData.bearerToken,
 		refreshToken: tokenData.refreshToken,
@@ -164,7 +164,7 @@ export function setCachedCredential(instanceId, tokenData) {
  * Remove credential from cache
  * @param {string} instanceId - UUID of the service instance
  */
-export function removeCachedCredential(instanceId) {
+function removeCachedCredential(instanceId) {
 	const removed = dropboxCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed OAuth tokens from cache: ${instanceId}`);
@@ -176,7 +176,7 @@ export function removeCachedCredential(instanceId) {
  * Get cache statistics for monitoring
  * @returns {CacheStatistics} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
 	const totalEntries = dropboxCredentialCache.size;
 	const entries = Array.from(dropboxCredentialCache.values());
 	
@@ -212,7 +212,7 @@ export function getCacheStatistics() {
  * Get all cached instance IDs (for debugging/monitoring)
  * @returns {string[]} Array of cached instance IDs
  */
-export function getCachedInstanceIds() {
+function getCachedInstanceIds() {
 	return Array.from(dropboxCredentialCache.keys());
 }
 
@@ -221,7 +221,7 @@ export function getCachedInstanceIds() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if instance is cached and token is valid
  */
-export function isInstanceCached(instanceId) {
+function isInstanceCached(instanceId) {
 	const cached = dropboxCredentialCache.get(instanceId);
 	if (!cached) return false;
 	
@@ -236,7 +236,7 @@ export function isInstanceCached(instanceId) {
 /**
  * Clear all cached credentials (for testing/restart)
  */
-export function clearCredentialCache() {
+function clearCredentialCache() {
 	const count = dropboxCredentialCache.size;
 	dropboxCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} entries from OAuth credential cache`);
@@ -247,7 +247,7 @@ export function clearCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {CachedCredential|null} Cache entry or null
  */
-export function peekCachedCredential(instanceId) {
+function peekCachedCredential(instanceId) {
 	return dropboxCredentialCache.get(instanceId) || null;
 }
 
@@ -258,7 +258,7 @@ export function peekCachedCredential(instanceId) {
  * @param {CredentialUpdate} updates - Updates to apply to cache entry
  * @returns {boolean} True if cache entry was updated, false if not found
  */
-export function updateCachedCredentialMetadata(instanceId, updates) {
+function updateCachedCredentialMetadata(instanceId, updates) {
 	const cached = dropboxCredentialCache.get(instanceId);
 	if (!cached) {
 		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
@@ -300,7 +300,7 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
  * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
  * @returns {number} Number of entries removed
  */
-export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = Date.now();
 
@@ -339,7 +339,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
  * @param {string} instanceId - UUID of the service instance
  * @returns {number} Current refresh attempt count
  */
-export function incrementRefreshAttempts(instanceId) {
+function incrementRefreshAttempts(instanceId) {
 	const cached = dropboxCredentialCache.get(instanceId);
 	if (!cached) {
 		return 0;
@@ -358,7 +358,7 @@ export function incrementRefreshAttempts(instanceId) {
  * Reset refresh attempt count (after successful refresh)
  * @param {string} instanceId - UUID of the service instance
  */
-export function resetRefreshAttempts(instanceId) {
+function resetRefreshAttempts(instanceId) {
 	const cached = dropboxCredentialCache.get(instanceId);
 	if (!cached) {
 		return;
@@ -379,12 +379,12 @@ export function resetRefreshAttempts(instanceId) {
  * @param {SyncOptions} [options] - Sync options
  * @returns {Promise<boolean>} True if sync was successful
  */
-export async function syncCacheWithDatabase(instanceId, options = {}) {
+async function syncCacheWithDatabase(instanceId, options = {}) {
 	const { forceRefresh = false, updateDatabase = false } = options;
 	
 	try {
 		// Import database functions dynamically to avoid circular dependencies
-		const { lookupInstanceCredentials } = await import('./database.js');
+		const { lookupInstanceCredentials } = require('./database.js');
 		
 		// Get current cache state
 		const cachedCredential = peekCachedCredential(instanceId);
@@ -441,7 +441,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
 		if (updateDatabase && cacheIsNewer && cachedCredential) {
 			console.log(`🔄 Updating database from cache for instance: ${instanceId}`);
 			
-			const { updateOAuthStatus } = await import('../../../db/queries/mcpInstances/index.js');
+			const { updateOAuthStatus } = require('../../../db/queries/mcpInstances/index.js');
 			
 			const tokenExpiresAt = cachedCredential.expiresAt ? 
 				new Date(cachedCredential.expiresAt) : undefined;
@@ -474,7 +474,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
  * @param {BackgroundSyncOptions} [options] - Sync options
  * @returns {Promise<SyncResults>} Sync results
  */
-export async function backgroundCacheSync(options = {}) {
+async function backgroundCacheSync(options = {}) {
 	const { maxInstances = 50, removeOrphaned = true } = options;
 	
 	const results = {
@@ -534,7 +534,7 @@ export async function backgroundCacheSync(options = {}) {
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
  * @returns {SyncController} Sync service controller
  */
-export function startBackgroundCacheSync(intervalMinutes = 5) {
+function startBackgroundCacheSync(intervalMinutes = 5) {
 	const intervalMs = intervalMinutes * 60 * 1000;
 	
 	console.log(`🚀 Starting background cache sync service (interval: ${intervalMinutes} minutes)`);
@@ -556,3 +556,22 @@ export function startBackgroundCacheSync(intervalMinutes = 5) {
 		runSync: () => backgroundCacheSync()
 	};
 }
+
+module.exports = {
+	initializeCredentialCache,
+	getCachedCredential,
+	setCachedCredential,
+	removeCachedCredential,
+	getCacheStatistics,
+	getCachedInstanceIds,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential,
+	updateCachedCredentialMetadata,
+	cleanupInvalidCacheEntries,
+	incrementRefreshAttempts,
+	resetRefreshAttempts,
+	syncCacheWithDatabase,
+	backgroundCacheSync,
+	startBackgroundCacheSync
+};

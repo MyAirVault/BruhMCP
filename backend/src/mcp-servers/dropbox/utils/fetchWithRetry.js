@@ -17,7 +17,7 @@ const LONG_TIMEOUT = 120000; // 2 minutes for file operations
  * @param {number} timeout - Request timeout in milliseconds
  * @returns {Promise<Response>} Response object
  */
-export async function fetchWithRetry(url, options = {}, maxRetries = MAX_RETRIES, baseDelay = RETRY_DELAY, timeout = DEFAULT_TIMEOUT) {
+async function fetchWithRetry(url, options = {}, maxRetries = MAX_RETRIES, baseDelay = RETRY_DELAY, timeout = DEFAULT_TIMEOUT) {
 	let lastError;
 	
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -100,6 +100,15 @@ export async function fetchWithRetry(url, options = {}, maxRetries = MAX_RETRIES
  * @param {number} baseDelay - Base delay between retries in milliseconds
  * @returns {Promise<Response>} Response object
  */
-export async function fetchFileWithRetry(url, options = {}, maxRetries = MAX_RETRIES, baseDelay = RETRY_DELAY) {
+async function fetchFileWithRetry(url, options = {}, maxRetries = MAX_RETRIES, baseDelay = RETRY_DELAY) {
 	return fetchWithRetry(url, options, maxRetries, baseDelay, LONG_TIMEOUT);
 }
+
+module.exports = {
+	fetchWithRetry,
+	fetchFileWithRetry,
+	MAX_RETRIES,
+	RETRY_DELAY,
+	DEFAULT_TIMEOUT,
+	LONG_TIMEOUT
+};

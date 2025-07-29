@@ -3,7 +3,7 @@
  * @fileoverview Contains functions for creating new MCP instances with transaction support
  */
 
-import { pool } from '../../config.js';
+const { pool } = require('../../config.js');
 
 /**
  * @typedef {import('./types.js').MCPInstanceCreateData} MCPInstanceCreateData
@@ -17,7 +17,7 @@ import { pool } from '../../config.js';
  * @returns {Promise<MCPInstanceRecord>} Created instance record with all properties
  * @throws {Error} When database transaction fails or required fields are missing
  */
-export async function createMCPInstance(instanceData) {
+async function createMCPInstance(instanceData) {
 	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
 
 	/** @type {import('pg').PoolClient} */
@@ -93,7 +93,7 @@ export async function createMCPInstance(instanceData) {
  * @returns {Promise<CreateInstanceResult>} Success result with instance or failure result with error details
  * @throws {Error} When database connection fails or transaction cannot be started
  */
-export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances) {
+async function createMCPInstanceWithLimitCheck(instanceData, maxInstances) {
 	const { userId, mcpServiceId, customName, apiKey, clientId, clientSecret, expiresAt, serviceType } = instanceData;
 
 	/** @type {import('pg').PoolClient} */
@@ -205,3 +205,8 @@ export async function createMCPInstanceWithLimitCheck(instanceData, maxInstances
 		client.release();
 	}
 }
+
+module.exports = {
+	createMCPInstance,
+	createMCPInstanceWithLimitCheck
+};

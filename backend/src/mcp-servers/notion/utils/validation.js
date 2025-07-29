@@ -44,7 +44,7 @@
  * @param {string} pageId - Page ID to validate
  * @returns {boolean} True if valid
  */
-export function isValidPageId(pageId) {
+function isValidPageId(pageId) {
 	if (!pageId || typeof pageId !== 'string') {
 		return false;
 	}
@@ -59,7 +59,7 @@ export function isValidPageId(pageId) {
  * @param {string} databaseId - Database ID to validate
  * @returns {boolean} True if valid
  */
-export function isValidDatabaseId(databaseId) {
+function isValidDatabaseId(databaseId) {
 	return isValidPageId(databaseId); // Same format as page IDs
 }
 
@@ -68,7 +68,7 @@ export function isValidDatabaseId(databaseId) {
  * @param {string} blockId - Block ID to validate
  * @returns {boolean} True if valid
  */
-export function isValidBlockId(blockId) {
+function isValidBlockId(blockId) {
 	return isValidPageId(blockId); // Same format as page IDs
 }
 
@@ -77,7 +77,7 @@ export function isValidBlockId(blockId) {
  * @param {string} userId - User ID to validate
  * @returns {boolean} True if valid
  */
-export function isValidUserId(userId) {
+function isValidUserId(userId) {
 	return isValidPageId(userId); // Same format as page IDs
 }
 
@@ -86,7 +86,7 @@ export function isValidUserId(userId) {
  * @param {string} query - Search query to validate
  * @returns {boolean} True if valid
  */
-export function isValidSearchQuery(query) {
+function isValidSearchQuery(query) {
 	if (!query || typeof query !== 'string') {
 		return false;
 	}
@@ -100,7 +100,7 @@ export function isValidSearchQuery(query) {
  * @param {string} apiKey - API key to validate
  * @returns {boolean} True if valid format
  */
-export function isValidApiKey(apiKey) {
+function isValidApiKey(apiKey) {
 	if (!apiKey || typeof apiKey !== 'string') {
 		return false;
 	}
@@ -114,7 +114,7 @@ export function isValidApiKey(apiKey) {
  * @param {NotionPageCreationData} pageData - Page creation data
  * @returns {ValidationResult} Validation result
  */
-export function validatePageCreationData(pageData) {
+function validatePageCreationData(pageData) {
 	const errors = [];
 
 	if (!pageData || typeof pageData !== 'object') {
@@ -152,7 +152,7 @@ export function validatePageCreationData(pageData) {
  * @param {NotionDatabaseCreationData} databaseData - Database creation data
  * @returns {ValidationResult} Validation result
  */
-export function validateDatabaseCreationData(databaseData) {
+function validateDatabaseCreationData(databaseData) {
 	const errors = [];
 
 	if (!databaseData || typeof databaseData !== 'object') {
@@ -187,7 +187,7 @@ export function validateDatabaseCreationData(databaseData) {
  * @param {NotionBlockData} blockData - Block data
  * @returns {ValidationResult} Validation result
  */
-export function validateBlockData(blockData) {
+function validateBlockData(blockData) {
 	const errors = [];
 
 	if (!blockData || typeof blockData !== 'object') {
@@ -213,7 +213,7 @@ export function validateBlockData(blockData) {
  * @param {string} cursor - Pagination cursor
  * @returns {boolean} True if valid
  */
-export function isValidCursor(cursor) {
+function isValidCursor(cursor) {
 	if (!cursor || typeof cursor !== 'string') {
 		return false;
 	}
@@ -228,7 +228,7 @@ export function isValidCursor(cursor) {
  * @param {string} query - Search query
  * @returns {string} Sanitized query
  */
-export function sanitizeSearchQuery(query) {
+function sanitizeSearchQuery(query) {
 	if (!query || typeof query !== 'string') {
 		return '';
 	}
@@ -242,7 +242,7 @@ export function sanitizeSearchQuery(query) {
  * @param {string} pageId - Page ID
  * @returns {string} Sanitized page ID
  */
-export function sanitizePageId(pageId) {
+function sanitizePageId(pageId) {
 	if (!pageId || typeof pageId !== 'string') {
 		return '';
 	}
@@ -254,7 +254,7 @@ export function sanitizePageId(pageId) {
 /**
  * Simple Logger utility for MCP service
  */
-export const Logger = {
+const Logger = {
 	/**
 	 * Log info message
 	 * @param {string} message - Log message
@@ -281,4 +281,20 @@ export const Logger = {
 	log(message, metadata = {}) {
 		console.log(`[LOG] ${message}`, metadata);
 	}
+};
+
+module.exports = {
+	isValidPageId,
+	isValidDatabaseId,
+	isValidBlockId,
+	isValidUserId,
+	isValidSearchQuery,
+	isValidApiKey,
+	validatePageCreationData,
+	validateDatabaseCreationData,
+	validateBlockData,
+	isValidCursor,
+	sanitizeSearchQuery,
+	sanitizePageId,
+	Logger
 };

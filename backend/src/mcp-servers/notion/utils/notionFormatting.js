@@ -256,7 +256,7 @@
  * @param {NotionSearchResponse} response - Notion search response
  * @returns {FormattedSearchResults} Formatted search results
  */
-export function formatSearchResults(response) {
+function formatSearchResults(response) {
 	if (!response || !response.results) {
 		return { results: [], has_more: false };
 	}
@@ -283,7 +283,7 @@ export function formatSearchResults(response) {
  * @param {NotionPage} page - Notion page object
  * @returns {FormattedPageData|null} Formatted page data
  */
-export function formatPageData(page) {
+function formatPageData(page) {
 	if (!page) return null;
 
 	return {
@@ -305,7 +305,7 @@ export function formatPageData(page) {
  * @param {NotionDatabase} database - Notion database object
  * @returns {FormattedDatabaseData|null} Formatted database data
  */
-export function formatDatabaseData(database) {
+function formatDatabaseData(database) {
 	if (!database) return null;
 
 	return {
@@ -327,7 +327,7 @@ export function formatDatabaseData(database) {
  * @param {NotionBlocksResponse} response - Notion blocks response
  * @returns {FormattedBlocksData} Formatted blocks data
  */
-export function formatBlocksData(response) {
+function formatBlocksData(response) {
 	if (!response || !response.results) {
 		return { blocks: [], has_more: false };
 	}
@@ -353,7 +353,7 @@ export function formatBlocksData(response) {
  * @param {NotionQueryResponse} response - Notion database query response
  * @returns {FormattedQueryResults} Formatted query results
  */
-export function formatQueryResults(response) {
+function formatQueryResults(response) {
 	if (!response || !response.results) {
 		return { results: [], has_more: false };
 	}
@@ -457,7 +457,7 @@ function extractBlockContent(block) {
  * @param {NotionUser} user - Notion user object
  * @returns {FormattedUserData|null} Formatted user data
  */
-export function formatUserData(user) {
+function formatUserData(user) {
 	if (!user) return null;
 
 	return {
@@ -475,7 +475,7 @@ export function formatUserData(user) {
  * @param {Error} error - Error object
  * @returns {{error: boolean, message: string, timestamp: string}} Formatted error response
  */
-export function formatErrorResponse(error) {
+function formatErrorResponse(error) {
 	return {
 		error: true,
 		message: error.message || 'An error occurred',
@@ -488,7 +488,7 @@ export function formatErrorResponse(error) {
  * @param {NotionResponseData} responseData - Response data with action and results
  * @returns {Record<string, unknown>} Formatted Notion response
  */
-export function formatNotionResponse(responseData) {
+function formatNotionResponse(responseData) {
 	const { action, ...data } = responseData;
 	
 	const baseResponse = {
@@ -588,3 +588,16 @@ export function formatNotionResponse(responseData) {
 			};
 	}
 }
+
+module.exports = {
+	formatSearchResults,
+	formatPageData,
+	formatDatabaseData,
+	formatBlocksData,
+	formatQueryResults,
+	extractTitle,
+	extractBlockContent,
+	formatUserData,
+	formatErrorResponse,
+	formatNotionResponse
+};

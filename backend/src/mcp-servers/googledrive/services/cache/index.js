@@ -4,8 +4,7 @@
  */
 
 // Core cache functionality
-export {
-	initializeCredentialCache,
+const { initializeCredentialCache,
 	getCachedCredential,
 	setCachedCredential,
 	removeCachedCredential,
@@ -13,26 +12,46 @@ export {
 	isInstanceCached,
 	clearCredentialCache,
 	peekCachedCredential
-} from './cacheCore.js';
+ } = require('./cacheCore');
+
+module.exports = { initializeCredentialCache,
+	getCachedCredential,
+	setCachedCredential,
+	removeCachedCredential,
+	getCachedInstanceIds,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential
+ };
 
 // Metadata management
-export {
-	updateCachedCredentialMetadata,
+const { updateCachedCredentialMetadata,
 	incrementRefreshAttempts,
 	resetRefreshAttempts
-} from './cacheMetadata.js';
+ } = require('./cacheMetadata');
+
+module.exports = { updateCachedCredentialMetadata,
+	incrementRefreshAttempts,
+	resetRefreshAttempts
+ };
 
 // Statistics and monitoring
-export {
-	getCacheStatistics
-} from './cacheStatistics.js';
+const { getCacheStatistics
+ } = require('./cacheStatistics');
+
+module.exports = { getCacheStatistics
+ };
 
 // Maintenance and cleanup
-export {
-	cleanupInvalidCacheEntries
-} from './cacheMaintenance.js';
+const { cleanupInvalidCacheEntries
+ } = require('./cacheMaintenance');
+
+module.exports = { cleanupInvalidCacheEntries
+ };
 
 // Background synchronization
-export {
-	startBackgroundCacheSync
-} from './cacheSync.js';
+const { startBackgroundCacheSync
+ } = require('./cacheSync');
+
+module.exports = { startBackgroundCacheSync
+ };

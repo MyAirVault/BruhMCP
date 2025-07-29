@@ -60,7 +60,7 @@
  * OAuth error types
  * @type {Record<string, OAuthErrorType>}
  */
-export const OAUTH_ERROR_TYPES = {
+const OAUTH_ERROR_TYPES = {
   INVALID_REFRESH_TOKEN: 'INVALID_REFRESH_TOKEN',
   INVALID_CLIENT: 'INVALID_CLIENT',
   INVALID_REQUEST: 'INVALID_REQUEST',
@@ -74,7 +74,7 @@ export const OAUTH_ERROR_TYPES = {
  * @param {Error} error - OAuth error
  * @returns {OAuthErrorAnalysis} Error analysis
  */
-export function parseOAuthError(error) {
+function parseOAuthError(error) {
   const message = error.message?.toLowerCase() || '';
   
   // Check for invalid refresh token errors
@@ -161,7 +161,7 @@ export function parseOAuthError(error) {
  * @param {(instanceId: string, update: OAuthStatusUpdate) => Promise<void>} updateOAuthStatus - Database update function
  * @returns {Promise<TokenRefreshFailureResponse>} Error response details
  */
-export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
+async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
   const errorAnalysis = parseOAuthError(error);
   
   console.log(`= Token refresh error analysis for ${instanceId}:`, {
@@ -201,7 +201,7 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
  * @param {number} maxAttempts - Maximum attempts allowed
  * @returns {boolean} Whether to retry
  */
-export function shouldRetryOAuthError(error, attempt, maxAttempts) {
+function shouldRetryOAuthError(error, attempt, maxAttempts) {
   if (attempt >= maxAttempts) {
     return false;
   }
@@ -216,7 +216,7 @@ export function shouldRetryOAuthError(error, attempt, maxAttempts) {
  * @param {Error} error - OAuth error
  * @returns {number} Delay in milliseconds
  */
-export function getRetryDelay(attempt, error) {
+function getRetryDelay(attempt, error) {
   const errorAnalysis = parseOAuthError(error);
   
   // Different delays for different error types
@@ -235,7 +235,7 @@ export function getRetryDelay(attempt, error) {
  * @param {string} context - Error context
  * @param {string} instanceId - Instance ID
  */
-export function logOAuthError(error, context, instanceId) {
+function logOAuthError(error, context, instanceId) {
   const errorAnalysis = parseOAuthError(error);
   
   const logMessage = `OAuth error in ${context} for instance ${instanceId}: ${error.message || 'Unknown error'}`;
@@ -259,7 +259,7 @@ export function logOAuthError(error, context, instanceId) {
  * @param {string} context - Error context
  * @returns {OAuthErrorResponse} Standardized error response
  */
-export function createOAuthErrorResponse(instanceId, error, context) {
+function createOAuthErrorResponse(instanceId, error, context) {
   const errorAnalysis = parseOAuthError(error);
   
   return {
@@ -278,3 +278,6 @@ export function createOAuthErrorResponse(instanceId, error, context) {
     }
   };
 }
+module.exports = {
+  handleTokenRefreshFailure
+};

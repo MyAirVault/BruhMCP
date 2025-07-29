@@ -3,7 +3,7 @@
  * Validates tool arguments against defined schemas
  */
 
-import { getTools } from '../endpoints/tools.js';
+const { getTools  } = require('../endpoints/tools');
 
 /**
  * @typedef {Object} JsonSchemaProperty
@@ -48,7 +48,7 @@ import { getTools } from '../endpoints/tools.js';
  * @throws {Error} Validation error if arguments are invalid
  * @returns {void}
  */
-export function validateToolArguments(toolName, args) {
+function validateToolArguments(toolName, args) {
 	/** @type {DriveToolsResponse} */
 	const toolsData = getTools();
 	const tool = toolsData.tools.find((t) => t.name === toolName);
@@ -232,7 +232,7 @@ function validateArray(value, schema, context) {
  * @param {string} query - Search query
  * @throws {Error} If query contains invalid operators
  */
-export function validateDriveQuery(query) {
+function validateDriveQuery(query) {
 	if (!query || typeof query !== 'string') {
 		return; // Empty queries are allowed
 	}
@@ -286,7 +286,7 @@ export function validateDriveQuery(query) {
  * @param {string} fileId - Google Drive file ID
  * @throws {Error} If file ID format is invalid
  */
-export function validateFileId(fileId) {
+function validateFileId(fileId) {
 	if (!fileId || typeof fileId !== 'string') {
 		throw new Error('File ID is required and must be a string');
 	}
@@ -311,7 +311,7 @@ export function validateFileId(fileId) {
  * @param {string} folderId - Google Drive folder ID
  * @throws {Error} If folder ID format is invalid
  */
-export function validateFolderId(folderId) {
+function validateFolderId(folderId) {
 	if (!folderId || typeof folderId !== 'string') {
 		throw new Error('Folder ID is required and must be a string');
 	}
@@ -336,7 +336,7 @@ export function validateFolderId(folderId) {
  * @param {string} mimeType - MIME type string
  * @throws {Error} If MIME type format is invalid
  */
-export function validateMimeType(mimeType) {
+function validateMimeType(mimeType) {
 	if (!mimeType || typeof mimeType !== 'string') {
 		throw new Error('MIME type is required and must be a string');
 	}
@@ -357,7 +357,7 @@ export function validateMimeType(mimeType) {
  * @param {string} fileName - File name
  * @throws {Error} If file name is invalid
  */
-export function validateFileName(fileName) {
+function validateFileName(fileName) {
 	if (!fileName || typeof fileName !== 'string') {
 		throw new Error('File name is required and must be a string');
 	}
@@ -411,7 +411,7 @@ export function validateFileName(fileName) {
  * @param {string} role - Permission role
  * @throws {Error} If role is invalid
  */
-export function validatePermissionRole(role) {
+function validatePermissionRole(role) {
 	const validRoles = ['owner', 'organizer', 'fileOrganizer', 'writer', 'commenter', 'reader'];
 
 	if (!validRoles.includes(role)) {
@@ -424,7 +424,7 @@ export function validatePermissionRole(role) {
  * @param {string} type - Permission type
  * @throws {Error} If type is invalid
  */
-export function validatePermissionType(type) {
+function validatePermissionType(type) {
 	const validTypes = ['user', 'group', 'domain', 'anyone'];
 
 	if (!validTypes.includes(type)) {
@@ -437,7 +437,7 @@ export function validatePermissionType(type) {
  * @param {string} email - Email address to validate
  * @throws {Error} If email format is invalid
  */
-export function validateEmailAddress(email) {
+function validateEmailAddress(email) {
 	if (!email || typeof email !== 'string') {
 		throw new Error('Email address is required and must be a string');
 	}
@@ -458,7 +458,7 @@ export function validateEmailAddress(email) {
  * @param {string} domain - Domain name to validate
  * @throws {Error} If domain format is invalid
  */
-export function validateDomainName(domain) {
+function validateDomainName(domain) {
 	if (!domain || typeof domain !== 'string') {
 		throw new Error('Domain name is required and must be a string');
 	}
@@ -479,7 +479,7 @@ export function validateDomainName(domain) {
  * @param {string} path - File path to validate
  * @throws {Error} If path is invalid
  */
-export function validateLocalPath(path) {
+function validateLocalPath(path) {
 	if (!path || typeof path !== 'string') {
 		throw new Error('Local path is required and must be a string');
 	}
@@ -501,3 +501,23 @@ export function validateLocalPath(path) {
 		}
 	}
 }
+
+module.exports = {
+	validateToolArguments,
+	validateObject,
+	validateProperty,
+	validateType,
+	validateString,
+	validateNumber,
+	validateArray,
+	validateDriveQuery,
+	validateFileId,
+	validateFolderId,
+	validateMimeType,
+	validateFileName,
+	validatePermissionRole,
+	validatePermissionType,
+	validateEmailAddress,
+	validateDomainName,
+	validateLocalPath
+};

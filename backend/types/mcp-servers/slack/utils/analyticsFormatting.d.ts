@@ -1,3 +1,99 @@
+export type SlackMessage = import('../middleware/types.js').SlackMessage;
+export type SlackUser = import('../middleware/types.js').SlackUser;
+export type SlackChannel = import('../middleware/types.js').SlackChannel;
+export type SlackTeam = import('../middleware/types.js').SlackTeam;
+export type SlackSearchMatch = {
+    /**
+     * - Type of search match (message, file, etc.)
+     */
+    type: string;
+    /**
+     * - Matched text content
+     */
+    text: string;
+    /**
+     * - User ID who created the content
+     */
+    user: string;
+    /**
+     * - Username of the content creator
+     */
+    username: string;
+    /**
+     * - Channel information
+     */
+    channel: {
+        id: string;
+        name: string;
+    };
+    /**
+     * - Timestamp of the match
+     */
+    ts: string;
+    /**
+     * - Permanent link to the content
+     */
+    permalink: string;
+};
+export type SlackSearchResults = {
+    /**
+     * - Array of search matches
+     */
+    matches: SlackSearchMatch[];
+    /**
+     * - Pagination information
+     */
+    pagination: {
+        total_count: number;
+        page: number;
+        per_page: number;
+        page_count: number;
+        first: number;
+        last: number;
+    };
+};
+export type SlackConversationHistory = {
+    /**
+     * - Success status
+     */
+    ok: boolean;
+    /**
+     * - Array of messages
+     */
+    messages: SlackMessage[];
+    /**
+     * - Whether more messages exist
+     */
+    has_more: boolean;
+    /**
+     * - Number of pinned messages
+     */
+    pin_count: number;
+    /**
+     * - Response metadata
+     */
+    response_metadata: {
+        next_cursor: string;
+    };
+};
+export type BulkOperationResult = {
+    /**
+     * - Whether operation succeeded
+     */
+    success: boolean;
+    /**
+     * - Error message if failed
+     */
+    error?: string | undefined;
+    /**
+     * - Result data if successful
+     */
+    data?: Object | undefined;
+    /**
+     * - Item ID that was processed
+     */
+    id: string;
+};
 /**
  * Format search results for better readability
  * @param {SlackSearchResults} results - Search results from Slack API
@@ -24,7 +120,7 @@ export function formatSearchResults(results: SlackSearchResults, query: string):
  * @param {SlackUser[]} [users=[]] - User data for mention resolution
  * @returns {{ok: boolean, messages: Array<Object>, has_more: boolean, pin_count: number, response_metadata: Object}|null} Formatted conversation history
  */
-export function formatConversationHistory(history: SlackConversationHistory, users?: SlackUser[]): {
+export function formatConversationHistory(history: SlackConversationHistory, users?: import("../middleware/types.js").SlackUser[] | undefined): {
     ok: boolean;
     messages: Array<Object>;
     has_more: boolean;
@@ -118,103 +214,7 @@ export function formatWorkspaceStats(stats: {
     };
     generated_at: string;
 } | null;
-export type SlackMessage = import("../middleware/types.js").SlackMessage;
-export type SlackUser = import("../middleware/types.js").SlackUser;
-export type SlackChannel = import("../middleware/types.js").SlackChannel;
-export type SlackTeam = import("../middleware/types.js").SlackTeam;
-export type SlackSearchMatch = {
-    /**
-     * - Type of search match (message, file, etc.)
-     */
-    type: string;
-    /**
-     * - Matched text content
-     */
-    text: string;
-    /**
-     * - User ID who created the content
-     */
-    user: string;
-    /**
-     * - Username of the content creator
-     */
-    username: string;
-    /**
-     * - Channel information
-     */
-    channel: {
-        id: string;
-        name: string;
-    };
-    /**
-     * - Timestamp of the match
-     */
-    ts: string;
-    /**
-     * - Permanent link to the content
-     */
-    permalink: string;
-};
-export type SlackSearchResults = {
-    /**
-     * - Array of search matches
-     */
-    matches: SlackSearchMatch[];
-    /**
-     * - Pagination information
-     */
-    pagination: {
-        total_count: number;
-        page: number;
-        per_page: number;
-        page_count: number;
-        first: number;
-        last: number;
-    };
-};
-export type SlackConversationHistory = {
-    /**
-     * - Success status
-     */
-    ok: boolean;
-    /**
-     * - Array of messages
-     */
-    messages: SlackMessage[];
-    /**
-     * - Whether more messages exist
-     */
-    has_more: boolean;
-    /**
-     * - Number of pinned messages
-     */
-    pin_count: number;
-    /**
-     * - Response metadata
-     */
-    response_metadata: {
-        next_cursor: string;
-    };
-};
-export type BulkOperationResult = {
-    /**
-     * - Whether operation succeeded
-     */
-    success: boolean;
-    /**
-     * - Error message if failed
-     */
-    error?: string | undefined;
-    /**
-     * - Result data if successful
-     */
-    data?: Object | undefined;
-    /**
-     * - Item ID that was processed
-     */
-    id: string;
-};
-import { formatChannelResponse } from './entityFormatting.js';
-import { formatUserResponse } from './entityFormatting.js';
-import { formatTeamResponse } from './entityFormatting.js';
+import { formatChannelResponse } from "./entityFormatting";
+import { formatUserResponse } from "./entityFormatting";
+import { formatTeamResponse } from "./entityFormatting";
 //# sourceMappingURL=analyticsFormatting.d.ts.map

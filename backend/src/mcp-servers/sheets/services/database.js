@@ -4,7 +4,7 @@
  * Based on Gmail MCP implementation patterns
  */
 
-import { pool } from '../../../db/config.js';
+const { pool  } = require('../../../db/config');
 
 /**
  * @typedef {Object} InstanceCredentials
@@ -335,12 +335,12 @@ async function cleanupExpiredInstances() {
   }
 }
 
-export {
-  lookupInstanceCredentials,
+
+module.exports = { lookupInstanceCredentials,
   updateInstanceUsage,
   getInstanceStatistics,
   updateInstanceStatus,
   getActiveSheetsInstances,
   validateInstanceAccess,
   cleanupExpiredInstances
-};
+ };

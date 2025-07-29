@@ -4,40 +4,39 @@
  */
 
 // Core request handling
-export { makeGmailRequest } from './requestHandler.js';
+;
 
 // Message operations
-export {
-	sendEmail,
-	fetchEmails,
-	fetchMessageById,
-	replyToEmail,
-	deleteMessage,
-	moveToTrash,
-	searchEmails
-} from './messageOperations.js';
+;
 
 // Draft operations
-export {
-	createDraft,
-	sendDraft,
-	listDrafts
-} from './draftOperations.js';
+;
 
 // Thread operations
-export {
-	getThread
-} from './threadOperations.js';
+;
 
 // Label operations
-export {
-	markAsRead,
-	markAsUnread
-} from './labelOperations.js';
+;
 
 // Attachment operations
-export {
-	downloadAttachment,
-	listAttachments,
-	sendEmailWithAttachments
-} from './attachmentOperations.js';
+;
+
+module.exports = {
+	makeGmailRequest: require('./requestHandler.js').makeGmailRequest,
+	sendEmail: require('./messageOperations.js').sendEmail,
+	fetchEmails: require('./messageOperations.js').fetchEmails,
+	fetchMessageById: require('./messageOperations.js').fetchMessageById,
+	replyToEmail: require('./messageOperations.js').replyToEmail,
+	deleteMessage: require('./messageOperations.js').deleteMessage,
+	moveToTrash: require('./messageOperations.js').moveToTrash,
+	searchEmails: require('./messageOperations.js').searchEmails,
+	createDraft: require('./draftOperations.js').createDraft,
+	sendDraft: require('./draftOperations.js').sendDraft,
+	listDrafts: require('./draftOperations.js').listDrafts,
+	getThread: require('./threadOperations.js').getThread,
+	markAsRead: require('./labelOperations.js').markAsRead,
+	markAsUnread: require('./labelOperations.js').markAsUnread,
+	downloadAttachment: require('./attachmentOperations.js').downloadAttachment,
+	listAttachments: require('./attachmentOperations.js').listAttachments,
+	sendEmailWithAttachments: require('./attachmentOperations.js').sendEmailWithAttachments
+};

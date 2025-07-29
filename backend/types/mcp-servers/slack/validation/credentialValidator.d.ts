@@ -1,8 +1,18 @@
-export default createSlackValidator;
+export = createSlackValidator;
+/**
+ * Slack validator factory - determines which validator to use based on credentials
+ * @param {Object} credentials - Credentials to validate
+ * @returns {BaseValidator} Appropriate validator instance
+ */
+declare function createSlackValidator(credentials: Object): BaseValidator;
+declare namespace createSlackValidator {
+    export { SlackOAuthCredentials, SlackBotTokenCredentials, SlackUserTokenCredentials, SlackServiceInfo, SlackCredentials };
+}
+import { BaseValidator } from "../../../services/validation/baseValidator";
 /**
  * Slack OAuth credentials object
  */
-export type SlackOAuthCredentials = {
+type SlackOAuthCredentials = {
     /**
      * - OAuth client ID
      */
@@ -15,7 +25,7 @@ export type SlackOAuthCredentials = {
 /**
  * Slack Bot Token credentials object
  */
-export type SlackBotTokenCredentials = {
+type SlackBotTokenCredentials = {
     /**
      * - Slack bot token (starts with xoxb-)
      */
@@ -24,7 +34,7 @@ export type SlackBotTokenCredentials = {
 /**
  * Slack User Token credentials object
  */
-export type SlackUserTokenCredentials = {
+type SlackUserTokenCredentials = {
     /**
      * - Slack user token (starts with xoxp-)
      */
@@ -33,7 +43,7 @@ export type SlackUserTokenCredentials = {
 /**
  * Slack service information object
  */
-export type SlackServiceInfo = {
+type SlackServiceInfo = {
     /**
      * - Service name
      */
@@ -62,12 +72,5 @@ export type SlackServiceInfo = {
 /**
  * Generic credentials object that could be any of the Slack credential types
  */
-export type SlackCredentials = SlackOAuthCredentials | SlackBotTokenCredentials | SlackUserTokenCredentials;
-/**
- * Slack validator factory - determines which validator to use based on credentials
- * @param {Object} credentials - Credentials to validate
- * @returns {BaseValidator} Appropriate validator instance
- */
-declare function createSlackValidator(credentials: Object): BaseValidator;
-import { BaseValidator } from '../../../services/validation/baseValidator.js';
+type SlackCredentials = SlackOAuthCredentials | SlackBotTokenCredentials | SlackUserTokenCredentials;
 //# sourceMappingURL=credentialValidator.d.ts.map

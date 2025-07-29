@@ -3,8 +3,8 @@
  * Handles reminders, team info, and authentication testing
  */
 
-import { makeSlackRequest } from './requestHandler.js';
-import { formatTeamResponse } from '../../utils/slackFormatting.js';
+const { makeSlackRequest  } = require('./requestHandler');
+const { formatTeamResponse  } = require('../../utils/slackFormatting');
 
 /**
  * @typedef {Object} CreateReminderArgs
@@ -37,7 +37,7 @@ import { formatTeamResponse } from '../../utils/slackFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ReminderResult>} Reminder result
  */
-export async function createReminder(args, bearerToken) {
+async function createReminder(args, bearerToken) {
 	const { text, time, user } = args;
 
 	/** @type {{text: string, time: string, user?: string}} */
@@ -78,7 +78,7 @@ export async function createReminder(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<TeamInfoResult>} Team info result
  */
-export async function getTeamInfo(bearerToken) {
+async function getTeamInfo(bearerToken) {
 	/** @type {SlackTeamResponse} */
 	const response = /** @type {SlackTeamResponse} */ (await makeSlackRequest('/team.info', bearerToken));
 
@@ -102,7 +102,7 @@ export async function getTeamInfo(bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<AuthTestResult>} Auth test result
  */
-export async function testAuth(bearerToken) {
+async function testAuth(bearerToken) {
 	const response = await makeSlackRequest('/auth.test', bearerToken);
 	const authResponse = /** @type {{user?: string}} */ (response);
 
@@ -112,3 +112,8 @@ export async function testAuth(bearerToken) {
 		summary: `Authentication test successful for user: ${authResponse.user || 'Unknown'}`,
 	};
 }
+module.exports = {
+  createReminder,
+  getTeamInfo,
+  testAuth
+};

@@ -6,7 +6,7 @@
  */
 export function makeRawApiCall(args: {
     endpoint: string;
-    method?: "GET" | "POST" | "PATCH" | "DELETE";
-    body?: Record<string, unknown>;
+    method?: "GET" | "POST" | "DELETE" | "PATCH" | undefined;
+    body?: Record<string, unknown> | undefined;
 }, bearerToken: string): Promise<Record<string, unknown>>;
 //# sourceMappingURL=utilityOperations.d.ts.map

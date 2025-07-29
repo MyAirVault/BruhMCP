@@ -132,7 +132,7 @@
  * @param {RedditFormattingData} data - Reddit data to format
  * @returns {string} Formatted Reddit response
  */
-export function formatRedditResponse(data) {
+function formatRedditResponse(data) {
   const timestamp = data.timestamp || new Date().toISOString();
   
   switch (data.action) {
@@ -448,7 +448,7 @@ The messages are now marked as read.`;
  * @param {Error} error - Error object
  * @returns {string} Formatted error message
  */
-export function formatRedditErrorMessage(operation, error) {
+function formatRedditErrorMessage(operation, error) {
   const timestamp = new Date().toISOString();
   
   let errorType = 'Unknown error';
@@ -488,7 +488,7 @@ Suggestion: ${suggestion}`;
  * @param {RedditPost} post - Reddit post object
  * @returns {RedditPost} Formatted post data
  */
-export function formatPostData(post) {
+function formatPostData(post) {
   return {
     id: post.id,
     title: post.title,
@@ -517,7 +517,7 @@ export function formatPostData(post) {
  * @param {RedditComment} comment - Reddit comment object
  * @returns {RedditComment} Formatted comment data
  */
-export function formatCommentData(comment) {
+function formatCommentData(comment) {
   return {
     id: comment.id,
     author: comment.author,
@@ -541,7 +541,7 @@ export function formatCommentData(comment) {
  * @param {RedditUser} user - Reddit user object
  * @returns {RedditUser} Formatted user data
  */
-export function formatUserData(user) {
+function formatUserData(user) {
   return {
     name: user.name,
     id: user.id,
@@ -563,7 +563,7 @@ export function formatUserData(user) {
  * @param {RedditSubreddit} subreddit - Reddit subreddit object
  * @returns {RedditSubreddit} Formatted subreddit data
  */
-export function formatSubredditData(subreddit) {
+function formatSubredditData(subreddit) {
   return {
     display_name: subreddit.display_name,
     id: subreddit.id,
@@ -582,3 +582,12 @@ export function formatSubredditData(subreddit) {
     banner_img: subreddit.banner_img
   };
 }
+
+module.exports = {
+  formatRedditResponse,
+  formatRedditErrorMessage,
+  formatPostData,
+  formatCommentData,
+  formatUserData,
+  formatSubredditData
+};

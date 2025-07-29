@@ -8,17 +8,19 @@
  * @param {Object} options - Sanitization options
  * @returns {number} Sanitized integer
  */
-export function sanitizeInteger(value, options = {}) {
-  const { min = -Infinity, max = Infinity, required = false } = options;
+function sanitizeInteger(value, options = {}) {
+  /** @type {any} */
+  const opts = options;
+  const { min = -Infinity, max = Infinity, required = false } = opts;
 
   if (value === null || value === undefined) {
     if (required) {
       throw new Error('Integer value is required');
     }
-    return null;
+    return /** @type {any} */ (null);
   }
 
-  const parsed = parseInt(value, 10);
+  const parsed = parseInt(/** @type {any} */ (value), 10);
   
   if (isNaN(parsed)) {
     throw new Error('Invalid integer value');
@@ -40,7 +42,7 @@ export function sanitizeInteger(value, options = {}) {
  * @param {string|number|boolean|null|undefined} value - Value to sanitize as boolean
  * @returns {boolean} Sanitized boolean
  */
-export function sanitizeBoolean(value) {
+function sanitizeBoolean(value) {
   if (value === null || value === undefined) {
     return false;
   }
@@ -68,12 +70,14 @@ export function sanitizeBoolean(value) {
 
 /**
  * Sanitize array input
- * @param {Array|string|null|undefined} value - Value to sanitize as array
+ * @param {any[]|string|null|undefined} value - Value to sanitize as array
  * @param {Object} options - Sanitization options
- * @returns {Array} Sanitized array
+ * @returns {any[]} Sanitized array
  */
-export function sanitizeArray(value, options = {}) {
-  const { maxLength = 100, itemSanitizer = null } = options;
+function sanitizeArray(value, options = {}) {
+  /** @type {any} */
+  const opts = options;
+  const { maxLength = 100, itemSanitizer = null } = opts;
 
   if (value === null || value === undefined) {
     return [];
@@ -112,3 +116,9 @@ export function sanitizeArray(value, options = {}) {
 
   return array;
 }
+
+module.exports = {
+  sanitizeInteger,
+  sanitizeBoolean,
+  sanitizeArray
+};

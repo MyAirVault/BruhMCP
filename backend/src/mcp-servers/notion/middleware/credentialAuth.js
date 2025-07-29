@@ -5,41 +5,37 @@
 
 /// <reference path="./types.js" />
 
-import { lookupInstanceCredentials } from '../services/database.js';
-import { 
-  isValidInstanceId, 
+const { lookupInstanceCredentials  } = require('../services/database');
+const { isValidInstanceId, 
   createInstanceIdValidationError, 
   validateInstance 
-} from './validation.js';
-import { 
-  checkCachedCredentials, 
+ } = require('./validation');
+const { checkCachedCredentials, 
   hasCachedBearerToken, 
   setupRequestWithCachedToken, 
   getTokenInfo, 
   isAccessTokenValid, 
   cacheAndSetupToken, 
   setupLightweightRequest 
-} from './credentialManagement.js';
-import { performTokenRefresh } from './tokenRefresh.js';
-import { 
-  createSystemErrorResponse, 
+ } = require('./credentialManagement');
+const { performTokenRefresh  } = require('./tokenRefresh');
+const { createSystemErrorResponse, 
   createLightweightSystemErrorResponse, 
   handleRefreshFailure, 
   createRefreshFailureResponse, 
   createReauthenticationResponse, 
   logRefreshFallback 
-} from './authErrorHandler.js';
-import { 
-  logSuccessfulTokenRefresh, 
+ } = require('./authErrorHandler');
+const { logSuccessfulTokenRefresh, 
   logFailedTokenRefresh, 
   logReauthenticationRequired 
-} from './auditLogger.js';
+ } = require('./auditLogger');
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCredentialAuthMiddleware() {
+function createCredentialAuthMiddleware() {
   /**
    * @param {import('express').Request} req - Express request object
    * @param {import('express').Response} res - Express response object
@@ -160,7 +156,7 @@ export function createCredentialAuthMiddleware() {
  * Create lightweight authentication middleware for non-critical endpoints
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createLightweightAuthMiddleware() {
+function createLightweightAuthMiddleware() {
   /**
    * @param {import('express').Request} req - Express request object
    * @param {import('express').Response} res - Express response object
@@ -202,7 +198,7 @@ export function createLightweightAuthMiddleware() {
  * Create cache performance monitoring middleware for development
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCachePerformanceMiddleware() {
+function createCachePerformanceMiddleware() {
   /**
    * @param {import('express').Request} req - Express request object
    * @param {import('express').Response} res - Express response object
@@ -235,39 +231,10 @@ export function createCachePerformanceMiddleware() {
   };
 }
 
-// Export all modular components (explicit exports to avoid type conflicts)
-export {
-  isValidInstanceId,
-  createInstanceIdValidationError,
-  validateInstance
-} from './validation.js';
-
-export {
-  checkCachedCredentials,
-  hasCachedBearerToken,
-  setupRequestWithCachedToken,
-  getTokenInfo,
-  isAccessTokenValid,
-  cacheAndSetupToken,
-  setupLightweightRequest
-} from './credentialManagement.js';
-
-export {
-  performTokenRefresh
-} from './tokenRefresh.js';
-
-export {
-  createSystemErrorResponse,
-  createLightweightSystemErrorResponse,
-  handleRefreshFailure,
-  createRefreshFailureResponse,
-  createReauthenticationResponse,
-  logRefreshFallback
-} from './authErrorHandler.js';
-
-export {
-  logSuccessfulTokenRefresh,
-  logFailedTokenRefresh,
-  logReauthenticationRequired,
-  createAuditLogEntry
-} from './auditLogger.js';
+// All additional imports are already done at the top of the file
+// Single consolidated export
+module.exports = {
+  createCredentialAuthMiddleware,
+  createLightweightAuthMiddleware,
+  createCachePerformanceMiddleware
+};

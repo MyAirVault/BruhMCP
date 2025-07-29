@@ -1,3 +1,4 @@
+export type CacheEntry = import('./cacheCore.js').CacheEntry;
 /**
  * @typedef {import('./cacheCore.js').CacheEntry} CacheEntry
  */
@@ -46,5 +47,4 @@ export function cleanupUserCacheEntries(userId: string): number;
  * @returns {number} Number of entries removed
  */
 export function cleanupTeamCacheEntries(teamId: string): number;
-export type CacheEntry = import("./cacheCore.js").CacheEntry;
 //# sourceMappingURL=cacheManagement.d.ts.map

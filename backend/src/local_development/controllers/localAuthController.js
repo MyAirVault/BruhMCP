@@ -5,11 +5,11 @@
  * @fileoverview Controller for handling local development authentication requests
  */
 
-import { z } from 'zod';
-import { localUserService } from '../services/localUserService.js';
-import { generateJWT } from '../../utils/jwt.js';
-import { ErrorResponses, formatZodErrors } from '../../utils/errorResponse.js';
-import { getLocalModeConfig } from '../config/localMode.js';
+const { z } = require('zod');
+const { localUserService } = require('../services/localUserService.js');
+const { generateJWT } = require('../../utils/jwt.js');
+const { ErrorResponses, formatZodErrors } = require('../../utils/errorResponse.js');
+const { getLocalModeConfig } = require('../config/localMode.js');
 
 // Validation schemas
 const localLoginSchema = z.object({
@@ -22,7 +22,7 @@ const localLoginSchema = z.object({
  * @param {import('express').Request} req 
  * @param {import('express').Response} res 
  */
-export async function localLoginOrRegister(req, res) {
+async function localLoginOrRegister(req, res) {
     try {
         const validationResult = localLoginSchema.safeParse(req.body);
 
@@ -49,7 +49,7 @@ export async function localLoginOrRegister(req, res) {
         }
 
         // Generate JWT (same as production)
-        const jwtToken = generateJWT(result.user);
+        const jwtToken = generateJWT(/** @type {{ id: string, email: string }} */ (result.user));
 
         // Set JWT as HTTP-only cookie (same as production)
         res.cookie('authToken', jwtToken, {
@@ -60,7 +60,7 @@ export async function localLoginOrRegister(req, res) {
         });
 
         // Log successful authentication
-        console.log(`🔐 Local auth successful: ${result.user.email} (${result.isNewUser ? 'new user' : 'existing user'})`);
+        console.log(`🔐 Local auth successful: ${result.user?.email} (${result.isNewUser ? 'new user' : 'existing user'})`);
 
         res.status(200).json({
             success: true,
@@ -76,10 +76,10 @@ export async function localLoginOrRegister(req, res) {
 
 /**
  * Get environment info for frontend
- * @param {import('express').Request} req 
+ * @param {import('express').Request} _req 
  * @param {import('express').Response} res 
  */
-export async function getEnvironmentInfo(req, res) {
+async function getEnvironmentInfo(/** @type {import('express').Request} */ _req, res) {
     try {
         const config = getLocalModeConfig();
         
@@ -98,7 +98,7 @@ export async function getEnvironmentInfo(req, res) {
  * @param {import('express').Request} req 
  * @param {import('express').Response} res 
  */
-export async function testCredentials(req, res) {
+async function testCredentials(req, res) {
     try {
         const validationResult = localLoginSchema.safeParse(req.body);
 
@@ -126,3 +126,9 @@ export async function testCredentials(req, res) {
         ErrorResponses.internal(res, 'An unexpected error occurred');
     }
 }
+
+module.exports = {
+    localLoginOrRegister,
+    getEnvironmentInfo,
+    testCredentials
+};

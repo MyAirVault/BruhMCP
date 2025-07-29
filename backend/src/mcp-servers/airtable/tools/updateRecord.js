@@ -3,10 +3,10 @@
  * Enhanced with validation and YAML formatting
  */
 
-import { z } from 'zod';
-import * as yaml from 'js-yaml';
-import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
+const { z  } = require('zod');
+const yaml = require('js-yaml');
+const { createLogger  } = require('../utils/logger.js');
+const { AirtableErrorHandler  } = require('../utils/errorHandler.js');
 
 const logger = createLogger('UpdateRecordTool');
 
@@ -36,7 +36,7 @@ const logger = createLogger('UpdateRecordTool');
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupUpdateRecordTool(server, airtableService, measurePerformance, serviceConfig) {
+function setupUpdateRecordTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
 		'update_record',
 		'Update an existing record in an Airtable table',
@@ -86,3 +86,5 @@ export function setupUpdateRecordTool(server, airtableService, measurePerformanc
 		})
 	);
 }
+
+module.exports = setupUpdateRecordTool;

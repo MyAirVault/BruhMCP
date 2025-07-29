@@ -3,7 +3,7 @@
  * Provides structured logging with different levels and context
  */
 
-import { recordTokenRefreshMetrics } from './tokenMetrics.js';
+const { recordTokenRefreshMetrics } = require('./tokenMetrics');
 
 /**
  * Log levels
@@ -85,7 +85,7 @@ function log(level, message, context = {}) {
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function debug(message, context = {}) {
+function debug(message, context = {}) {
   log('DEBUG', message, context);
 }
 
@@ -94,7 +94,7 @@ export function debug(message, context = {}) {
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function info(message, context = {}) {
+function info(message, context = {}) {
   log('INFO', message, context);
 }
 
@@ -103,7 +103,7 @@ export function info(message, context = {}) {
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function warn(message, context = {}) {
+function warn(message, context = {}) {
   log('WARN', message, context);
 }
 
@@ -112,7 +112,7 @@ export function warn(message, context = {}) {
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function error(message, context = {}) {
+function error(message, context = {}) {
   log('ERROR', message, context);
 }
 
@@ -121,7 +121,7 @@ export function error(message, context = {}) {
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function fatal(message, context = {}) {
+function fatal(message, context = {}) {
   log('FATAL', message, context);
 }
 
@@ -132,7 +132,7 @@ export function fatal(message, context = {}) {
  * @param {string} instanceId - Instance identifier
  * @param {Record<string, unknown>} [params={}] - Request parameters
  */
-export function logApiRequest(method, endpoint, instanceId, params = {}) {
+function logApiRequest(method, endpoint, instanceId, params = {}) {
   info(`🔄 Slack API Request: ${method} ${endpoint}`, {
     instanceId,
     method,
@@ -150,7 +150,7 @@ export function logApiRequest(method, endpoint, instanceId, params = {}) {
  * @param {number} duration - Request duration in milliseconds
  * @param {Record<string, unknown>} [response={}] - Response data
  */
-export function logApiResponse(method, endpoint, instanceId, success, duration, response = {}) {
+function logApiResponse(method, endpoint, instanceId, success, duration, response = {}) {
   const status = success ? '✅' : '❌';
   const level = success ? 'INFO' : 'ERROR';
   
@@ -171,7 +171,7 @@ export function logApiResponse(method, endpoint, instanceId, success, duration, 
  * @param {boolean} success - Whether the operation was successful
  * @param {Record<string, unknown>} [details={}] - Additional operation details
  */
-export function logTokenOperation(operation, instanceId, success, details = {}) {
+function logTokenOperation(operation, instanceId, success, details = {}) {
   const status = success ? '✅' : '❌';
   const level = success ? 'INFO' : 'ERROR';
   
@@ -193,7 +193,7 @@ export function logTokenOperation(operation, instanceId, success, details = {}) 
  * @param {number} startTime - Operation start timestamp
  * @param {number} endTime - Operation end timestamp
  */
-export function logTokenRefresh(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
+function logTokenRefresh(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
   const duration = endTime - startTime;
   const status = success ? '✅' : '❌';
   const level = success ? 'INFO' : 'ERROR';
@@ -218,7 +218,7 @@ export function logTokenRefresh(instanceId, method, success, errorType, errorMes
  * @param {Record<string, unknown>|null} params - Request parameters
  * @param {string} instanceId - Instance identifier
  */
-export function logMcpRequest(method, params, instanceId) {
+function logMcpRequest(method, params, instanceId) {
   info(`🔄 MCP Request: ${method}`, {
     instanceId,
     method,
@@ -234,7 +234,7 @@ export function logMcpRequest(method, params, instanceId) {
  * @param {number} duration - Request duration in milliseconds
  * @param {Error|null} [error=null] - Error object if failed
  */
-export function logMcpResponse(method, instanceId, success, duration, error = null) {
+function logMcpResponse(method, instanceId, success, duration, error = null) {
   const status = success ? '✅' : '❌';
   const level = success ? 'INFO' : 'ERROR';
   
@@ -255,7 +255,7 @@ export function logMcpResponse(method, instanceId, success, duration, error = nu
  * @param {boolean} success - Whether the operation was successful
  * @param {Record<string, unknown>} [details={}] - Additional operation details
  */
-export function logDatabaseOperation(operation, table, instanceId, success, details = {}) {
+function logDatabaseOperation(operation, table, instanceId, success, details = {}) {
   const status = success ? '✅' : '❌';
   const level = success ? 'DEBUG' : 'ERROR';
   
@@ -275,7 +275,7 @@ export function logDatabaseOperation(operation, table, instanceId, success, deta
  * @param {boolean} success - Whether the operation was successful
  * @param {Record<string, unknown>} [details={}] - Additional operation details
  */
-export function logCredentialOperation(operation, instanceId, success, details = {}) {
+function logCredentialOperation(operation, instanceId, success, details = {}) {
   const status = success ? '✅' : '❌';
   const level = success ? 'INFO' : 'ERROR';
   
@@ -295,7 +295,7 @@ export function logCredentialOperation(operation, instanceId, success, details =
  * @param {string} instanceId - Instance identifier
  * @param {Record<string, unknown>} [details={}] - Additional error details
  */
-export function logValidationError(type, field, value, instanceId, details = {}) {
+function logValidationError(type, field, value, instanceId, details = {}) {
   error(`❌ Validation Error: ${type}`, {
     instanceId,
     type,
@@ -312,7 +312,7 @@ export function logValidationError(type, field, value, instanceId, details = {})
  * @param {number} retryAfter - Retry after duration in seconds
  * @param {Record<string, unknown>} [details={}] - Additional rate limit details
  */
-export function logRateLimit(endpoint, instanceId, retryAfter, details = {}) {
+function logRateLimit(endpoint, instanceId, retryAfter, details = {}) {
   warn(`⏱️ Rate Limited: ${endpoint}`, {
     instanceId,
     endpoint,
@@ -329,7 +329,7 @@ export function logRateLimit(endpoint, instanceId, retryAfter, details = {}) {
  * @param {string} instanceId - Instance identifier
  * @param {Record<string, unknown>} [details={}] - Additional cache details
  */
-export function logCacheOperation(operation, key, hit, instanceId, details = {}) {
+function logCacheOperation(operation, key, hit, instanceId, details = {}) {
   const status = hit ? '🎯' : '❌';
   
   debug(`${status} Cache ${operation}: ${key}`, {
@@ -348,7 +348,7 @@ export function logCacheOperation(operation, key, hit, instanceId, details = {})
  * @param {string[]} [issues=[]] - List of system issues
  * @param {string[]} [warnings=[]] - List of system warnings
  */
-export function logSystemHealth(status, metrics, issues = [], warnings = []) {
+function logSystemHealth(status, metrics, issues = [], warnings = []) {
   const level = status === 'healthy' ? 'INFO' : status === 'degraded' ? 'WARN' : 'ERROR';
   const emoji = status === 'healthy' ? '💚' : status === 'degraded' ? '💛' : '❤️';
   
@@ -366,7 +366,7 @@ export function logSystemHealth(status, metrics, issues = [], warnings = []) {
  * @param {string} environment - Environment name
  * @param {string[]} [features=[]] - List of enabled features
  */
-export function logStartup(port, environment, features = []) {
+function logStartup(port, environment, features = []) {
   info(`🚀 Slack MCP Server Starting`, {
     port,
     environment,
@@ -380,7 +380,7 @@ export function logStartup(port, environment, features = []) {
  * @param {string} reason - Shutdown reason
  * @param {boolean} [graceful=true] - Whether shutdown was graceful
  */
-export function logShutdown(reason, graceful = true) {
+function logShutdown(reason, graceful = true) {
   const level = graceful ? 'INFO' : 'ERROR';
   const emoji = graceful ? '👋' : '💥';
   
@@ -396,7 +396,7 @@ export function logShutdown(reason, graceful = true) {
  * @param {string} [serviceName='slack'] - Service name for logging
  * @returns {Function} Express middleware function
  */
-export function createRequestLogger(serviceName = 'slack') {
+function createRequestLogger(serviceName = 'slack') {
   return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
     const startTime = Date.now();
     const instanceId = req.headers['x-instance-id'] || 'unknown';
@@ -435,7 +435,7 @@ export function createRequestLogger(serviceName = 'slack') {
  * @param {string} instanceId - Instance identifier
  * @returns {{end: Function}} Timer object with end method
  */
-export function createTimer(operation, instanceId) {
+function createTimer(operation, instanceId) {
   const startTime = Date.now();
   
   return {
@@ -458,12 +458,28 @@ export function createTimer(operation, instanceId) {
   };
 }
 
-/**
- * Export current log level for testing
- */
-export const currentLogLevel = CURRENT_LOG_LEVEL;
-
-/**
- * Export log levels for reference
- */
-export const logLevels = LOG_LEVELS;
+module.exports = {
+	debug,
+	info,
+	warn,
+	error,
+	fatal,
+	logApiRequest,
+	logApiResponse,
+	logTokenOperation,
+	logTokenRefresh,
+	logMcpRequest,
+	logMcpResponse,
+	logDatabaseOperation,
+	logCredentialOperation,
+	logValidationError,
+	logRateLimit,
+	logCacheOperation,
+	logSystemHealth,
+	logStartup,
+	logShutdown,
+	createRequestLogger,
+	createTimer,
+	currentLogLevel: CURRENT_LOG_LEVEL,
+	logLevels: LOG_LEVELS
+};

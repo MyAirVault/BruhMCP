@@ -7,7 +7,7 @@
  * @param {number} [scale=1] - Image scale factor
  * @returns {Promise<any>}
  */
-export function getFigmaImages(fileKey: string, apiKey: string, nodeIds: string[], format?: string, scale?: number): Promise<any>;
+export function getFigmaImages(fileKey: string, apiKey: string, nodeIds: string[], format?: string | undefined, scale?: number | undefined): Promise<any>;
 /**
  * Get image fills from a file
  * @param {string} fileKey - Figma file key

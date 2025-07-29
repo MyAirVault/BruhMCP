@@ -2,8 +2,8 @@
  * Effects Transformer * Handles visual effects like shadows, blurs
  */
 
-import { formatRGBAColor } from '../utils/common.js';
-import { hasValue } from '../utils/identity.js';
+const { formatRGBAColor } = require('../utils/common.js');
+const { hasValue } = require('../utils/identity.js');
 
 /**
  * @typedef {Object} FigmaColor
@@ -48,7 +48,7 @@ import { hasValue } from '../utils/identity.js';
  * @param {FigmaNode} n - Figma node
  * @returns {SimplifiedEffects}
  */
-export function buildSimplifiedEffects(n) {
+function buildSimplifiedEffects(n) {
 	if (!hasValue("effects", n) || !Array.isArray(n.effects)) return {};
 	const effects = n.effects.filter(/** @param {FigmaEffect} e */ (e) => e && e.visible);
 
@@ -115,3 +115,7 @@ function simplifyBlur(effect) {
 	return `blur(${effect.radius}px)`;
 }
 
+
+module.exports = {
+	buildSimplifiedEffects
+};

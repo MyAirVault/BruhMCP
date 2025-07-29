@@ -1,3 +1,33 @@
+export type CommentPosition = {
+    /**
+     * - X coordinate
+     */
+    x: number;
+    /**
+     * - Y coordinate
+     */
+    y: number;
+};
+export type CommentRequestBody = {
+    /**
+     * - Comment message
+     */
+    message: string;
+    /**
+     * - Client metadata for position
+     */
+    client_meta?: {
+        /**
+         * - X coordinate
+         */
+        x: number;
+        /**
+         * - Y coordinate
+         */
+        y: number;
+    } | undefined;
+};
+export const FIGMA_BASE_URL: "https://api.figma.com/v1";
 /**
  * @typedef {Object} CommentPosition
  * @property {number} x - X coordinate
@@ -30,35 +60,5 @@ export function makeAuthenticatedRequest(endpoint: string, apiKey: string, optio
     headers?: Object | undefined;
     method?: string | undefined;
     body?: string | undefined;
-}): Promise<any>;
-export const FIGMA_BASE_URL: "https://api.figma.com/v1";
-export type CommentPosition = {
-    /**
-     * - X coordinate
-     */
-    x: number;
-    /**
-     * - Y coordinate
-     */
-    y: number;
-};
-export type CommentRequestBody = {
-    /**
-     * - Comment message
-     */
-    message: string;
-    /**
-     * - Client metadata for position
-     */
-    client_meta?: {
-        /**
-         * - X coordinate
-         */
-        x: number;
-        /**
-         * - Y coordinate
-         */
-        y: number;
-    } | undefined;
-};
+} | undefined): Promise<any>;
 //# sourceMappingURL=common.d.ts.map

@@ -1,98 +1,3 @@
-/**
- * Initialize the credential cache system
- * Called on service startup
- */
-export function initializeCredentialCache(): void;
-/**
- * Get cached credential for an instance
- * @param {string} instanceId - UUID of the service instance
- * @returns {CachedCredential|null} Cached credential data or null if not found/expired
- */
-export function getCachedCredential(instanceId: string): CachedCredential | null;
-/**
- * Store OAuth tokens in cache
- * @param {string} instanceId - UUID of the service instance
- * @param {TokenData} tokenData - Token data to cache
- */
-export function setCachedCredential(instanceId: string, tokenData: TokenData): void;
-/**
- * Remove credential from cache
- * @param {string} instanceId - UUID of the service instance
- */
-export function removeCachedCredential(instanceId: string): boolean;
-/**
- * Get cache statistics for monitoring
- * @returns {CacheStatistics} Cache statistics
- */
-export function getCacheStatistics(): CacheStatistics;
-/**
- * Get all cached instance IDs (for debugging/monitoring)
- * @returns {string[]} Array of cached instance IDs
- */
-export function getCachedInstanceIds(): string[];
-/**
- * Check if an instance is cached and token is valid
- * @param {string} instanceId - UUID of the service instance
- * @returns {boolean} True if instance is cached and token is valid
- */
-export function isInstanceCached(instanceId: string): boolean;
-/**
- * Clear all cached credentials (for testing/restart)
- */
-export function clearCredentialCache(): void;
-/**
- * Get cache entry without updating last_used (for monitoring)
- * @param {string} instanceId - UUID of the service instance
- * @returns {CachedCredential|null} Cache entry or null
- */
-export function peekCachedCredential(instanceId: string): CachedCredential | null;
-/**
- * Update cached token metadata without changing the tokens themselves
- * Used for status changes and token refresh to keep cache in sync
- * @param {string} instanceId - UUID of the service instance
- * @param {CredentialUpdate} updates - Updates to apply to cache entry
- * @returns {boolean} True if cache entry was updated, false if not found
- */
-export function updateCachedCredentialMetadata(instanceId: string, updates: CredentialUpdate): boolean;
-/**
- * Remove expired or inactive instances from cache
- * Called by background watcher and status change operations
- * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
- * @returns {number} Number of entries removed
- */
-export function cleanupInvalidCacheEntries(reason?: string): number;
-/**
- * Update refresh attempt count for an instance
- * @param {string} instanceId - UUID of the service instance
- * @returns {number} Current refresh attempt count
- */
-export function incrementRefreshAttempts(instanceId: string): number;
-/**
- * Reset refresh attempt count (after successful refresh)
- * @param {string} instanceId - UUID of the service instance
- */
-export function resetRefreshAttempts(instanceId: string): void;
-/**
- * Synchronize cache with database for consistency
- * This function ensures cache and database are in sync during failure scenarios
- * @param {string} instanceId - UUID of the service instance
- * @param {SyncOptions} [options] - Sync options
- * @returns {Promise<boolean>} True if sync was successful
- */
-export function syncCacheWithDatabase(instanceId: string, options?: SyncOptions): Promise<boolean>;
-/**
- * Background synchronization for all cached instances
- * This function runs periodically to ensure cache-database consistency
- * @param {BackgroundSyncOptions} [options] - Sync options
- * @returns {Promise<SyncResults>} Sync results
- */
-export function backgroundCacheSync(options?: BackgroundSyncOptions): Promise<SyncResults>;
-/**
- * Start background cache synchronization service
- * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
- * @returns {SyncController} Sync service controller
- */
-export function startBackgroundCacheSync(intervalMinutes?: number): SyncController;
 export type CachedCredential = {
     /**
      * - OAuth Bearer access token
@@ -339,4 +244,99 @@ export type InstanceCredentials = {
      */
     oauth_completed_at: string | null;
 };
+/**
+ * Initialize the credential cache system
+ * Called on service startup
+ */
+export function initializeCredentialCache(): void;
+/**
+ * Get cached credential for an instance
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {CachedCredential|null} Cached credential data or null if not found/expired
+ */
+export function getCachedCredential(instanceId: string): CachedCredential | null;
+/**
+ * Store OAuth tokens in cache
+ * @param {string} instanceId - UUID of the service instance
+ * @param {TokenData} tokenData - Token data to cache
+ */
+export function setCachedCredential(instanceId: string, tokenData: TokenData): void;
+/**
+ * Remove credential from cache
+ * @param {string} instanceId - UUID of the service instance
+ */
+export function removeCachedCredential(instanceId: string): boolean;
+/**
+ * Get cache statistics for monitoring
+ * @returns {CacheStatistics} Cache statistics
+ */
+export function getCacheStatistics(): CacheStatistics;
+/**
+ * Get all cached instance IDs (for debugging/monitoring)
+ * @returns {string[]} Array of cached instance IDs
+ */
+export function getCachedInstanceIds(): string[];
+/**
+ * Check if an instance is cached and token is valid
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {boolean} True if instance is cached and token is valid
+ */
+export function isInstanceCached(instanceId: string): boolean;
+/**
+ * Clear all cached credentials (for testing/restart)
+ */
+export function clearCredentialCache(): void;
+/**
+ * Get cache entry without updating last_used (for monitoring)
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {CachedCredential|null} Cache entry or null
+ */
+export function peekCachedCredential(instanceId: string): CachedCredential | null;
+/**
+ * Update cached token metadata without changing the tokens themselves
+ * Used for status changes and token refresh to keep cache in sync
+ * @param {string} instanceId - UUID of the service instance
+ * @param {CredentialUpdate} updates - Updates to apply to cache entry
+ * @returns {boolean} True if cache entry was updated, false if not found
+ */
+export function updateCachedCredentialMetadata(instanceId: string, updates: CredentialUpdate): boolean;
+/**
+ * Remove expired or inactive instances from cache
+ * Called by background watcher and status change operations
+ * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
+ * @returns {number} Number of entries removed
+ */
+export function cleanupInvalidCacheEntries(reason?: string): number;
+/**
+ * Update refresh attempt count for an instance
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {number} Current refresh attempt count
+ */
+export function incrementRefreshAttempts(instanceId: string): number;
+/**
+ * Reset refresh attempt count (after successful refresh)
+ * @param {string} instanceId - UUID of the service instance
+ */
+export function resetRefreshAttempts(instanceId: string): void;
+/**
+ * Synchronize cache with database for consistency
+ * This function ensures cache and database are in sync during failure scenarios
+ * @param {string} instanceId - UUID of the service instance
+ * @param {SyncOptions} [options] - Sync options
+ * @returns {Promise<boolean>} True if sync was successful
+ */
+export function syncCacheWithDatabase(instanceId: string, options?: SyncOptions | undefined): Promise<boolean>;
+/**
+ * Background synchronization for all cached instances
+ * This function runs periodically to ensure cache-database consistency
+ * @param {BackgroundSyncOptions} [options] - Sync options
+ * @returns {Promise<SyncResults>} Sync results
+ */
+export function backgroundCacheSync(options?: BackgroundSyncOptions | undefined): Promise<SyncResults>;
+/**
+ * Start background cache synchronization service
+ * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
+ * @returns {SyncController} Sync service controller
+ */
+export function startBackgroundCacheSync(intervalMinutes?: number | undefined): SyncController;
 //# sourceMappingURL=credentialCache.d.ts.map

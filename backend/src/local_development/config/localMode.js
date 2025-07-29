@@ -9,7 +9,7 @@
  * Check if application is running in local development mode
  * @returns {boolean}
  */
-export const isLocalMode = () => {
+const isLocalMode = () => {
     return process.env.LOCAL_DEV === 'true';
 };
 
@@ -17,7 +17,7 @@ export const isLocalMode = () => {
  * Get default local development user email
  * @returns {string}
  */
-export const getDefaultLocalUserEmail = () => {
+const getDefaultLocalUserEmail = () => {
     return process.env.LOCAL_USER_EMAIL || 'dev@localhost.com';
 };
 
@@ -25,7 +25,7 @@ export const getDefaultLocalUserEmail = () => {
  * Check if SMTP should be disabled in local mode
  * @returns {boolean}
  */
-export const isSmtpDisabled = () => {
+const isSmtpDisabled = () => {
     return isLocalMode();
 };
 
@@ -33,11 +33,18 @@ export const isSmtpDisabled = () => {
  * Get local mode configuration object
  * @returns {Object}
  */
-export const getLocalModeConfig = () => {
+const getLocalModeConfig = () => {
     return {
         isLocalMode: isLocalMode(),
         smtpDisabled: isSmtpDisabled(),
         defaultUserEmail: getDefaultLocalUserEmail(),
         authMethod: isLocalMode() ? 'email_password' : 'magic_link'
     };
+};
+
+module.exports = {
+    isLocalMode,
+    getDefaultLocalUserEmail,
+    isSmtpDisabled,
+    getLocalModeConfig
 };

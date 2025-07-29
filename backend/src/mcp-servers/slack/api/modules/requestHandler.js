@@ -36,7 +36,7 @@ const SLACK_API_BASE = 'https://slack.com/api';
  * @param {RequestOptions} options - Request options
  * @returns {Promise<SlackApiResponse>} API response
  */
-export async function makeSlackRequest(endpoint, bearerToken, options = {}) {
+async function makeSlackRequest(endpoint, bearerToken, options = {}) {
 	const url = `${SLACK_API_BASE}${endpoint}`;
 
 	/** @type {RequestInit} */
@@ -90,3 +90,6 @@ export async function makeSlackRequest(endpoint, bearerToken, options = {}) {
 
 	return /** @type {SlackApiResponse} */ (data);
 }
+module.exports = {
+  makeSlackRequest
+};

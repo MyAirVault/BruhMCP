@@ -3,7 +3,7 @@
  * Standardized function for initiating Google Sheets OAuth flow
  */
 
-import SheetsOAuthHandler from '../oauth/oauthHandler.js';
+const SheetsOAuthHandler = require('../oauth/oauthHandler');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -69,4 +69,5 @@ async function initiateOAuth(credentials, userId, instanceId) {
 }
 
 
-export { initiateOAuth };
+
+module.exports = { initiateOAuth  };

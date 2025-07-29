@@ -1,3 +1,5 @@
+export type CacheEntry = import('./credentialCache.js').CacheEntry;
+export type CacheStatistics = import('./credentialCache.js').CacheStatistics;
 /**
  * Start the credential watcher background process
  * Runs every 30 seconds to maintain cache health
@@ -22,6 +24,4 @@ export function forceMaintenanceCheck(): Promise<void>;
  * @returns {Object} Watcher status information
  */
 export function getWatcherStatus(): Object;
-export type CacheEntry = import("./credentialCache.js").CacheEntry;
-export type CacheStatistics = import("./credentialCache.js").CacheStatistics;
 //# sourceMappingURL=credentialWatcher.d.ts.map

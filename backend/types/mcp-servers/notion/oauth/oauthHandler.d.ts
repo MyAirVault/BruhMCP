@@ -1,7 +1,4 @@
-export default NotionOAuthHandler;
-export type AuthCredentials = import("../../../services/mcp-auth-registry/types/authTypes.js").AuthCredentials;
-export type OAuthFlowResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthFlowResult;
-export type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
+export = NotionOAuthHandler;
 /**
  * @fileoverview Notion OAuth Handler
  * Implements OAuth flow for Notion MCP service
@@ -47,4 +44,10 @@ declare class NotionOAuthHandler {
         expires_in: number;
     }>;
 }
+declare namespace NotionOAuthHandler {
+    export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult };
+}
+type AuthCredentials = import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials;
+type OAuthFlowResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult;
+type OAuthCallbackResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult;
 //# sourceMappingURL=oauthHandler.d.ts.map

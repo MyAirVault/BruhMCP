@@ -3,7 +3,7 @@
  * Validates arguments for Dropbox MCP tools using schema-based validation like Gmail
  */
 
-import { getTools } from '../endpoints/tools.js';
+const { getTools } = require('../endpoints/tools.js');
 
 /**
  * @typedef {Object} JSONSchemaProperty
@@ -58,7 +58,7 @@ import { getTools } from '../endpoints/tools.js';
  * @throws {Error} Validation error if arguments are invalid
  * @returns {void}
  */
-export function validateToolArguments(toolName, args) {
+function validateToolArguments(toolName, args) {
   const toolsData = /** @type {DropboxToolsData} */ (getTools());
   const tool = toolsData.tools.find(/** @param {DropboxTool} t */ t => t.name === toolName);
   
@@ -279,7 +279,7 @@ function validatePathField(value, context) {
  * @throws {Error} If query contains invalid patterns
  * @returns {void}
  */
-export function validateDropboxQuery(query) {
+function validateDropboxQuery(query) {
   if (!query || typeof query !== 'string') {
     throw new Error('Query is required and must be a string');
   }
@@ -310,7 +310,7 @@ export function validateDropboxQuery(query) {
  * @throws {Error} If path format is invalid
  * @returns {void}
  */
-export function validateDropboxPath(path) {
+function validateDropboxPath(path) {
   if (!path || typeof path !== 'string') {
     throw new Error('Path is required and must be a string');
   }
@@ -341,7 +341,7 @@ export function validateDropboxPath(path) {
  * @param {string} path - File path to sanitize
  * @returns {string} Sanitized path
  */
-export function sanitizePath(path) {
+function sanitizePath(path) {
   if (!path || typeof path !== 'string') {
     return '';
   }
@@ -365,7 +365,7 @@ export function sanitizePath(path) {
  * @throws {Error} If size is invalid
  * @returns {void}
  */
-export function validateFileSize(size, maxSize = 150 * 1024 * 1024) { // 150MB default
+function validateFileSize(size, maxSize = 150 * 1024 * 1024) { // 150MB default
   if (typeof size !== 'number' || isNaN(size) || size < 0) {
     throw new Error('File size must be a valid positive number');
   }
@@ -375,3 +375,18 @@ export function validateFileSize(size, maxSize = 150 * 1024 * 1024) { // 150MB d
     throw new Error(`File size exceeds maximum allowed size of ${maxSizeMB}MB`);
   }
 }
+
+module.exports = {
+  validateToolArguments,
+  validateObject,
+  validateProperty,
+  validateType,
+  validateString,
+  validateNumber,
+  validateArray,
+  validatePathField,
+  validateDropboxQuery,
+  validateDropboxPath,
+  sanitizePath,
+  validateFileSize
+};

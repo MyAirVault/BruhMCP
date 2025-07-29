@@ -1,7 +1,4 @@
-export default SheetsOAuthHandler;
-export type AuthCredentials = import("../../../services/mcp-auth-registry/types/authTypes.js").AuthCredentials;
-export type OAuthFlowResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthFlowResult;
-export type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
+export = SheetsOAuthHandler;
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult} OAuthFlowResult
@@ -41,4 +38,10 @@ declare class SheetsOAuthHandler {
         expires_in: number;
     }>;
 }
+declare namespace SheetsOAuthHandler {
+    export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult };
+}
+type AuthCredentials = import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials;
+type OAuthFlowResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult;
+type OAuthCallbackResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult;
 //# sourceMappingURL=oauthHandler.d.ts.map

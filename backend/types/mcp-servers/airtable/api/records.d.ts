@@ -1,3 +1,55 @@
+export type AirtableRecord = import('./common.js').AirtableRecord;
+export type ListRecordsOptions = {
+    /**
+     * - View name or ID
+     */
+    view?: string | undefined;
+    /**
+     * - Fields to include
+     */
+    fields?: string[] | undefined;
+    /**
+     * - Maximum number of records
+     */
+    maxRecords?: number | undefined;
+    /**
+     * - Sort options
+     */
+    sort?: {
+        field: string;
+        direction: 'asc' | 'desc';
+    }[] | undefined;
+    /**
+     * - Filter formula
+     */
+    filterByFormula?: string | undefined;
+    /**
+     * - Pagination offset
+     */
+    offset?: string | undefined;
+};
+export type DeleteResponse = {
+    /**
+     * - Deleted record ID
+     */
+    id: string;
+    /**
+     * - Deletion status
+     */
+    deleted: boolean;
+};
+export type RecordInput = {
+    /**
+     * - Record fields
+     */
+    fields: Record<string, string | number | boolean | string[]>;
+};
+export type BatchCreateResponse = {
+    /**
+     * - Created records
+     */
+    records: AirtableRecord[];
+};
 /**
  * @typedef {import('./common.js').AirtableRecord} AirtableRecord
  */
@@ -18,7 +70,7 @@
  * @param {ListRecordsOptions} [options] - Query options
  * @returns {Promise<Object>} Records list
  */
-export function listRecords(baseId: string, tableId: string, apiKey: string, options?: ListRecordsOptions): Promise<Object>;
+export function listRecords(baseId: string, tableId: string, apiKey: string, options?: ListRecordsOptions | undefined): Promise<Object>;
 /**
  * Get a specific record
  * @param {string} baseId - Base ID
@@ -78,56 +130,4 @@ export function deleteRecord(baseId: string, tableId: string, recordId: string, 
  * @returns {Promise<BatchCreateResponse>} Created records
  */
 export function createMultipleRecords(baseId: string, tableId: string, records: RecordInput[], apiKey: string): Promise<BatchCreateResponse>;
-export type AirtableRecord = import("./common.js").AirtableRecord;
-export type ListRecordsOptions = {
-    /**
-     * - View name or ID
-     */
-    view?: string | undefined;
-    /**
-     * - Fields to include
-     */
-    fields?: string[] | undefined;
-    /**
-     * - Maximum number of records
-     */
-    maxRecords?: number | undefined;
-    /**
-     * - Sort options
-     */
-    sort?: {
-        field: string;
-        direction: "asc" | "desc";
-    }[] | undefined;
-    /**
-     * - Filter formula
-     */
-    filterByFormula?: string | undefined;
-    /**
-     * - Pagination offset
-     */
-    offset?: string | undefined;
-};
-export type DeleteResponse = {
-    /**
-     * - Deleted record ID
-     */
-    id: string;
-    /**
-     * - Deletion status
-     */
-    deleted: boolean;
-};
-export type RecordInput = {
-    /**
-     * - Record fields
-     */
-    fields: Record<string, string | number | boolean | string[]>;
-};
-export type BatchCreateResponse = {
-    /**
-     * - Created records
-     */
-    records: AirtableRecord[];
-};
 //# sourceMappingURL=records.d.ts.map

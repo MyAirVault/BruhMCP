@@ -3,7 +3,7 @@
  * Comprehensive validation for Airtable IDs, parameters, and data
  */
 
-import { createLogger } from './logger.js';
+const { createLogger  } = require('./logger.js');
 
 const logger = createLogger('Validation');
 
@@ -77,7 +77,7 @@ const FIELD_TYPES = {
  * @param {string} type - Type of ID (base, table, record, etc.)
  * @returns {boolean}
  */
-export function validateAirtableId(id, type) {
+function validateAirtableId(id, type) {
 	if (!id || typeof id !== 'string') {
 		throw new Error(`Invalid ${type} ID: must be a non-empty string`);
 	}
@@ -99,7 +99,7 @@ export function validateAirtableId(id, type) {
  * @param {string} token - Token to validate
  * @returns {boolean}
  */
-export function validateApiToken(token) {
+function validateApiToken(token) {
 	if (!token || typeof token !== 'string') {
 		throw new Error('Invalid API token: must be a non-empty string');
 	}
@@ -119,7 +119,7 @@ export function validateApiToken(token) {
  * @param {string} fieldName - Field name to validate
  * @returns {boolean}
  */
-export function validateFieldName(fieldName) {
+function validateFieldName(fieldName) {
 	if (!fieldName || typeof fieldName !== 'string') {
 		throw new Error('Field name must be a non-empty string');
 	}
@@ -156,7 +156,7 @@ export function validateFieldName(fieldName) {
  * @param {FieldOptions} fieldOptions - Field options
  * @returns {boolean}
  */
-export function validateFieldValue(value, fieldType, fieldOptions = {}) {
+function validateFieldValue(value, fieldType, fieldOptions = {}) {
 	if (value === null || value === undefined) {
 		return true; // Allow null/undefined values
 	}
@@ -301,7 +301,7 @@ export function validateFieldValue(value, fieldType, fieldOptions = {}) {
  * @param {TableSchema} schema - Table schema
  * @returns {boolean}
  */
-export function validateRecordFields(fields, schema = {}) {
+function validateRecordFields(fields, schema = {}) {
 	if (!fields || typeof fields !== 'object') {
 		throw new Error('Record fields must be an object');
 	}
@@ -345,7 +345,7 @@ export function validateRecordFields(fields, schema = {}) {
  * @param {QueryParams} params - Query parameters
  * @returns {boolean}
  */
-export function validateQueryParams(params) {
+function validateQueryParams(params) {
 	if (!params || typeof params !== 'object') {
 		return true; // Empty params are valid
 	}
@@ -409,7 +409,7 @@ export function validateQueryParams(params) {
  * @param {TableSchema} schema - Table schema
  * @returns {boolean}
  */
-export function validateBatchRecords(records, schema = {}) {
+function validateBatchRecords(records, schema = {}) {
 	if (!Array.isArray(records)) {
 		throw new Error('Records must be an array');
 	}
@@ -439,7 +439,7 @@ export function validateBatchRecords(records, schema = {}) {
  * @param {string} url - URL to validate
  * @returns {boolean}
  */
-export function validateUrl(url) {
+function validateUrl(url) {
 	if (!url || typeof url !== 'string') {
 		throw new Error('URL must be a non-empty string');
 	}
@@ -457,7 +457,7 @@ export function validateUrl(url) {
  * @param {string} email - Email to validate
  * @returns {boolean}
  */
-export function validateEmail(email) {
+function validateEmail(email) {
 	if (!email || typeof email !== 'string') {
 		throw new Error('Email must be a non-empty string');
 	}
@@ -476,7 +476,7 @@ export function validateEmail(email) {
  * @param {string} type - Type of input ('baseId' | 'tableId' | 'recordId' | 'apiToken' | 'email' | 'url' | 'fieldName')
  * @returns {string}
  */
-export function sanitizeAndValidate(input, type) {
+function sanitizeAndValidate(input, type) {
 	switch (type) {
 		case 'baseId':
 			validateAirtableId(input, 'base');
@@ -512,7 +512,7 @@ export function sanitizeAndValidate(input, type) {
  * @param {Error} error - Validation error
  * @returns {string}
  */
-export function getValidationErrorMessage(error) {
+function getValidationErrorMessage(error) {
 	if (error.name === 'ValidationError') {
 		return error.message;
 	}
@@ -526,7 +526,7 @@ export function getValidationErrorMessage(error) {
  * @param {Record<string, string | number | boolean>} details - Error details
  * @returns {Error}
  */
-export function createValidationError(message, details = {}) {
+function createValidationError(message, details = {}) {
 	const error = new Error(message);
 	error.name = 'ValidationError';
 	// Add details property to error object
@@ -538,3 +538,18 @@ export function createValidationError(message, details = {}) {
 	});
 	return error;
 }
+
+module.exports = {
+	validateAirtableId,
+	validateApiToken,
+	validateFieldName,
+	validateFieldValue,
+	validateRecordFields,
+	validateQueryParams,
+	validateBatchRecords,
+	validateUrl,
+	validateEmail,
+	sanitizeAndValidate,
+	getValidationErrorMessage,
+	createValidationError
+};

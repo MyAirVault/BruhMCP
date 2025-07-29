@@ -3,8 +3,8 @@
  * Standardized function for handling Slack OAuth callback
  */
 
-import SlackOAuthHandler from '../oauth/oauthHandler.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/index.js';
+const SlackOAuthHandler = require('../oauth/oauthHandler');
+const { updateOAuthStatus  } = require('../../../db/queries/mcpInstances/index');
 
 /**
  * @typedef {Object} CallbackResult
@@ -88,4 +88,5 @@ async function oauthCallback(code, state) {
 	}
 }
 
-export { oauthCallback };
+
+module.exports = { oauthCallback  };

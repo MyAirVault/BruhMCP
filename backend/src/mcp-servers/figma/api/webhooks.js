@@ -3,7 +3,7 @@
  * Handles webhook-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest } from './common.js';
+const { makeAuthenticatedRequest } = require('./common.js');
 
 /**
  * Handle Webhooks API specific errors
@@ -31,7 +31,7 @@ async function handleWebhooksApiError(response, context) {
  * @param {any} webhookData - Webhook configuration data
  * @returns {Promise<any>}
  */
-export async function postFigmaWebhook(apiKey, webhookData) {
+async function postFigmaWebhook(apiKey, webhookData) {
 	if (!apiKey) {
 		throw new Error('Figma API key is required');
 	}
@@ -57,7 +57,7 @@ export async function postFigmaWebhook(apiKey, webhookData) {
  * @param {string} [teamId] - Optional team ID to filter webhooks
  * @returns {Promise<any>}
  */
-export async function getFigmaWebhooks(apiKey, teamId) {
+async function getFigmaWebhooks(apiKey, teamId) {
 	if (!apiKey) {
 		throw new Error('Figma API key is required');
 	}
@@ -81,7 +81,7 @@ export async function getFigmaWebhooks(apiKey, teamId) {
  * @param {any} webhookData - Updated webhook configuration data
  * @returns {Promise<any>}
  */
-export async function putFigmaWebhook(apiKey, webhookId, webhookData) {
+async function putFigmaWebhook(apiKey, webhookId, webhookData) {
 	if (!apiKey) {
 		throw new Error('Figma API key is required');
 	}
@@ -111,7 +111,7 @@ export async function putFigmaWebhook(apiKey, webhookId, webhookData) {
  * @param {string} webhookId - Webhook ID to delete
  * @returns {Promise<any>}
  */
-export async function deleteFigmaWebhook(apiKey, webhookId) {
+async function deleteFigmaWebhook(apiKey, webhookId) {
 	if (!apiKey) {
 		throw new Error('Figma API key is required');
 	}
@@ -129,3 +129,9 @@ export async function deleteFigmaWebhook(apiKey, webhookId) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	postFigmaWebhook,
+	getFigmaWebhooks,
+	putFigmaWebhook,
+	deleteFigmaWebhook
+};

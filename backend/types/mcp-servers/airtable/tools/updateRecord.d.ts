@@ -1,3 +1,4 @@
+export = setupUpdateRecordTool;
 /**
  * @typedef {Object} MCPServer
  * @property {Function} tool - Tool registration function
@@ -21,14 +22,17 @@
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupUpdateRecordTool(server: MCPServer, airtableService: import("../services/airtableService.js").AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
-export type MCPServer = {
+declare function setupUpdateRecordTool(server: MCPServer, airtableService: import('../services/airtableService.js').AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
+declare namespace setupUpdateRecordTool {
+    export { MCPServer, ServiceConfig, UpdateRecordParams };
+}
+type MCPServer = {
     /**
      * - Tool registration function
      */
     tool: Function;
 };
-export type ServiceConfig = {
+type ServiceConfig = {
     /**
      * - Service name
      */
@@ -38,7 +42,7 @@ export type ServiceConfig = {
      */
     displayName: string;
 };
-export type UpdateRecordParams = {
+type UpdateRecordParams = {
     /**
      * - The ID of the Airtable base
      */

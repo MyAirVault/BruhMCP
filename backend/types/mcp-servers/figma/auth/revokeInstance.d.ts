@@ -1,4 +1,4 @@
-export type RevokeResult = import("../../../services/mcp-auth-registry/types/serviceTypes.js").RevokeResult;
+export type RevokeResult = import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevokeResult;
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevokeResult} RevokeResult
  */

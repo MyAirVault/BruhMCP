@@ -3,7 +3,7 @@
  * Standardized function for validating Google Sheets OAuth credentials format
  */
 
-import createSheetsValidator from '../validation/credentialValidator.js';
+const createSheetsValidator = require('../validation/credentialValidator');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -82,4 +82,5 @@ async function validateCredentials(credentials, userId) {
 }
 
 
-export { validateCredentials };
+
+module.exports = { validateCredentials  };

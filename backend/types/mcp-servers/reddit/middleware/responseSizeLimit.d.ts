@@ -1,38 +1,3 @@
-/**
- * Creates response size limiting middleware
- * @param {Partial<SizeLimitsConfig>} options - Size limit options
- * @returns {import('express').RequestHandler} Express middleware function
- */
-export function createResponseSizeLimitMiddleware(options?: Partial<SizeLimitsConfig>): import("express").RequestHandler;
-/**
- * Validate content string length
- * @param {string} content - Content to validate
- * @param {string} type - Content type
- * @throws {Error} If content exceeds length limit
- */
-export function validateContentLength(content: string, type: string): void;
-/**
- * Update size limits configuration
- * @param {Partial<SizeLimitsConfig>} newLimits - New size limits
- */
-export function updateSizeLimits(newLimits: Partial<SizeLimitsConfig>): void;
-/**
- * Get current size limits configuration
- * @returns {SizeLimitsConfig} Current size limits
- */
-export function getSizeLimits(): SizeLimitsConfig;
-/**
- * Get size limit for a specific tool
- * @param {string} toolName - Tool name
- * @returns {number} Size limit in bytes
- */
-export function getToolSizeLimit(toolName: string): number;
-/**
- * Format size for display
- * @param {number} bytes - Size in bytes
- * @returns {string} Formatted size
- */
-export function formatSize(bytes: number): string;
 export type SizeLimitsConfig = {
     /**
      * - Maximum response size in bytes
@@ -115,4 +80,45 @@ export type RequestParams = {
      */
     name?: string | undefined;
 };
+/**
+ * Creates response size limiting middleware
+ * @param {Partial<SizeLimitsConfig>} options - Size limit options
+ * @returns {import('express').RequestHandler} Express middleware function
+ */
+export function createResponseSizeLimitMiddleware(options?: Partial<SizeLimitsConfig>): import('express').RequestHandler;
+/**
+ * Get current size limits configuration
+ * @returns {SizeLimitsConfig} Current size limits
+ */
+export function getSizeLimits(): SizeLimitsConfig;
+/**
+ * Truncate response to fit within size limit
+ * @param {MCPResponse} data - Response data
+ * @param {number} sizeLimit - Size limit in bytes
+ * @param {string} toolName - Tool name for context
+ * @returns {MCPResponse} Truncated response
+ */
+export function truncateResponse(data: MCPResponse, sizeLimit: number, toolName: string): MCPResponse;
+/**
+ * Truncate text content intelligently
+ * @param {string} text - Text to truncate
+ * @param {number} maxSize - Maximum size in bytes
+ * @param {string} toolName - Tool name for context
+ * @returns {string} Truncated text
+ */
+export function truncateText(text: string, maxSize: number, toolName: string): string;
+/**
+ * Truncate post list responses
+ * @param {string} text - Post list text
+ * @param {number} maxSize - Maximum size in bytes
+ * @returns {string} Truncated text
+ */
+export function truncatePostList(text: string, maxSize: number): string;
+/**
+ * Truncate comment list responses
+ * @param {string} text - Comment list text
+ * @param {number} maxSize - Maximum size in bytes
+ * @returns {string} Truncated text
+ */
+export function truncateCommentList(text: string, maxSize: number): string;
 //# sourceMappingURL=responseSizeLimit.d.ts.map

@@ -1,5 +1,5 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
+const { BaseValidator, createValidationResult  } = require('../../../services/validation/baseValidator');
 
 /**
  * @typedef {Object} RedditOAuthCredentials
@@ -195,4 +195,4 @@ function createRedditValidator(credentials) {
   }
 }
 
-export default createRedditValidator;
+module.exports = createRedditValidator;

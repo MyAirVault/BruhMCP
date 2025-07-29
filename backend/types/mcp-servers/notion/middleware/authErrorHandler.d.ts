@@ -5,7 +5,7 @@
  * @param {Error} error - Error object
  * @returns {void} Express response
  */
-export function createSystemErrorResponse(res: import("express").Response, instanceId: string, error: Error): void;
+export function createSystemErrorResponse(res: import('express').Response, instanceId: string, error: Error): void;
 /**
  * Create lightweight system error response
  * @param {import('express').Response} res - Express response object
@@ -13,7 +13,7 @@ export function createSystemErrorResponse(res: import("express").Response, insta
  * @param {Error} error - Error object
  * @returns {void} Express response
  */
-export function createLightweightSystemErrorResponse(res: import("express").Response, instanceId: string, error: Error): void;
+export function createLightweightSystemErrorResponse(res: import('express').Response, instanceId: string, error: Error): void;
 /**
  * Handle token refresh failure and determine next steps
  * @param {string} _instanceId - The instance ID
@@ -31,7 +31,7 @@ export function handleRefreshFailure(_instanceId: string, error: Error): Promise
  * @param {{requiresReauth: boolean, errorType: string, message: string}} errorResult - Error handling result
  * @returns {void} Express response
  */
-export function createRefreshFailureResponse(res: import("express").Response, errorResult: {
+export function createRefreshFailureResponse(res: import('express').Response, errorResult: {
     requiresReauth: boolean;
     errorType: string;
     message: string;
@@ -43,7 +43,7 @@ export function createRefreshFailureResponse(res: import("express").Response, er
  * @param {string | undefined} refreshToken - Whether refresh token was available
  * @returns {Promise<void>} Express response
  */
-export function createReauthenticationResponse(res: import("express").Response, instanceId: string, refreshToken: string | undefined): Promise<void>;
+export function createReauthenticationResponse(res: import('express').Response, instanceId: string, refreshToken: string | undefined): Promise<void>;
 /**
  * Log refresh fallback scenario
  * @param {Error} error - Token refresh error
@@ -57,7 +57,7 @@ export function logRefreshFallback(error: Error): void;
  * @param {Error} error - Network error
  * @returns {void} Express response
  */
-export function handleNetworkError(res: import("express").Response, instanceId: string, error: Error): void;
+export function handleNetworkError(res: import('express').Response, instanceId: string, error: Error): void;
 /**
  * Handle OAuth provider errors
  * @param {import('express').Response} res - Express response object
@@ -65,7 +65,7 @@ export function handleNetworkError(res: import("express").Response, instanceId: 
  * @param {Error} error - OAuth provider error
  * @returns {void} Express response
  */
-export function handleOAuthProviderError(res: import("express").Response, instanceId: string, error: Error): void;
+export function handleOAuthProviderError(res: import('express').Response, instanceId: string, error: Error): void;
 /**
  * Handle rate limiting errors
  * @param {import('express').Response} res - Express response object
@@ -73,17 +73,5 @@ export function handleOAuthProviderError(res: import("express").Response, instan
  * @param {Error} error - Rate limit error
  * @returns {void} Express response
  */
-export function handleRateLimitError(res: import("express").Response, instanceId: string, error: Error): void;
-declare namespace _default {
-    export { createSystemErrorResponse };
-    export { createLightweightSystemErrorResponse };
-    export { handleRefreshFailure };
-    export { createRefreshFailureResponse };
-    export { createReauthenticationResponse };
-    export { logRefreshFallback };
-    export { handleNetworkError };
-    export { handleOAuthProviderError };
-    export { handleRateLimitError };
-}
-export default _default;
+export function handleRateLimitError(res: import('express').Response, instanceId: string, error: Error): void;
 //# sourceMappingURL=authErrorHandler.d.ts.map

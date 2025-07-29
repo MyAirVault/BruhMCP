@@ -5,16 +5,16 @@
  * @returns {Promise<Record<string, unknown>>} Search results
  */
 export function searchNotion(args: {
-    query?: string;
+    query?: string | undefined;
     filter?: {
         value: string;
         property: string;
-    };
+    } | undefined;
     sort?: {
-        direction: "ascending" | "descending";
-        timestamp: "last_edited_time";
-    };
-    page_size?: number;
-    start_cursor?: string;
+        direction: 'ascending' | 'descending';
+        timestamp: 'last_edited_time';
+    } | undefined;
+    page_size?: number | undefined;
+    start_cursor?: string | undefined;
 }, bearerToken: string): Promise<Record<string, unknown>>;
 //# sourceMappingURL=searchOperations.d.ts.map

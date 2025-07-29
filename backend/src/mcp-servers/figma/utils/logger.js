@@ -3,7 +3,7 @@
  * Provides consistent logging for both HTTP and stdio modes
  */
 
-export const Logger = {
+const Logger = {
 	isHTTP: false,
 	/**
 	 * Log info messages
@@ -23,4 +23,7 @@ export const Logger = {
 	error: (/** @type {...any} */ ...args) => {
 		console.error("[ERROR]", ...args);
 	},
+};
+module.exports = {
+	Logger
 };

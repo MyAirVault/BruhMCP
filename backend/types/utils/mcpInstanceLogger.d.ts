@@ -1,82 +1,8 @@
-export default mcpInstanceLogger;
-export type Request = import("express").Request;
-export type Response = import("express").Response;
-export type NextFunction = import("express").NextFunction;
-export type LogMetadata = {
-    /**
-     * - User agent string
-     */
-    userAgent?: string | undefined;
-    /**
-     * - Client IP address
-     */
-    ip?: string | undefined;
-    /**
-     * - Content length
-     */
-    contentLength?: number | undefined;
-    /**
-     * - MCP operation type
-     */
-    operation?: string | undefined;
-    /**
-     * - Protocol type
-     */
-    protocol?: string | undefined;
-};
-export type MCPLogger = {
-    /**
-     * - Instance ID
-     */
-    instanceId: string;
-    /**
-     * - User ID
-     */
-    userId?: string | undefined;
-    /**
-     * - Log directory path
-     */
-    logDir: string | null;
-    /**
-     * - Application logger
-     */
-    app: (arg0: string, arg1: string, arg2: LogMetadata) => void;
-    /**
-     * - Access logger
-     */
-    access: (arg0: string, arg1: string, arg2: number, arg3: number, arg4: LogMetadata) => void;
-    /**
-     * - Error logger
-     */
-    error: (arg0: Error | string, arg1: LogMetadata) => void;
-    /**
-     * - Info logger
-     */
-    info: (arg0: string, arg1: LogMetadata) => void;
-    /**
-     * - Warning logger
-     */
-    warn: (arg0: string, arg1: LogMetadata) => void;
-    /**
-     * - Debug logger
-     */
-    debug: (arg0: string, arg1: LogMetadata) => void;
-    /**
-     * - MCP operation logger
-     */
-    mcpOperation: (arg0: string, arg1: LogMetadata) => void;
-};
-export type LoggerStats = {
-    /**
-     * - Number of active loggers
-     */
-    activeLoggers: number;
-    /**
-     * - Array of instance IDs
-     */
-    instances: string[];
-};
+export = mcpInstanceLogger;
 declare const mcpInstanceLogger: MCPInstanceLogger;
+declare namespace mcpInstanceLogger {
+    export { Request, Response, NextFunction, LogMetadata, MCPLogger, LoggerStats };
+}
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /** @typedef {import('express').NextFunction} NextFunction */
@@ -157,4 +83,81 @@ declare class MCPInstanceLogger {
      */
     createRequestMiddleware(instanceId: string): (arg0: Request, arg1: Response, arg2: NextFunction) => void;
 }
+type Request = import('express').Request;
+type Response = import('express').Response;
+type NextFunction = import('express').NextFunction;
+type LogMetadata = {
+    /**
+     * - User agent string
+     */
+    userAgent?: string | undefined;
+    /**
+     * - Client IP address
+     */
+    ip?: string | undefined;
+    /**
+     * - Content length
+     */
+    contentLength?: number | undefined;
+    /**
+     * - MCP operation type
+     */
+    operation?: string | undefined;
+    /**
+     * - Protocol type
+     */
+    protocol?: string | undefined;
+};
+type MCPLogger = {
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - User ID
+     */
+    userId?: string | undefined;
+    /**
+     * - Log directory path
+     */
+    logDir: string | null;
+    /**
+     * - Application logger
+     */
+    app: (arg0: string, arg1: string, arg2: LogMetadata) => void;
+    /**
+     * - Access logger
+     */
+    access: (arg0: string, arg1: string, arg2: number, arg3: number, arg4: LogMetadata) => void;
+    /**
+     * - Error logger
+     */
+    error: (arg0: Error | string, arg1: LogMetadata) => void;
+    /**
+     * - Info logger
+     */
+    info: (arg0: string, arg1: LogMetadata) => void;
+    /**
+     * - Warning logger
+     */
+    warn: (arg0: string, arg1: LogMetadata) => void;
+    /**
+     * - Debug logger
+     */
+    debug: (arg0: string, arg1: LogMetadata) => void;
+    /**
+     * - MCP operation logger
+     */
+    mcpOperation: (arg0: string, arg1: LogMetadata) => void;
+};
+type LoggerStats = {
+    /**
+     * - Number of active loggers
+     */
+    activeLoggers: number;
+    /**
+     * - Array of instance IDs
+     */
+    instances: string[];
+};
 //# sourceMappingURL=mcpInstanceLogger.d.ts.map

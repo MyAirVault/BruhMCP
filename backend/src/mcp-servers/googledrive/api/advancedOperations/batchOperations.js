@@ -5,7 +5,7 @@
 
 /// <reference path="../types.js" />
 
-import { validateFileId, validateFileName } from '../../utils/validation.js';
+const { validateFileId, validateFileName  } = require('../../utils/validation');
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
@@ -66,7 +66,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{processed: number, successful: number, failed: number, results: Array<any>, errors: Array<any>}>} Batch operation results
  */
-export async function batchDeleteFiles(fileIds, permanent = false, bearerToken) {
+async function batchDeleteFiles(fileIds, permanent = false, bearerToken) {
   if (!Array.isArray(fileIds) || fileIds.length === 0) {
     throw new Error('File IDs array is required');
   }
@@ -123,7 +123,7 @@ export async function batchDeleteFiles(fileIds, permanent = false, bearerToken) 
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{processed: number, successful: number, failed: number, results: Array<any>, errors: Array<any>}>} Batch operation results
  */
-export async function batchUpdateMetadata(updates, bearerToken) {
+async function batchUpdateMetadata(updates, bearerToken) {
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new Error('Updates array is required');
   }
@@ -182,7 +182,7 @@ export async function batchUpdateMetadata(updates, bearerToken) {
  * @param {import('../types.js').SyncParams} [params={}] - Sync parameters
  * @returns {Promise<{folderId: string, folderPermissions: number, processed: number, successful: number, failed: number, results: Array<any>, errors: Array<any>}>} Sync results
  */
-export async function syncFolderPermissions(folderId, bearerToken, params = {}) {
+async function syncFolderPermissions(folderId, bearerToken, params = {}) {
   const { recursive = true, applyToFiles = true, applyToFolders = true } = params;
 
   if (!folderId) {
@@ -269,3 +269,8 @@ export async function syncFolderPermissions(folderId, bearerToken, params = {}) 
     errors
   };
 }
+module.exports = {
+  batchDeleteFiles,
+  batchUpdateMetadata,
+  syncFolderPermissions
+};

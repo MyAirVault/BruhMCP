@@ -4,14 +4,14 @@
 
 /// <reference path="./types.js" />
 
-import { ErrorResponses } from '../../../utils/errorResponse.js';
+const { ErrorResponses  } = require('../../../utils/errorResponse');
 
 /**
  * Validates if a string is a valid UUID v4
  * @param {string} instanceId - Instance ID to validate
  * @returns {boolean} Whether the instance ID is valid
  */
-export function isValidInstanceId(instanceId) {
+function isValidInstanceId(instanceId) {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(instanceId);
 }
@@ -22,7 +22,7 @@ export function isValidInstanceId(instanceId) {
  * @param {string} instanceId - The invalid instance ID
  * @returns {void}
  */
-export function createInstanceIdValidationError(res, instanceId) {
+function createInstanceIdValidationError(res, instanceId) {
   return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
     instanceId,
     expectedFormat: 'UUID v4'
@@ -37,7 +37,7 @@ export function createInstanceIdValidationError(res, instanceId) {
  * @param {boolean} requireOAuth - Whether OAuth completion is required
  * @returns {import('./types.js').ValidationResult} Validation result
  */
-export function validateInstance(instance, res, instanceId, requireOAuth = true) {
+function validateInstance(instance, res, instanceId, requireOAuth = true) {
   if (!instance) {
     return {
       isValid: false,
@@ -90,7 +90,7 @@ export function validateInstance(instance, res, instanceId, requireOAuth = true)
  * @param {any} body - Request body
  * @returns {boolean} Whether the body is valid
  */
-export function isValidJsonRpcRequest(body) {
+function isValidJsonRpcRequest(body) {
   return body && 
          typeof body === 'object' && 
          body.jsonrpc === '2.0' && 
@@ -104,7 +104,7 @@ export function isValidJsonRpcRequest(body) {
  * @param {string} message - Error message
  * @returns {void}
  */
-export function createJsonRpcError(res, message) {
+function createJsonRpcError(res, message) {
   res.status(400).json({
     jsonrpc: '2.0',
     id: null,
@@ -115,3 +115,9 @@ export function createJsonRpcError(res, message) {
     }
   });
 }
+
+module.exports = {
+  isValidInstanceId,
+  createInstanceIdValidationError,
+  validateInstance
+};

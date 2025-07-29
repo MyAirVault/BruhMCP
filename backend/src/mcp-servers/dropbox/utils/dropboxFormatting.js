@@ -117,7 +117,7 @@
  * @param {DropboxFileMetadata | DropboxFolder} entry - The file or folder entry to format
  * @returns {FormattedFileEntry} Formatted file entry
  */
-export function formatFileEntry(entry) {
+function formatFileEntry(entry) {
   const isFolder = entry['.tag'] === 'folder';
   
   return {
@@ -147,7 +147,7 @@ export function formatFileEntry(entry) {
  * @param {DropboxListFolderResponse} response - The Dropbox list folder response
  * @returns {Object} Formatted file list
  */
-export function formatFileList(response) {
+function formatFileList(response) {
   return {
     entries: response.entries.map(formatFileEntry),
     has_more: response.has_more,
@@ -160,7 +160,7 @@ export function formatFileList(response) {
  * @param {DropboxSearchResponse} response - The Dropbox search response
  * @returns {Object} Formatted search results
  */
-export function formatSearchResults(response) {
+function formatSearchResults(response) {
   return {
     matches: response.matches.map(match => ({
       match_type: match.match_type,
@@ -176,7 +176,7 @@ export function formatSearchResults(response) {
  * @param {DropboxSharedLink} link - The shared link to format
  * @returns {Object} Formatted shared link
  */
-export function formatSharedLink(link) {
+function formatSharedLink(link) {
   return {
     url: link.url,
     name: link.name,
@@ -194,7 +194,7 @@ export function formatSharedLink(link) {
  * @param {DropboxSpaceUsage} usage - The space usage data
  * @returns {Object} Formatted space usage
  */
-export function formatSpaceUsage(usage) {
+function formatSpaceUsage(usage) {
   const usedBytes = usage.used;
   const allocatedBytes = usage.allocation?.allocated || 0;
   const usedGB = (usedBytes / (1024 * 1024 * 1024)).toFixed(2);
@@ -216,7 +216,7 @@ export function formatSpaceUsage(usage) {
  * @param {Error} error - The error object
  * @returns {Object} Formatted error response
  */
-export function formatError(error) {
+function formatError(error) {
   return {
     error: true,
     message: error.message,
@@ -231,7 +231,7 @@ export function formatError(error) {
  * @param {Object|null} [data=null] - Optional data to include
  * @returns {FormattedSuccessResponse} Formatted success response
  */
-export function formatSuccessResponse(message, data = null) {
+function formatSuccessResponse(message, data = null) {
   /** @type {FormattedSuccessResponse} */
   const response = {
     success: true,
@@ -251,7 +251,7 @@ export function formatSuccessResponse(message, data = null) {
  * @param {DropboxFileMetadata | DropboxFolder} metadata - The file or folder metadata
  * @returns {FormattedFileEntry} Formatted metadata
  */
-export function formatFileMetadata(metadata) {
+function formatFileMetadata(metadata) {
   const isFolder = metadata['.tag'] === 'folder';
   
   /** @type {FormattedFileEntry} */
@@ -293,7 +293,7 @@ export function formatFileMetadata(metadata) {
  * @param {number} bytes - Size in bytes
  * @returns {string} Human-readable size string
  */
-export function formatFileSize(bytes) {
+function formatFileSize(bytes) {
   if (bytes === 0) return '0 Bytes';
   
   const k = 1024;
@@ -308,7 +308,7 @@ export function formatFileSize(bytes) {
  * @param {string|null|undefined} dateString - ISO date string
  * @returns {Object|null} Formatted date object or null
  */
-export function formatDate(dateString) {
+function formatDate(dateString) {
   if (!dateString) return null;
   
   const date = new Date(dateString);
@@ -327,7 +327,7 @@ export function formatDate(dateString) {
  * @param {Object|null} [data=null] - Optional data to include
  * @returns {FormattedToolResponse} Standardized tool response
  */
-export function createToolResponse(toolName, success, message, data = null) {
+function createToolResponse(toolName, success, message, data = null) {
   /** @type {FormattedToolResponse} */
   const response = {
     tool: toolName,
@@ -350,7 +350,7 @@ export function createToolResponse(toolName, success, message, data = null) {
  * @param {OperationResult} result - The result of the operation
  * @returns {FormattedOperationSummary} Formatted operation summary
  */
-export function formatOperationSummary(operation, path, result) {
+function formatOperationSummary(operation, path, result) {
   /** @type {FormattedOperationSummary} */
   const summary = {
     operation,
@@ -402,7 +402,7 @@ export function formatOperationSummary(operation, path, result) {
  * @param {DropboxResponseData} data - Response data to format
  * @returns {string} Formatted response string
  */
-export function formatDropboxResponse(data) {
+function formatDropboxResponse(data) {
   const timestamp = data.timestamp || new Date().toISOString();
   
   switch (data.action) {
@@ -562,7 +562,7 @@ Metadata information updated successfully.`;
  * @param {Error} error - Error object
  * @returns {string} Formatted error message
  */
-export function formatDropboxError(operation, error) {
+function formatDropboxError(operation, error) {
   const timestamp = new Date().toISOString();
   
   let errorType = 'Unknown error';
@@ -599,3 +599,20 @@ Timestamp: ${timestamp}
 
 Suggestion: ${suggestion}`;
 }
+
+module.exports = {
+  formatFileEntry,
+  formatFileList,
+  formatSearchResults,
+  formatSharedLink,
+  formatSpaceUsage,
+  formatError,
+  formatSuccessResponse,
+  formatFileMetadata,
+  formatFileSize,
+  formatDate,
+  createToolResponse,
+  formatOperationSummary,
+  formatDropboxResponse,
+  formatDropboxError
+};

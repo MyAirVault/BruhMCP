@@ -3,8 +3,8 @@
  * Operations for managing Notion pages
  */
 
-import { makeNotionRequest } from './requestHandler.js';
-import { formatNotionResponse } from '../../utils/notionFormatting.js';
+const { makeNotionRequest  } = require('./requestHandler');
+const { formatNotionResponse  } = require('../../utils/notionFormatting');
 
 /**
  * @typedef {Object} PageBlocksResult
@@ -19,7 +19,7 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Page data
  */
-export async function getPage(args, bearerToken) {
+async function getPage(args, bearerToken) {
 	const { pageId } = args;
 
 	const result = /** @type {import('../../utils/notionFormatting.js').NotionPage} */ (await makeNotionRequest(`/pages/${pageId}`, bearerToken));
@@ -36,7 +36,7 @@ export async function getPage(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Page blocks
  */
-export async function getPageBlocks(args, bearerToken) {
+async function getPageBlocks(args, bearerToken) {
 	const { pageId, start_cursor = null, page_size = 100 } = args;
 
 	let endpoint = `/blocks/${pageId}/children`;
@@ -64,7 +64,7 @@ export async function getPageBlocks(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Created page
  */
-export async function createPage(args, bearerToken) {
+async function createPage(args, bearerToken) {
 	const { parent, properties, children = [] } = args;
 
 	const pageData = {
@@ -90,7 +90,7 @@ export async function createPage(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Updated page
  */
-export async function updatePage(args, bearerToken) {
+async function updatePage(args, bearerToken) {
 	const { pageId, properties = {}, archived = false } = args;
 
 	const updateData = {
@@ -108,3 +108,9 @@ export async function updatePage(args, bearerToken) {
 		page: result,
 	});
 }
+module.exports = {
+  getPage,
+  getPageBlocks,
+  createPage,
+  updatePage
+};

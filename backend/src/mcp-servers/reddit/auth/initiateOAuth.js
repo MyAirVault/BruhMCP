@@ -3,7 +3,7 @@
  * Standardized function for initiating Reddit OAuth flow
  */
 
-import RedditOAuthHandler from '../oauth/oauthHandler.js';
+const RedditOAuthHandler = require('../oauth/oauthHandler');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -68,4 +68,5 @@ async function initiateOAuth(credentials, userId, instanceId) {
 	}
 }
 
-export { initiateOAuth };
+
+module.exports = { initiateOAuth  };

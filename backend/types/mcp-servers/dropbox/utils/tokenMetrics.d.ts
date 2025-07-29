@@ -1,47 +1,3 @@
-/**
- * Record token refresh metrics
- * @param {string} instanceId - Instance ID
- * @param {'oauth_service' | 'direct_oauth'} method - Method used
- * @param {boolean} success - Whether refresh was successful
- * @param {string | null} errorType - Error type if failed
- * @param {string | null} errorMessage - Error message if failed
- * @param {number} startTime - Start timestamp
- * @param {number} endTime - End timestamp
- */
-export function recordTokenRefreshMetrics(instanceId: string, method: "oauth_service" | "direct_oauth", success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
-/**
- * Get metrics summary
- * @returns {MetricsSummary} Current metrics summary
- */
-export function getTokenMetricsSummary(): MetricsSummary;
-/**
- * Get instance-specific metrics
- * @param {string} instanceId - Instance ID to get metrics for
- * @returns {InstanceMetricsResult} Instance-specific metrics
- */
-export function getInstanceTokenMetrics(instanceId: string): InstanceMetricsResult;
-/**
- * Get daily statistics
- * @param {number} [days] - Number of days to include (default: 7)
- * @returns {Record<string, DailyStats>} Daily statistics
- */
-export function getDailyTokenStats(days?: number): Record<string, DailyStats>;
-/**
- * Export all metrics
- * @returns {ExportedMetrics} All metrics data for export
- */
-export function exportTokenMetrics(): ExportedMetrics;
-/**
- * Get health assessment
- * @returns {HealthAssessment} System health assessment
- */
-export function getTokenSystemHealth(): HealthAssessment;
-/**
- * Reset metrics (for testing)
- * @returns {void}
- */
-export function resetTokenMetrics(): void;
-export default tokenMetrics;
 export type LastAttempt = {
     /**
      * - Timestamp of the last attempt
@@ -50,7 +6,7 @@ export type LastAttempt = {
     /**
      * - Method used for the attempt
      */
-    method: "oauth_service" | "direct_oauth";
+    method: 'oauth_service' | 'direct_oauth';
 };
 export type InstanceMetric = {
     /**
@@ -266,7 +222,7 @@ export type HealthAssessment = {
     /**
      * - Overall health status
      */
-    status: "healthy" | "degraded" | "unhealthy";
+    status: 'healthy' | 'degraded' | 'unhealthy';
     /**
      * - List of critical issues
      */
@@ -302,8 +258,51 @@ export type ExportedMetrics = {
      */
     rawMetrics: MetricsData;
 };
+/**
+ * Record token refresh metrics
+ * @param {string} instanceId - Instance ID
+ * @param {'oauth_service' | 'direct_oauth'} method - Method used
+ * @param {boolean} success - Whether refresh was successful
+ * @param {string | null} errorType - Error type if failed
+ * @param {string | null} errorMessage - Error message if failed
+ * @param {number} startTime - Start timestamp
+ * @param {number} endTime - End timestamp
+ */
+export function recordTokenRefreshMetrics(instanceId: string, method: 'oauth_service' | 'direct_oauth', success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
+/**
+ * Get metrics summary
+ * @returns {MetricsSummary} Current metrics summary
+ */
+export function getTokenMetricsSummary(): MetricsSummary;
+/**
+ * Get instance-specific metrics
+ * @param {string} instanceId - Instance ID to get metrics for
+ * @returns {InstanceMetricsResult} Instance-specific metrics
+ */
+export function getInstanceTokenMetrics(instanceId: string): InstanceMetricsResult;
+/**
+ * Get daily statistics
+ * @param {number} [days] - Number of days to include (default: 7)
+ * @returns {Record<string, DailyStats>} Daily statistics
+ */
+export function getDailyTokenStats(days?: number | undefined): Record<string, DailyStats>;
+/**
+ * Export all metrics
+ * @returns {ExportedMetrics} All metrics data for export
+ */
+export function exportTokenMetrics(): ExportedMetrics;
+/**
+ * Get health assessment
+ * @returns {HealthAssessment} System health assessment
+ */
+export function getTokenSystemHealth(): HealthAssessment;
+/**
+ * Reset metrics (for testing)
+ * @returns {void}
+ */
+export function resetTokenMetrics(): void;
 /** @type {TokenMetrics} */
-declare const tokenMetrics: TokenMetrics;
+export const tokenMetrics: TokenMetrics;
 /**
  * Token Refresh Metrics System for Dropbox
  * Tracks performance and reliability metrics for OAuth token operations
@@ -415,7 +414,7 @@ declare class TokenMetrics {
      * @param {'oauth_service' | 'direct_oauth'} method - Method used
      * @param {number} startTime - Start timestamp
      */
-    recordRefreshAttempt(instanceId: string, method: "oauth_service" | "direct_oauth", startTime: number): void;
+    recordRefreshAttempt(instanceId: string, method: 'oauth_service' | 'direct_oauth', startTime: number): void;
     /**
      * Record a successful token refresh
      * @param {string} instanceId - Instance ID
@@ -423,7 +422,7 @@ declare class TokenMetrics {
      * @param {number} startTime - Start timestamp
      * @param {number} endTime - End timestamp
      */
-    recordRefreshSuccess(instanceId: string, method: "oauth_service" | "direct_oauth", startTime: number, endTime: number): void;
+    recordRefreshSuccess(instanceId: string, method: 'oauth_service' | 'direct_oauth', startTime: number, endTime: number): void;
     /**
      * Record a failed token refresh
      * @param {string} instanceId - Instance ID
@@ -433,7 +432,7 @@ declare class TokenMetrics {
      * @param {number} startTime - Start timestamp
      * @param {number} endTime - End timestamp
      */
-    recordRefreshFailure(instanceId: string, method: "oauth_service" | "direct_oauth", errorType: string, errorMessage: string, startTime: number, endTime: number): void;
+    recordRefreshFailure(instanceId: string, method: 'oauth_service' | 'direct_oauth', errorType: string, errorMessage: string, startTime: number, endTime: number): void;
     /**
      * Get current metrics summary
      * @returns {MetricsSummary} Metrics summary
@@ -466,4 +465,5 @@ declare class TokenMetrics {
      */
     getHealthAssessment(): HealthAssessment;
 }
+export {};
 //# sourceMappingURL=tokenMetrics.d.ts.map

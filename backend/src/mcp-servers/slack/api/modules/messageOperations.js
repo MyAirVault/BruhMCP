@@ -3,8 +3,8 @@
  * Handles message sending, retrieving, updating, and deleting
  */
 
-import { makeSlackRequest } from './requestHandler.js';
-import { formatMessageResponse } from '../../utils/slackFormatting.js';
+const { makeSlackRequest } = require('./requestHandler');
+const { formatMessageResponse } = require('../../utils/slackFormatting');
 
 /**
  * @typedef {import('../../middleware/types.js').SlackMessage} SlackMessage
@@ -84,7 +84,7 @@ import { formatMessageResponse } from '../../utils/slackFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<MessageOperationResult>} Send result
  */
-export async function sendMessage(args, bearerToken) {
+async function sendMessage(args, bearerToken) {
 	const { channel, text, blocks, attachments, thread_ts, reply_broadcast = false } = args;
 
 	const body = {
@@ -103,10 +103,12 @@ export async function sendMessage(args, bearerToken) {
 		}
 	});
 
-	const response = /** @type {SlackApiResponse} */ (await makeSlackRequest('/chat.postMessage', bearerToken, {
-		method: 'POST',
-		body,
-	}));
+	const response = /** @type {SlackApiResponse} */ (
+		await makeSlackRequest('/chat.postMessage', bearerToken, {
+			method: 'POST',
+			body,
+		})
+	);
 
 	return {
 		...response,
@@ -121,7 +123,7 @@ export async function sendMessage(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<MessageOperationResult>} Messages result
  */
-export async function getMessages(args, bearerToken) {
+async function getMessages(args, bearerToken) {
 	const { channel, count = 100, latest, oldest, inclusive = false } = args;
 
 	const params = new URLSearchParams({
@@ -133,11 +135,19 @@ export async function getMessages(args, bearerToken) {
 	if (latest) params.append('latest', latest);
 	if (oldest) params.append('oldest', oldest);
 
-	const response = /** @type {SlackApiResponse} */ (await makeSlackRequest(`/conversations.history?${params}`, bearerToken));
+	const response = /** @type {SlackApiResponse} */ (
+		await makeSlackRequest(`/conversations.history?${params}`, bearerToken)
+	);
 
 	return {
 		...response,
-		messages: response.messages?.map(msg => formatMessageResponse(msg)).filter(msg => msg !== null) || [],
+		messages:
+			response.messages
+				?.map(msg => formatMessageResponse(msg))
+				.filter(
+					/** @param {FormattedMessage|null} msg */ /** @returns {msg is FormattedMessage} */ msg =>
+						msg !== null
+				) || [],
 		summary: `Retrieved ${response.messages?.length || 0} messages from ${channel}`,
 	};
 }
@@ -148,7 +158,7 @@ export async function getMessages(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<MessageOperationResult>} Thread messages result
  */
-export async function getThreadMessages(args, bearerToken) {
+async function getThreadMessages(args, bearerToken) {
 	const { channel, ts, limit = 200, cursor } = args;
 
 	const params = new URLSearchParams({
@@ -159,11 +169,19 @@ export async function getThreadMessages(args, bearerToken) {
 
 	if (cursor) params.append('cursor', cursor);
 
-	const response = /** @type {SlackApiResponse} */ (await makeSlackRequest(`/conversations.replies?${params}`, bearerToken));
+	const response = /** @type {SlackApiResponse} */ (
+		await makeSlackRequest(`/conversations.replies?${params}`, bearerToken)
+	);
 
 	return {
 		...response,
-		messages: response.messages?.map(msg => formatMessageResponse(msg)).filter(msg => msg !== null) || [],
+		messages:
+			response.messages
+				?.map(msg => formatMessageResponse(msg))
+				.filter(
+					/** @param {FormattedMessage|null} msg */ /** @returns {msg is FormattedMessage} */ msg =>
+						msg !== null
+				) || [],
 		summary: `Retrieved ${response.messages?.length || 0} messages from thread`,
 	};
 }
@@ -174,13 +192,15 @@ export async function getThreadMessages(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<MessageOperationResult>} Delete result
  */
-export async function deleteMessage(args, bearerToken) {
+async function deleteMessage(args, bearerToken) {
 	const { channel, ts } = args;
 
-	const response = /** @type {SlackApiResponse} */ (await makeSlackRequest('/chat.delete', bearerToken, {
-		method: 'POST',
-		body: { channel, ts },
-	}));
+	const response = /** @type {SlackApiResponse} */ (
+		await makeSlackRequest('/chat.delete', bearerToken, {
+			method: 'POST',
+			body: { channel, ts },
+		})
+	);
 
 	return {
 		...response,
@@ -194,7 +214,7 @@ export async function deleteMessage(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<MessageOperationResult>} Update result
  */
-export async function updateMessage(args, bearerToken) {
+async function updateMessage(args, bearerToken) {
 	const { channel, ts, text, blocks, attachments } = args;
 
 	const body = {
@@ -212,10 +232,12 @@ export async function updateMessage(args, bearerToken) {
 		}
 	});
 
-	const response = /** @type {SlackApiResponse} */ (await makeSlackRequest('/chat.update', bearerToken, {
-		method: 'POST',
-		body,
-	}));
+	const response = /** @type {SlackApiResponse} */ (
+		await makeSlackRequest('/chat.update', bearerToken, {
+			method: 'POST',
+			body,
+		})
+	);
 
 	return {
 		...response,
@@ -223,3 +245,10 @@ export async function updateMessage(args, bearerToken) {
 		summary: `Message updated in ${channel}`,
 	};
 }
+module.exports = {
+	sendMessage,
+	getMessages,
+	getThreadMessages,
+	deleteMessage,
+	updateMessage,
+};

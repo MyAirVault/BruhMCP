@@ -1,8 +1,10 @@
+export = fetchWithRetry;
 /**
  * @typedef {Object} FetchOptions
  * @property {Record<string, string>} [headers] - Request headers
  * @property {string} [method] - HTTP method
  * @property {string | Buffer} [body] - Request body
+ * @property {number} [timeout] - Request timeout in milliseconds
  */
 /**
  * @typedef {Object} MockResponse
@@ -18,22 +20,11 @@
  * @param {FetchOptions} [options] - Request options
  * @returns {Promise<import('node-fetch').Response | MockResponse>} Response data
  */
-export function fetchWithRetry(url: string, options?: FetchOptions): Promise<import("node-fetch").Response | MockResponse>;
-export type FetchOptions = {
-    /**
-     * - Request headers
-     */
-    headers?: Record<string, string> | undefined;
-    /**
-     * - HTTP method
-     */
-    method?: string | undefined;
-    /**
-     * - Request body
-     */
-    body?: string | Buffer<ArrayBufferLike> | undefined;
-};
-export type MockResponse = {
+declare function fetchWithRetry(url: string, options?: FetchOptions | undefined): Promise<import('node-fetch').Response | MockResponse>;
+declare namespace fetchWithRetry {
+    export { FetchOptions, MockResponse };
+}
+type MockResponse = {
     /**
      * - Whether request succeeded
      */
@@ -54,5 +45,23 @@ export type MockResponse = {
      * - JSON parser function
      */
     json: () => Promise<any>;
+};
+type FetchOptions = {
+    /**
+     * - Request headers
+     */
+    headers?: Record<string, string> | undefined;
+    /**
+     * - HTTP method
+     */
+    method?: string | undefined;
+    /**
+     * - Request body
+     */
+    body?: string | Buffer | undefined;
+    /**
+     * - Request timeout in milliseconds
+     */
+    timeout?: number | undefined;
 };
 //# sourceMappingURL=fetchWithRetry.d.ts.map

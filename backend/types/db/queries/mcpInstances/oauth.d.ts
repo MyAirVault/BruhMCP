@@ -1,3 +1,5 @@
+export type OAuthUpdateData = import('./types.js').OAuthUpdateData;
+export type MCPInstanceRecord = import('./types.js').MCPInstanceRecord;
 /**
  * @typedef {import('./types.js').OAuthUpdateData} OAuthUpdateData
  * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
@@ -16,7 +18,5 @@ export function updateOAuthStatus(instanceId: string, oauthData: OAuthUpdateData
  * @param {number} [maxRetries=3] - Maximum retry attempts (default: 3)
  * @returns {Promise<MCPInstanceRecord>} Updated instance record
  */
-export function updateOAuthStatusWithLocking(instanceId: string, oauthData: OAuthUpdateData, maxRetries?: number): Promise<MCPInstanceRecord>;
-export type OAuthUpdateData = import("./types.js").OAuthUpdateData;
-export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
+export function updateOAuthStatusWithLocking(instanceId: string, oauthData: OAuthUpdateData, maxRetries?: number | undefined): Promise<MCPInstanceRecord>;
 //# sourceMappingURL=oauth.d.ts.map

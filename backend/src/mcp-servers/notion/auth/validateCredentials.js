@@ -3,7 +3,7 @@
  * Standardized function for validating Notion OAuth credentials format
  */
 
-import createNotionValidator from '../validation/credentialValidator.js';
+const createNotionValidator = require('../validation/credentialValidator');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -81,4 +81,5 @@ async function validateCredentials(credentials, userId) {
 }
 
 
-export { validateCredentials };
+
+module.exports = { validateCredentials  };

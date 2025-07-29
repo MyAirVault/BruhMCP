@@ -130,7 +130,7 @@
 /**
  * Validation functions for Google Sheets inputs
  */
-export const validateSheetsInput = {
+const validateSheetsInput = {
 	/**
 	 * Validate create spreadsheet parameters
 	 * @param {CreateSpreadsheetParams} params - Parameters to validate
@@ -321,4 +321,8 @@ export const validateSheetsInput = {
 		}
 		return { valid: true };
 	}
+};
+
+module.exports = {
+	validateSheetsInput
 };

@@ -4,8 +4,7 @@
  */
 
 // Import and re-export all functions from modular structure
-import {
-	makeNotionRequest,
+const { makeNotionRequest,
 	getPage,
 	getPageBlocks,
 	createPage,
@@ -20,11 +19,11 @@ import {
 	listUsers,
 	searchNotion,
 	makeRawApiCall
-} from './modules/index.js';
+ } = require('./modules/index');
 
 // Re-export all functions
-export {
-	makeNotionRequest,
+
+module.exports = { makeNotionRequest,
 	getPage,
 	getPageBlocks,
 	createPage,
@@ -39,12 +38,12 @@ export {
 	listUsers,
 	searchNotion,
 	makeRawApiCall
-};
+ };
 
 /**
  * NotionService class that wraps all Notion API functions
  */
-export class NotionService {
+class NotionService {
 	/**
 	 * @param {{bearerToken: string}} config - Service configuration
 	 */
@@ -180,3 +179,7 @@ export class NotionService {
 		return await makeRawApiCall(args, this.bearerToken);
 	}
 }
+
+module.exports = {
+	NotionService
+};

@@ -1,4 +1,4 @@
-import { getMCPTypeByName, getMCPTypeById } from '../../db/queries/mcpTypesQueries.js';
+const { getMCPTypeByName, getMCPTypeById } = require('../../db/queries/mcpTypesQueries.js');
 
 /**
  * @typedef {Object} MCPConfigTemplate
@@ -46,7 +46,7 @@ import { getMCPTypeByName, getMCPTypeById } from '../../db/queries/mcpTypesQueri
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function getMCPTypeByNameHandler(req, res) {
+async function getMCPTypeByNameHandler(req, res) {
 	try {
 		const { name } = req.params;
 
@@ -123,3 +123,5 @@ export async function getMCPTypeByNameHandler(req, res) {
 		return;
 	}
 }
+
+module.exports = { getMCPTypeByNameHandler };

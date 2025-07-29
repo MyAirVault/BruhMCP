@@ -3,9 +3,9 @@
  * Service statistics and performance monitoring
  */
 
-import * as yaml from 'js-yaml';
-import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
+const yaml = require('js-yaml');
+const { createLogger  } = require('../utils/logger.js');
+const { AirtableErrorHandler  } = require('../utils/errorHandler.js');
 
 const logger = createLogger('GetServiceStatsTool');
 
@@ -28,7 +28,7 @@ const logger = createLogger('GetServiceStatsTool');
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupGetServiceStatsTool(server, airtableService, measurePerformance, serviceConfig) {
+function setupGetServiceStatsTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
 		'get_service_stats',
 		'Get performance and usage statistics for the Airtable service',
@@ -79,3 +79,5 @@ export function setupGetServiceStatsTool(server, airtableService, measurePerform
 		})
 	);
 }
+
+module.exports = setupGetServiceStatsTool;

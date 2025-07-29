@@ -3,8 +3,8 @@
  * Express routes for MCP authentication registry using Service Registry
  */
 
-import express from 'express';
-import { requireAuth as authMiddleware } from '../../../middleware/authMiddleware.js';
+const express = require('express');
+const { requireAuth: authMiddleware } = require('../../../middleware/authMiddleware.js');
 
 /**
  * @typedef {import('../types/serviceTypes.js').CredentialsData} CredentialsData
@@ -184,8 +184,8 @@ function createAuthRoutes(serviceRegistry) {
 	 * GET /auth/callback/:serviceName
 	 */
 	router.get('/callback/:serviceName', async (req, res) => {
+		const { serviceName } = req.params;
 		try {
-			const { serviceName } = req.params;
 			const { code, state, error } = req.query;
 			const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -516,4 +516,4 @@ function createAuthRoutes(serviceRegistry) {
 }
 
 
-export { createAuthRoutes };
+module.exports = { createAuthRoutes };

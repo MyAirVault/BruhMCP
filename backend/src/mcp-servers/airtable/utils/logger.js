@@ -3,8 +3,8 @@
  * Structured logging system for Airtable MCP service
  */
 
-import { inspect } from 'util';
-import { sanitizeForLogging } from './sanitization.js';
+const { inspect } = require('util');
+const { sanitizeForLogging } = require('./sanitization.js');
 
 /**
  * Log levels
@@ -299,21 +299,21 @@ class Logger {
  * @param {string} component - Component name
  * @returns {Logger}
  */
-export function createLogger(component) {
+function createLogger(component) {
 	return new Logger(component);
 }
 
 /**
  * Global logger for service-wide events
  */
-export const serviceLogger = createLogger('AirtableService');
+const serviceLogger = createLogger('AirtableService');
 
 /**
  * Request logger middleware
  * @param {string} instanceId - Instance ID
  * @returns {Function}
  */
-export function createRequestLogger(instanceId) {
+function createRequestLogger(instanceId) {
 	const logger = createLogger(`Request:${instanceId}`);
 	
 	return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
@@ -356,7 +356,7 @@ export function createRequestLogger(instanceId) {
  * @param {Error} error - Error object
  * @param {Object} context - Error context
  */
-export function logError(error, context = {}) {
+function logError(error, context = {}) {
 	const logger = createLogger('Error');
 	
 	logger.error(error.message, {
@@ -372,7 +372,7 @@ export function logError(error, context = {}) {
  * @param {Function} fn - Function to measure
  * @returns {Function}
  */
-export function measurePerformance(operation, fn) {
+function measurePerformance(operation, fn) {
 	return async function() {
 		/** @type {Object[]} */
 		const args = Array.from(arguments);
@@ -408,7 +408,7 @@ export function measurePerformance(operation, fn) {
 /**
  * Log level utilities
  */
-export const logLevel = {
+const logLevel = {
 	setLevel(/** @type {string} */ level) {
 		if (/** @type {Record<string, number>} */ (LOG_LEVELS)[level] !== undefined) {
 			process.env.LOG_LEVEL = level;
@@ -424,10 +424,7 @@ export const logLevel = {
 	}
 };
 
-/**
- * Default export
- */
-export default {
+module.exports = {
 	createLogger,
 	serviceLogger,
 	createRequestLogger,

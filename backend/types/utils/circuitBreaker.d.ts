@@ -1,5 +1,4 @@
-export default circuitBreakerManager;
-export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
+export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 export type CircuitBreakerOptions = {
     /**
      * - Circuit breaker name
@@ -177,7 +176,7 @@ export class CircuitBreaker {
     /**
      * @param {CircuitBreakerOptions} [options={}] - Circuit breaker options
      */
-    constructor(options?: CircuitBreakerOptions);
+    constructor(options?: CircuitBreakerOptions | undefined);
     /** @type {string} */
     name: string;
     /** @type {number} */
@@ -269,7 +268,7 @@ export class CircuitBreakerManager {
      * @param {CircuitBreakerOptions} [options={}] - Circuit breaker options
      * @returns {CircuitBreaker} Circuit breaker instance
      */
-    getOrCreate(name: string, options?: CircuitBreakerOptions): CircuitBreaker;
+    getOrCreate(name: string, options?: CircuitBreakerOptions | undefined): CircuitBreaker;
     /**
      * Get circuit breaker by name
      * @param {string} name - Circuit breaker name
@@ -315,4 +314,5 @@ export class CircuitBreakerManager {
  */
 export const CIRCUIT_STATES: Record<string, CircuitState>;
 declare const circuitBreakerManager: CircuitBreakerManager;
+export { circuitBreakerManager as default };
 //# sourceMappingURL=circuitBreaker.d.ts.map

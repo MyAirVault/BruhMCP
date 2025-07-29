@@ -42,7 +42,7 @@ async function acquireCacheLock(instanceId) {
  * Initialize the credential cache system
  * Called on service startup
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Notion credential cache system');
 	notionCredentialCache.clear();
 	console.log('✅ Notion credential cache initialized');
@@ -53,7 +53,7 @@ export function initializeCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = notionCredentialCache.get(instanceId);
 
 	if (!cached) {
@@ -93,7 +93,7 @@ export function getCachedCredential(instanceId) {
  * @param {string} credentialData.expiresAt - Instance expiration timestamp
  * @param {string} credentialData.user_id - User ID who owns this instance
  */
-export async function setCachedCredential(instanceId, credentialData) {
+async function setCachedCredential(instanceId, credentialData) {
 	const releaseLock = await acquireCacheLock(instanceId);
 	
 	try {
@@ -118,7 +118,7 @@ export async function setCachedCredential(instanceId, credentialData) {
  * Remove credential from cache
  * @param {string} instanceId - UUID of the service instance
  */
-export function removeCachedCredential(instanceId) {
+function removeCachedCredential(instanceId) {
 	const removed = notionCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed credential from cache: ${instanceId}`);
@@ -130,7 +130,7 @@ export function removeCachedCredential(instanceId) {
  * Get cache statistics for monitoring
  * @returns {Object} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
 	const totalEntries = notionCredentialCache.size;
 	const entries = Array.from(notionCredentialCache.values());
 
@@ -158,7 +158,7 @@ export function getCacheStatistics() {
  * Get all cached instance IDs (for debugging/monitoring)
  * @returns {string[]} Array of cached instance IDs
  */
-export function getCachedInstanceIds() {
+function getCachedInstanceIds() {
 	return Array.from(notionCredentialCache.keys());
 }
 
@@ -167,7 +167,7 @@ export function getCachedInstanceIds() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if instance is cached and valid
  */
-export function isInstanceCached(instanceId) {
+function isInstanceCached(instanceId) {
 	const cached = notionCredentialCache.get(instanceId);
 	if (!cached) return false;
 
@@ -182,7 +182,7 @@ export function isInstanceCached(instanceId) {
 /**
  * Clear all cached credentials (for testing/restart)
  */
-export function clearCredentialCache() {
+function clearCredentialCache() {
 	const count = notionCredentialCache.size;
 	notionCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} entries from credential cache`);
@@ -193,7 +193,7 @@ export function clearCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cache entry or null
  */
-export function peekCachedCredential(instanceId) {
+function peekCachedCredential(instanceId) {
 	return notionCredentialCache.get(instanceId) || null;
 }
 
@@ -206,7 +206,7 @@ export function peekCachedCredential(instanceId) {
  * @param {string} [updates.expires_at] - New expiration timestamp
  * @returns {Promise<boolean>} True if cache entry was updated, false if not found
  */
-export async function updateCachedCredentialMetadata(instanceId, updates) {
+async function updateCachedCredentialMetadata(instanceId, updates) {
 	const releaseLock = await acquireCacheLock(instanceId);
 	
 	try {
@@ -243,7 +243,7 @@ export async function updateCachedCredentialMetadata(instanceId, updates) {
  * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
  * @returns {number} Number of entries removed
  */
-export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = new Date();
 
@@ -276,3 +276,17 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 
 	return removedCount;
 }
+
+module.exports = {
+  setCachedCredential,
+  updateCachedCredentialMetadata,
+  initializeCredentialCache,
+  getCachedCredential,
+  removeCachedCredential,
+  getCacheStatistics,
+  getCachedInstanceIds,
+  isInstanceCached,
+  clearCredentialCache,
+  peekCachedCredential,
+  cleanupInvalidCacheEntries
+};

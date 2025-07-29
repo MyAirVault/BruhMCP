@@ -1,6 +1,6 @@
-export type ValidationResult = import("../../../services/mcp-auth-registry/types/serviceTypes.js").ValidationResult;
-export type CredentialsData = import("../../../services/mcp-auth-registry/types/serviceTypes.js").CredentialsData;
-export type BaseValidationResult = import("../../../services/validation/baseValidator.js").ValidationResult;
+export type ValidationResult = import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult;
+export type CredentialsData = import('../../../services/mcp-auth-registry/types/serviceTypes.js').CredentialsData;
+export type BaseValidationResult = import('../../../services/validation/baseValidator.js').ValidationResult;
 export type AirtableCredentialsInput = {
     /**
      * - Primary API key field

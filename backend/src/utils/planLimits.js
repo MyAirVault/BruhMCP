@@ -3,14 +3,14 @@
  * @fileoverview Contains functions to check and validate user plan limits for active instances
  */
 
-import { getUserPlan, isUserPlanActive, deactivateAllUserInstances, createUserPlan } from '../db/queries/userPlansQueries.js';
-import { getUserInstanceCount } from '../db/queries/mcpInstances/index.js';
+const { getUserPlan, isUserPlanActive, deactivateAllUserInstances, createUserPlan } = require('../db/queries/userPlansQueries.js');
+const { getUserInstanceCount } = require('../db/queries/mcpInstances/index.js');
 
 /**
  * Check if payments are disabled in local development
  * @returns {boolean} True if payments are disabled
  */
-export function isPaymentsDisabled() {
+function isPaymentsDisabled() {
 	return process.env.DISABLE_PAYMENTS === 'true' && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local');
 }
 
@@ -24,7 +24,7 @@ export function isPaymentsDisabled() {
 /**
  * @type {Record<string, PlanConfig>}
  */
-export const PLAN_LIMITS = {
+const PLAN_LIMITS = {
 	free: {
 		max_instances: 1,
 		features: ['basic_mcp_access']
@@ -40,7 +40,7 @@ export const PLAN_LIMITS = {
  * @param {string} planType - Plan type ('free' or 'pro')
  * @returns {number|null} Max instances (null = unlimited)
  */
-export function getInstanceLimitForPlan(planType) {
+function getInstanceLimitForPlan(planType) {
 	// In local environment with payments disabled, give unlimited instances
 	if (isPaymentsDisabled()) {
 		return null; // unlimited
@@ -55,7 +55,7 @@ export function getInstanceLimitForPlan(planType) {
  * @param {string} planType - Plan type ('free' or 'pro')
  * @returns {boolean} True if plan has unlimited instances
  */
-export function isPlanUnlimited(planType) {
+function isPlanUnlimited(planType) {
 	// In local environment with payments disabled, treat all plans as unlimited
 	if (isPaymentsDisabled()) {
 		return true;
@@ -70,7 +70,7 @@ export function isPlanUnlimited(planType) {
  * @param {string} userId - User ID
  * @returns {Promise<{canCreate: boolean, message: string, maxInstances?: number|null, activeInstances?: number, reason?: string, details?: any}>} Result object with canCreate flag and details
  */
-export async function checkInstanceLimit(userId) {
+async function checkInstanceLimit(userId) {
 	try {
 		// Get user's plan
 		let userPlan = await getUserPlan(userId);
@@ -174,7 +174,7 @@ export async function checkInstanceLimit(userId) {
  * @param {string} userId - User ID
  * @returns {Promise<Object>} Plan summary object
  */
-export async function getUserPlanSummary(userId) {
+async function getUserPlanSummary(userId) {
 	try {
 		let userPlan = await getUserPlan(userId);
 		
@@ -226,7 +226,7 @@ export async function getUserPlanSummary(userId) {
  * @param {string} userId - User ID
  * @returns {Promise<Object>} Result of plan cancellation
  */
-export async function handlePlanCancellation(userId) {
+async function handlePlanCancellation(userId) {
 	try {
 		console.log(`🚫 Processing plan cancellation for user ${userId}`);
 
@@ -234,7 +234,7 @@ export async function handlePlanCancellation(userId) {
 		const deactivatedCount = await deactivateAllUserInstances(userId);
 
 		// Downgrade to free plan
-		const { updateUserPlan } = await import('../db/queries/userPlansQueries.js');
+		const { updateUserPlan } = require('../db/queries/userPlansQueries.js');
 		await updateUserPlan(userId, 'free', {
 			expiresAt: null,
 			features: { 
@@ -267,7 +267,7 @@ export async function handlePlanCancellation(userId) {
  * @param {string} newPlan - New plan type
  * @returns {Object} Validation result
  */
-export function validatePlanTransition(currentPlan, newPlan) {
+function validatePlanTransition(currentPlan, newPlan) {
 	const validPlans = ['free', 'pro'];
 	
 	if (!validPlans.includes(currentPlan) || !validPlans.includes(newPlan)) {
@@ -303,3 +303,14 @@ export function validatePlanTransition(currentPlan, newPlan) {
 		}
 	};
 }
+
+module.exports = {
+	isPaymentsDisabled,
+	PLAN_LIMITS,
+	getInstanceLimitForPlan,
+	isPlanUnlimited,
+	checkInstanceLimit,
+	getUserPlanSummary,
+	handlePlanCancellation,
+	validatePlanTransition
+};

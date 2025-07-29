@@ -2,7 +2,7 @@
  * Airtable Bases API operations
  */
 
-import { makeAuthenticatedRequest, handleApiError, formatApiResponse } from './common.js';
+const { makeAuthenticatedRequest, handleApiError, formatApiResponse } = require('./common.js');
 
 /**
  * @typedef {Object} BasesListResponse
@@ -15,7 +15,7 @@ import { makeAuthenticatedRequest, handleApiError, formatApiResponse } from './c
  * @param {string} apiKey - Airtable API key
  * @returns {Promise<BasesListResponse>} List of bases
  */
-export async function listBases(apiKey) {
+async function listBases(apiKey) {
 	const response = await makeAuthenticatedRequest('/meta/bases', apiKey);
 	await handleApiError(response, 'Bases list');
 	
@@ -39,7 +39,7 @@ export async function listBases(apiKey) {
  * @param {string} apiKey - Airtable API key
  * @returns {Promise<BaseSchemaResponse>} Base schema
  */
-export async function getBaseSchema(baseId, apiKey) {
+async function getBaseSchema(baseId, apiKey) {
 	const response = await makeAuthenticatedRequest(`/meta/bases/${baseId}/tables`, apiKey);
 	await handleApiError(response, `Base schema for ${baseId}`);
 	
@@ -50,3 +50,8 @@ export async function getBaseSchema(baseId, apiKey) {
 	}
 	return /** @type {BaseSchemaResponse} */ (formattedResponse);
 }
+
+module.exports = {
+	listBases,
+	getBaseSchema
+};

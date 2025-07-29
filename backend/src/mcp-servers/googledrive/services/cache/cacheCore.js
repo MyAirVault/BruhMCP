@@ -4,13 +4,13 @@
  */
 
 // Global credential cache for Google Drive service instances
-export const googleDriveCredentialCache = new Map();
+const googleDriveCredentialCache = new Map();
 
 /**
  * Initialize the credential cache system
  * Called on service startup
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Google Drive OAuth credential cache system');
 	googleDriveCredentialCache.clear();
 	console.log('✅ Google Drive OAuth credential cache initialized');
@@ -19,9 +19,9 @@ export function initializeCredentialCache() {
 /**
  * Get cached credential for an instance
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cached credential data or null if not found/expired
+ * @returns {any} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = googleDriveCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -50,9 +50,9 @@ export function getCachedCredential(instanceId) {
 /**
  * Set cached credential for an instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} tokenData - Token data to cache
+ * @param {any} tokenData - Token data to cache
  */
-export function setCachedCredential(instanceId, tokenData) {
+function setCachedCredential(instanceId, tokenData) {
 	const cacheEntry = {
 		bearerToken: tokenData.bearerToken,
 		refreshToken: tokenData.refreshToken,
@@ -74,7 +74,7 @@ export function setCachedCredential(instanceId, tokenData) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if removed, false if not found
  */
-export function removeCachedCredential(instanceId) {
+function removeCachedCredential(instanceId) {
 	const result = googleDriveCredentialCache.delete(instanceId);
 	if (result) {
 		console.log(`🗑️ Removed cached OAuth tokens for instance: ${instanceId}`);
@@ -86,7 +86,7 @@ export function removeCachedCredential(instanceId) {
  * Get all cached instance IDs
  * @returns {string[]} Array of cached instance IDs
  */
-export function getCachedInstanceIds() {
+function getCachedInstanceIds() {
 	return Array.from(googleDriveCredentialCache.keys());
 }
 
@@ -95,7 +95,7 @@ export function getCachedInstanceIds() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if instance is cached
  */
-export function isInstanceCached(instanceId) {
+function isInstanceCached(instanceId) {
 	return googleDriveCredentialCache.has(instanceId);
 }
 
@@ -103,7 +103,7 @@ export function isInstanceCached(instanceId) {
  * Clear all cached credentials
  * WARNING: This will force all active instances to re-authenticate
  */
-export function clearCredentialCache() {
+function clearCredentialCache() {
 	const count = googleDriveCredentialCache.size;
 	googleDriveCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} cached OAuth tokens`);
@@ -114,9 +114,9 @@ export function clearCredentialCache() {
  * Peek at cached credential without updating last accessed time
  * Useful for monitoring and debugging
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cached credential data or null
+ * @returns {any} Cached credential data or null
  */
-export function peekCachedCredential(instanceId) {
+function peekCachedCredential(instanceId) {
 	const cached = googleDriveCredentialCache.get(instanceId);
 	if (!cached) {
 		return null;
@@ -124,3 +124,15 @@ export function peekCachedCredential(instanceId) {
 	
 	return { ...cached }; // Return copy to prevent modifications
 }
+
+module.exports = {
+	googleDriveCredentialCache,
+	initializeCredentialCache,
+	setCachedCredential,
+	getCachedCredential,
+	removeCachedCredential,
+	getCachedInstanceIds,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential
+};

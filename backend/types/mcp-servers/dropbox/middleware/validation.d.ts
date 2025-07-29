@@ -44,7 +44,7 @@ export function validateOAuthState(state: string): {
  * @param {number} [maxLength=255] - Maximum allowed length
  * @returns {string} Sanitized string
  */
-export function sanitizeString(input: string, maxLength?: number): string;
+export function sanitizeString(input: string, maxLength?: number | undefined): string;
 /**
  * Validate authorization code format
  * @param {string} code - Authorization code to validate

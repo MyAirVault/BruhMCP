@@ -4,26 +4,42 @@
  */
 
 // Core validation functions
-export {
+const {
 	validateType,
 	validateString,
 	validateNumber,
 	validateArray,
 	validateProperty
-} from './coreValidation.js';
+} = require('./coreValidation');
 
 // Schema validation functions
-export {
+const {
 	validateObject,
 	validateToolArguments
-} from './schemaValidation.js';
+} = require('./schemaValidation');
 
 // Slack-specific validation functions
-export {
+const {
 	validateSlackChannelTypes,
 	validateSlackFileId,
 	validateSlackEmojiName,
 	validateSlackReminderTime,
 	validateSlackMessageText,
 	validateSlackFilename
-} from './slackValidation.js';
+} = require('./slackValidation');
+
+module.exports = {
+	validateType,
+	validateString,
+	validateNumber,
+	validateArray,
+	validateProperty,
+	validateObject,
+	validateToolArguments,
+	validateSlackChannelTypes,
+	validateSlackFileId,
+	validateSlackEmojiName,
+	validateSlackReminderTime,
+	validateSlackMessageText,
+	validateSlackFilename
+};

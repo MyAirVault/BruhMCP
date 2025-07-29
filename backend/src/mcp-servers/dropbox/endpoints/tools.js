@@ -7,7 +7,7 @@
  * Get available Dropbox tools for MCP protocol
  * @returns {Object} Tools data with MCP-compliant schemas
  */
-export function getTools() {
+function getTools() {
   return {
     tools: [
       {
@@ -248,3 +248,5 @@ export function getTools() {
     ]
   };
 }
+
+module.exports = { getTools };

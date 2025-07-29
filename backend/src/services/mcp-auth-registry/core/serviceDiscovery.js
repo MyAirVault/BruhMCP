@@ -3,8 +3,8 @@
  * Discovers available MCP services and their capabilities automatically
  */
 
-import { readdir, access } from 'fs/promises';
-import { join } from 'path';
+const { readdir, access } = require('fs/promises');
+const { join } = require('path');
 
 /**
  * @typedef {import('../types/serviceTypes.js').ServiceType} ServiceType
@@ -197,7 +197,7 @@ async function fileExists(filePath) {
 }
 
 
-export {
+module.exports = {
 	discoverServices,
 	analyzeServiceDirectory,
 	determineServiceType,

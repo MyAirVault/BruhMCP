@@ -1,35 +1,8 @@
-export default expirationMonitor;
-export type MCPInstance = {
-    /**
-     * - Instance ID
-     */
-    instance_id: string;
-    /**
-     * - User ID
-     */
-    user_id: string;
-    /**
-     * - Service name
-     */
-    mcp_service_name: string;
-    /**
-     * - Instance status
-     */
-    status: string;
-    /**
-     * - OAuth status (optional)
-     */
-    oauth_status?: string | undefined;
-    /**
-     * - Expiration date
-     */
-    expires_at: Date | string | null;
-    /**
-     * - Last updated date
-     */
-    updated_at: Date | string;
-};
+export = expirationMonitor;
 declare const expirationMonitor: ExpirationMonitor;
+declare namespace expirationMonitor {
+    export { MCPInstance };
+}
 /**
  * @typedef {Object} MCPInstance
  * @property {string} instance_id - Instance ID
@@ -96,4 +69,34 @@ declare class ExpirationMonitor {
      */
     getStatus(): Object;
 }
+type MCPInstance = {
+    /**
+     * - Instance ID
+     */
+    instance_id: string;
+    /**
+     * - User ID
+     */
+    user_id: string;
+    /**
+     * - Service name
+     */
+    mcp_service_name: string;
+    /**
+     * - Instance status
+     */
+    status: string;
+    /**
+     * - OAuth status (optional)
+     */
+    oauth_status?: string | undefined;
+    /**
+     * - Expiration date
+     */
+    expires_at: Date | string | null;
+    /**
+     * - Last updated date
+     */
+    updated_at: Date | string;
+};
 //# sourceMappingURL=expirationMonitor.d.ts.map

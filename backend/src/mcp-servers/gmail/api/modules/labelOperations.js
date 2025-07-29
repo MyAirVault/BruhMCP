@@ -3,8 +3,8 @@
  * Label management functionality for Gmail API
  */
 
-import { makeGmailRequest } from './requestHandler.js';
-import { formatEmailResponse } from '../../utils/gmailFormatting.js';
+const { makeGmailRequest } = require('./requestHandler.js');
+const { formatEmailResponse } = require('../../utils/gmailFormatting.js');
 
 /**
  * Mark messages as read
@@ -13,7 +13,7 @@ import { formatEmailResponse } from '../../utils/gmailFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Mark read result
  */
-export async function markAsRead(args, bearerToken) {
+async function markAsRead(args, bearerToken) {
 	const { messageIds } = args;
 
 	const results = await Promise.all(
@@ -43,7 +43,7 @@ export async function markAsRead(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Mark unread result
  */
-export async function markAsUnread(args, bearerToken) {
+async function markAsUnread(args, bearerToken) {
 	const { messageIds } = args;
 
 	const results = await Promise.all(
@@ -65,3 +65,8 @@ export async function markAsUnread(args, bearerToken) {
 		timestamp: new Date().toISOString(),
 	});
 }
+
+module.exports = {
+	markAsRead,
+	markAsUnread
+};

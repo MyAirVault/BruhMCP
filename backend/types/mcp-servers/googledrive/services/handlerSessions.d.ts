@@ -18,6 +18,11 @@ export function removeHandlerSession(instanceId: string): boolean;
  */
 export function getSessionStatistics(): Object;
 /**
+ * Clean up expired sessions
+ * Called periodically to remove inactive sessions
+ */
+export function cleanupExpiredSessions(): void;
+/**
  * Start the session cleanup service
  * Called when the server starts
  */
@@ -40,5 +45,5 @@ export function invalidateHandlerSession(instanceId: string): void;
  * @param {string} newBearerToken - New bearer token
  */
 export function updateSessionBearerToken(instanceId: string, newBearerToken: string): boolean;
-import { GoogleDriveMCPHandler } from '../endpoints/mcpHandler.js';
+import { GoogleDriveMCPHandler } from "../endpoints/mcpHandler";
 //# sourceMappingURL=handlerSessions.d.ts.map

@@ -63,42 +63,33 @@
  * @property {Object} [componentSets] - Component sets
  */
 
-import { buildSimplifiedLayout } from '../transformers/layout.js';
-import { buildSimplifiedStrokes } from '../transformers/style.js';
-import { buildSimplifiedEffects } from '../transformers/effects.js';
-import { sanitizeComponents, sanitizeComponentSets } from '../utils/sanitization.js';
-import { 
-	parsePaint, 
-	isVisible, 
-	removeEmptyKeys, 
-	generateVarId 
-} from '../utils/common.js';
-import { 
-	hasValue,
-	isTruthy, 
-	isRectangleCornerRadii 
-} from '../utils/identity.js';
+const { buildSimplifiedLayout } = require('../transformers/layout.js');
+const { buildSimplifiedStrokes } = require('../transformers/style.js');
+const { buildSimplifiedEffects } = require('../transformers/effects.js');
+const { sanitizeComponents, sanitizeComponentSets } = require('../utils/sanitization.js');
+const { parsePaint, isVisible, removeEmptyKeys, generateVarId } = require('../utils/common.js');
+const { hasValue, isTruthy, isRectangleCornerRadii } = require('../utils/identity.js');
 
 /**
  * Parse Figma API response
  * @param {FigmaResponse} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
  * @returns {Object} Simplified design object with global variables
  */
-export function parseFigmaResponse(data) {
+function parseFigmaResponse(data) {
 	// Validate input data
 	if (!data || typeof data !== 'object') {
 		throw new Error('Invalid data provided to parseFigmaResponse');
 	}
-	
+
 	const aggregatedComponents = {};
 	const aggregatedComponentSets = {};
 	let nodesToParse;
 
-	if ("nodes" in data && data.nodes) {
+	if ('nodes' in data && data.nodes) {
 		// GetFileNodesResponse
 		const nodeResponses = Object.values(data.nodes);
-		nodeResponses.forEach((nodeResponse) => {
-		if (!nodeResponse) return;
+		nodeResponses.forEach(nodeResponse => {
+			if (!nodeResponse) return;
 			if (nodeResponse.components) {
 				Object.assign(aggregatedComponents, nodeResponse.components);
 			}
@@ -106,7 +97,7 @@ export function parseFigmaResponse(data) {
 				Object.assign(aggregatedComponentSets, nodeResponse.componentSets);
 			}
 		});
-		nodesToParse = nodeResponses.map((n) => n && n.document).filter(Boolean);
+		nodesToParse = nodeResponses.map(n => n && n.document).filter(Boolean);
 	} else {
 		// GetFileResponse
 		Object.assign(aggregatedComponents, data.components);
@@ -119,7 +110,7 @@ export function parseFigmaResponse(data) {
 		styles: {},
 		components: {},
 		componentSets: {},
-		componentInstances: {}
+		componentInstances: {},
 	};
 
 	const sanitizedComponents = sanitizeComponents(aggregatedComponents, globalVars);
@@ -128,14 +119,14 @@ export function parseFigmaResponse(data) {
 	const { name, lastModified, thumbnailUrl } = data;
 
 	const simplifiedNodes = (nodesToParse || [])
-		.filter(/** @param {FigmaNode} node */ (node) => node && isVisible(/** @type {{ visible?: boolean }} */ (node)))
-		.map(/** @param {FigmaNode} n */ (n) => parseNode(globalVars, n))
-		.filter(/** @param {SimplifiedNode|null} child */ (child) => child !== null && child !== undefined);
+		.filter(/** @param {FigmaNode} node */ node => node && isVisible(/** @type {{ visible?: boolean }} */ (node)))
+		.map(/** @param {FigmaNode} n */ n => parseNode(globalVars, n))
+		.filter(/** @param {SimplifiedNode|null} child */ child => child !== null && child !== undefined);
 
 	const simplifiedDesign = {
 		name,
 		lastModified,
-		thumbnailUrl: thumbnailUrl || "",
+		thumbnailUrl: thumbnailUrl || '',
 		nodes: simplifiedNodes,
 		components: sanitizedComponents,
 		componentSets: sanitizedComponentSets,
@@ -184,28 +175,28 @@ function parseNode(globalVars, n, parent) {
 		type,
 	};
 
-	if (type === "INSTANCE") {
-		if (hasValue("componentId", n)) {
+	if (type === 'INSTANCE') {
+		if (hasValue('componentId', n)) {
 			/** @type {SimplifiedNode} */ (simplified).componentId = n.componentId;
 		}
 
 		// Add specific properties for instances of components
-		if (hasValue("componentProperties", n)) {
-			/** @type {SimplifiedNode} */ (simplified).componentProperties = Object.entries(n.componentProperties ?? {}).map(
-				([name, prop]) => {
-					const propObj = /** @type {Record<string, unknown>} */ (prop);
-					return {
-						name,
-						value: String(propObj.value),
-						type: /** @type {string} */ (propObj.type),
-					};
-				}
-			);
+		if (hasValue('componentProperties', n)) {
+			/** @type {SimplifiedNode} */ (simplified).componentProperties = Object.entries(
+				n.componentProperties ?? {}
+			).map(([name, prop]) => {
+				const propObj = /** @type {Record<string, unknown>} */ (prop);
+				return {
+					name,
+					value: String(propObj.value),
+					type: /** @type {string} */ (propObj.type),
+				};
+			});
 		}
 	}
 
 	// text
-	if (hasValue("style", n) && n.style && Object.keys(n.style).length) {
+	if (hasValue('style', n) && n.style && Object.keys(n.style).length) {
 		const style = n.style;
 		const textStyle = {
 			fontFamily: style.fontFamily,
@@ -216,74 +207,93 @@ function parseNode(globalVars, n, parent) {
 					? `${/** @type {number} */ (style.lineHeightPx) / /** @type {number} */ (style.fontSize)}em`
 					: undefined,
 			letterSpacing:
-				/** @type {number} */ (style.letterSpacing) && /** @type {number} */ (style.letterSpacing) !== 0 && /** @type {number} */ (style.fontSize)
-					? `${(/** @type {number} */ (style.letterSpacing) / /** @type {number} */ (style.fontSize)) * 100}%`
+				typeof style.letterSpacing === 'number' &&
+				style.letterSpacing !== 0 &&
+				typeof style.fontSize === 'number'
+					? `${(Number(style.letterSpacing) / Number(style.fontSize)) * 100}%`
 					: undefined,
 			textCase: style.textCase,
 			textAlignHorizontal: style.textAlignHorizontal,
 			textAlignVertical: style.textAlignVertical,
 		};
-		/** @type {SimplifiedNode} */ (simplified).textStyle = findOrCreateVar(globalVars, textStyle, "style");
+		/** @type {SimplifiedNode} */ (simplified).textStyle = findOrCreateVar(globalVars, textStyle, 'style');
 	}
 
 	// fills & strokes
-	if (hasValue("fills", n) && Array.isArray(n.fills) && n.fills && n.fills.length) {
-		const fills = n.fills.filter(Boolean).map(fill => parsePaint(/** @type {Parameters<typeof parsePaint>[0]} */ (fill)));
-		/** @type {SimplifiedNode} */ (simplified).fills = findOrCreateVar(globalVars, fills, "fill");
+	if (hasValue('fills', n) && Array.isArray(n.fills) && n.fills && n.fills.length) {
+		const fills = n.fills
+			.filter(Boolean)
+			.map(fill => parsePaint(/** @type {Parameters<typeof parsePaint>[0]} */ (fill)));
+		/** @type {SimplifiedNode} */ (simplified).fills = findOrCreateVar(globalVars, fills, 'fill');
 	}
 
 	const strokes = buildSimplifiedStrokes(/** @type {import('../transformers/style.js').FigmaNode} */ (n));
 	if (strokes && strokes.colors && strokes.colors.length) {
-		/** @type {SimplifiedNode} */ (simplified).strokes = findOrCreateVar(globalVars, strokes, "stroke");
+		/** @type {SimplifiedNode} */ (simplified).strokes = findOrCreateVar(globalVars, strokes, 'stroke');
 	}
 
 	const effects = buildSimplifiedEffects(n);
 	if (effects && Object.keys(effects).length) {
-		/** @type {SimplifiedNode} */ (simplified).effects = findOrCreateVar(globalVars, effects, "effect");
+		/** @type {SimplifiedNode} */ (simplified).effects = findOrCreateVar(globalVars, effects, 'effect');
 	}
 
 	// Process layout
 	const layout = buildSimplifiedLayout(n, parent);
 	if (layout && Object.keys(layout).length > 1) {
-		/** @type {SimplifiedNode} */ (simplified).layout = findOrCreateVar(globalVars, layout, "layout");
+		/** @type {SimplifiedNode} */ (simplified).layout = findOrCreateVar(globalVars, layout, 'layout');
 	}
 
 	// Keep other simple properties directly
-	if (hasValue("characters", n, isTruthy)) {
+	if (hasValue('characters', n, isTruthy)) {
 		/** @type {SimplifiedNode} */ (simplified).text = n.characters;
 	}
 
 	// opacity
-	if (hasValue("opacity", n) && typeof n.opacity === "number" && n.opacity !== 1) {
+	if (hasValue('opacity', n) && typeof n.opacity === 'number' && n.opacity !== 1) {
 		/** @type {SimplifiedNode} */ (simplified).opacity = n.opacity;
 	}
 
-	if (hasValue("cornerRadius", n) && typeof n.cornerRadius === "number") {
+	if (hasValue('cornerRadius', n) && typeof n.cornerRadius === 'number') {
 		/** @type {SimplifiedNode} */ (simplified).borderRadius = `${n.cornerRadius}px`;
 	}
-	if (hasValue("rectangleCornerRadii", n, isRectangleCornerRadii) && n.rectangleCornerRadii && n.rectangleCornerRadii.length >= 4) {
-		/** @type {SimplifiedNode} */ (simplified).borderRadius = `${n.rectangleCornerRadii[0]}px ${n.rectangleCornerRadii[1]}px ${n.rectangleCornerRadii[2]}px ${n.rectangleCornerRadii[3]}px`;
+	if (
+		hasValue('rectangleCornerRadii', n, isRectangleCornerRadii) &&
+		n.rectangleCornerRadii &&
+		n.rectangleCornerRadii.length >= 4
+	) {
+		/** @type {SimplifiedNode} */ (simplified).borderRadius =
+			`${n.rectangleCornerRadii[0]}px ${n.rectangleCornerRadii[1]}px ${n.rectangleCornerRadii[2]}px ${n.rectangleCornerRadii[3]}px`;
 	}
 
 	// Recursively process child nodes.
 	// Include children at the very end so all relevant configuration data for the element is output first and kept together for the AI.
-	if (hasValue("children", n) && Array.isArray(n.children) && n.children.length > 0) {
+	if (hasValue('children', n) && Array.isArray(n.children) && n.children.length > 0) {
 		const children = (n.children || [])
-			.filter(/** @param {FigmaNode} child */ (child) => child && isVisible(/** @type {{ visible?: boolean }} */ (child)))
-			.map(/** @param {FigmaNode} child */ (child) => parseNode(globalVars, child, n))
-			.filter(/** @param {SimplifiedNode|null} child */ (child) => child !== null && child !== undefined);
+			.filter(
+				/** @param {FigmaNode} child */ child =>
+					child && isVisible(/** @type {{ visible?: boolean }} */ (child))
+			)
+			.map(/** @param {FigmaNode} child */ child => parseNode(globalVars, child, n))
+			.filter(
+				/** @param {SimplifiedNode|null} child */ /** @returns {child is SimplifiedNode} */ child =>
+					child !== null && child !== undefined
+			);
 		if (children && children.length) {
 			/** @type {SimplifiedNode} */ (simplified).children = children;
 		}
 	}
 
 	// Convert VECTOR to IMAGE
-	if (type === "VECTOR") {
-		simplified.type = "IMAGE-SVG";
+	if (type === 'VECTOR') {
+		simplified.type = 'IMAGE-SVG';
 	}
 
 	return simplified;
 }
 
 // For backward compatibility, export both function names
-export const simplifyFigmaResponse = parseFigmaResponse;
+const simplifyFigmaResponse = parseFigmaResponse;
+module.exports = {
+	simplifyFigmaResponse,
+	parseFigmaResponse,
+};

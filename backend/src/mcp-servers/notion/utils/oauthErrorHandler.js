@@ -57,7 +57,7 @@
  * @param {function(string, OAuthStatusUpdate): Promise<void>} updateOAuthStatus - Function to update OAuth status
  * @returns {Promise<TokenRefreshResponse>} Error response object
  */
-export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
+async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
 	// Map different error types to appropriate responses
 	const errorType = error.errorType || 'UNKNOWN_ERROR';
 
@@ -127,7 +127,7 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
  * @param {string} instanceId - The instance ID
  * @returns {void}
  */
-export function logOAuthError(error, operation, instanceId) {
+function logOAuthError(error, operation, instanceId) {
 	console.error(`🔴 OAuth ${operation} failed for instance ${instanceId}:`, {
 		errorType: error.errorType || 'UNKNOWN_ERROR',
 		message: error.message,
@@ -143,7 +143,7 @@ export function logOAuthError(error, operation, instanceId) {
  * @param {{originalError?: Error} & Object} [metadata={}] - Additional error metadata
  * @returns {OAuthErrorObject} Standardized error object
  */
-export function createOAuthError(errorType, message, metadata = {}) {
+function createOAuthError(errorType, message, metadata = {}) {
 	return {
 		errorType,
 		message,
@@ -181,7 +181,7 @@ function getStatusCodeForErrorType(errorType) {
  * @param {ExtendedError} error - The error to handle
  * @returns {ErrorResponse} Formatted error response
  */
-export function handleNotionError(error) {
+function handleNotionError(error) {
 	// Default error structure
 	const errorResponse = {
 		message: 'An unexpected error occurred',
@@ -229,3 +229,8 @@ export function handleNotionError(error) {
 
 	return errorResponse;
 }
+
+module.exports = {
+  handleTokenRefreshFailure,
+  handleNotionError
+};

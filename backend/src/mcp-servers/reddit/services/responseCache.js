@@ -86,7 +86,7 @@ let cleanupIntervalId = null;
 /**
  * Initialize response cache
  */
-export function initializeResponseCache() {
+function initializeResponseCache() {
   console.log('🚀 Initializing Reddit response cache system');
   
   // Clear existing cache
@@ -136,7 +136,7 @@ function generateCacheKey(type, instanceId, params) {
  * @param {Record<string, *>} params - Request parameters
  * @returns {*|null} Cached response or null if not found/expired
  */
-export function getCachedResponse(type, instanceId, params = {}) {
+function getCachedResponse(type, instanceId, params = {}) {
   try {
     const key = generateCacheKey(type, instanceId, params);
     const cached = responseCache.get(key);
@@ -176,7 +176,7 @@ export function getCachedResponse(type, instanceId, params = {}) {
  * @param {*} data - Response data to cache
  * @param {number|undefined} [customTtl] - Custom TTL in milliseconds
  */
-export function setCachedResponse(type, instanceId, params = {}, data, customTtl = undefined) {
+function setCachedResponse(type, instanceId, params = {}, data, customTtl = undefined) {
   try {
     const key = generateCacheKey(type, instanceId, params);
     const ttl = customTtl || (CACHE_CONFIG.ttl[/** @type {keyof typeof CACHE_CONFIG.ttl} */(type)] || CACHE_CONFIG.ttl.default);
@@ -220,7 +220,7 @@ export function setCachedResponse(type, instanceId, params = {}, data, customTtl
  * @param {string} instanceId - Instance ID
  * @param {Record<string, *>} params - Request parameters
  */
-export function deleteCachedResponse(type, instanceId, params = {}) {
+function deleteCachedResponse(type, instanceId, params = {}) {
   try {
     const key = generateCacheKey(type, instanceId, params);
     const deleted = responseCache.delete(key);
@@ -243,7 +243,7 @@ export function deleteCachedResponse(type, instanceId, params = {}) {
  * Clear all cached responses for an instance
  * @param {string} instanceId - Instance ID
  */
-export function clearInstanceCache(instanceId) {
+function clearInstanceCache(instanceId) {
   try {
     const keysToDelete = [];
     
@@ -270,7 +270,7 @@ export function clearInstanceCache(instanceId) {
 /**
  * Clear all cached responses
  */
-export function clearAllCache() {
+function clearAllCache() {
   try {
     const count = responseCache.size;
     responseCache.clear();
@@ -291,7 +291,7 @@ export function clearAllCache() {
  * Get cache statistics
  * @returns {CacheStatistics} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
   const now = Date.now();
   const entries = Array.from(responseCache.values());
   
@@ -348,7 +348,7 @@ function startCleanupInterval() {
 /**
  * Stop cleanup interval
  */
-export function stopCleanupInterval() {
+function stopCleanupInterval() {
   if (cleanupIntervalId) {
     clearInterval(cleanupIntervalId);
     cleanupIntervalId = null;
@@ -387,7 +387,7 @@ function cleanupExpiredEntries() {
  * Update cache configuration
  * @param {Partial<CacheConfig>} newConfig - New cache configuration
  */
-export function updateCacheConfig(newConfig) {
+function updateCacheConfig(newConfig) {
   Object.assign(CACHE_CONFIG, newConfig);
   console.log('⚙️ Updated cache configuration:', CACHE_CONFIG);
 }
@@ -396,6 +396,20 @@ export function updateCacheConfig(newConfig) {
  * Get cache configuration
  * @returns {CacheConfig} Current cache configuration
  */
-export function getCacheConfig() {
+function getCacheConfig() {
   return { ...CACHE_CONFIG };
 }
+
+module.exports = {
+  initializeResponseCache,
+  generateCacheKey,
+  getCachedResponse,
+  setCachedResponse,
+  deleteCachedResponse,
+  clearInstanceCache,
+  clearAllCache,
+  getCacheStatistics,
+  startCleanupInterval,
+  stopCleanupInterval,
+  getCacheConfig
+};

@@ -67,7 +67,7 @@ const RATE_LIMIT_CONFIG = {
  * @param {Object} options - Rate limit options
  * @returns {Function} Express middleware function
  */
-export function createRateLimitMiddleware(options = {}) {
+function createRateLimitMiddleware(options = {}) {
 	const config = {
 		...RATE_LIMIT_CONFIG.global,
 		...options,
@@ -265,7 +265,7 @@ function getRoutePattern(path) {
  * Handles Reddit-specific rate limiting (60 requests per minute)
  * @returns {Function} Express middleware function
  */
-export function createRedditApiRateLimitMiddleware() {
+function createRedditApiRateLimitMiddleware() {
 	return createRateLimitMiddleware({
 		requests: 60,
 		window: 60000, // 1 minute
@@ -276,7 +276,7 @@ export function createRedditApiRateLimitMiddleware() {
  * Creates strict rate limit middleware for sensitive operations
  * @returns {Function} Express middleware function
  */
-export function createStrictRateLimitMiddleware() {
+function createStrictRateLimitMiddleware() {
 	return createRateLimitMiddleware({
 		requests: 20,
 		window: 60000, // 1 minute
@@ -287,7 +287,7 @@ export function createStrictRateLimitMiddleware() {
  * Gets rate limit statistics
  * @returns {{totalKeys: number, activeRateLimits: number, keysByType: {global: number, route: number, instance: number}, topKeys: Array<{key: string, requestCount: number, lastRequest: number}>}} Rate limit statistics
  */
-export function getRateLimitStatistics() {
+function getRateLimitStatistics() {
 	const stats = {
 		totalKeys: rateLimitStore.size,
 		activeRateLimits: 0,
@@ -338,7 +338,7 @@ export function getRateLimitStatistics() {
  * Clears rate limit data for an instance
  * @param {string} instanceId - Instance ID
  */
-export function clearInstanceRateLimit(instanceId) {
+function clearInstanceRateLimit(instanceId) {
 	const keysToDelete = [];
 
 	for (const key of rateLimitStore.keys()) {
@@ -357,7 +357,7 @@ export function clearInstanceRateLimit(instanceId) {
 /**
  * Clears all rate limit data
  */
-export function clearAllRateLimits() {
+function clearAllRateLimits() {
 	const count = rateLimitStore.size;
 	rateLimitStore.clear();
 	console.log(`🧹 Cleared all rate limit data (${count} keys)`);
@@ -367,7 +367,7 @@ export function clearAllRateLimits() {
  * Updates rate limit configuration
  * @param {Object} newConfig - New rate limit configuration
  */
-export function updateRateLimitConfig(newConfig) {
+function updateRateLimitConfig(newConfig) {
 	Object.assign(RATE_LIMIT_CONFIG, newConfig);
 	console.log('⚙️  Updated rate limit configuration:', RATE_LIMIT_CONFIG);
 }
@@ -376,7 +376,7 @@ export function updateRateLimitConfig(newConfig) {
  * Gets rate limit configuration
  * @returns {Object} Current rate limit configuration
  */
-export function getRateLimitConfig() {
+function getRateLimitConfig() {
 	return { ...RATE_LIMIT_CONFIG };
 }
 
@@ -385,7 +385,7 @@ export function getRateLimitConfig() {
  * @param {string} instanceId - Instance ID
  * @returns {boolean} True if rate limited
  */
-export function isInstanceRateLimited(instanceId) {
+function isInstanceRateLimited(instanceId) {
 	const now = Date.now();
 	const globalKey = `global:${instanceId}`;
 	const instanceKey = `instance:${instanceId}`;
@@ -401,7 +401,7 @@ export function isInstanceRateLimited(instanceId) {
  * @param {string} instanceId - Instance ID
  * @returns {Object} Remaining request information
  */
-export function getInstanceRemainingRequests(instanceId) {
+function getInstanceRemainingRequests(instanceId) {
 	const globalKey = `global:${instanceId}`;
 	const instanceKey = `instance:${instanceId}`;
 
@@ -430,3 +430,13 @@ export function getInstanceRemainingRequests(instanceId) {
 		effectiveRemaining: Math.min(globalRemaining, instanceRemaining),
 	};
 }
+
+module.exports = {
+	createRateLimitMiddleware,
+	createRedditApiRateLimitMiddleware: createRateLimitMiddleware,
+	getRateLimitStatistics,
+	isRateLimited,
+	recordRequest,
+	addRateLimitHeaders,
+	sendRateLimitResponse
+};

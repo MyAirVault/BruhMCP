@@ -223,4 +223,4 @@
  * @property {string[]} scopes - Required OAuth scopes
  */
 
-export {};
+module.exports = {};

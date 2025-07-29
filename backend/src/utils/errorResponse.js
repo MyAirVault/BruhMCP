@@ -38,7 +38,7 @@
 
 /**
  * Options for error response creation
- * @typedef {Object} ErrorOptions
+ * @typedef {Object} CustomErrorOptions
  * @property {Array<ValidationDetail>} [details] - Validation error details
  * @property {string} [instanceId] - Instance ID
  * @property {string} [userId] - User ID
@@ -49,6 +49,14 @@
  * @property {number} [maxInstances] - Maximum instances
  * @property {string} [upgradeMessage] - Upgrade message
  * @property {Object} [metadata] - Additional metadata
+ * @property {string} [error] - Error message
+ * @property {string} [oauthStatus] - OAuth status
+ * @property {string} [message] - Custom message
+ * @property {string} [status] - Status code
+ * @property {string} [service] - Service name
+ * @property {string} [expectedFormat] - Expected format
+ * @property {string} [action] - Action being performed
+ * @property {string[]} [requiredScopes] - Required OAuth scopes
  */
 
 /**
@@ -56,10 +64,10 @@
  * @param {number} _statusCode - HTTP status code (not used in response, kept for API compatibility)
  * @param {string} code - Error code (uppercase with underscores)
  * @param {string} message - Human-readable error message
- * @param {ErrorOptions} [options] - Additional options
+ * @param {CustomErrorOptions} [options] - Additional options
  * @returns {ErrorResponse} Standardized error response object
  */
-export function createErrorResponse(_statusCode, code, message, options = {}) {
+function createErrorResponse(_statusCode, code, message, options = {}) {
 	/** @type {ErrorResponse} */
 	const errorResponse = {
 		error: {
@@ -119,9 +127,9 @@ export function createErrorResponse(_statusCode, code, message, options = {}) {
  * @param {number} statusCode - HTTP status code
  * @param {string} code - Error code
  * @param {string} message - Error message
- * @param {ErrorOptions} [options] - Additional options
+ * @param {CustomErrorOptions} [options] - Additional options
  */
-export function sendErrorResponse(res, statusCode, code, message, options = {}) {
+function sendErrorResponse(res, statusCode, code, message, options = {}) {
 	const errorResponse = createErrorResponse(statusCode, code, message, options);
 	res.status(statusCode).json(errorResponse);
 }
@@ -129,12 +137,12 @@ export function sendErrorResponse(res, statusCode, code, message, options = {}) 
 /**
  * Common error response helpers for frequent use cases
  */
-export const ErrorResponses = {
+const ErrorResponses = {
 	// Authentication & Authorization
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	unauthorized: (res, message = 'Authentication required', options = {}) =>
 		sendErrorResponse(res, 401, 'UNAUTHORIZED', message, options),
@@ -142,7 +150,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	forbidden: (res, message = 'Access denied', options = {}) =>
 		sendErrorResponse(res, 403, 'FORBIDDEN', message, options),
@@ -150,7 +158,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	invalidToken: (res, message = 'Invalid or expired authentication token', options = {}) =>
 		sendErrorResponse(res, 401, 'INVALID_AUTH_TOKEN', message, options),
@@ -158,7 +166,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	missingToken: (res, message = 'Authentication token required', options = {}) =>
 		sendErrorResponse(res, 401, 'MISSING_AUTH_TOKEN', message, options),
@@ -168,7 +176,7 @@ export const ErrorResponses = {
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
 	 * @param {Array<ValidationDetail>} [details]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	validation: (res, message = 'Invalid request parameters', details = [], options = {}) =>
 		sendErrorResponse(res, 400, 'VALIDATION_ERROR', message, { ...options, details }),
@@ -176,7 +184,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	badRequest: (res, message = 'Bad request', options = {}) =>
 		sendErrorResponse(res, 400, 'BAD_REQUEST', message, options),
@@ -184,7 +192,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	invalidInput: (res, message = 'Invalid input provided', options = {}) =>
 		sendErrorResponse(res, 400, 'INVALID_INPUT', message, options),
@@ -192,7 +200,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} field
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	missingField: (res, field, options = {}) =>
 		sendErrorResponse(res, 400, 'MISSING_FIELD', `Required field '${field}' is missing`, options),
@@ -201,7 +209,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [resource]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	notFound: (res, resource = 'Resource', options = {}) =>
 		sendErrorResponse(res, 404, 'NOT_FOUND', `${resource} not found`, options),
@@ -209,7 +217,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [resource]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	alreadyExists: (res, resource = 'Resource', options = {}) =>
 		sendErrorResponse(res, 409, 'ALREADY_EXISTS', `${resource} already exists`, options),
@@ -218,7 +226,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} instanceId
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	instanceNotFound: (res, instanceId, options = {}) =>
 		sendErrorResponse(res, 404, 'INSTANCE_NOT_FOUND', 'MCP instance not found or access denied', {
@@ -229,7 +237,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} instanceId
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	instanceUnavailable: (res, instanceId, options = {}) =>
 		sendErrorResponse(res, 502, 'INSTANCE_NOT_AVAILABLE', `MCP instance is not available or not running`, {
@@ -241,7 +249,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} serviceName
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	serviceDisabled: (res, serviceName, options = {}) =>
 		sendErrorResponse(res, 503, 'SERVICE_DISABLED', `${serviceName} service is currently disabled`, options),
@@ -249,7 +257,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [serviceName]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	serviceUnavailable: (res, serviceName = 'Service', options = {}) =>
 		sendErrorResponse(res, 503, 'SERVICE_UNAVAILABLE', `${serviceName} is temporarily unavailable`, options),
@@ -258,7 +266,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	rateLimited: (res, message = 'Too many requests', options = {}) =>
 		sendErrorResponse(res, 429, 'RATE_LIMITED', message, options),
@@ -267,7 +275,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	internal: (res, message = 'Internal server error', options = {}) =>
 		sendErrorResponse(res, 500, 'INTERNAL_ERROR', message, options),
@@ -275,7 +283,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	databaseError: (res, message = 'Database operation failed', options = {}) =>
 		sendErrorResponse(res, 500, 'DATABASE_ERROR', message, options),
@@ -285,7 +293,7 @@ export const ErrorResponses = {
 	 * @param {import('express').Response} res
 	 * @param {string} service
 	 * @param {string} [message]
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	externalApiError: (res, service, message = 'External service error', options = {}) =>
 		sendErrorResponse(res, 502, 'EXTERNAL_API_ERROR', `${service}: ${message}`, options),
@@ -293,7 +301,7 @@ export const ErrorResponses = {
 	/**
 	 * @param {import('express').Response} res
 	 * @param {string} service
-	 * @param {ErrorOptions} [options]
+	 * @param {CustomErrorOptions} [options]
 	 */
 	credentialsInvalid: (res, service, options = {}) =>
 		sendErrorResponse(res, 400, 'INVALID_CREDENTIALS', `Invalid credentials for ${service}`, options),
@@ -304,7 +312,7 @@ export const ErrorResponses = {
  * @param {import('zod').ZodError} zodError - Zod validation error
  * @returns {Array<ValidationDetail>} Formatted validation details
  */
-export function formatZodErrors(zodError) {
+function formatZodErrors(zodError) {
 	return zodError.errors.map(err => ({
 		field: err.path.join('.'),
 		message: err.message,
@@ -320,7 +328,7 @@ export function formatZodErrors(zodError) {
  * @param {import('express').Response} res - Express response
  * @param {import('express').NextFunction} next - Express next function
  */
-export function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, next) {
 	console.error(`Unhandled error on ${req.method} ${req.originalUrl}:`, err);
 
 	// Check if response was already sent
@@ -348,3 +356,11 @@ export function errorHandler(err, req, res, next) {
 		},
 	});
 }
+
+module.exports = {
+	createErrorResponse,
+	sendErrorResponse,
+	ErrorResponses,
+	formatZodErrors,
+	errorHandler
+};

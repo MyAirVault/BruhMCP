@@ -1,3 +1,6 @@
+export type MCPInstanceCreateData = import('./types.js').MCPInstanceCreateData;
+export type MCPInstanceRecord = import('./types.js').MCPInstanceRecord;
+export type CreateInstanceResult = import('./types.js').CreateInstanceResult;
 /**
  * @typedef {import('./types.js').MCPInstanceCreateData} MCPInstanceCreateData
  * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
@@ -18,7 +21,4 @@ export function createMCPInstance(instanceData: MCPInstanceCreateData): Promise<
  * @throws {Error} When database connection fails or transaction cannot be started
  */
 export function createMCPInstanceWithLimitCheck(instanceData: MCPInstanceCreateData, maxInstances: number | null): Promise<CreateInstanceResult>;
-export type MCPInstanceCreateData = import("./types.js").MCPInstanceCreateData;
-export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
-export type CreateInstanceResult = import("./types.js").CreateInstanceResult;
 //# sourceMappingURL=creation.d.ts.map

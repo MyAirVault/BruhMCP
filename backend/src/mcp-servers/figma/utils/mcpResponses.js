@@ -4,7 +4,7 @@
  * Now includes sophisticated data deduplication to reduce token size
  */
 
-import * as yaml from 'js-yaml';
+const yaml = require('js-yaml');
 
 /**
  * Creates a successful MCP response with content
@@ -388,8 +388,8 @@ function createFigmaOptimizedResponse(figmaData, options = /** @type {Record<str
     }
 }
 
-export {
-    createSuccessResponse,
-    createErrorResponse,
-    createFigmaOptimizedResponse
+module.exports = {
+	createSuccessResponse,
+	createErrorResponse,
+	createFigmaOptimizedResponse
 };

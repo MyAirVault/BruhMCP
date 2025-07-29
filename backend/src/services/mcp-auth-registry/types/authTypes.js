@@ -121,4 +121,4 @@
  */
 
 // Export types for JSDoc usage - no runtime exports needed
-export {};
+module.exports = {};

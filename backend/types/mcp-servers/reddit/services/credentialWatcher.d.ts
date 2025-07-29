@@ -1,31 +1,7 @@
-/**
- * Start the credential watcher service
- */
-export function startCredentialWatcher(): void;
-/**
- * Stop the credential watcher service
- */
-export function stopCredentialWatcher(): void;
-/**
- * Get watcher status and statistics
- * @returns {WatcherStatus} Watcher status information
- */
-export function getWatcherStatus(): WatcherStatus;
-/**
- * Force refresh a specific instance token
- * @param {string} instanceId - Instance ID to refresh
- * @returns {Promise<boolean>} True if refresh was successful
- */
-export function forceRefreshInstanceToken(instanceId: string): Promise<boolean>;
-/**
- * Manual cleanup of invalid cache entries
- * @returns {number} Number of entries removed
- */
-export function manualCleanup(): number;
-export type ExtendedCachedCredential = import("../middleware/types.js").ExtendedCachedCredential;
-export type DatabaseInstance = import("../middleware/types.js").DatabaseInstance;
-export type NewOAuthTokens = import("../middleware/types.js").NewOAuthTokens;
-export type TokenRefreshOptions = import("../middleware/types.js").TokenRefreshOptions;
+export type ExtendedCachedCredential = import('../middleware/types.js').ExtendedCachedCredential;
+export type DatabaseInstance = import('../middleware/types.js').DatabaseInstance;
+export type NewOAuthTokens = import('../middleware/types.js').NewOAuthTokens;
+export type TokenRefreshOptions = import('../middleware/types.js').TokenRefreshOptions;
 export type WatcherStats = {
     /**
      * - ISO timestamp of last run
@@ -76,4 +52,23 @@ export type WatcherStatus = {
         nextRunIn: string;
     };
 };
+/**
+ * Start the credential watcher service
+ */
+export function startCredentialWatcher(): void;
+/**
+ * Stop the credential watcher service
+ */
+export function stopCredentialWatcher(): void;
+/**
+ * Get watcher status and statistics
+ * @returns {WatcherStatus} Watcher status information
+ */
+export function getWatcherStatus(): WatcherStatus;
+/**
+ * Force refresh a specific instance token
+ * @param {string} instanceId - Instance ID to refresh
+ * @returns {Promise<boolean>} True if refresh was successful
+ */
+export function forceRefreshInstanceToken(instanceId: string): Promise<boolean>;
 //# sourceMappingURL=credentialWatcher.d.ts.map

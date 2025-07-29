@@ -5,7 +5,7 @@
 
 /// <reference path="./types.js" />
 
-import { ErrorResponses } from '../../../utils/errorResponse.js';
+const { ErrorResponses  } = require('../../../utils/errorResponse');
 
 /**
  * Create system error response for authentication failures
@@ -14,7 +14,7 @@ import { ErrorResponses } from '../../../utils/errorResponse.js';
  * @param {Error} error - Error object
  * @returns {void} Express response
  */
-export function createSystemErrorResponse(res, instanceId, error) {
+function createSystemErrorResponse(res, instanceId, error) {
   console.error(`❌ System error during authentication for instance: ${instanceId}:`, error);
   return ErrorResponses.internal(res, 'Authentication system error', {
     instanceId,
@@ -32,7 +32,7 @@ export function createSystemErrorResponse(res, instanceId, error) {
  * @param {Error} error - Error object
  * @returns {void} Express response
  */
-export function createLightweightSystemErrorResponse(res, instanceId, error) {
+function createLightweightSystemErrorResponse(res, instanceId, error) {
   console.error(`❌ Lightweight auth system error for instance: ${instanceId}:`, error);
   return ErrorResponses.internal(res, 'Authentication system error', {
     instanceId,
@@ -49,7 +49,7 @@ export function createLightweightSystemErrorResponse(res, instanceId, error) {
  * @param {Error} error - Token refresh error
  * @returns {Promise<{requiresReauth: boolean, errorType: string, message: string}>} Error handling result
  */
-export async function handleRefreshFailure(_instanceId, error) {
+async function handleRefreshFailure(_instanceId, error) {
   // Simple error handling that returns consistent structure
   const errorWithType = /** @type {Error & {errorType?: string}} */ (error);
   const errorType = errorWithType.errorType || 'UNKNOWN_ERROR';
@@ -70,7 +70,7 @@ export async function handleRefreshFailure(_instanceId, error) {
  * @param {{requiresReauth: boolean, errorType: string, message: string}} errorResult - Error handling result
  * @returns {void} Express response
  */
-export function createRefreshFailureResponse(res, errorResult) {
+function createRefreshFailureResponse(res, errorResult) {
   if (errorResult.requiresReauth) {
     return ErrorResponses.unauthorized(res, 'Token refresh failed - re-authentication required', {
       metadata: {
@@ -96,7 +96,7 @@ export function createRefreshFailureResponse(res, errorResult) {
  * @param {string | undefined} refreshToken - Whether refresh token was available
  * @returns {Promise<void>} Express response
  */
-export async function createReauthenticationResponse(res, instanceId, refreshToken) {
+async function createReauthenticationResponse(res, instanceId, refreshToken) {
   const hasRefreshToken = !!refreshToken;
   
   console.log(`🔐 Re-authentication required for instance: ${instanceId}`, {
@@ -120,7 +120,7 @@ export async function createReauthenticationResponse(res, instanceId, refreshTok
  * @param {Error} error - Token refresh error
  * @returns {void}
  */
-export function logRefreshFallback(error) {
+function logRefreshFallback(error) {
   console.log(`⚠️  Token refresh failed, falling back to re-authentication: ${error.message}`);
 }
 
@@ -131,7 +131,7 @@ export function logRefreshFallback(error) {
  * @param {Error} error - Network error
  * @returns {void} Express response
  */
-export function handleNetworkError(res, instanceId, error) {
+function handleNetworkError(res, instanceId, error) {
   console.error(`🌐 Network error during authentication for instance: ${instanceId}:`, error);
   return ErrorResponses.serviceUnavailable(res, 'Network error during authentication', {
     instanceId,
@@ -150,7 +150,7 @@ export function handleNetworkError(res, instanceId, error) {
  * @param {Error} error - OAuth provider error
  * @returns {void} Express response
  */
-export function handleOAuthProviderError(res, instanceId, error) {
+function handleOAuthProviderError(res, instanceId, error) {
   console.error(`🔑 OAuth provider error for instance: ${instanceId}:`, error);
   return ErrorResponses.externalApiError(res, 'Notion OAuth', error.message, {
     instanceId,
@@ -169,7 +169,7 @@ export function handleOAuthProviderError(res, instanceId, error) {
  * @param {Error} error - Rate limit error
  * @returns {void} Express response
  */
-export function handleRateLimitError(res, instanceId, error) {
+function handleRateLimitError(res, instanceId, error) {
   console.error(`⏱️  Rate limit error for instance: ${instanceId}:`, error);
   return ErrorResponses.rateLimited(res, 'Rate limit exceeded', {
     instanceId,
@@ -181,7 +181,7 @@ export function handleRateLimitError(res, instanceId, error) {
   });
 }
 
-export default {
+module.exports = {
   createSystemErrorResponse,
   createLightweightSystemErrorResponse,
   handleRefreshFailure,

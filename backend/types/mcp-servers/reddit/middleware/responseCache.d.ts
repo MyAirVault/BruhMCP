@@ -5,6 +5,12 @@
  */
 export function createResponseCacheMiddleware(options?: Object): Function;
 /**
+ * Check if operation is private and shouldn't be cached
+ * @param {string} toolName - Tool name
+ * @returns {boolean} True if private operation
+ */
+export function isPrivateOperation(toolName: string): boolean;
+/**
  * Create cache invalidation middleware
  * Invalidates cache entries when data changes
  * @returns {Function} Middleware function

@@ -1,12 +1,4 @@
 /**
- * Setup routes for the Sheets service
- * @param {import('express').Application} app - Express app instance
- * @param {ServiceConfig} SERVICE_CONFIG - Service configuration
- * @param {import('express').RequestHandler} credentialAuthMiddleware - Credential auth middleware
- * @param {import('express').RequestHandler} lightweightAuthMiddleware - Lightweight auth middleware
- */
-export function setupRoutes(app: import("express").Application, SERVICE_CONFIG: ServiceConfig, credentialAuthMiddleware: import("express").RequestHandler, lightweightAuthMiddleware: import("express").RequestHandler): void;
-/**
  * Service Configuration Type
  */
 export type ServiceConfig = {
@@ -104,4 +96,12 @@ export type HealthStatus = {
      */
     oauth: Object;
 };
+/**
+ * Setup routes for the Sheets service
+ * @param {import('express').Application} app - Express app instance
+ * @param {ServiceConfig} SERVICE_CONFIG - Service configuration
+ * @param {import('express').RequestHandler} credentialAuthMiddleware - Credential auth middleware
+ * @param {import('express').RequestHandler} lightweightAuthMiddleware - Lightweight auth middleware
+ */
+export function setupRoutes(app: import('express').Application, SERVICE_CONFIG: ServiceConfig, credentialAuthMiddleware: import('express').RequestHandler, lightweightAuthMiddleware: import('express').RequestHandler): void;
 //# sourceMappingURL=routes.d.ts.map

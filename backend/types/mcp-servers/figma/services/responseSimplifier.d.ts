@@ -1,15 +1,3 @@
-/**
- * Parse Figma API response
- * @param {FigmaResponse} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
- * @returns {Object} Simplified design object with global variables
- */
-export function parseFigmaResponse(data: FigmaResponse): Object;
-/**
- * Parse Figma API response
- * @param {FigmaResponse} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
- * @returns {Object} Simplified design object with global variables
- */
-export function simplifyFigmaResponse(data: FigmaResponse): Object;
 export type GlobalVars = {
     /**
      * - Style variables
@@ -184,4 +172,16 @@ export type NodeResponse = {
      */
     componentSets?: Object | undefined;
 };
+/**
+ * Parse Figma API response
+ * @param {FigmaResponse} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
+ * @returns {Object} Simplified design object with global variables
+ */
+export function simplifyFigmaResponse(data: FigmaResponse): Object;
+/**
+ * Parse Figma API response
+ * @param {FigmaResponse} data - Raw Figma API response (GetFileResponse | GetFileNodesResponse)
+ * @returns {Object} Simplified design object with global variables
+ */
+export function parseFigmaResponse(data: FigmaResponse): Object;
 //# sourceMappingURL=responseSimplifier.d.ts.map

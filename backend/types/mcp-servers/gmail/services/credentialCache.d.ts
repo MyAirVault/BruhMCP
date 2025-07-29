@@ -120,5 +120,5 @@ export function backgroundCacheSync(options?: {
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
  * @returns {Object} Sync service controller
  */
-export function startBackgroundCacheSync(intervalMinutes?: number): Object;
+export function startBackgroundCacheSync(intervalMinutes?: number | undefined): Object;
 //# sourceMappingURL=credentialCache.d.ts.map

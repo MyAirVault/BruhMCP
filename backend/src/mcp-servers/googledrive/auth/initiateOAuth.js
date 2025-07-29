@@ -3,7 +3,7 @@
  * Standardized function for initiating Google Drive OAuth flow
  */
 
-import GoogleDriveOAuthHandler from '../oauth/oauthHandler.js';
+const GoogleDriveOAuthHandler = require('../oauth/oauthHandler');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -70,4 +70,5 @@ async function initiateOAuth(credentials, userId, instanceId) {
 }
 
 
-export { initiateOAuth };
+
+module.exports = { initiateOAuth  };

@@ -2,9 +2,9 @@
  * Common constants and types for Figma API modules
  */
 
-import fetch from 'node-fetch';
+const { axiosGet, axiosPost, axiosPut, axiosDelete } = require('../../../utils/axiosUtils.js');
 
-export const FIGMA_BASE_URL = 'https://api.figma.com/v1';
+const FIGMA_BASE_URL = 'https://api.figma.com/v1';
 
 /**
  * @typedef {Object} CommentPosition
@@ -25,7 +25,7 @@ export const FIGMA_BASE_URL = 'https://api.figma.com/v1';
  * @param {Response} response - Fetch response object
  * @param {string} context - Context for error message
  */
-export async function handleApiError(response, context) {
+async function handleApiError(response, context) {
 	if (!response.ok) {
 		if (response.status === 401) {
 			throw new Error('Invalid Figma API key');
@@ -50,7 +50,7 @@ export async function handleApiError(response, context) {
  * @param {string} [options.body] - Request body
  * @returns {Promise<any>}
  */
-export async function makeAuthenticatedRequest(endpoint, apiKey, options = {}) {
+async function makeAuthenticatedRequest(endpoint, apiKey, options = {}) {
 	const url = endpoint.startsWith('http') ? endpoint : `${FIGMA_BASE_URL}${endpoint}`;
 	
 	/** @type {Record<string, string>} */
@@ -64,10 +64,34 @@ export async function makeAuthenticatedRequest(endpoint, apiKey, options = {}) {
 		Object.assign(headers, options.headers);
 	}
 	
-	const response = await fetch(url, {
+	const method = options.method || 'GET';
+	const axiosOptions = {
 		...options,
 		headers,
-	});
+	};
+	
+	let response;
+	switch (method.toUpperCase()) {
+		case 'GET':
+			response = await axiosGet(url, axiosOptions);
+			break;
+		case 'POST':
+			response = await axiosPost(url, options.body ? JSON.parse(options.body) : null, axiosOptions);
+			break;
+		case 'PUT':
+			response = await axiosPut(url, options.body ? JSON.parse(options.body) : null, axiosOptions);
+			break;
+		case 'DELETE':
+			response = await axiosDelete(url, axiosOptions);
+			break;
+		default:
+			response = await axiosGet(url, axiosOptions);
+	}
 
 	return response;
 }
+module.exports = {
+	FIGMA_BASE_URL,
+	handleApiError,
+	makeAuthenticatedRequest
+};

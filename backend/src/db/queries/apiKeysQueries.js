@@ -3,7 +3,7 @@
  * @fileoverview Contains all database query functions for API key management
  */
 
-import { pool } from '../config.js';
+const { pool } = require('../config.js');
 
 /**
  * @typedef {Object} APIKeyRecord
@@ -35,7 +35,7 @@ import { pool } from '../config.js';
  * @param {string} userId - User ID
  * @returns {Promise<APIKeyRecord[]>} Array of API key records
  */
-export async function getAllAPIKeys(userId) {
+async function getAllAPIKeys(userId) {
 	const query = `
 		SELECT 
 			instance_id,
@@ -62,7 +62,7 @@ export async function getAllAPIKeys(userId) {
  * @param {string} userId - User ID
  * @returns {Promise<APIKeyRecord[]>} Array of API key records
  */
-export async function getAPIKeysByUserId(userId) {
+async function getAPIKeysByUserId(userId) {
 	const query = `
 		SELECT 
 			mst.instance_id,
@@ -95,7 +95,7 @@ export async function getAPIKeysByUserId(userId) {
  * @param {Object} _apiKeyData - API key data (unused)
  * @returns {Promise<never>} Throws error - use createMCP endpoint instead
  */
-export async function storeAPIKey(_apiKeyData) {
+async function storeAPIKey(_apiKeyData) {
 	// This is handled by createMCP controller
 	// Placeholder for compatibility
 	throw new Error('Use createMCP endpoint instead');
@@ -107,7 +107,7 @@ export async function storeAPIKey(_apiKeyData) {
  * @param {string} userId - User ID (for authorization)
  * @returns {Promise<boolean>} Success status
  */
-export async function deleteAPIKey(instanceId, userId) {
+async function deleteAPIKey(instanceId, userId) {
 	const query = `
 		DELETE FROM mcp_service_table 
 		WHERE instance_id = $1 AND user_id = $2
@@ -122,7 +122,7 @@ export async function deleteAPIKey(instanceId, userId) {
  * @param {Object} _credentials - Credentials to validate (unused)
  * @returns {Promise<ValidationResult>} Validation result
  */
-export async function validateAPIKeyCredentials(_credentials) {
+async function validateAPIKeyCredentials(_credentials) {
 	// This should be handled by service-specific validation
 	// Placeholder for compatibility
 	return {
@@ -130,3 +130,11 @@ export async function validateAPIKeyCredentials(_credentials) {
 		message: 'Credentials validated successfully'
 	};
 }
+
+module.exports = {
+	getAllAPIKeys,
+	getAPIKeysByUserId,
+	storeAPIKey,
+	deleteAPIKey,
+	validateAPIKeyCredentials
+};

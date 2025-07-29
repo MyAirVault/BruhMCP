@@ -3,8 +3,8 @@
  * Standardized function for handling Gmail OAuth callbacks
  */
 
-import GmailOAuthHandler from '../oauth/oauthHandler.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
+const GmailOAuthHandler = require('../oauth/oauthHandler.js');
+const { updateOAuthStatus } = require('../../../db/queries/mcpInstances/oauth.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -126,4 +126,8 @@ async function oauthCallback(code, state) {
 }
 
 
-export { oauthCallback };
+;
+
+module.exports = {
+	oauthCallback
+};

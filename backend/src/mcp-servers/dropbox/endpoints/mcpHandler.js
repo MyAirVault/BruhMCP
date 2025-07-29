@@ -3,16 +3,16 @@
  * Multi-tenant OAuth implementation following Gmail pattern
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { DropboxAPI } from '../api/dropboxApi.js';
-import {
+const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
+const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
+const { isInitializeRequest } = require('@modelcontextprotocol/sdk/types.js');
+const { randomUUID } = require('node:crypto');
+const { DropboxAPI } = require('../api/dropboxApi.js');
+const {
 	setupFileOperationsTools,
 	setupFileManagementTools,
 	setupSearchAndSharingTools
-} from './toolsSetup.js';
+} = require('./toolsSetup.js');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -22,7 +22,7 @@ import {
  * @property {string[]} scopes
  */
 
-export class DropboxMCPHandler {
+class DropboxMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} bearerToken
@@ -134,3 +134,5 @@ export class DropboxMCPHandler {
 		}
 	}
 }
+
+module.exports = { DropboxMCPHandler };

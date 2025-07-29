@@ -1,1 +1,1 @@
-{"version":3,"file":"getMCPLogs.d.ts","sourceRoot":"","sources":["../../../../src/controllers/mcpInstances/logging/getMCPLogs.js"],"names":[],"mappings":"AAiBA;;;;GAIG;AACH,gCAHW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,iBAmJpC"}
+{"version":3,"file":"getMCPLogs.d.ts","sourceRoot":"","sources":["../../../../src/controllers/mcpInstances/logging/getMCPLogs.js"],"names":[],"mappings":"AAcA;;;;GAIG;AACH,gCAHW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,iBAmJpC"}

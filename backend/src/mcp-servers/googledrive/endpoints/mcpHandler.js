@@ -3,11 +3,11 @@
  * OAuth 2.0 Implementation following Multi-Tenant Architecture
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
+const { McpServer  } = require('@modelcontextprotocol/sdk/server/mcp');
+const { StreamableHTTPServerTransport  } = require('@modelcontextprotocol/sdk/server/streamableHttp');
+const { isInitializeRequest  } = require('@modelcontextprotocol/sdk/types');
+const { randomUUID  } = require('node:crypto');
+const { z  } = require('zod');
 
 /**
  * @typedef {import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest} JSONRPCRequest
@@ -17,8 +17,7 @@ import { z } from 'zod';
  */
 
 // Import API functions
-import { 
-  listFiles, 
+const { listFiles, 
   getFileMetadata, 
   downloadFile, 
   uploadFile, 
@@ -30,7 +29,7 @@ import {
   searchFiles,
   getFilePermissions,
   getDriveInfo
-} from '../api/googledriveApi.js';
+ } = require('../api/googledriveApi');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -53,7 +52,7 @@ import {
  * @property {Object} [params]
  */
 
-export class GoogleDriveMCPHandler {
+class GoogleDriveMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} bearerToken
@@ -469,3 +468,7 @@ export class GoogleDriveMCPHandler {
 		}
 	}
 }
+
+module.exports = {
+	GoogleDriveMCPHandler
+};

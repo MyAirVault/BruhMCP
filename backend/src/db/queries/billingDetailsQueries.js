@@ -1,4 +1,4 @@
-import { pool } from '../config.js';
+const { pool } = require('../config.js');
 
 /**
  * @typedef {Object} Card
@@ -42,7 +42,7 @@ import { pool } from '../config.js';
  * @param {string} userId - User ID
  * @returns {Promise<BillingDetails|null>} Billing details or null if not found
  */
-export async function getBillingDetailsByUserId(userId) {
+async function getBillingDetailsByUserId(userId) {
 	const query = `
 		SELECT 
 			billing_id,
@@ -71,7 +71,7 @@ export async function getBillingDetailsByUserId(userId) {
  * @param {BillingDetailsInput} billingData - Billing details data
  * @returns {Promise<BillingDetails>} Created or updated billing details
  */
-export async function upsertBillingDetails(userId, billingData) {
+async function upsertBillingDetails(userId, billingData) {
 	const {
 		address_line1,
 		address_line2 = null,
@@ -143,7 +143,7 @@ export async function upsertBillingDetails(userId, billingData) {
  * @param {boolean} [setAsDefault=false] - Whether to set this card as default
  * @returns {Promise<BillingDetails>} Updated billing details
  */
-export async function addCardToBillingDetails(userId, cardData, setAsDefault = false) {
+async function addCardToBillingDetails(userId, cardData, setAsDefault = false) {
 	const billingDetails = await getBillingDetailsByUserId(userId);
 	
 	if (!billingDetails) {
@@ -168,7 +168,7 @@ export async function addCardToBillingDetails(userId, cardData, setAsDefault = f
  * @param {string} cardId - Card ID to remove
  * @returns {Promise<BillingDetails>} Updated billing details
  */
-export async function removeCardFromBillingDetails(userId, cardId) {
+async function removeCardFromBillingDetails(userId, cardId) {
 	const billingDetails = await getBillingDetailsByUserId(userId);
 	
 	if (!billingDetails) {
@@ -198,7 +198,7 @@ export async function removeCardFromBillingDetails(userId, cardId) {
  * @param {string} cardId - Card ID to set as default
  * @returns {Promise<BillingDetails>} Updated billing details
  */
-export async function setDefaultCard(userId, cardId) {
+async function setDefaultCard(userId, cardId) {
 	const billingDetails = await getBillingDetailsByUserId(userId);
 	
 	if (!billingDetails) {
@@ -225,7 +225,7 @@ export async function setDefaultCard(userId, cardId) {
  * @param {string} userId - User ID
  * @returns {Promise<boolean>} True if deleted successfully
  */
-export async function deleteBillingDetails(userId) {
+async function deleteBillingDetails(userId) {
 	const query = `
 		DELETE FROM user_billing_details
 		WHERE user_id = $1
@@ -235,3 +235,12 @@ export async function deleteBillingDetails(userId) {
 	const result = await pool.query(query, [userId]);
 	return (result.rowCount ?? 0) > 0;
 }
+
+module.exports = {
+	getBillingDetailsByUserId,
+	upsertBillingDetails,
+	addCardToBillingDetails,
+	removeCardFromBillingDetails,
+	setDefaultCard,
+	deleteBillingDetails
+};

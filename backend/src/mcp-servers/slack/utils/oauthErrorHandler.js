@@ -44,7 +44,7 @@ const SLACK_ERROR_MAP = {
 /**
  * @param {SlackError} error
  */
-export function requiresReauthentication(error) {
+function requiresReauthentication(error) {
   const errorMessage = error.message?.toLowerCase() || '';
   const errorCode = error.code?.toLowerCase() || '';
   
@@ -76,7 +76,7 @@ export function requiresReauthentication(error) {
  * @param {SlackError} error - The error to check
  * @returns {boolean} True if error is temporary
  */
-export function isTemporaryError(error) {
+function isTemporaryError(error) {
   const errorMessage = error.message?.toLowerCase() || '';
   const errorCode = error.code?.toLowerCase() || '';
   const status = error.status || 0;
@@ -129,7 +129,7 @@ export function isTemporaryError(error) {
 /**
  * @param {SlackError} error
  */
-export function parseSlackError(error) {
+function parseSlackError(error) {
   const errorMessage = error.message || 'Unknown error';
   const errorCode = error.code || 'UNKNOWN_ERROR';
   const status = error.status || 0;
@@ -183,7 +183,7 @@ export function parseSlackError(error) {
  * @param {SlackError} error
  * @param {UpdateOAuthStatusFunction} updateOAuthStatus
  */
-export async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
+async function handleTokenRefreshFailure(instanceId, error, updateOAuthStatus) {
   const parsedError = parseSlackError(error);
   
   console.error(`L Slack token refresh failed for instance ${instanceId}:`, {
@@ -261,7 +261,7 @@ export async function handleTokenRefreshFailure(instanceId, error, updateOAuthSt
  * @param {string} instanceId - Instance ID for context
  * @returns {void}
  */
-export function logOAuthError(error, operation, instanceId) {
+function logOAuthError(error, operation, instanceId) {
   const parsedError = parseSlackError(error);
   
   console.error(`L Slack OAuth ${operation} failed for instance ${instanceId}:`, {
@@ -285,7 +285,7 @@ export function logOAuthError(error, operation, instanceId) {
 /**
  * @param {ParsedSlackError} parsedError
  */
-export function createUserFriendlyMessage(parsedError) {
+function createUserFriendlyMessage(parsedError) {
   const { errorType, errorMessage } = parsedError;
   
   switch (errorType) {
@@ -333,7 +333,7 @@ export function createUserFriendlyMessage(parsedError) {
  * @param {number} attemptNumber - Current attempt number
  * @returns {number} Retry delay in milliseconds
  */
-export function getRetryDelay(parsedError, attemptNumber) {
+function getRetryDelay(parsedError, attemptNumber) {
   const { errorType, status } = parsedError;
   
   // No retry for permanent errors
@@ -368,7 +368,7 @@ export function getRetryDelay(parsedError, attemptNumber) {
  * @param {number} [maxAttempts=3] - Maximum retry attempts
  * @returns {boolean} True if should retry
  */
-export function shouldRetry(parsedError, attemptNumber, maxAttempts = 3) {
+function shouldRetry(parsedError, attemptNumber, maxAttempts = 3) {
   // Don't retry if we've exceeded max attempts
   if (attemptNumber >= maxAttempts) {
     return false;
@@ -405,7 +405,7 @@ export function shouldRetry(parsedError, attemptNumber, maxAttempts = 3) {
  * @param {string} instanceId
  * @param {ParsedSlackError} parsedError
  */
-export function createOAuthErrorResponse(instanceId, parsedError) {
+function createOAuthErrorResponse(instanceId, parsedError) {
   return {
     success: false,
     error: createUserFriendlyMessage(parsedError),
@@ -417,3 +417,14 @@ export function createOAuthErrorResponse(instanceId, parsedError) {
     timestamp: new Date().toISOString()
   };
 }
+module.exports = {
+  requiresReauthentication,
+  isTemporaryError,
+  parseSlackError,
+  logOAuthError,
+  createUserFriendlyMessage,
+  getRetryDelay,
+  shouldRetry,
+  createOAuthErrorResponse,
+  handleTokenRefreshFailure
+};

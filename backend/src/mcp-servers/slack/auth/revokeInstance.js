@@ -3,10 +3,10 @@
  * Standardized function for revoking Slack OAuth tokens and cleaning up instance
  */
 
-import { revokeToken } from '../utils/oauthValidation.js';
-import { removeCachedCredential } from '../services/credentialCache.js';
-import { removeHandlerSession } from '../services/handlerSessions.js';
-import { deleteMCPInstance } from '../../../db/queries/mcpInstances/crud.js';
+const { revokeToken  } = require('../utils/oauthValidation');
+const { removeCachedCredential  } = require('../services/credentialCache');
+const { removeHandlerSession  } = require('../services/handlerSessions');
+const { deleteMCPInstance  } = require('../../../db/queries/mcpInstances/crud');
 
 /**
  * @typedef {Object} RevocationResult
@@ -84,4 +84,5 @@ async function revokeInstance(instanceId, userId) {
 	}
 }
 
-export { revokeInstance };
+
+module.exports = { revokeInstance  };

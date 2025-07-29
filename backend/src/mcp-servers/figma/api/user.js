@@ -3,14 +3,14 @@
  * Handles user-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest, handleApiError } from './common.js';
+const { makeAuthenticatedRequest, handleApiError } = require('./common.js');
 
 /**
  * Get user information
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaUser(apiKey) {
+async function getFigmaUser(apiKey) {
 	if (!apiKey) {
 		throw new Error('Figma API key is required');
 	}
@@ -21,3 +21,6 @@ export async function getFigmaUser(apiKey) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	getFigmaUser
+};

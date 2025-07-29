@@ -10,7 +10,7 @@ export function isValidInstanceId(instanceId: string): boolean;
  * @param {string} instanceId - The invalid instance ID
  * @returns {void}
  */
-export function createInstanceIdValidationError(res: import("./types.js").ExpressResponse, instanceId: string): void;
+export function createInstanceIdValidationError(res: import('./types.js').ExpressResponse, instanceId: string): void;
 /**
  * Validates database instance and creates appropriate error responses
  * @param {import('./types.js').DatabaseInstance|null} instance - Database instance
@@ -19,18 +19,5 @@ export function createInstanceIdValidationError(res: import("./types.js").Expres
  * @param {boolean} requireOAuth - Whether OAuth completion is required
  * @returns {import('./types.js').ValidationResult} Validation result
  */
-export function validateInstance(instance: import("./types.js").DatabaseInstance | null, res: import("./types.js").ExpressResponse, instanceId: string, requireOAuth?: boolean): import("./types.js").ValidationResult;
-/**
- * Validates request body for JSON-RPC requests
- * @param {any} body - Request body
- * @returns {boolean} Whether the body is valid
- */
-export function isValidJsonRpcRequest(body: any): boolean;
-/**
- * Creates an error response for invalid JSON-RPC request
- * @param {import('./types.js').ExpressResponse} res - Express response object
- * @param {string} message - Error message
- * @returns {void}
- */
-export function createJsonRpcError(res: import("./types.js").ExpressResponse, message: string): void;
+export function validateInstance(instance: import('./types.js').DatabaseInstance | null, res: import('./types.js').ExpressResponse, instanceId: string, requireOAuth?: boolean): import('./types.js').ValidationResult;
 //# sourceMappingURL=validation.d.ts.map

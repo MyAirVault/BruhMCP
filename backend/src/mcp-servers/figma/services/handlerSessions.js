@@ -6,7 +6,7 @@
  * required by the MCP protocol specification.
  */
 
-import { FigmaMCPHandler } from '../endpoints/mcpHandler.js';
+const { FigmaMCPHandler } = require('../endpoints/mcpHandler.js');
 
 /**
  * @typedef {import('../endpoints/mcpHandler.js').ServiceConfig} ServiceConfig
@@ -37,7 +37,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
  * @param {string} apiKey - Figma API key for this instance
  * @returns {FigmaMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId, serviceConfig, apiKey) {
+function getOrCreateHandler(instanceId, serviceConfig, apiKey) {
 	let session = handlerSessions.get(instanceId);
 	
 	if (!session) {
@@ -70,7 +70,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, apiKey) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if session was removed, false if not found
  */
-export function removeHandlerSession(instanceId) {
+function removeHandlerSession(instanceId) {
 	const removed = handlerSessions.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️  Removed handler session for instance: ${instanceId}`);
@@ -99,7 +99,7 @@ export function removeHandlerSession(instanceId) {
  * Get statistics about current handler sessions
  * @returns {SessionStatistics} Session statistics
  */
-export function getSessionStatistics() {
+function getSessionStatistics() {
 	const now = Date.now();
 	const sessions = Array.from(handlerSessions.values());
 	
@@ -150,7 +150,7 @@ let cleanupInterval = null;
  * Start the session cleanup service
  * Called when the server starts
  */
-export function startSessionCleanup() {
+function startSessionCleanup() {
 	if (cleanupInterval) {
 		console.warn('⚠️  Session cleanup already running');
 		return;
@@ -165,7 +165,7 @@ export function startSessionCleanup() {
  * Stop the session cleanup service
  * Called during graceful shutdown
  */
-export function stopSessionCleanup() {
+function stopSessionCleanup() {
 	if (cleanupInterval) {
 		clearInterval(cleanupInterval);
 		cleanupInterval = null;
@@ -183,9 +183,17 @@ export function stopSessionCleanup() {
  * When credentials are invalidated, also remove the handler session
  * @param {string} instanceId - UUID of the service instance
  */
-export function invalidateHandlerSession(instanceId) {
+function invalidateHandlerSession(instanceId) {
 	const removed = removeHandlerSession(instanceId);
 	if (removed) {
 		console.log(`🔄 Handler session invalidated due to credential change: ${instanceId}`);
 	}
 }
+module.exports = {
+	getOrCreateHandler,
+	removeHandlerSession,
+	getSessionStatistics,
+	startSessionCleanup,
+	stopSessionCleanup,
+	invalidateHandlerSession
+};

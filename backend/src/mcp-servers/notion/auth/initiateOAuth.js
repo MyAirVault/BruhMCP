@@ -3,7 +3,7 @@
  * Standardized function for initiating Notion OAuth flow
  */
 
-import NotionOAuthHandler from '../oauth/oauthHandler.js';
+const NotionOAuthHandler = require('../oauth/oauthHandler');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -71,4 +71,5 @@ async function initiateOAuth(credentials, userId, instanceId) {
 }
 
 
-export { initiateOAuth };
+
+module.exports = { initiateOAuth  };

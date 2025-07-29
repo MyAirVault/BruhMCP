@@ -1,4 +1,4 @@
-export type ServiceError = import("../types/serviceTypes.js").ServiceError;
+export type ServiceError = import('../types/serviceTypes.js').ServiceError;
 export namespace ERROR_CODES {
     let SERVICE_NOT_FOUND: string;
     let SERVICE_INACTIVE: string;
@@ -20,14 +20,14 @@ export namespace ERROR_CODES {
  * @param {Object} [details] - Additional error details
  * @returns {Object} Standardized error response
  */
-export function createErrorResponse(code: string, message: string, details?: Object): Object;
+export function createErrorResponse(code: string, message: string, details?: Object | undefined): Object;
 /**
  * Creates a standardized success response
  * @param {string} message - Success message
  * @param {Object} [data] - Response data
  * @returns {Object} Standardized success response
  */
-export function createSuccessResponse(message: string, data?: Object): Object;
+export function createSuccessResponse(message: string, data?: Object | undefined): Object;
 /**
  * Handles service not found errors
  * @param {string} serviceName - Service name
@@ -94,7 +94,7 @@ export function validateRequestParams(params: Record<string, any>, requiredField
  * @param {import('../types/serviceTypes.js').ServiceType} serviceType - Service type
  * @returns {Object|null} Error response or null if valid
  */
-export function validateCredentials(credentials: import("../types/serviceTypes.js").CredentialsData, serviceType: import("../types/serviceTypes.js").ServiceType): Object | null;
+export function validateCredentials(credentials: import('../types/serviceTypes.js').CredentialsData, serviceType: import('../types/serviceTypes.js').ServiceType): Object | null;
 /**
  * Logs error with context
  * @param {string} context - Error context
@@ -102,7 +102,7 @@ export function validateCredentials(credentials: import("../types/serviceTypes.j
  * @param {Object} [metadata] - Additional metadata
  * @returns {void}
  */
-export function logError(context: string, error: Error | string, metadata?: Object): void;
+export function logError(context: string, error: Error | string, metadata?: Object | undefined): void;
 /**
  * Logs warning with context
  * @param {string} context - Warning context
@@ -110,7 +110,7 @@ export function logError(context: string, error: Error | string, metadata?: Obje
  * @param {Object} [metadata] - Additional metadata
  * @returns {void}
  */
-export function logWarning(context: string, message: string, metadata?: Object): void;
+export function logWarning(context: string, message: string, metadata?: Object | undefined): void;
 /**
  * Safely executes an async function with error handling
  * @param {Function} fn - Function to execute

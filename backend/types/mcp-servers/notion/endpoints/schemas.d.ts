@@ -141,16 +141,16 @@ export const createDatabaseSchema: z.ZodObject<{
     properties: z.ZodRecord<z.ZodString, z.ZodUnknown>;
 }, "strip", z.ZodTypeAny, {
     title: unknown[];
-    properties: Record<string, unknown>;
     parent: {
         page_id: string;
     };
+    properties: Record<string, unknown>;
 }, {
     title: unknown[];
-    properties: Record<string, unknown>;
     parent: {
         page_id: string;
     };
+    properties: Record<string, unknown>;
 }>;
 /**
  * Schema for update database tool
@@ -204,5 +204,5 @@ export const listUsersSchema: z.ZodObject<{
     start_cursor?: string | undefined;
     page_size?: number | undefined;
 }>;
-import { z } from 'zod';
+import { z } from "zod";
 //# sourceMappingURL=schemas.d.ts.map

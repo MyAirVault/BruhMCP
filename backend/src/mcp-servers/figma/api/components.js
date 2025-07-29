@@ -3,7 +3,7 @@
  * Handles component and style-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest, handleApiError } from './common.js';
+const { makeAuthenticatedRequest, handleApiError } = require('./common.js');
 
 /**
  * Get published components from a Figma file
@@ -11,7 +11,7 @@ import { makeAuthenticatedRequest, handleApiError } from './common.js';
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaComponents(fileKey, apiKey) {
+async function getFigmaComponents(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -33,7 +33,7 @@ export async function getFigmaComponents(fileKey, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaStyles(fileKey, apiKey) {
+async function getFigmaStyles(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -55,7 +55,7 @@ export async function getFigmaStyles(fileKey, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaComponentSets(fileKey, apiKey) {
+async function getFigmaComponentSets(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -77,7 +77,7 @@ export async function getFigmaComponentSets(fileKey, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaComponentInfo(componentKey, apiKey) {
+async function getFigmaComponentInfo(componentKey, apiKey) {
 	if (!componentKey) {
 		throw new Error('Component key is required');
 	}
@@ -99,7 +99,7 @@ export async function getFigmaComponentInfo(componentKey, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaComponentSetInfo(componentSetKey, apiKey) {
+async function getFigmaComponentSetInfo(componentSetKey, apiKey) {
 	if (!componentSetKey) {
 		throw new Error('Component set key is required');
 	}
@@ -114,3 +114,10 @@ export async function getFigmaComponentSetInfo(componentSetKey, apiKey) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	getFigmaComponents,
+	getFigmaStyles,
+	getFigmaComponentSets,
+	getFigmaComponentInfo,
+	getFigmaComponentSetInfo
+};

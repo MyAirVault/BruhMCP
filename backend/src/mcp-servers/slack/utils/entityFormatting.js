@@ -3,8 +3,8 @@
  * Handles channel, user, and team formatting
  */
 
-import { debug } from './logger.js';
-import { formatMessageResponse } from './messageFormatting.js';
+const { debug  } = require('./logger');
+const { formatMessageResponse  } = require('./messageFormatting');
 
 /**
  * @typedef {import('../middleware/types.js').SlackChannel} SlackChannel
@@ -40,7 +40,7 @@ import { formatMessageResponse } from './messageFormatting.js';
  *   latest_message?: FormattedMessage|null
  * }|null} Formatted channel
  */
-export function formatChannelResponse(channel) {
+function formatChannelResponse(channel) {
 	if (!channel) return null;
 
 	/** @type {{
@@ -154,7 +154,7 @@ export function formatChannelResponse(channel) {
  *   }
  * }|null} Formatted user
  */
-export function formatUserResponse(user) {
+function formatUserResponse(user) {
 	if (!user) return null;
 
 	/** @type {{
@@ -267,7 +267,7 @@ export function formatUserResponse(user) {
  *   discovery_setting?: string
  * }|null} Formatted team information
  */
-export function formatTeamResponse(team) {
+function formatTeamResponse(team) {
 	if (!team) return null;
 	
 	debug('Formatting team response', { teamId: team.id, teamName: team.name });
@@ -285,3 +285,9 @@ export function formatTeamResponse(team) {
 		discovery_setting: team.discovery_setting
 	};
 }
+
+module.exports = {
+	formatChannelResponse,
+	formatUserResponse,
+	formatTeamResponse
+};

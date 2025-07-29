@@ -3,7 +3,7 @@
  * Provides request/response logging for MCP server instances
  */
 
-import mcpInstanceLogger from '../utils/mcpInstanceLogger.js';
+const mcpInstanceLogger = require('../utils/mcpInstanceLogger.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -29,7 +29,7 @@ import mcpInstanceLogger from '../utils/mcpInstanceLogger.js';
  * @param {string} serviceName - Name of the MCP service (e.g., 'figma', 'github')
  * @returns {(req: Request, res: Response, next: NextFunction) => void} Express middleware function
  */
-export function createMCPLoggingMiddleware(serviceName) {
+function createMCPLoggingMiddleware(serviceName) {
 	/**
 	 * @param {Request} req - Express request object
 	 * @param {Response} res - Express response object
@@ -158,7 +158,7 @@ export function createMCPLoggingMiddleware(serviceName) {
  * @param {string} serviceName - Name of the MCP service
  * @returns {(err: Error, req: Request, res: Response, next: NextFunction) => void} Express error middleware function
  */
-export function createMCPErrorMiddleware(serviceName) {
+function createMCPErrorMiddleware(serviceName) {
 	/**
 	 * @param {Error} err - Error object
 	 * @param {Request} req - Express request object
@@ -203,7 +203,7 @@ export function createMCPErrorMiddleware(serviceName) {
  * @param {string} serviceName - Name of the MCP service
  * @returns {(req: Request, res: Response, next: NextFunction) => void} Express middleware function
  */
-export function createMCPOperationMiddleware(serviceName) {
+function createMCPOperationMiddleware(serviceName) {
 	/**
 	 * @param {Request} req - Express request object
 	 * @param {Response} res - Express response object
@@ -263,7 +263,7 @@ export function createMCPOperationMiddleware(serviceName) {
  * @param {Object} _serviceConfig - Service configuration (unused)
  * @returns {{logServiceStartup: (activeInstances?: string[]) => void, logInstanceEvent: (instanceId: string, event: string, data?: Object) => void}} Service logger object
  */
-export function createMCPServiceLogger(serviceName, _serviceConfig) {
+function createMCPServiceLogger(serviceName, _serviceConfig) {
 	return {
 		/**
 		 * Log service startup for all instances
@@ -298,7 +298,7 @@ export function createMCPServiceLogger(serviceName, _serviceConfig) {
 	};
 }
 
-export default {
+module.exports = {
 	createMCPLoggingMiddleware,
 	createMCPErrorMiddleware,
 	createMCPOperationMiddleware,

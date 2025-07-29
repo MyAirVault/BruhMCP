@@ -5,17 +5,6 @@
  */
 export function createRateLimitMiddleware(options?: Object): Function;
 /**
- * Creates Reddit API rate limit middleware
- * Handles Reddit-specific rate limiting (60 requests per minute)
- * @returns {Function} Express middleware function
- */
-export function createRedditApiRateLimitMiddleware(): Function;
-/**
- * Creates strict rate limit middleware for sensitive operations
- * @returns {Function} Express middleware function
- */
-export function createStrictRateLimitMiddleware(): Function;
-/**
  * Gets rate limit statistics
  * @returns {{totalKeys: number, activeRateLimits: number, keysByType: {global: number, route: number, instance: number}, topKeys: Array<{key: string, requestCount: number, lastRequest: number}>}} Rate limit statistics
  */
@@ -34,34 +23,42 @@ export function getRateLimitStatistics(): {
     }>;
 };
 /**
- * Clears rate limit data for an instance
- * @param {string} instanceId - Instance ID
- */
-export function clearInstanceRateLimit(instanceId: string): void;
-/**
- * Clears all rate limit data
- */
-export function clearAllRateLimits(): void;
-/**
- * Updates rate limit configuration
- * @param {Object} newConfig - New rate limit configuration
- */
-export function updateRateLimitConfig(newConfig: Object): void;
-/**
- * Gets rate limit configuration
- * @returns {Object} Current rate limit configuration
- */
-export function getRateLimitConfig(): Object;
-/**
- * Checks if an instance is currently rate limited
- * @param {string} instanceId - Instance ID
+ * Checks if a key is rate limited
+ * @param {string} key - Rate limit key
+ * @param {{requests: number, window: number}} config - Rate limit configuration
+ * @param {number} now - Current timestamp
  * @returns {boolean} True if rate limited
  */
-export function isInstanceRateLimited(instanceId: string): boolean;
+export function isRateLimited(key: string, config: {
+    requests: number;
+    window: number;
+}, now: number): boolean;
 /**
- * Gets remaining requests for an instance
- * @param {string} instanceId - Instance ID
- * @returns {Object} Remaining request information
+ * Records a request for rate limiting
+ * @param {string} key - Rate limit key
+ * @param {{requests: number, window: number}} config - Rate limit configuration
+ * @param {number} now - Current timestamp
  */
-export function getInstanceRemainingRequests(instanceId: string): Object;
+export function recordRequest(key: string, config: {
+    requests: number;
+    window: number;
+}, now: number): void;
+/**
+ * Adds rate limit headers to response
+ * @param {import('express').Response} res - Express response object
+ * @param {string} key - Rate limit key
+ * @param {{requests: number, window: number}} config - Rate limit configuration
+ * @param {number} now - Current timestamp
+ */
+export function addRateLimitHeaders(res: import('express').Response, key: string, config: {
+    requests: number;
+    window: number;
+}, now: number): void;
+/**
+ * Sends rate limit exceeded response
+ * @param {import('express').Response} res - Express response object
+ * @param {string} message - Error message
+ */
+export function sendRateLimitResponse(res: import('express').Response, message: string): void;
+export { createRateLimitMiddleware as createRedditApiRateLimitMiddleware };
 //# sourceMappingURL=rateLimit.d.ts.map

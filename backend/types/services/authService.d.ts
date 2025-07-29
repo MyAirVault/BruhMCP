@@ -1,7 +1,7 @@
 export const authService: AuthService;
 declare class AuthService {
     /** @type {Map<string, import('../types/index.js').AuthTokenData>} */
-    authTokens: Map<string, import("../types/index.js").AuthTokenData>;
+    authTokens: Map<string, import('../types/index.js').AuthTokenData>;
     /**
      * Generate a UUID token
      */

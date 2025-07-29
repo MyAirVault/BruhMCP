@@ -1,4 +1,5 @@
-export default connectionPoolManager;
+/// <reference types="node" />
+/// <reference types="node" />
 export type ConnectionPoolOptions = {
     /**
      * - Pool name
@@ -388,6 +389,7 @@ export class ConnectionPoolManager {
     closeAll(): Promise<void>;
 }
 declare const connectionPoolManager: ConnectionPoolManager;
-import { Agent } from 'http';
-import { Agent as HttpsAgent } from 'https';
+import { Agent } from "http";
+import { Agent as HttpsAgent } from "https";
+export { connectionPoolManager as default };
 //# sourceMappingURL=connectionPool.d.ts.map

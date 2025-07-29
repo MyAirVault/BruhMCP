@@ -3,8 +3,8 @@
  * Contains all tool definitions for the Dropbox MCP server following Gmail pattern
  */
 
-import { z } from 'zod';
-import { fetchWithRetry } from '../utils/fetchWithRetry.js';
+const { z } = require('zod');
+const { fetchWithRetry } = require('../utils/fetchWithRetry.js');
 
 /**
  * Helper function to check API response for errors
@@ -24,7 +24,7 @@ function checkAPIError(data) {
  * @param {string} bearerToken - OAuth bearer token
  * @param {string} serviceName - Service name for logging
  */
-export function setupFileOperationsTools(server, api, bearerToken, serviceName) {
+function setupFileOperationsTools(server, api, bearerToken, serviceName) {
 	// Tool 1: list_files
 	server.tool(
 		'list_files',
@@ -147,7 +147,7 @@ export function setupFileOperationsTools(server, api, bearerToken, serviceName) 
 					throw new Error(errorMessage);
 				}
 
-				const fs = await import('fs/promises');
+				const fs = require('fs/promises');
 				const path_module = await import('path');
 
 				await fs.mkdir(path_module.dirname(localPath), { recursive: true });
@@ -187,7 +187,7 @@ export function setupFileOperationsTools(server, api, bearerToken, serviceName) 
 					throw new Error('Dropbox path is required and must be a string');
 				}
 
-				const fs = await import('fs/promises');
+				const fs = require('fs/promises');
 
 				try {
 					await fs.access(localPath);
@@ -265,7 +265,7 @@ export function setupFileOperationsTools(server, api, bearerToken, serviceName) 
  * @param {string} bearerToken - OAuth bearer token
  * @param {string} serviceName - Service name for logging
  */
-export function setupFileManagementTools(server, bearerToken, serviceName) {
+function setupFileManagementTools(server, bearerToken, serviceName) {
 	// Tool 6: delete_file
 	server.tool(
 		'delete_file',
@@ -418,7 +418,7 @@ export function setupFileManagementTools(server, bearerToken, serviceName) {
  * @param {string} bearerToken - OAuth bearer token
  * @param {string} serviceName - Service name for logging
  */
-export function setupSearchAndSharingTools(server, api, bearerToken, serviceName) {
+function setupSearchAndSharingTools(server, api, bearerToken, serviceName) {
 	// Tool 9: search_files
 	server.tool(
 		'search_files',
@@ -578,3 +578,5 @@ export function setupSearchAndSharingTools(server, api, bearerToken, serviceName
 		}
 	});
 }
+
+module.exports = { setupFileOperationsTools, setupFileManagementTools, setupSearchAndSharingTools };

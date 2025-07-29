@@ -12,7 +12,7 @@ const MIME_TYPE_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9!#$&^_+-]{0,126}\/[a-zA-Z0-9][a-z
  * @param {string} fileId - File ID to sanitize
  * @returns {string} Sanitized file ID
  */
-export function sanitizeFileId(fileId) {
+function sanitizeFileId(fileId) {
   if (!fileId || typeof fileId !== 'string') {
     throw new Error('File ID must be a non-empty string');
   }
@@ -32,7 +32,7 @@ export function sanitizeFileId(fileId) {
  * @param {string} email - Email address to sanitize
  * @returns {string} Sanitized email address
  */
-export function sanitizeEmail(email) {
+function sanitizeEmail(email) {
   if (!email || typeof email !== 'string') {
     throw new Error('Email must be a non-empty string');
   }
@@ -68,7 +68,7 @@ export function sanitizeEmail(email) {
  * @param {string} mimeType - MIME type to sanitize
  * @returns {string} Sanitized MIME type
  */
-export function sanitizeMimeType(mimeType) {
+function sanitizeMimeType(mimeType) {
   if (!mimeType || typeof mimeType !== 'string') {
     throw new Error('MIME type must be a non-empty string');
   }
@@ -104,3 +104,9 @@ export function sanitizeMimeType(mimeType) {
   
   return trimmed;
 }
+
+module.exports = {
+  sanitizeFileId,
+  sanitizeEmail,
+  sanitizeMimeType
+};

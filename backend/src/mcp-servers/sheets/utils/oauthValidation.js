@@ -9,7 +9,7 @@
  * @param {string} tokenType - Type of token (access or refresh)
  * @returns {boolean} Whether token is valid
  */
-export function isValidTokenFormat(token, tokenType = 'access') {
+function isValidTokenFormat(token, tokenType = 'access') {
 	if (!token || typeof token !== 'string') {
 		return false;
 	}
@@ -31,7 +31,7 @@ export function isValidTokenFormat(token, tokenType = 'access') {
  * @param {number|Date|string} expiresAt - Expiration time
  * @returns {boolean} Whether token has expired
  */
-export function isTokenExpired(expiresAt) {
+function isTokenExpired(expiresAt) {
 	if (!expiresAt) {
 		return true;
 	}
@@ -45,6 +45,6 @@ export function isTokenExpired(expiresAt) {
  * @param {number} expiresIn - Seconds until expiration
  * @returns {Date} Expiration date
  */
-export function calculateTokenExpiry(expiresIn) {
+function calculateTokenExpiry(expiresIn) {
 	return new Date(Date.now() + (expiresIn * 1000));
 }

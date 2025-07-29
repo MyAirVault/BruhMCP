@@ -1,3 +1,77 @@
+export type NotionRichText = import('../../utils/notionFormatting.js').NotionRichText;
+export type NotionUser = import('../../utils/notionFormatting.js').NotionUser;
+export type NotionParent = import('../../utils/notionFormatting.js').NotionParent;
+export type NotionDatabase = import('../../utils/notionFormatting.js').NotionDatabase;
+export type NotionPage = import('../../utils/notionFormatting.js').NotionPage;
+export type NotionQueryResponse = import('../../utils/notionFormatting.js').NotionQueryResponse;
+export type NotionResponseData = import('../../utils/notionFormatting.js').NotionResponseData;
+export type NotionFilter = import('../../utils/notionFormatting.js').NotionFilter;
+export type NotionSort = import('../../utils/notionFormatting.js').NotionSort;
+export type NotionProperty = import('../../utils/notionFormatting.js').NotionProperty;
+export type GetDatabaseArgs = {
+    /**
+     * - The database ID to retrieve
+     */
+    databaseId: string;
+};
+export type QueryDatabaseArgs = {
+    /**
+     * - The database ID to query
+     */
+    databaseId: string;
+    /**
+     * - Filter conditions for the query
+     */
+    filter?: import("../../utils/notionFormatting").NotionFilter | undefined;
+    /**
+     * - Sort conditions for the query
+     */
+    sorts?: import("../../utils/notionFormatting").NotionSort[] | undefined;
+    /**
+     * - Number of results per page (max 100)
+     */
+    page_size?: number | undefined;
+    /**
+     * - Pagination cursor
+     */
+    start_cursor?: string | undefined;
+};
+export type CreateDatabaseArgs = {
+    /**
+     * - Parent page or workspace information
+     */
+    parent: NotionParent;
+    /**
+     * - Database title as rich text array
+     */
+    title: NotionRichText[];
+    /**
+     * - Database properties schema
+     */
+    properties: Record<string, NotionProperty>;
+    /**
+     * - Whether the database is inline
+     */
+    is_inline?: boolean | undefined;
+};
+export type UpdateDatabaseArgs = {
+    /**
+     * - The database ID to update
+     */
+    databaseId: string;
+    /**
+     * - Updated title as rich text array
+     */
+    title?: import("../../utils/notionFormatting").NotionRichText[] | undefined;
+    /**
+     * - Updated properties schema
+     */
+    properties?: Record<string, import("../../utils/notionFormatting").NotionProperty> | undefined;
+    /**
+     * - Whether the database is inline
+     */
+    is_inline?: boolean | undefined;
+};
 /**
  * @typedef {import('../../utils/notionFormatting.js').NotionRichText} NotionRichText
  * @typedef {import('../../utils/notionFormatting.js').NotionUser} NotionUser
@@ -68,78 +142,4 @@ export function createDatabase(args: CreateDatabaseArgs, bearerToken: string): P
  * @returns {Promise<Record<string, unknown>>} Updated database
  */
 export function updateDatabase(args: UpdateDatabaseArgs, bearerToken: string): Promise<Record<string, unknown>>;
-export type NotionRichText = import("../../utils/notionFormatting.js").NotionRichText;
-export type NotionUser = import("../../utils/notionFormatting.js").NotionUser;
-export type NotionParent = import("../../utils/notionFormatting.js").NotionParent;
-export type NotionDatabase = import("../../utils/notionFormatting.js").NotionDatabase;
-export type NotionPage = import("../../utils/notionFormatting.js").NotionPage;
-export type NotionQueryResponse = import("../../utils/notionFormatting.js").NotionQueryResponse;
-export type NotionResponseData = import("../../utils/notionFormatting.js").NotionResponseData;
-export type NotionFilter = import("../../utils/notionFormatting.js").NotionFilter;
-export type NotionSort = import("../../utils/notionFormatting.js").NotionSort;
-export type NotionProperty = import("../../utils/notionFormatting.js").NotionProperty;
-export type GetDatabaseArgs = {
-    /**
-     * - The database ID to retrieve
-     */
-    databaseId: string;
-};
-export type QueryDatabaseArgs = {
-    /**
-     * - The database ID to query
-     */
-    databaseId: string;
-    /**
-     * - Filter conditions for the query
-     */
-    filter?: import("../../utils/notionFormatting.js").NotionFilter | undefined;
-    /**
-     * - Sort conditions for the query
-     */
-    sorts?: import("../../utils/notionFormatting.js").NotionSort[] | undefined;
-    /**
-     * - Number of results per page (max 100)
-     */
-    page_size?: number | undefined;
-    /**
-     * - Pagination cursor
-     */
-    start_cursor?: string | undefined;
-};
-export type CreateDatabaseArgs = {
-    /**
-     * - Parent page or workspace information
-     */
-    parent: NotionParent;
-    /**
-     * - Database title as rich text array
-     */
-    title: NotionRichText[];
-    /**
-     * - Database properties schema
-     */
-    properties: Record<string, NotionProperty>;
-    /**
-     * - Whether the database is inline
-     */
-    is_inline?: boolean | undefined;
-};
-export type UpdateDatabaseArgs = {
-    /**
-     * - The database ID to update
-     */
-    databaseId: string;
-    /**
-     * - Updated title as rich text array
-     */
-    title?: import("../../utils/notionFormatting.js").NotionRichText[] | undefined;
-    /**
-     * - Updated properties schema
-     */
-    properties?: Record<string, import("../../utils/notionFormatting.js").NotionProperty> | undefined;
-    /**
-     * - Whether the database is inline
-     */
-    is_inline?: boolean | undefined;
-};
 //# sourceMappingURL=databaseOperations.d.ts.map

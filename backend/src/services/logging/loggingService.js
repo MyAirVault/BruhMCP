@@ -1,4 +1,4 @@
-import systemLogger from './systemLogger.js';
+const systemLogger = require('./systemLogger.js');
 
 /**
  * Centralized logging service that routes logs to appropriate destinations
@@ -733,4 +733,4 @@ process.on('unhandledRejection', (reason, promise) => {
 	});
 });
 
-export default loggingService;
+module.exports = loggingService;

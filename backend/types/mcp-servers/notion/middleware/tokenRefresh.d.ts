@@ -6,7 +6,7 @@
  * @returns {Promise<{tokens: import('./types.js').NewTokens, method: string}>} Refresh result
  */
 export function attemptTokenRefresh(refreshToken: string, clientId: string, clientSecret: string): Promise<{
-    tokens: import("./types.js").NewTokens;
+    tokens: import('./types.js').NewTokens;
     method: string;
 }>;
 /**
@@ -31,7 +31,7 @@ export function recordFailedRefreshMetrics(instanceId: string, method: string, s
  * @param {import('./types.js').NewTokens} newTokens - New tokens from refresh
  * @returns {Promise<void>} Promise that resolves when database is updated
  */
-export function updateDatabaseWithNewTokens(instanceId: string, newTokens: import("./types.js").NewTokens): Promise<void>;
+export function updateDatabaseWithNewTokens(instanceId: string, newTokens: import('./types.js').NewTokens): Promise<void>;
 /**
  * Process successful refresh result
  * @param {string} instanceId - The instance ID
@@ -42,7 +42,7 @@ export function updateDatabaseWithNewTokens(instanceId: string, newTokens: impor
  * @param {number} startTime - Start time of refresh operation
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Processing result
  */
-export function processSuccessfulRefresh(instanceId: string, newTokens: import("./types.js").NewTokens, method: string, userId: string, req: import("./types.js").ExpressRequest, startTime: number): Promise<import("./types.js").TokenRefreshResult>;
+export function processSuccessfulRefresh(instanceId: string, newTokens: import('./types.js').NewTokens, method: string, userId: string, req: import('./types.js').ExpressRequest, startTime: number): Promise<import('./types.js').TokenRefreshResult>;
 /**
  * Process failed refresh result
  * @param {string} instanceId - The instance ID
@@ -51,7 +51,7 @@ export function processSuccessfulRefresh(instanceId: string, newTokens: import("
  * @param {number} startTime - Start time of refresh operation
  * @returns {import('./types.js').TokenRefreshResult} Processing result
  */
-export function processFailedRefresh(instanceId: string, error: Error, method: string, startTime: number): import("./types.js").TokenRefreshResult;
+export function processFailedRefresh(instanceId: string, error: Error, method: string, startTime: number): import('./types.js').TokenRefreshResult;
 /**
  * Main token refresh orchestration function
  * @param {string} instanceId - The instance ID
@@ -60,15 +60,5 @@ export function processFailedRefresh(instanceId: string, error: Error, method: s
  * @param {import('./types.js').ExpressRequest} req - Express request object
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Refresh result
  */
-export function performTokenRefresh(instanceId: string, refreshToken: string, instance: import("./types.js").DatabaseInstance, req: import("./types.js").ExpressRequest): Promise<import("./types.js").TokenRefreshResult>;
-declare namespace _default {
-    export { attemptTokenRefresh };
-    export { recordSuccessfulRefreshMetrics };
-    export { recordFailedRefreshMetrics };
-    export { updateDatabaseWithNewTokens };
-    export { processSuccessfulRefresh };
-    export { processFailedRefresh };
-    export { performTokenRefresh };
-}
-export default _default;
+export function performTokenRefresh(instanceId: string, refreshToken: string, instance: import('./types.js').DatabaseInstance, req: import('./types.js').ExpressRequest): Promise<import('./types.js').TokenRefreshResult>;
 //# sourceMappingURL=tokenRefresh.d.ts.map

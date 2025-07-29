@@ -3,7 +3,7 @@
  * Handles comment-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest, handleApiError } from './common.js';
+const { makeAuthenticatedRequest, handleApiError } = require('./common.js');
 
 /**
  * Get comments from a Figma file
@@ -11,7 +11,7 @@ import { makeAuthenticatedRequest, handleApiError } from './common.js';
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaComments(fileKey, apiKey) {
+async function getFigmaComments(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -35,7 +35,7 @@ export async function getFigmaComments(fileKey, apiKey) {
  * @param {import('./common.js').CommentPosition} [position] - Comment position with x, y coordinates
  * @returns {Promise<any>}
  */
-export async function postFigmaComment(fileKey, apiKey, message, position) {
+async function postFigmaComment(fileKey, apiKey, message, position) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -78,7 +78,7 @@ export async function postFigmaComment(fileKey, apiKey, message, position) {
  * @param {string} commentId - Comment ID to delete
  * @returns {Promise<any>}
  */
-export async function deleteFigmaComment(fileKey, apiKey, commentId) {
+async function deleteFigmaComment(fileKey, apiKey, commentId) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -100,3 +100,8 @@ export async function deleteFigmaComment(fileKey, apiKey, commentId) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	getFigmaComments,
+	postFigmaComment,
+	deleteFigmaComment
+};

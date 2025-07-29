@@ -3,28 +3,44 @@
  * Re-exports all sanitization functions from individual modules
  */
 
-export { 
-  sanitizeString, 
+const { sanitizeString, 
   sanitizeFileName, 
   sanitizeSearchQuery 
-} from './stringValidation.js';
+ } = require('./stringValidation');
 
-export { 
-  sanitizeFileId, 
+module.exports = { sanitizeString, 
+  sanitizeFileName, 
+  sanitizeSearchQuery 
+ };
+
+const { sanitizeFileId, 
   sanitizeEmail, 
   sanitizeMimeType 
-} from './identifierValidation.js';
+ } = require('./identifierValidation');
 
-export { 
-  sanitizeUrl 
-} from './urlValidation.js';
+module.exports = { sanitizeFileId, 
+  sanitizeEmail, 
+  sanitizeMimeType 
+ };
 
-export { 
-  sanitizeInteger, 
+const { sanitizeUrl 
+ } = require('./urlValidation');
+
+module.exports = { sanitizeUrl 
+ };
+
+const { sanitizeInteger, 
   sanitizeBoolean, 
   sanitizeArray 
-} from './typeValidation.js';
+ } = require('./typeValidation');
 
-export { 
-  sanitizeInput 
-} from './inputValidation.js';
+module.exports = { sanitizeInteger, 
+  sanitizeBoolean, 
+  sanitizeArray 
+ };
+
+const { sanitizeInput 
+ } = require('./inputValidation');
+
+module.exports = { sanitizeInput 
+ };

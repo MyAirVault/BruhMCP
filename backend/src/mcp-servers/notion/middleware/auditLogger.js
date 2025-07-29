@@ -5,7 +5,7 @@
 
 /// <reference path="./types.js" />
 
-import { createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
+const { createTokenAuditLog  } = require('../../../db/queries/mcpInstances/index');
 
 /**
  * Log successful token refresh event
@@ -17,7 +17,7 @@ import { createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
  * @param {number} [metadata.expiresIn] - Token expiration time in seconds
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function logSuccessfulTokenRefresh(instanceId, method, userId, metadata = {}) {
+async function logSuccessfulTokenRefresh(instanceId, method, userId, metadata = {}) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -49,7 +49,7 @@ export async function logSuccessfulTokenRefresh(instanceId, method, userId, meta
  * @param {Object} errorInfo - Additional error information
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function logFailedTokenRefresh(instanceId, method, userId, errorType, errorMessage, errorInfo = {}) {
+async function logFailedTokenRefresh(instanceId, method, userId, errorType, errorMessage, errorInfo = {}) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -83,7 +83,7 @@ export async function logFailedTokenRefresh(instanceId, method, userId, errorTyp
  * @param {boolean | string} tokenExpired - Whether the token was expired
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function logReauthenticationRequired(instanceId, userId, hadRefreshToken, hadAccessToken, tokenExpired) {
+async function logReauthenticationRequired(instanceId, userId, hadRefreshToken, hadAccessToken, tokenExpired) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -113,7 +113,7 @@ export async function logReauthenticationRequired(instanceId, userId, hadRefresh
  * @param {string} source - Source of the token (cache, database)
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function logTokenValidationSuccess(instanceId, userId, source) {
+async function logTokenValidationSuccess(instanceId, userId, source) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -140,7 +140,7 @@ export async function logTokenValidationSuccess(instanceId, userId, source) {
  * @param {string[]} scopes - OAuth scopes requested
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function logOAuthFlowInitiation(instanceId, userId, scopes) {
+async function logOAuthFlowInitiation(instanceId, userId, scopes) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -168,7 +168,7 @@ export async function logOAuthFlowInitiation(instanceId, userId, scopes) {
  * @param {string} [errorMessage] - Error message if callback failed
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function logOAuthCallbackCompletion(instanceId, userId, success, errorMessage) {
+async function logOAuthCallbackCompletion(instanceId, userId, success, errorMessage) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -200,7 +200,7 @@ export async function logOAuthCallbackCompletion(instanceId, userId, success, er
  * @param {Object} metadata - Additional metadata
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export async function createAuditLogEntry(instanceId, userId, operation, method, success, metadata = {}) {
+async function createAuditLogEntry(instanceId, userId, operation, method, success, metadata = {}) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -220,7 +220,7 @@ export async function createAuditLogEntry(instanceId, userId, operation, method,
   }
 }
 
-export default {
+module.exports = {
   logSuccessfulTokenRefresh,
   logFailedTokenRefresh,
   logReauthenticationRequired,

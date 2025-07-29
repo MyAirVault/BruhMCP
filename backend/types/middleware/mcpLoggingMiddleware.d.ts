@@ -1,3 +1,49 @@
+export type Request = import('express').Request;
+export type Response = import('express').Response;
+export type NextFunction = import('express').NextFunction;
+export type ErrorRequestHandler = import('express').ErrorRequestHandler;
+export type MCPLogger = {
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - User ID
+     */
+    userId: string;
+    /**
+     * - Log directory path
+     */
+    logDir: string;
+    /**
+     * - Log application events
+     */
+    app: (level: string, message: string, metadata?: Object) => void;
+    /**
+     * - Log HTTP access
+     */
+    access: (method: string, url: string, statusCode: number, responseTime: number, metadata?: Object) => void;
+    /**
+     * - Log errors
+     */
+    error: (error: Error | string, metadata?: Object) => void;
+    /**
+     * - Log info messages
+     */
+    info: (message: string, metadata?: Object) => void;
+    /**
+     * - Log warning messages
+     */
+    warn: (message: string, metadata?: Object) => void;
+    /**
+     * - Log debug messages
+     */
+    debug: (message: string, metadata?: Object) => void;
+    /**
+     * - Log MCP operations
+     */
+    mcpOperation: (operation: string, data?: Object) => void;
+};
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /** @typedef {import('express').NextFunction} NextFunction */
@@ -42,58 +88,5 @@ export function createMCPOperationMiddleware(serviceName: string): (req: Request
 export function createMCPServiceLogger(serviceName: string, _serviceConfig: Object): {
     logServiceStartup: (activeInstances?: string[]) => void;
     logInstanceEvent: (instanceId: string, event: string, data?: Object) => void;
-};
-declare namespace _default {
-    export { createMCPLoggingMiddleware };
-    export { createMCPErrorMiddleware };
-    export { createMCPOperationMiddleware };
-    export { createMCPServiceLogger };
-}
-export default _default;
-export type Request = import("express").Request;
-export type Response = import("express").Response;
-export type NextFunction = import("express").NextFunction;
-export type ErrorRequestHandler = import("express").ErrorRequestHandler;
-export type MCPLogger = {
-    /**
-     * - Instance ID
-     */
-    instanceId: string;
-    /**
-     * - User ID
-     */
-    userId: string;
-    /**
-     * - Log directory path
-     */
-    logDir: string;
-    /**
-     * - Log application events
-     */
-    app: (level: string, message: string, metadata?: Object) => void;
-    /**
-     * - Log HTTP access
-     */
-    access: (method: string, url: string, statusCode: number, responseTime: number, metadata?: Object) => void;
-    /**
-     * - Log errors
-     */
-    error: (error: Error | string, metadata?: Object) => void;
-    /**
-     * - Log info messages
-     */
-    info: (message: string, metadata?: Object) => void;
-    /**
-     * - Log warning messages
-     */
-    warn: (message: string, metadata?: Object) => void;
-    /**
-     * - Log debug messages
-     */
-    debug: (message: string, metadata?: Object) => void;
-    /**
-     * - Log MCP operations
-     */
-    mcpOperation: (operation: string, data?: Object) => void;
 };
 //# sourceMappingURL=mcpLoggingMiddleware.d.ts.map

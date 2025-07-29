@@ -43,9 +43,9 @@
  * @property {Object} statistics - Watcher statistics with nextRunIn property
  */
 
-import { cleanupInvalidCacheEntries, getCachedInstanceIds, peekCachedCredential, updateCachedCredentialMetadata, incrementRefreshAttempts, resetRefreshAttempts } from './credentialCache.js';
-import { refreshBearerToken } from '../utils/oauthValidation.js';
-import { lookupInstanceCredentials } from './database.js';
+const { cleanupInvalidCacheEntries, getCachedInstanceIds, peekCachedCredential, updateCachedCredentialMetadata, incrementRefreshAttempts, resetRefreshAttempts  } = require('./credentialCache');
+const { refreshBearerToken  } = require('../utils/oauthValidation');
+const { lookupInstanceCredentials  } = require('./database');
 
 // Watcher configuration
 const WATCHER_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -68,7 +68,7 @@ let watcherStats = {
 /**
  * Start the credential watcher service
  */
-export function startCredentialWatcher() {
+function startCredentialWatcher() {
   if (watcherInterval) {
     console.warn('⚠️  Gmail credential watcher already running');
     return;
@@ -82,7 +82,7 @@ export function startCredentialWatcher() {
 /**
  * Stop the credential watcher service
  */
-export function stopCredentialWatcher() {
+function stopCredentialWatcher() {
   if (watcherInterval) {
     clearInterval(watcherInterval);
     watcherInterval = null;
@@ -95,7 +95,7 @@ export function stopCredentialWatcher() {
  * Get watcher status and statistics
  * @returns {WatcherStatusInfo} Watcher status information
  */
-export function getWatcherStatus() {
+function getWatcherStatus() {
   return {
     isRunning: watcherStats.isRunning,
     intervalMinutes: WATCHER_INTERVAL / 60000,
@@ -244,7 +244,7 @@ async function checkAndRefreshToken(instanceId) {
  * @param {string} instanceId - Instance ID to refresh
  * @returns {Promise<boolean>} True if refresh was successful
  */
-export async function forceRefreshInstanceToken(instanceId) {
+async function forceRefreshInstanceToken(instanceId) {
   try {
     console.log(`🔄 Force refreshing token for instance: ${instanceId}`);
     await checkAndRefreshToken(instanceId);
@@ -259,7 +259,14 @@ export async function forceRefreshInstanceToken(instanceId) {
  * Manual cleanup of invalid cache entries
  * @returns {number} Number of entries removed
  */
-export function manualCleanup() {
+function manualCleanup() {
   console.log('🧹 Running manual cache cleanup...');
   return cleanupInvalidCacheEntries('manual_cleanup');
 }
+module.exports = {
+  startCredentialWatcher,
+  stopCredentialWatcher,
+  getWatcherStatus,
+  forceRefreshInstanceToken,
+  manualCleanup
+};

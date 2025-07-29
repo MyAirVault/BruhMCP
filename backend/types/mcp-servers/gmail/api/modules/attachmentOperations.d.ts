@@ -1,24 +1,3 @@
-/**
- * Download an attachment from a Gmail message
- * @param {DownloadArgs} args - Download arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Attachment data
- */
-export function downloadAttachment(args: DownloadArgs, bearerToken: string): Promise<Object>;
-/**
- * List attachments for a specific message
- * @param {ListAttachmentsArgs} args - List attachments arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Attachments list
- */
-export function listAttachments(args: ListAttachmentsArgs, bearerToken: string): Promise<Object>;
-/**
- * Send an email with attachments
- * @param {SendWithAttachmentsArgs} args - Email with attachments arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Send result
- */
-export function sendEmailWithAttachments(args: SendWithAttachmentsArgs, bearerToken: string): Promise<Object>;
 export type GmailAttachment = {
     /**
      * - Attachment ID
@@ -147,4 +126,25 @@ export type SendWithAttachmentsArgs = {
      */
     attachments?: AttachmentData[] | undefined;
 };
+/**
+ * Download an attachment from a Gmail message
+ * @param {DownloadArgs} args - Download arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Attachment data
+ */
+export function downloadAttachment(args: DownloadArgs, bearerToken: string): Promise<Object>;
+/**
+ * List attachments for a specific message
+ * @param {ListAttachmentsArgs} args - List attachments arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Attachments list
+ */
+export function listAttachments(args: ListAttachmentsArgs, bearerToken: string): Promise<Object>;
+/**
+ * Send an email with attachments
+ * @param {SendWithAttachmentsArgs} args - Email with attachments arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Send result
+ */
+export function sendEmailWithAttachments(args: SendWithAttachmentsArgs, bearerToken: string): Promise<Object>;
 //# sourceMappingURL=attachmentOperations.d.ts.map

@@ -5,4 +5,4 @@
  */
 
 // Re-export all advanced operations
-export * from './advancedOperations/index.js';
+module.exports = require('./advancedOperations/index.js');

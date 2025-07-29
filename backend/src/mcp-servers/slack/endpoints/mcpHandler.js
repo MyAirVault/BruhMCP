@@ -3,11 +3,11 @@
  * Multi-tenant OAuth implementation with credential caching
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { registerSlackTools } from './slackTools.js';
+const { McpServer  } = require('@modelcontextprotocol/sdk/server/mcp');
+const { StreamableHTTPServerTransport  } = require('@modelcontextprotocol/sdk/server/streamableHttp');
+const { isInitializeRequest  } = require('@modelcontextprotocol/sdk/types');
+const { randomUUID  } = require('node:crypto');
+const { registerSlackTools  } = require('./slackTools');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -17,7 +17,7 @@ import { registerSlackTools } from './slackTools.js';
  * @property {string[]} scopes
  */
 
-export class SlackMCPHandler {
+class SlackMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} bearerToken
@@ -155,3 +155,7 @@ export class SlackMCPHandler {
 		});
 	}
 }
+
+module.exports = {
+	SlackMCPHandler
+};

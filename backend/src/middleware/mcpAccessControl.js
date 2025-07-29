@@ -1,6 +1,6 @@
 // @ts-check
-import { getMCPInstanceById } from '../db/queries/mcpInstances/index.js';
-import { ErrorResponses } from '../utils/errorResponse.js';
+const { getMCPInstanceById } = require('../db/queries/mcpInstances/index.js');
+const { ErrorResponses } = require('../utils/errorResponse.js');
 
 /**
  * Middleware to check if MCP instance is active and accessible
@@ -8,7 +8,7 @@ import { ErrorResponses } from '../utils/errorResponse.js';
  * @param {import('express').Response} res - Express response object
  * @param {import('express').NextFunction} next - Express next function
  */
-export async function checkMCPAccess(req, res, next) {
+async function checkMCPAccess(req, res, next) {
 	try {
 		// Extract MCP ID from the URL path
 		const pathParts = req.path.split('/');
@@ -58,8 +58,13 @@ export async function checkMCPAccess(req, res, next) {
  * @param {import('express').Response} res - Express response object
  * @param {import('express').NextFunction} next - Express next function
  */
-export function mcpRouteAccessControl(req, res, next) {
+function mcpRouteAccessControl(req, res, next) {
 	// This middleware should be applied to the MCP routes
 	// It will check access before any MCP endpoints are reached
 	checkMCPAccess(req, res, next);
 }
+
+module.exports = {
+	checkMCPAccess,
+	mcpRouteAccessControl
+};

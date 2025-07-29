@@ -1,223 +1,3 @@
-/**
- * Slack operations collection
- * @typedef {Object} SlackOperations
- * @property {MessageOperations} messages - Message operations
- * @property {ChannelOperations} channels - Channel operations
- * @property {UserOperations} users - User operations
- * @property {FileOperations} files - File operations
- * @property {WorkspaceOperations} workspace - Workspace operations
- */
-/**
- * Create operation instances
- * @param {string} bearerToken - OAuth Bearer token
- * @param {string} instanceId - Instance ID for logging
- * @returns {SlackOperations} Collection of operation instances
- */
-export function createSlackOperations(bearerToken: string, instanceId: string): SlackOperations;
-/**
- * Message send/update/delete object
- * @typedef {Object} MessageOperation
- * @property {string} channel - Channel ID
- * @property {string} [text] - Message text
- * @property {string} [ts] - Message timestamp (for updates/deletes)
- * @property {Object[]} [attachments] - Message attachments
- * @property {Object[]} [blocks] - Message blocks
- */
-/**
- * Operation result object
- * @typedef {Object} OperationResult
- * @property {boolean} success - Whether operation succeeded
- * @property {Object|null} [result] - Result data if successful
- * @property {string} [error] - Error message if failed
- */
-/**
- * Bulk message operations
- */
-export class MessageOperations {
-    /**
-     * @param {string} bearerToken - OAuth Bearer token
-     * @param {string} instanceId - Instance ID for logging
-     */
-    constructor(bearerToken: string, instanceId: string);
-    bearerToken: string;
-    instanceId: string;
-    /**
-     * Send multiple messages to different channels
-     * @param {MessageOperation[]} messages - Array of message objects
-     * @returns {Promise<OperationResult[]>} Results for each message
-     */
-    sendBulkMessages(messages: MessageOperation[]): Promise<OperationResult[]>;
-    /**
-     * Update multiple messages
-     * @param {MessageOperation[]} updates - Array of message update objects
-     * @returns {Promise<OperationResult[]>} Results for each update
-     */
-    updateBulkMessages(updates: MessageOperation[]): Promise<OperationResult[]>;
-    /**
-     * Delete multiple messages
-     * @param {MessageOperation[]} deletions - Array of message deletion objects
-     * @returns {Promise<OperationResult[]>} Results for each deletion
-     */
-    deleteBulkMessages(deletions: MessageOperation[]): Promise<OperationResult[]>;
-}
-/**
- * Channel analytics result
- * @typedef {Object} ChannelAnalytics
- * @property {Object|null} channel - Channel information
- * @property {number} memberCount - Number of members
- * @property {Object} recentActivity - Recent activity data
- * @property {number} recentActivity.messageCount - Number of recent messages
- * @property {string|null} recentActivity.lastMessage - Last message timestamp
- */
-/**
- * Channel operation result
- * @typedef {Object} ChannelOperationResult
- * @property {string} channelId - Channel ID
- * @property {boolean} success - Whether operation succeeded
- * @property {Object} [result] - Result data if successful
- * @property {string} [error] - Error message if failed
- */
-/**
- * Channel management operations
- */
-export class ChannelOperations {
-    /**
-     * @param {string} bearerToken - OAuth Bearer token
-     * @param {string} instanceId - Instance ID for logging
-     */
-    constructor(bearerToken: string, instanceId: string);
-    bearerToken: string;
-    instanceId: string;
-    /**
-     * Get detailed channel analytics
-     * @param {string} channelId - Channel ID
-     * @returns {Promise<ChannelAnalytics>} Channel analytics
-     */
-    getChannelAnalytics(channelId: string): Promise<ChannelAnalytics>;
-    /**
-     * Bulk channel operations
-     * @param {string[]} channels - Array of channel IDs
-     * @param {'archive'|'unarchive'|'join'|'leave'} operation - Operation to perform
-     * @returns {Promise<ChannelOperationResult[]>} Results for each operation
-     */
-    bulkChannelOperations(channels: string[], operation: "archive" | "unarchive" | "join" | "leave"): Promise<ChannelOperationResult[]>;
-}
-/**
- * User activity summary
- * @typedef {Object} UserActivity
- * @property {Object|null} user - User information
- * @property {string} presence - User presence status
- * @property {number|null} lastActivity - Last activity timestamp
- */
-/**
- * User lookup result
- * @typedef {Object} UserLookupResult
- * @property {string} userId - User ID
- * @property {boolean} success - Whether lookup succeeded
- * @property {Object|null} [user] - User data if successful
- * @property {string} [error] - Error message if failed
- */
-/**
- * User management operations
- */
-export class UserOperations {
-    /**
-     * @param {string} bearerToken - OAuth Bearer token
-     * @param {string} instanceId - Instance ID for logging
-     */
-    constructor(bearerToken: string, instanceId: string);
-    bearerToken: string;
-    instanceId: string;
-    /**
-     * Get user activity summary
-     * @param {string} userId - User ID
-     * @returns {Promise<UserActivity>} User activity summary
-     */
-    getUserActivity(userId: string): Promise<UserActivity>;
-    /**
-     * Bulk user lookup
-     * @param {string[]} userIds - Array of user IDs
-     * @returns {Promise<UserLookupResult[]>} User information for each ID
-     */
-    bulkUserLookup(userIds: string[]): Promise<UserLookupResult[]>;
-}
-/**
- * File upload data
- * @typedef {Object} FileUploadData
- * @property {File|Blob} file - File to upload
- * @property {string} [channels] - Comma-separated channel IDs
- * @property {string} [title] - File title
- * @property {string} [initial_comment] - Initial comment
- */
-/**
- * File operation result
- * @typedef {Object} FileOperationResult
- * @property {string} fileId - File ID
- * @property {boolean} success - Whether operation succeeded
- * @property {Object} [result] - Result data if successful
- * @property {string} [error] - Error message if failed
- */
-/**
- * File operations
- */
-export class FileOperations {
-    /**
-     * @param {string} bearerToken - OAuth Bearer token
-     * @param {string} instanceId - Instance ID for logging
-     */
-    constructor(bearerToken: string, instanceId: string);
-    bearerToken: string;
-    instanceId: string;
-    /**
-     * Upload file with progress tracking
-     * @param {FileUploadData} fileData - File data and metadata
-     * @returns {Promise<SlackApiResponse>} Upload result
-     */
-    uploadFileWithProgress(fileData: FileUploadData): Promise<SlackApiResponse>;
-    /**
-     * Delete multiple files
-     * @param {string[]} fileIds - Array of file IDs
-     * @returns {Promise<FileOperationResult[]>} Results for each deletion
-     */
-    bulkDeleteFiles(fileIds: string[]): Promise<FileOperationResult[]>;
-}
-/**
- * Workspace statistics
- * @typedef {Object} WorkspaceStats
- * @property {Object} team - Team information
- * @property {Object} stats - Statistics
- * @property {number} stats.totalChannels - Total number of channels
- * @property {number} stats.totalUsers - Total number of users
- * @property {number} stats.activeUsers - Number of active users
- */
-/**
- * Search results by content type
- * @typedef {Object<string, SlackApiResponse>} SearchResults
- */
-/**
- * Workspace operations
- */
-export class WorkspaceOperations {
-    /**
-     * @param {string} bearerToken - OAuth Bearer token
-     * @param {string} instanceId - Instance ID for logging
-     */
-    constructor(bearerToken: string, instanceId: string);
-    bearerToken: string;
-    instanceId: string;
-    /**
-     * Get comprehensive workspace statistics
-     * @returns {Promise<WorkspaceStats>} Workspace statistics
-     */
-    getWorkspaceStats(): Promise<WorkspaceStats>;
-    /**
-     * Search across multiple content types
-     * @param {string} query - Search query
-     * @param {('messages'|'files')[]} types - Content types to search
-     * @returns {Promise<SearchResults>} Search results
-     */
-    comprehensiveSearch(query: string, types?: ("messages" | "files")[]): Promise<SearchResults>;
-}
 export type SlackApiResponse = {
     /**
      * - Success indicator
@@ -500,4 +280,209 @@ export type WorkspaceStats = {
 export type SearchResults = {
     [x: string]: SlackApiResponse;
 };
+/**
+ * Message send/update/delete object
+ * @typedef {Object} MessageOperation
+ * @property {string} channel - Channel ID
+ * @property {string} [text] - Message text
+ * @property {string} [ts] - Message timestamp (for updates/deletes)
+ * @property {Object[]} [attachments] - Message attachments
+ * @property {Object[]} [blocks] - Message blocks
+ */
+/**
+ * Operation result object
+ * @typedef {Object} OperationResult
+ * @property {boolean} success - Whether operation succeeded
+ * @property {Object|null} [result] - Result data if successful
+ * @property {string} [error] - Error message if failed
+ */
+/**
+ * Bulk message operations
+ */
+declare class MessageOperations {
+    /**
+     * @param {string} bearerToken - OAuth Bearer token
+     * @param {string} instanceId - Instance ID for logging
+     */
+    constructor(bearerToken: string, instanceId: string);
+    bearerToken: string;
+    instanceId: string;
+    /**
+     * Send multiple messages to different channels
+     * @param {MessageOperation[]} messages - Array of message objects
+     * @returns {Promise<OperationResult[]>} Results for each message
+     */
+    sendBulkMessages(messages: MessageOperation[]): Promise<OperationResult[]>;
+    /**
+     * Update multiple messages
+     * @param {MessageOperation[]} updates - Array of message update objects
+     * @returns {Promise<OperationResult[]>} Results for each update
+     */
+    updateBulkMessages(updates: MessageOperation[]): Promise<OperationResult[]>;
+    /**
+     * Delete multiple messages
+     * @param {MessageOperation[]} deletions - Array of message deletion objects
+     * @returns {Promise<OperationResult[]>} Results for each deletion
+     */
+    deleteBulkMessages(deletions: MessageOperation[]): Promise<OperationResult[]>;
+}
+/**
+ * Channel analytics result
+ * @typedef {Object} ChannelAnalytics
+ * @property {Object|null} channel - Channel information
+ * @property {number} memberCount - Number of members
+ * @property {Object} recentActivity - Recent activity data
+ * @property {number} recentActivity.messageCount - Number of recent messages
+ * @property {string|null} recentActivity.lastMessage - Last message timestamp
+ */
+/**
+ * Channel operation result
+ * @typedef {Object} ChannelOperationResult
+ * @property {string} channelId - Channel ID
+ * @property {boolean} success - Whether operation succeeded
+ * @property {Object} [result] - Result data if successful
+ * @property {string} [error] - Error message if failed
+ */
+/**
+ * Channel management operations
+ */
+declare class ChannelOperations {
+    /**
+     * @param {string} bearerToken - OAuth Bearer token
+     * @param {string} instanceId - Instance ID for logging
+     */
+    constructor(bearerToken: string, instanceId: string);
+    bearerToken: string;
+    instanceId: string;
+    /**
+     * Get detailed channel analytics
+     * @param {string} channelId - Channel ID
+     * @returns {Promise<ChannelAnalytics>} Channel analytics
+     */
+    getChannelAnalytics(channelId: string): Promise<ChannelAnalytics>;
+    /**
+     * Bulk channel operations
+     * @param {string[]} channels - Array of channel IDs
+     * @param {'archive'|'unarchive'|'join'|'leave'} operation - Operation to perform
+     * @returns {Promise<ChannelOperationResult[]>} Results for each operation
+     */
+    bulkChannelOperations(channels: string[], operation: 'archive' | 'unarchive' | 'join' | 'leave'): Promise<ChannelOperationResult[]>;
+}
+/**
+ * User activity summary
+ * @typedef {Object} UserActivity
+ * @property {Object|null} user - User information
+ * @property {string} presence - User presence status
+ * @property {number|null} lastActivity - Last activity timestamp
+ */
+/**
+ * User lookup result
+ * @typedef {Object} UserLookupResult
+ * @property {string} userId - User ID
+ * @property {boolean} success - Whether lookup succeeded
+ * @property {Object|null} [user] - User data if successful
+ * @property {string} [error] - Error message if failed
+ */
+/**
+ * User management operations
+ */
+declare class UserOperations {
+    /**
+     * @param {string} bearerToken - OAuth Bearer token
+     * @param {string} instanceId - Instance ID for logging
+     */
+    constructor(bearerToken: string, instanceId: string);
+    bearerToken: string;
+    instanceId: string;
+    /**
+     * Get user activity summary
+     * @param {string} userId - User ID
+     * @returns {Promise<UserActivity>} User activity summary
+     */
+    getUserActivity(userId: string): Promise<UserActivity>;
+    /**
+     * Bulk user lookup
+     * @param {string[]} userIds - Array of user IDs
+     * @returns {Promise<UserLookupResult[]>} User information for each ID
+     */
+    bulkUserLookup(userIds: string[]): Promise<UserLookupResult[]>;
+}
+/**
+ * File upload data
+ * @typedef {Object} FileUploadData
+ * @property {File|Blob} file - File to upload
+ * @property {string} [channels] - Comma-separated channel IDs
+ * @property {string} [title] - File title
+ * @property {string} [initial_comment] - Initial comment
+ */
+/**
+ * File operation result
+ * @typedef {Object} FileOperationResult
+ * @property {string} fileId - File ID
+ * @property {boolean} success - Whether operation succeeded
+ * @property {Object} [result] - Result data if successful
+ * @property {string} [error] - Error message if failed
+ */
+/**
+ * File operations
+ */
+declare class FileOperations {
+    /**
+     * @param {string} bearerToken - OAuth Bearer token
+     * @param {string} instanceId - Instance ID for logging
+     */
+    constructor(bearerToken: string, instanceId: string);
+    bearerToken: string;
+    instanceId: string;
+    /**
+     * Upload file with progress tracking
+     * @param {FileUploadData} fileData - File data and metadata
+     * @returns {Promise<SlackApiResponse>} Upload result
+     */
+    uploadFileWithProgress(fileData: FileUploadData): Promise<SlackApiResponse>;
+    /**
+     * Delete multiple files
+     * @param {string[]} fileIds - Array of file IDs
+     * @returns {Promise<FileOperationResult[]>} Results for each deletion
+     */
+    bulkDeleteFiles(fileIds: string[]): Promise<FileOperationResult[]>;
+}
+/**
+ * Workspace statistics
+ * @typedef {Object} WorkspaceStats
+ * @property {Object} team - Team information
+ * @property {Object} stats - Statistics
+ * @property {number} stats.totalChannels - Total number of channels
+ * @property {number} stats.totalUsers - Total number of users
+ * @property {number} stats.activeUsers - Number of active users
+ */
+/**
+ * Search results by content type
+ * @typedef {Object<string, SlackApiResponse>} SearchResults
+ */
+/**
+ * Workspace operations
+ */
+declare class WorkspaceOperations {
+    /**
+     * @param {string} bearerToken - OAuth Bearer token
+     * @param {string} instanceId - Instance ID for logging
+     */
+    constructor(bearerToken: string, instanceId: string);
+    bearerToken: string;
+    instanceId: string;
+    /**
+     * Get comprehensive workspace statistics
+     * @returns {Promise<WorkspaceStats>} Workspace statistics
+     */
+    getWorkspaceStats(): Promise<WorkspaceStats>;
+    /**
+     * Search across multiple content types
+     * @param {string} query - Search query
+     * @param {('messages'|'files')[]} types - Content types to search
+     * @returns {Promise<SearchResults>} Search results
+     */
+    comprehensiveSearch(query: string, types?: ('messages' | 'files')[]): Promise<SearchResults>;
+}
+export {};
 //# sourceMappingURL=slackOperations.d.ts.map

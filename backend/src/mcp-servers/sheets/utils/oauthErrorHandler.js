@@ -248,12 +248,12 @@ function createOAuthErrorResponse(instanceId, error, context) {
   };
 }
 
-export {
-  OAUTH_ERROR_TYPES,
+
+module.exports = { OAUTH_ERROR_TYPES,
   parseOAuthError,
   handleTokenRefreshFailure,
   shouldRetryOAuthError,
   getRetryDelay,
   logOAuthError,
   createOAuthErrorResponse
-};
+ };

@@ -3,7 +3,7 @@
  * Handles team and project-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest, handleApiError } from './common.js';
+const { makeAuthenticatedRequest, handleApiError } = require('./common.js');
 
 /**
  * Get team projects
@@ -11,7 +11,7 @@ import { makeAuthenticatedRequest, handleApiError } from './common.js';
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaTeamProjects(teamId, apiKey) {
+async function getFigmaTeamProjects(teamId, apiKey) {
 	if (!teamId) {
 		throw new Error('Team ID is required');
 	}
@@ -33,7 +33,7 @@ export async function getFigmaTeamProjects(teamId, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaProjectFiles(projectId, apiKey) {
+async function getFigmaProjectFiles(projectId, apiKey) {
 	if (!projectId) {
 		throw new Error('Project ID is required');
 	}
@@ -55,7 +55,7 @@ export async function getFigmaProjectFiles(projectId, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaTeamComponents(teamId, apiKey) {
+async function getFigmaTeamComponents(teamId, apiKey) {
 	if (!teamId) {
 		throw new Error('Team ID is required');
 	}
@@ -70,3 +70,8 @@ export async function getFigmaTeamComponents(teamId, apiKey) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	getFigmaTeamProjects,
+	getFigmaProjectFiles,
+	getFigmaTeamComponents
+};

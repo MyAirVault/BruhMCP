@@ -1,6 +1,6 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
-import fetch from 'node-fetch';
+const { BaseValidator, createValidationResult } = require('../../../services/validation/baseValidator.js');
+const { axiosGet } = require('../../../utils/axiosUtils.js');
 
 /**
  * Figma API key validator
@@ -50,14 +50,14 @@ class FigmaAPIKeyValidator extends BaseValidator {
     }
 
     try {
-      const response = await fetch('https://api.figma.com/v1/me', {
+      const response = await axiosGet('https://api.figma.com/v1/me', {
         headers: {
           'X-Figma-Token': credentials.api_key,
         },
       });
 
-      if (response.ok) {
-        const data = /** @type {any} */ (await response.json());
+      if (response.status >= 200 && response.status < 300) {
+        const data = response.data;
         console.log('✅ Figma API validation successful:', { userId: data.id, email: data.email });
         return createValidationResult(true, null, null, {
           service: 'Figma API',
@@ -105,4 +105,4 @@ function createFigmaValidator(credentials) {
   }
 }
 
-export default createFigmaValidator;
+module.exports = createFigmaValidator;

@@ -131,4 +131,4 @@
  * @property {string} [errorUri] - Error URI
  */
 
-export {};
+module.exports = {};

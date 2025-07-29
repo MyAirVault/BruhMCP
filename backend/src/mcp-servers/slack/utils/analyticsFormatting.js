@@ -53,10 +53,10 @@
  * @property {string} id - Item ID that was processed
  */
 
-import { debug } from './logger.js';
-import { formatSlackText, formatSlackTimestamp } from './textFormatting.js';
-import { formatMessageResponse } from './messageFormatting.js';
-import { formatChannelResponse, formatUserResponse, formatTeamResponse } from './entityFormatting.js';
+const { debug  } = require('./logger');
+const { formatSlackText, formatSlackTimestamp  } = require('./textFormatting');
+const { formatMessageResponse  } = require('./messageFormatting');
+const { formatChannelResponse, formatUserResponse, formatTeamResponse  } = require('./entityFormatting');
 
 /**
  * Format search results for better readability
@@ -64,7 +64,7 @@ import { formatChannelResponse, formatUserResponse, formatTeamResponse } from '.
  * @param {string} query - Original search query
  * @returns {{query: string, total: number, pagination: Object, matches: Array<{type: string, text: string, user: string, username: string, channel: string, timestamp: string|null, permalink: string}>}|null} Formatted search results
  */
-export function formatSearchResults(results, query) {
+function formatSearchResults(results, query) {
 	if (!results || !results.matches) return null;
 	
 	debug('Formatting search results', { query, matchCount: results.matches.length });
@@ -91,7 +91,7 @@ export function formatSearchResults(results, query) {
  * @param {SlackUser[]} [users=[]] - User data for mention resolution
  * @returns {{ok: boolean, messages: Array<Object>, has_more: boolean, pin_count: number, response_metadata: Object}|null} Formatted conversation history
  */
-export function formatConversationHistory(history, users = []) {
+function formatConversationHistory(history, users = []) {
 	if (!history || !history.messages) return null;
 	
 	debug('Formatting conversation history', { messageCount: history.messages.length });
@@ -114,7 +114,7 @@ export function formatConversationHistory(history, users = []) {
  * @param {string} operation - Operation type
  * @returns {{operation: string, total: number, successes: number, failures: number, success_rate: string, results: Array<BulkOperationResult & {timestamp: string}>}|null} Formatted bulk operation results
  */
-export function formatBulkOperationResults(results, operation) {
+function formatBulkOperationResults(results, operation) {
 	if (!results || !Array.isArray(results)) return null;
 	
 	const successCount = results.filter(r => r.success).length;
@@ -145,7 +145,7 @@ export function formatBulkOperationResults(results, operation) {
  * @param {{channel: SlackChannel, memberCount: number, recentActivity: {messageCount: number, lastMessage: string|null}}} analytics - Channel analytics data
  * @returns {{channel: ReturnType<typeof formatChannelResponse>, analytics: {member_count: number, recent_activity: {message_count: number, last_message: string|null}}, generated_at: string}|null} Formatted analytics
  */
-export function formatChannelAnalytics(analytics) {
+function formatChannelAnalytics(analytics) {
 	if (!analytics) return null;
 	
 	debug('Formatting channel analytics', { channelId: analytics.channel?.id });
@@ -169,7 +169,7 @@ export function formatChannelAnalytics(analytics) {
  * @param {{user: SlackUser, presence: string, lastActivity: string|number|null}} activity - User activity data
  * @returns {{user: ReturnType<typeof formatUserResponse>, activity: {presence: string, last_activity: string|null, is_online: boolean}, generated_at: string}|null} Formatted activity summary
  */
-export function formatUserActivity(activity) {
+function formatUserActivity(activity) {
 	if (!activity) return null;
 	
 	debug('Formatting user activity', { userId: activity.user?.id });
@@ -191,7 +191,7 @@ export function formatUserActivity(activity) {
  * @param {{team: SlackTeam, stats: {totalChannels: number, publicChannels?: number, privateChannels?: number, totalUsers: number, activeUsers: number}}} stats - Workspace statistics
  * @returns {{team: ReturnType<typeof formatTeamResponse>, statistics: {channels: {total: number, public: number, private: number}, users: {total: number, active: number, bots: number}}, generated_at: string}|null} Formatted workspace stats
  */
-export function formatWorkspaceStats(stats) {
+function formatWorkspaceStats(stats) {
 	if (!stats) return null;
 	
 	debug('Formatting workspace stats', { 
@@ -216,3 +216,12 @@ export function formatWorkspaceStats(stats) {
 		generated_at: new Date().toISOString()
 	};
 }
+
+module.exports = {
+	formatSearchResults,
+	formatConversationHistory,
+	formatBulkOperationResults,
+	formatChannelAnalytics,
+	formatUserActivity,
+	formatWorkspaceStats
+};

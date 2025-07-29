@@ -3,8 +3,8 @@
  * Defines all available MCP tools for Google Sheets operations
  */
 
-import { z } from 'zod';
-import { SheetsApi } from '../api/sheetsApi.js';
+const { z  } = require('zod');
+const { SheetsApi  } = require('../api/sheetsApi');
 
 /**
  * Setup MCP tools for Google Sheets
@@ -12,7 +12,7 @@ import { SheetsApi } from '../api/sheetsApi.js';
  * @param {{bearerToken: string}} handler - Handler instance with bearerToken property
  * @param {string} serviceName - Service name for logging
  */
-export function setupSheetsTools(server, handler, serviceName) {
+function setupSheetsTools(server, handler, serviceName) {
 
 	// Tool 1: create_spreadsheet
 	server.tool(
@@ -228,3 +228,7 @@ export function setupSheetsTools(server, handler, serviceName) {
 		}
 	);
 }
+
+module.exports = {
+	setupSheetsTools
+};

@@ -44,9 +44,9 @@
  * Handles background sync with database
  */
 
-import { googleDriveCredentialCache } from './cacheCore.js';
-import { cleanupInvalidCacheEntries } from './cacheMaintenance.js';
-import { lookupInstanceCredentials } from '../database.js';
+const { googleDriveCredentialCache  } = require('./cacheCore');
+const { cleanupInvalidCacheEntries  } = require('./cacheMaintenance');
+const { lookupInstanceCredentials  } = require('../database');
 
 // Background sync state
 /** @type {NodeJS.Timeout | null} */
@@ -140,7 +140,7 @@ async function backgroundCacheSync() {
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
  * @returns {SyncController} Sync service controller
  */
-export function startBackgroundCacheSync(intervalMinutes = 5) {
+function startBackgroundCacheSync(intervalMinutes = 5) {
 	const intervalMs = intervalMinutes * 60 * 1000;
 	
 	console.log(`🚀 Starting background cache sync service (interval: ${intervalMinutes} minutes)`);
@@ -165,3 +165,7 @@ export function startBackgroundCacheSync(intervalMinutes = 5) {
 		runSync: () => backgroundCacheSync()
 	};
 }
+
+module.exports = {
+	startBackgroundCacheSync
+};

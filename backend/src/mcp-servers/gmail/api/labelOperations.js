@@ -124,7 +124,7 @@ async function makeGmailRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Labels list
  */
-export async function listLabels(bearerToken) {
+async function listLabels(bearerToken) {
   const result = await makeGmailRequest('/users/me/labels', bearerToken);
 
   const labels = (result.labels || []).map((/** @type {GmailLabel} */ label) => ({
@@ -165,7 +165,7 @@ export async function listLabels(bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Label creation result
  */
-export async function createLabel(args, bearerToken) {
+async function createLabel(args, bearerToken) {
   const {
     name,
     messageListVisibility = 'show',
@@ -202,7 +202,7 @@ export async function createLabel(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Label modification result
  */
-export async function modifyLabels(args, bearerToken) {
+async function modifyLabels(args, bearerToken) {
   const {
     messageId,
     addLabelIds = [],
@@ -245,7 +245,7 @@ export async function modifyLabels(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Label deletion result
  */
-export async function deleteLabel(args, bearerToken) {
+async function deleteLabel(args, bearerToken) {
   const { labelId } = args;
 
   await makeGmailRequest(`/users/me/labels/${labelId}`, bearerToken, {
@@ -265,7 +265,7 @@ export async function deleteLabel(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Label update result
  */
-export async function updateLabel(args, bearerToken) {
+async function updateLabel(args, bearerToken) {
   const {
     labelId,
     name,
@@ -315,7 +315,7 @@ export async function updateLabel(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Label details
  */
-export async function getLabel(args, bearerToken) {
+async function getLabel(args, bearerToken) {
   const { labelId } = args;
 
   const result = await makeGmailRequest(`/users/me/labels/${labelId}`, bearerToken);
@@ -336,3 +336,12 @@ export async function getLabel(args, bearerToken) {
     timestamp: new Date().toISOString()
   };
 }
+
+module.exports = {
+  listLabels,
+  createLabel,
+  modifyLabels,
+  deleteLabel,
+  updateLabel,
+  getLabel
+};

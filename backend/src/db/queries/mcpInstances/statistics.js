@@ -3,7 +3,7 @@
  * @fileoverview Contains functions for user and service statistics
  */
 
-import { pool } from '../../config.js';
+const { pool } = require('../../config.js');
 
 /**
  * @typedef {import('./types.js').MCPServiceStatsUpdate} MCPServiceStatsUpdate
@@ -16,7 +16,7 @@ import { pool } from '../../config.js';
  * @param {string|null} [status=null] - Optional status filter (if not provided, counts active instances only)
  * @returns {Promise<number>} Number of instances with completed OAuth
  */
-export async function getUserInstanceCount(userId, status = null) {
+async function getUserInstanceCount(userId, status = null) {
 	let query = `
 		SELECT COUNT(*) as count 
 		FROM mcp_service_table ms
@@ -44,7 +44,7 @@ export async function getUserInstanceCount(userId, status = null) {
  * @param {MCPServiceStatsUpdate} updates - Statistics updates
  * @returns {Promise<MCPInstanceRecord|null>} Updated service record
  */
-export async function updateMCPServiceStats(serviceId, updates) {
+async function updateMCPServiceStats(serviceId, updates) {
 	const setClauses = [];
 	const params = [];
 	let paramIndex = 1;
@@ -72,3 +72,8 @@ export async function updateMCPServiceStats(serviceId, updates) {
 	const result = await pool.query(query, params);
 	return result.rows[0] || null;
 }
+
+module.exports = {
+	getUserInstanceCount,
+	updateMCPServiceStats
+};

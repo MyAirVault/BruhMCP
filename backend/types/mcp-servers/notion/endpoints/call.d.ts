@@ -1,12 +1,5 @@
-/**
- * Handle call endpoint - provides direct API access and tool execution
- * @param {ExpressRequest} req - Express request object with auth data
- * @param {ExpressResponse} res - Express response object
- * @returns {Promise<void>}
- */
-export function handleCallEndpoint(req: ExpressRequest, res: ExpressResponse, ...args: any[]): Promise<void>;
-export type ExpressRequest = import("../middleware/types.js").ExpressRequest;
-export type ExpressResponse = import("../middleware/types.js").ExpressResponse;
+export type ExpressRequest = import('../middleware/types.js').ExpressRequest;
+export type ExpressResponse = import('../middleware/types.js').ExpressResponse;
 export type SearchArgs = {
     /**
      * - Search query string
@@ -23,8 +16,8 @@ export type SearchArgs = {
      * - Sort conditions
      */
     sort?: {
-        direction: "ascending" | "descending";
-        timestamp: "last_edited_time";
+        direction: 'ascending' | 'descending';
+        timestamp: 'last_edited_time';
     } | undefined;
     /**
      * - Number of results per page
@@ -59,11 +52,11 @@ export type CreatePageArgs = {
     /**
      * - Parent page or database
      */
-    parent: import("../utils/notionFormatting.js").NotionParent;
+    parent: import('../utils/notionFormatting.js').NotionParent;
     /**
      * - Page properties
      */
-    properties: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
+    properties: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
     /**
      * - Page content blocks
      */
@@ -91,7 +84,7 @@ export type AppendBlocksArgs = {
     /**
      * - Blocks to append
      */
-    children: import("../utils/notionFormatting.js").NotionBlock[];
+    children: import('../utils/notionFormatting.js').NotionBlock[];
 };
 export type DeleteBlockArgs = {
     /**
@@ -129,9 +122,9 @@ export type QueryDatabaseArgs = {
      * - Sort conditions for the query
      */
     sorts?: {
-        direction: "ascending" | "descending";
-        property?: string;
-        timestamp?: "created_time" | "last_edited_time";
+        direction: 'ascending' | 'descending';
+        property?: string | undefined;
+        timestamp?: "created_time" | "last_edited_time" | undefined;
     }[] | undefined;
     /**
      * - Number of results per page (max 100)
@@ -156,7 +149,7 @@ export type CreateDatabaseArgs = {
      * - Database title as rich text array
      */
     title: Array<{
-        type: "text";
+        type: 'text';
         text: {
             content: string;
         };
@@ -165,7 +158,7 @@ export type CreateDatabaseArgs = {
     /**
      * - Database properties schema
      */
-    properties: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
+    properties: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
     /**
      * - Whether the database is inline
      */
@@ -180,7 +173,7 @@ export type UpdateDatabaseArgs = {
      * - Updated title as rich text array
      */
     title?: {
-        type: "text";
+        type: 'text';
         text: {
             content: string;
         };
@@ -228,4 +221,11 @@ export type ErrorInfo = {
      */
     details?: unknown;
 };
+/**
+ * Handle call endpoint - provides direct API access and tool execution
+ * @param {ExpressRequest} req - Express request object with auth data
+ * @param {ExpressResponse} res - Express response object
+ * @returns {Promise<void>}
+ */
+export function handleCallEndpoint(req: ExpressRequest, res: ExpressResponse, ...args: any[]): Promise<void>;
 //# sourceMappingURL=call.d.ts.map

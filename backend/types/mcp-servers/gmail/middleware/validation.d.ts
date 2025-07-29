@@ -10,7 +10,7 @@ export function isValidInstanceId(instanceId: string): boolean;
  * @param {string} instanceId - The invalid instance ID
  * @returns {void} Express response
  */
-export function createInstanceIdValidationError(res: import("express").Response, instanceId: string): void;
+export function createInstanceIdValidationError(res: import('express').Response, instanceId: string): void;
 /**
  * Validate instance exists and is not null
  * @param {import('./types.js').DatabaseInstance | null | undefined} instance - Database instance object
@@ -18,7 +18,7 @@ export function createInstanceIdValidationError(res: import("express").Response,
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstanceExists(instance: import("./types.js").DatabaseInstance | null | undefined, res: import("express").Response, instanceId: string): import("./types.js").InstanceValidationResult;
+export function validateInstanceExists(instance: import('./types.js').DatabaseInstance | null | undefined, res: import('express').Response, instanceId: string): import('./types.js').InstanceValidationResult;
 /**
  * Validate service is active for the instance
  * @param {import('./types.js').DatabaseInstance} instance - Database instance object
@@ -26,7 +26,7 @@ export function validateInstanceExists(instance: import("./types.js").DatabaseIn
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateServiceActive(instance: import("./types.js").DatabaseInstance, res: import("express").Response, instanceId: string): import("./types.js").InstanceValidationResult;
+export function validateServiceActive(instance: import('./types.js').DatabaseInstance, res: import('express').Response, instanceId: string): import('./types.js').InstanceValidationResult;
 /**
  * Validate instance status is not inactive or expired
  * @param {import('./types.js').DatabaseInstance} instance - Database instance object
@@ -34,7 +34,7 @@ export function validateServiceActive(instance: import("./types.js").DatabaseIns
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstanceStatus(instance: import("./types.js").DatabaseInstance, res: import("express").Response, instanceId: string): import("./types.js").InstanceValidationResult;
+export function validateInstanceStatus(instance: import('./types.js').DatabaseInstance, res: import('express').Response, instanceId: string): import('./types.js').InstanceValidationResult;
 /**
  * Validate instance has not expired based on expiration timestamp
  * @param {import('./types.js').DatabaseInstance} instance - Database instance object
@@ -42,7 +42,7 @@ export function validateInstanceStatus(instance: import("./types.js").DatabaseIn
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstanceNotExpired(instance: import("./types.js").DatabaseInstance, res: import("express").Response, instanceId: string): import("./types.js").InstanceValidationResult;
+export function validateInstanceNotExpired(instance: import('./types.js').DatabaseInstance, res: import('express').Response, instanceId: string): import('./types.js').InstanceValidationResult;
 /**
  * Validate OAuth credentials configuration
  * @param {import('./types.js').DatabaseInstance} instance - Database instance object
@@ -50,7 +50,7 @@ export function validateInstanceNotExpired(instance: import("./types.js").Databa
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateOAuthCredentials(instance: import("./types.js").DatabaseInstance, res: import("express").Response, instanceId: string): import("./types.js").InstanceValidationResult;
+export function validateOAuthCredentials(instance: import('./types.js').DatabaseInstance, res: import('express').Response, instanceId: string): import('./types.js').InstanceValidationResult;
 /**
  * Perform complete instance validation chain
  * @param {import('./types.js').DatabaseInstance | null | undefined} instance - Database instance object
@@ -59,5 +59,5 @@ export function validateOAuthCredentials(instance: import("./types.js").Database
  * @param {boolean} [requireOAuth] - Whether to validate OAuth credentials
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstance(instance: import("./types.js").DatabaseInstance | null | undefined, res: import("express").Response, instanceId: string, requireOAuth?: boolean): import("./types.js").InstanceValidationResult;
+export function validateInstance(instance: import('./types.js').DatabaseInstance | null | undefined, res: import('express').Response, instanceId: string, requireOAuth?: boolean | undefined): import('./types.js').InstanceValidationResult;
 //# sourceMappingURL=validation.d.ts.map

@@ -4,7 +4,7 @@
  */
 
 // Core cache operations
-export {
+const {
 	initializeCredentialCache,
 	getCachedCredential,
 	setCachedCredential,
@@ -12,24 +12,42 @@ export {
 	isInstanceCached,
 	clearCredentialCache,
 	peekCachedCredential
-} from './cacheCore.js';
+} = require('./cacheCore');
 
 // Cache statistics and monitoring
-export {
+const {
 	getCacheStatistics,
 	getCachedInstanceIds,
 	getCachePerformanceMetrics
-} from './cacheStatistics.js';
+} = require('./cacheStatistics');
 
 // Cache management and maintenance
-export {
+const {
 	updateCachedCredentialMetadata,
 	cleanupInvalidCacheEntries,
 	incrementRefreshAttempts,
 	resetRefreshAttempts,
 	cleanupUserCacheEntries,
 	cleanupTeamCacheEntries
-} from './cacheManagement.js';
+} = require('./cacheManagement');
 
-// Backward compatibility alias
-export { removeCachedCredential as deleteCachedCredential } from './cacheCore.js';
+module.exports = {
+	initializeCredentialCache,
+	getCachedCredential,
+	setCachedCredential,
+	removeCachedCredential,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential,
+	getCacheStatistics,
+	getCachedInstanceIds,
+	getCachePerformanceMetrics,
+	updateCachedCredentialMetadata,
+	cleanupInvalidCacheEntries,
+	incrementRefreshAttempts,
+	resetRefreshAttempts,
+	cleanupUserCacheEntries,
+	cleanupTeamCacheEntries,
+	// Backward compatibility alias
+	deleteCachedCredential: removeCachedCredential
+};

@@ -5,25 +5,22 @@
 
 /// <reference path="../../../types/express.d.ts" />
 
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+const dotenv = require('dotenv');
+const { join } = require('path');
 
 // Load .env from backend root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const backendRoot = join(__dirname, '../../..');
 dotenv.config({ path: join(backendRoot, '.env') });
 
-import express from 'express';
-import cors from 'cors';
-import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
-import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
+const express = require('express');
+const cors = require('cors');
+const { healthCheck } = require('./endpoints/health');
+const { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } = require('./middleware/credentialAuth');
+const { initializeCredentialCache, getCacheStatistics } = require('./services/credentialCache');
+const { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } = require('./services/credentialWatcher');
+const { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } = require('./services/handlerSessions');
+const { ErrorResponses } = require('../../utils/errorResponse');
+const { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } = require('../../middleware/mcpLoggingMiddleware');
 
 // Service configuration (from mcp-ports/slack/config.json)
 const SERVICE_CONFIG = {
@@ -89,7 +86,7 @@ app.post('/cache-tokens', async (req, res) => {
     }
 
     // Cache tokens using existing credential cache
-    const { setCachedCredential } = await import('./services/credentialCache.js');
+    const { setCachedCredential } = require('./services/credentialCache');
     
     setCachedCredential(instance_id, {
       bearerToken: tokens.access_token,
@@ -357,4 +354,4 @@ process.on('SIGINT', () => {
   });
 });
 
-export default app;
+module.exports = app;

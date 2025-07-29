@@ -122,4 +122,6 @@
  * @property {boolean} [trashed] - Trashed flag
  */
 
-export {};
+// TypeScript declarations - no exports needed
+// Export empty object to make this a valid module
+module.exports = {};

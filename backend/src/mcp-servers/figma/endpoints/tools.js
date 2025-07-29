@@ -5,7 +5,7 @@
 /**
  * Get list of available tools for Figma service * @returns {Object} Tools definition response
  */
-export function getTools() {
+function getTools() {
 	return {
 		tools: [
 			{
@@ -95,3 +95,7 @@ export function getTools() {
 		],
 	};
 }
+
+module.exports = {
+	getTools
+};

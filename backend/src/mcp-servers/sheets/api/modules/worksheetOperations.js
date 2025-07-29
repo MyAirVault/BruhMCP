@@ -4,9 +4,9 @@
  * Functions for managing worksheets within spreadsheets
  */
 
-import { makeSheetsRequest } from './requestHandler.js';
-import { formatSheetsResponse } from '../../utils/sheetsFormatting.js';
-import { validateSheetsInput } from '../../utils/validation.js';
+const { makeSheetsRequest  } = require('./requestHandler');
+const { formatSheetsResponse  } = require('../../utils/sheetsFormatting');
+const { validateSheetsInput  } = require('../../utils/validation');
 
 /**
  * Add a new worksheet to a spreadsheet
@@ -18,7 +18,7 @@ import { validateSheetsInput } from '../../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Created worksheet details
  */
-export async function addWorksheet(params, bearerToken) {
+async function addWorksheet(params, bearerToken) {
 	const validation = validateSheetsInput.addWorksheet(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -66,7 +66,7 @@ export async function addWorksheet(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Delete result
  */
-export async function deleteWorksheet(params, bearerToken) {
+async function deleteWorksheet(params, bearerToken) {
 	const validation = validateSheetsInput.deleteWorksheet(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -109,7 +109,7 @@ export async function deleteWorksheet(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Copy result
  */
-export async function copySheet(params, bearerToken) {
+async function copySheet(params, bearerToken) {
 	const validation = validateSheetsInput.copySheet(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -149,7 +149,7 @@ export async function copySheet(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Insert result
  */
-export async function insertRows(params, bearerToken) {
+async function insertRows(params, bearerToken) {
 	const validation = validateSheetsInput.insertRows(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -199,7 +199,7 @@ export async function insertRows(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Delete result
  */
-export async function deleteRows(params, bearerToken) {
+async function deleteRows(params, bearerToken) {
 	const validation = validateSheetsInput.deleteRows(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -237,3 +237,10 @@ export async function deleteRows(params, bearerToken) {
 
 	return formatSheetsResponse.batchUpdateResult(batchUpdateResult);
 }
+module.exports = {
+  addWorksheet,
+  deleteWorksheet,
+  copySheet,
+  insertRows,
+  deleteRows
+};

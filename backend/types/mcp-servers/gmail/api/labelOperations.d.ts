@@ -1,44 +1,3 @@
-/**
- * List all Gmail labels
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Labels list
- */
-export function listLabels(bearerToken: string): Promise<Object>;
-/**
- * Create a new Gmail label
- * @param {CreateLabelArgs} args - Label creation arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Label creation result
- */
-export function createLabel(args: CreateLabelArgs, bearerToken: string): Promise<Object>;
-/**
- * Modify labels on a message
- * @param {ModifyLabelsArgs} args - Label modification arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Label modification result
- */
-export function modifyLabels(args: ModifyLabelsArgs, bearerToken: string): Promise<Object>;
-/**
- * Delete a Gmail label
- * @param {LabelIdArgs} args - Label deletion arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Label deletion result
- */
-export function deleteLabel(args: LabelIdArgs, bearerToken: string): Promise<Object>;
-/**
- * Update a Gmail label
- * @param {UpdateLabelArgs} args - Label update arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Label update result
- */
-export function updateLabel(args: UpdateLabelArgs, bearerToken: string): Promise<Object>;
-/**
- * Get label details by ID
- * @param {LabelIdArgs} args - Label get arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Label details
- */
-export function getLabel(args: LabelIdArgs, bearerToken: string): Promise<Object>;
 export type RequestOptions = {
     /**
      * - HTTP method
@@ -193,4 +152,45 @@ export type UpdateLabelArgs = {
      */
     labelListVisibility?: string | undefined;
 };
+/**
+ * List all Gmail labels
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Labels list
+ */
+export function listLabels(bearerToken: string): Promise<Object>;
+/**
+ * Create a new Gmail label
+ * @param {CreateLabelArgs} args - Label creation arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Label creation result
+ */
+export function createLabel(args: CreateLabelArgs, bearerToken: string): Promise<Object>;
+/**
+ * Modify labels on a message
+ * @param {ModifyLabelsArgs} args - Label modification arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Label modification result
+ */
+export function modifyLabels(args: ModifyLabelsArgs, bearerToken: string): Promise<Object>;
+/**
+ * Delete a Gmail label
+ * @param {LabelIdArgs} args - Label deletion arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Label deletion result
+ */
+export function deleteLabel(args: LabelIdArgs, bearerToken: string): Promise<Object>;
+/**
+ * Update a Gmail label
+ * @param {UpdateLabelArgs} args - Label update arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Label update result
+ */
+export function updateLabel(args: UpdateLabelArgs, bearerToken: string): Promise<Object>;
+/**
+ * Get label details by ID
+ * @param {LabelIdArgs} args - Label get arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<Object>} Label details
+ */
+export function getLabel(args: LabelIdArgs, bearerToken: string): Promise<Object>;
 //# sourceMappingURL=labelOperations.d.ts.map

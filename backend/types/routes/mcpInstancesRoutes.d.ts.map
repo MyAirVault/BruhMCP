@@ -1,1 +1,1 @@
-{"version":3,"file":"mcpInstancesRoutes.d.ts","sourceRoot":"","sources":["../../src/routes/mcpInstancesRoutes.js"],"names":[],"mappings":";sBAGa,OAAO,SAAS,EAAE,OAAO;uBACzB,OAAO,SAAS,EAAE,QAAQ;2BAC1B,OAAO,SAAS,EAAE,YAAY;AAsB3C,iEAAwB"}
+{"version":3,"file":"mcpInstancesRoutes.d.ts","sourceRoot":"","sources":["../../src/routes/mcpInstancesRoutes.js"],"names":[],"mappings":";AA2BA,iEAAwB;;;;eAxBX,OAAO,SAAS,EAAE,OAAO;gBACzB,OAAO,SAAS,EAAE,QAAQ;oBAC1B,OAAO,SAAS,EAAE,YAAY"}

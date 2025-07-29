@@ -5,10 +5,10 @@
 
 /// <reference path="./types.js" />
 
-import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauthValidation.js';
-import { recordTokenRefreshMetrics } from '../utils/tokenMetrics.js';
-import { updateOAuthStatusWithLocking } from '../../../db/queries/mcpInstances/index.js';
-import { cacheNewTokens, setupRequestWithNewTokens } from './credentialManagement.js';
+const { refreshBearerToken, refreshBearerTokenDirect  } = require('../utils/oauthValidation');
+const { recordTokenRefreshMetrics  } = require('../utils/tokenMetrics');
+const { updateOAuthStatusWithLocking  } = require('../../../db/queries/mcpInstances/index');
+const { cacheNewTokens, setupRequestWithNewTokens  } = require('./credentialManagement');
 
 /**
  * Attempt token refresh with OAuth service or direct method
@@ -17,7 +17,7 @@ import { cacheNewTokens, setupRequestWithNewTokens } from './credentialManagemen
  * @param {string} clientSecret - OAuth client secret
  * @returns {Promise<{tokens: import('./types.js').NewTokens, method: string}>} Refresh result
  */
-export async function attemptTokenRefresh(refreshToken, clientId, clientSecret) {
+async function attemptTokenRefresh(refreshToken, clientId, clientSecret) {
   let usedMethod = 'oauth_service';
   let newTokens;
 
@@ -61,7 +61,7 @@ export async function attemptTokenRefresh(refreshToken, clientId, clientSecret) 
  * @param {number} startTime - Start time of refresh operation
  * @returns {void}
  */
-export function recordSuccessfulRefreshMetrics(instanceId, method, startTime) {
+function recordSuccessfulRefreshMetrics(instanceId, method, startTime) {
   const endTime = Date.now();
   recordTokenRefreshMetrics(instanceId, method, true, null, null, startTime, endTime);
 }
@@ -73,7 +73,7 @@ export function recordSuccessfulRefreshMetrics(instanceId, method, startTime) {
  * @param {number} startTime - Start time of refresh operation
  * @returns {void}
  */
-export function recordFailedRefreshMetrics(instanceId, method, startTime) {
+function recordFailedRefreshMetrics(instanceId, method, startTime) {
   const endTime = Date.now();
   recordTokenRefreshMetrics(instanceId, method, false, 'REFRESH_FAILED', 'Token refresh failed', startTime, endTime);
 }
@@ -84,7 +84,7 @@ export function recordFailedRefreshMetrics(instanceId, method, startTime) {
  * @param {import('./types.js').NewTokens} newTokens - New tokens from refresh
  * @returns {Promise<void>} Promise that resolves when database is updated
  */
-export async function updateDatabaseWithNewTokens(instanceId, newTokens) {
+async function updateDatabaseWithNewTokens(instanceId, newTokens) {
   const newExpiresAt = new Date(Date.now() + newTokens.expires_in * 1000);
 
   await updateOAuthStatusWithLocking(instanceId, {
@@ -107,7 +107,7 @@ export async function updateDatabaseWithNewTokens(instanceId, newTokens) {
  * @param {number} startTime - Start time of refresh operation
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Processing result
  */
-export async function processSuccessfulRefresh(instanceId, newTokens, method, userId, req, startTime) {
+async function processSuccessfulRefresh(instanceId, newTokens, method, userId, req, startTime) {
   const endTime = Date.now();
   const duration = endTime - startTime;
 
@@ -142,7 +142,7 @@ export async function processSuccessfulRefresh(instanceId, newTokens, method, us
  * @param {number} startTime - Start time of refresh operation
  * @returns {import('./types.js').TokenRefreshResult} Processing result
  */
-export function processFailedRefresh(instanceId, error, method, startTime) {
+function processFailedRefresh(instanceId, error, method, startTime) {
   // Record failed metrics
   recordFailedRefreshMetrics(instanceId, method, startTime);
 
@@ -172,7 +172,7 @@ export function processFailedRefresh(instanceId, error, method, startTime) {
  * @param {import('./types.js').ExpressRequest} req - Express request object
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Refresh result
  */
-export async function performTokenRefresh(instanceId, refreshToken, instance, req) {
+async function performTokenRefresh(instanceId, refreshToken, instance, req) {
   console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
 
   const refreshStartTime = Date.now();
@@ -198,7 +198,7 @@ export async function performTokenRefresh(instanceId, refreshToken, instance, re
   }
 }
 
-export default {
+module.exports = {
   attemptTokenRefresh,
   recordSuccessfulRefreshMetrics,
   recordFailedRefreshMetrics,

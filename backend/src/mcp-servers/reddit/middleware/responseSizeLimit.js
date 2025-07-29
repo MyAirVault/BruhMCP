@@ -84,7 +84,7 @@ const SIZE_LIMITS = {
  * @param {Partial<SizeLimitsConfig>} options - Size limit options
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createResponseSizeLimitMiddleware(options = {}) {
+function createResponseSizeLimitMiddleware(options = {}) {
   const config = {
     ...SIZE_LIMITS,
     ...options
@@ -405,7 +405,7 @@ function truncateGeneric(text, maxSize) {
  * @param {string} type - Content type
  * @throws {Error} If content exceeds length limit
  */
-export function validateContentLength(content, type) {
+function validateContentLength(content, type) {
   if (!content || typeof content !== 'string') {
     return;
   }
@@ -425,7 +425,7 @@ export function validateContentLength(content, type) {
  * Update size limits configuration
  * @param {Partial<SizeLimitsConfig>} newLimits - New size limits
  */
-export function updateSizeLimits(newLimits) {
+function updateSizeLimits(newLimits) {
   Object.assign(SIZE_LIMITS, newLimits);
   console.log('⚙️ Updated response size limits:', SIZE_LIMITS);
 }
@@ -434,7 +434,7 @@ export function updateSizeLimits(newLimits) {
  * Get current size limits configuration
  * @returns {SizeLimitsConfig} Current size limits
  */
-export function getSizeLimits() {
+function getSizeLimits() {
   return { ...SIZE_LIMITS };
 }
 
@@ -443,7 +443,7 @@ export function getSizeLimits() {
  * @param {string} toolName - Tool name
  * @returns {number} Size limit in bytes
  */
-export function getToolSizeLimit(toolName) {
+function getToolSizeLimit(toolName) {
   if (toolName in SIZE_LIMITS.toolLimits) {
     const toolLimits = SIZE_LIMITS.toolLimits;
     return toolLimits[/** @type {keyof typeof toolLimits} */ (toolName)];
@@ -456,7 +456,7 @@ export function getToolSizeLimit(toolName) {
  * @param {number} bytes - Size in bytes
  * @returns {string} Formatted size
  */
-export function formatSize(bytes) {
+function formatSize(bytes) {
   if (bytes === 0) return '0 B';
   
   const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -464,3 +464,12 @@ export function formatSize(bytes) {
   
   return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
 }
+
+module.exports = {
+  createResponseSizeLimitMiddleware,
+  getSizeLimits,
+  truncateResponse,
+  truncateText,
+  truncatePostList,
+  truncateCommentList
+};

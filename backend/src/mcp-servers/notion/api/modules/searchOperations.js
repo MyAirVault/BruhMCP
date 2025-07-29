@@ -3,8 +3,8 @@
  * Operations for searching across Notion workspace
  */
 
-import { makeNotionRequest } from './requestHandler.js';
-import { formatNotionResponse } from '../../utils/notionFormatting.js';
+const { makeNotionRequest  } = require('./requestHandler');
+const { formatNotionResponse  } = require('../../utils/notionFormatting');
 
 /**
  * Search for pages and databases
@@ -12,7 +12,7 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Search results
  */
-export async function searchNotion(args, bearerToken) {
+async function searchNotion(args, bearerToken) {
 	const { query, filter = {}, sort = {}, page_size = 100, start_cursor = null } = args;
 
 	const requestBody = {
@@ -36,3 +36,6 @@ export async function searchNotion(args, bearerToken) {
 		next_cursor: /** @type {string|undefined} */ (result.next_cursor || undefined),
 	});
 }
+module.exports = {
+  searchNotion
+};

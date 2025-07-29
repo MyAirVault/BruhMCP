@@ -1,8 +1,8 @@
 // @ts-check
-import { Router } from 'express';
-import { requestToken, verifyToken, getCurrentUser, getUserPlan, logout } from '../controllers/authController.js';
-import { authRateLimiter } from '../utils/rateLimiter.js';
-import { authenticate } from '../middleware/authMiddleware.js';
+const { Router } = require('express');
+const { requestToken, verifyToken, getCurrentUser, getUserPlan, logout } = require('../controllers/authController.js');
+const { authRateLimiter } = require('../utils/rateLimiter.js');
+const { authenticate } = require('../middleware/authMiddleware.js');
 
 const router = Router();
 
@@ -149,4 +149,4 @@ router.get('/plan', authenticate, getUserPlan);
  */
 router.post('/logout', logout);
 
-export default router;
+module.exports = router;

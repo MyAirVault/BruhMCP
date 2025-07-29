@@ -8,7 +8,7 @@
  * @param {string} uuid - UUID to validate
  * @returns {boolean} True if valid UUID v4
  */
-export function isValidUUID(uuid) {
+function isValidUUID(uuid) {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
@@ -18,7 +18,7 @@ export function isValidUUID(uuid) {
  * @param {string} instanceId - Instance ID to validate
  * @returns {boolean} True if valid instance ID
  */
-export function validateInstanceId(instanceId) {
+function validateInstanceId(instanceId) {
   return typeof instanceId === 'string' && isValidUUID(instanceId);
 }
 
@@ -29,7 +29,7 @@ export function validateInstanceId(instanceId) {
  * @param {string} credentials.clientSecret - OAuth client secret
  * @returns {{valid: boolean, error?: string}} Validation result
  */
-export function validateOAuthCredentials(credentials) {
+function validateOAuthCredentials(credentials) {
   if (!credentials || typeof credentials !== 'object') {
     return { valid: false, error: 'Credentials must be an object' };
   }
@@ -61,7 +61,7 @@ export function validateOAuthCredentials(credentials) {
  * @param {string} state - State parameter to validate
  * @returns {{valid: boolean, error?: string, data?: Object}} Validation result
  */
-export function validateOAuthState(state) {
+function validateOAuthState(state) {
   if (!state || typeof state !== 'string') {
     return { valid: false, error: 'State parameter is required' };
   }
@@ -106,7 +106,7 @@ export function validateOAuthState(state) {
  * @param {number} [maxLength=255] - Maximum allowed length
  * @returns {string} Sanitized string
  */
-export function sanitizeString(input, maxLength = 255) {
+function sanitizeString(input, maxLength = 255) {
   if (!input || typeof input !== 'string') {
     return '';
   }
@@ -123,7 +123,7 @@ export function sanitizeString(input, maxLength = 255) {
  * @param {string} code - Authorization code to validate
  * @returns {{valid: boolean, error?: string}} Validation result
  */
-export function validateAuthorizationCode(code) {
+function validateAuthorizationCode(code) {
   if (!code || typeof code !== 'string') {
     return { valid: false, error: 'Authorization code is required' };
   }
@@ -146,7 +146,7 @@ export function validateAuthorizationCode(code) {
  * @param {string} refreshToken - Refresh token to validate
  * @returns {{valid: boolean, error?: string}} Validation result
  */
-export function validateRefreshToken(refreshToken) {
+function validateRefreshToken(refreshToken) {
   if (!refreshToken || typeof refreshToken !== 'string') {
     return { valid: false, error: 'Refresh token is required' };
   }
@@ -169,7 +169,7 @@ export function validateRefreshToken(refreshToken) {
  * @param {string} accessToken - Access token to validate
  * @returns {{valid: boolean, error?: string}} Validation result
  */
-export function validateAccessToken(accessToken) {
+function validateAccessToken(accessToken) {
   if (!accessToken || typeof accessToken !== 'string') {
     return { valid: false, error: 'Access token is required' };
   }
@@ -186,3 +186,14 @@ export function validateAccessToken(accessToken) {
 
   return { valid: true };
 }
+
+module.exports = {
+  isValidUUID,
+  validateInstanceId,
+  validateOAuthCredentials,
+  validateOAuthState,
+  sanitizeString,
+  validateAuthorizationCode,
+  validateRefreshToken,
+  validateAccessToken
+};

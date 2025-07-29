@@ -1,11 +1,11 @@
-import { getAPIKeysByUserId } from '../../db/queries/apiKeysQueries.js';
+const { getAPIKeysByUserId } = require('../../db/queries/apiKeysQueries.js');
 
 /**
  * Get API keys for the authenticated user
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function getAPIKeys(req, res) {
+async function getAPIKeys(req, res) {
 	try {
 		const userId = req.user?.id || '';
 
@@ -49,3 +49,5 @@ export async function getAPIKeys(req, res) {
 		});
 	}
 }
+
+module.exports = { getAPIKeys };

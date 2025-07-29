@@ -3,8 +3,8 @@
  * @fileoverview Contains functions for managing instance status, renewal, and activation
  */
 
-import { pool } from '../../config.js';
-import { updateMCPInstance } from './crud.js';
+const { pool } = require('../../config.js');
+const { updateMCPInstance } = require('./crud.js');
 
 /**
  * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
@@ -17,7 +17,7 @@ import { updateMCPInstance } from './crud.js';
  * @param {boolean} isActive - New active status
  * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
-export async function toggleMCPInstance(instanceId, userId, isActive) {
+async function toggleMCPInstance(instanceId, userId, isActive) {
 	const status = isActive ? 'active' : 'inactive';
 	return updateMCPInstance(instanceId, userId, { status });
 }
@@ -29,7 +29,7 @@ export async function toggleMCPInstance(instanceId, userId, isActive) {
  * @param {Date} newExpirationDate - New expiration date
  * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
-export async function renewMCPInstance(instanceId, userId, newExpirationDate) {
+async function renewMCPInstance(instanceId, userId, newExpirationDate) {
 	const query = `
 		UPDATE mcp_service_table 
 		SET 
@@ -53,7 +53,7 @@ export async function renewMCPInstance(instanceId, userId, newExpirationDate) {
  * @param {string} status - New status (active, inactive, expired)
  * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
-export async function updateInstanceStatus(instanceId, userId, status) {
+async function updateInstanceStatus(instanceId, userId, status) {
 	const query = `
 		UPDATE mcp_service_table 
 		SET status = $1, updated_at = NOW() 
@@ -72,7 +72,7 @@ export async function updateInstanceStatus(instanceId, userId, status) {
  * @param {string} newExpirationDate - New expiration date
  * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null
  */
-export async function renewInstanceExpiration(instanceId, userId, newExpirationDate) {
+async function renewInstanceExpiration(instanceId, userId, newExpirationDate) {
 	const query = `
 		UPDATE mcp_service_table 
 		SET expires_at = $1, status = 'active', updated_at = NOW() 
@@ -83,3 +83,10 @@ export async function renewInstanceExpiration(instanceId, userId, newExpirationD
 	const result = await pool.query(query, [newExpirationDate, instanceId, userId]);
 	return result.rows[0] || null;
 }
+
+module.exports = {
+	toggleMCPInstance,
+	renewMCPInstance,
+	updateInstanceStatus,
+	renewInstanceExpiration
+};

@@ -3,7 +3,7 @@
  * Standardized function for validating Google Drive OAuth credentials format
  */
 
-import createGoogleDriveValidator from '../validation/credentialValidator.js';
+const createGoogleDriveValidator = require('../validation/credentialValidator');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -81,4 +81,5 @@ async function validateCredentials(credentials, userId) {
 }
 
 
-export { validateCredentials };
+
+module.exports = { validateCredentials  };

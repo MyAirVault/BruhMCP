@@ -4,9 +4,9 @@
  * Functions for formatting cells and ranges
  */
 
-import { makeSheetsRequest } from './requestHandler.js';
-import { formatSheetsResponse } from '../../utils/sheetsFormatting.js';
-import { validateSheetsInput } from '../../utils/validation.js';
+const { makeSheetsRequest  } = require('./requestHandler');
+const { formatSheetsResponse  } = require('../../utils/sheetsFormatting');
+const { validateSheetsInput  } = require('../../utils/validation');
 
 /**
  * Format cells in a range
@@ -17,7 +17,7 @@ import { validateSheetsInput } from '../../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Format result
  */
-export async function formatCells(params, bearerToken) {
+async function formatCells(params, bearerToken) {
 	const validation = validateSheetsInput.formatCells(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -104,7 +104,7 @@ export async function formatCells(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Batch update result
  */
-export async function batchUpdate(params, bearerToken) {
+async function batchUpdate(params, bearerToken) {
 	const validation = validateSheetsInput.batchUpdate(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -188,3 +188,7 @@ function parseA1Cell(cell) {
 
 	return { row, col };
 }
+module.exports = {
+  formatCells,
+  batchUpdate
+};

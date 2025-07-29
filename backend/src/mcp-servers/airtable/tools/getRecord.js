@@ -3,10 +3,10 @@
  * Enhanced with optimization and YAML formatting
  */
 
-import { z } from 'zod';
-import * as yaml from 'js-yaml';
-import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
+const { z  } = require('zod');
+const yaml = require('js-yaml');
+const { createLogger  } = require('../utils/logger.js');
+const { AirtableErrorHandler  } = require('../utils/errorHandler.js');
 
 const logger = createLogger('GetRecordTool');
 
@@ -35,7 +35,7 @@ const logger = createLogger('GetRecordTool');
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupGetRecordTool(server, airtableService, measurePerformance, serviceConfig) {
+function setupGetRecordTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool(
 		'get_record',
 		'Get a specific record from an Airtable table',
@@ -84,3 +84,5 @@ export function setupGetRecordTool(server, airtableService, measurePerformance, 
 		})
 	);
 }
+
+module.exports = setupGetRecordTool;

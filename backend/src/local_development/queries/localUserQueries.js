@@ -5,7 +5,7 @@
  * @fileoverview Database queries specific to local development password management
  */
 
-import { db } from '../../db/connection.js';
+const { db } = require('../../db/config.js');
 
 /**
  * Update user password hash
@@ -13,7 +13,7 @@ import { db } from '../../db/connection.js';
  * @param {string} passwordHash 
  * @returns {Promise<Object>}
  */
-export async function updateUserPassword(userId, passwordHash) {
+async function updateUserPassword(userId, passwordHash) {
     const query = `
         UPDATE users 
         SET password_hash = $1, updated_at = CURRENT_TIMESTAMP
@@ -32,9 +32,9 @@ export async function updateUserPassword(userId, passwordHash) {
 
 /**
  * Get all users with password status for local development
- * @returns {Promise<Array>}
+ * @returns {Promise<Array<Object>>}
  */
-export async function getAllUsersWithPasswordStatus() {
+async function getAllUsersWithPasswordStatus() {
     const query = `
         SELECT 
             id, 
@@ -60,7 +60,7 @@ export async function getAllUsersWithPasswordStatus() {
  * @param {string} email 
  * @returns {Promise<Object|null>}
  */
-export async function getUserWithPasswordHash(email) {
+async function getUserWithPasswordHash(email) {
     const query = `
         SELECT id, email, password_hash, created_at, updated_at
         FROM users 
@@ -81,7 +81,7 @@ export async function getUserWithPasswordHash(email) {
  * @param {string} email 
  * @returns {Promise<boolean>}
  */
-export async function userHasPassword(email) {
+async function userHasPassword(email) {
     const query = `
         SELECT id
         FROM users 
@@ -96,3 +96,10 @@ export async function userHasPassword(email) {
         throw error;
     }
 }
+
+module.exports = {
+    updateUserPassword,
+    getAllUsersWithPasswordStatus,
+    getUserWithPasswordHash,
+    userHasPassword
+};

@@ -1,3 +1,67 @@
+export type DocumentationLink = {
+    uri: string;
+    label: string;
+};
+export type AuthorInfo = {
+    id: string;
+    handle: string;
+    imageUrl: string;
+};
+export type ComponentDefinition = {
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    componentSetId?: string | undefined;
+    remote?: boolean | undefined;
+    documentationLinks?: DocumentationLink[] | undefined;
+    createdAt?: string | undefined;
+    updatedAt?: string | undefined;
+    author?: AuthorInfo | undefined;
+};
+export type ComponentSetDefinition = {
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    documentationLinks?: DocumentationLink[] | undefined;
+    createdAt?: string | undefined;
+    updatedAt?: string | undefined;
+    author?: AuthorInfo | undefined;
+};
+export type ComponentPropertyValue = {
+    type: string;
+    value: any;
+};
+export type StyleOverride = {
+    id: string;
+    type: string;
+    value: any;
+};
+export type ComponentInstanceProperties = {
+    componentId: string;
+    type: string;
+    overrides?: Record<string, ComponentPropertyValue> | undefined;
+    styleOverrides?: StyleOverride[] | undefined;
+    exposedInstances?: any[] | undefined;
+};
+export type ComponentSummary = {
+    id: string;
+    name: string;
+    updatedAt?: string | undefined;
+};
+export type ComponentMetadata = {
+    totalComponents: number;
+    totalComponentSets: number;
+    categories: Record<string, number>;
+    mostUsedComponents: ComponentSummary[];
+    recentComponents: ComponentSummary[];
+};
+export type GlobalVarsStore = {
+    components: Record<string, any>;
+    componentSets: Record<string, any>;
+    componentInstances: Record<string, any>;
+};
 /**
  * @typedef {Object} DocumentationLink
  * @property {string} uri
@@ -116,68 +180,4 @@ export function processComponentProperties(node: any, globalVars: GlobalVarsStor
  * @returns {ComponentMetadata} Component metadata summary
  */
 export function extractComponentMetadata(components: Record<string, any>, componentSets: Record<string, any>): ComponentMetadata;
-export type DocumentationLink = {
-    uri: string;
-    label: string;
-};
-export type AuthorInfo = {
-    id: string;
-    handle: string;
-    imageUrl: string;
-};
-export type ComponentDefinition = {
-    id: string;
-    name: string;
-    description: string;
-    type: string;
-    componentSetId?: string | undefined;
-    remote?: boolean | undefined;
-    documentationLinks?: DocumentationLink[] | undefined;
-    createdAt?: string | undefined;
-    updatedAt?: string | undefined;
-    author?: AuthorInfo | undefined;
-};
-export type ComponentSetDefinition = {
-    id: string;
-    name: string;
-    description: string;
-    type: string;
-    documentationLinks?: DocumentationLink[] | undefined;
-    createdAt?: string | undefined;
-    updatedAt?: string | undefined;
-    author?: AuthorInfo | undefined;
-};
-export type ComponentPropertyValue = {
-    type: string;
-    value: any;
-};
-export type StyleOverride = {
-    id: string;
-    type: string;
-    value: any;
-};
-export type ComponentInstanceProperties = {
-    componentId: string;
-    type: string;
-    overrides?: Record<string, ComponentPropertyValue> | undefined;
-    styleOverrides?: StyleOverride[] | undefined;
-    exposedInstances?: any[] | undefined;
-};
-export type ComponentSummary = {
-    id: string;
-    name: string;
-    updatedAt?: string | undefined;
-};
-export type ComponentMetadata = {
-    totalComponents: number;
-    totalComponentSets: number;
-    categories: Record<string, number>;
-    mostUsedComponents: ComponentSummary[];
-    recentComponents: ComponentSummary[];
-};
-export type GlobalVarsStore = {
-    components: Record<string, any>;
-    componentSets: Record<string, any>;
-    componentInstances: Record<string, any>;
-};
 //# sourceMappingURL=sanitization.d.ts.map

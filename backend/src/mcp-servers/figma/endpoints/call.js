@@ -3,16 +3,16 @@
  * Handles tool execution requests via MCP protocol
  */
 
-import { 
+const { 
 	getFigmaFile, 
 	getFigmaNodes
-} from '../api/index.js';
+} = require('../api/index.js');
 
-import { 
+const { 
 	createSuccessResponse, 
 	createErrorResponse,
 	createFigmaOptimizedResponse
-} from '../utils/mcpResponses.js';
+} = require('../utils/mcpResponses.js');
 
 
 /**
@@ -21,7 +21,7 @@ import {
  * @param {any} args - Tool arguments
  * @param {string} apiKey - User's Figma API key
  */
-export async function executeToolCall(toolName, args, apiKey) {
+async function executeToolCall(toolName, args, apiKey) {
 	try {
 		switch (toolName) {
 			case 'get_figma_data':
@@ -59,3 +59,6 @@ export async function executeToolCall(toolName, args, apiKey) {
 		return createErrorResponse(`Failed to execute ${toolName}: ${errorMessage}`);
 	}
 }
+module.exports = {
+	executeToolCall
+};

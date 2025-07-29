@@ -1,10 +1,6 @@
-import { pool } from '../config.js';
-import { readFileSync, readdirSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const { pool } = require('../config.js');
+const { readFileSync, readdirSync } = require('fs');
+const { join } = require('path');
 
 const migrations = [
 	'002_separate_credentials_table.sql',

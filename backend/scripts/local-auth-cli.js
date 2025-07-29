@@ -6,9 +6,9 @@
  * @fileoverview Command-line tool for managing local development authentication
  */
 
-import { createInterface } from 'readline';
-import { localUserService } from '../src/local_development/services/localUserService.js';
-import { isLocalMode, getDefaultLocalUserEmail } from '../src/local_development/config/localMode.js';
+const { createInterface } = require('readline');
+const { localUserService } = require('../src/local_development/services/localUserService.js');
+const { isLocalMode, getDefaultLocalUserEmail } = require('../src/local_development/config/localMode.js');
 
 const rl = createInterface({
     input: process.stdin,

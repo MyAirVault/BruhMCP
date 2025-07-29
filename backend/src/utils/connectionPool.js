@@ -3,8 +3,8 @@
  * Manages HTTP connections for improved performance and resource management
  */
 
-import { Agent } from 'http';
-import { Agent as HttpsAgent } from 'https';
+const { Agent } = require('http');
+const { Agent: HttpsAgent } = require('https');
 
 /**
  * @typedef {Object} ConnectionPoolOptions
@@ -520,5 +520,8 @@ class ConnectionPoolManager {
 // Export singleton instance
 const connectionPoolManager = new ConnectionPoolManager();
 
-export { ConnectionPool, ConnectionPoolManager };
-export default connectionPoolManager;
+module.exports = {
+  ConnectionPool,
+  ConnectionPoolManager,
+  default: connectionPoolManager
+};

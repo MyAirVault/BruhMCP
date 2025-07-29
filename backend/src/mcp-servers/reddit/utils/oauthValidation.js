@@ -307,8 +307,8 @@ async function refreshBearerTokenDirect(refreshData) {
     }
 }
 
-export {
-	validateTokenFormat,
+
+module.exports = { validateTokenFormat,
 	validateScopeFormat,
 	isTokenExpired,
 	validateClientIdFormat,
@@ -320,4 +320,4 @@ export {
 	exchangeOAuthForBearer,
 	refreshBearerToken,
 	refreshBearerTokenDirect
-};
+ };

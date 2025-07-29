@@ -75,7 +75,7 @@ const DANGEROUS_EXTENSIONS = [
  * @param {{removeHtml?: boolean, removeSqlInjection?: boolean, removeXss?: boolean, trimWhitespace?: boolean, maxLength?: number, allowedChars?: string|null}} [options] - Sanitization options
  * @returns {string}
  */
-export function sanitizeInput(input, options = {}) {
+function sanitizeInput(input, options = {}) {
 	if (typeof input !== 'string') {
 		return input;
 	}
@@ -148,7 +148,7 @@ export function sanitizeInput(input, options = {}) {
  * @param {string} input - Input string
  * @returns {string}
  */
-export function escapeHtml(input) {
+function escapeHtml(input) {
 	if (typeof input !== 'string') {
 		return input;
 	}
@@ -161,7 +161,7 @@ export function escapeHtml(input) {
  * @param {string} fieldName - Field name to sanitize
  * @returns {string}
  */
-export function sanitizeFieldName(fieldName) {
+function sanitizeFieldName(fieldName) {
 	if (typeof fieldName !== 'string') {
 		throw new Error('Field name must be a string');
 	}
@@ -184,7 +184,7 @@ export function sanitizeFieldName(fieldName) {
  * @param {Object.<string, string|number|boolean|string[]|Object|null|undefined>} fields - Record fields to sanitize
  * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
-export function sanitizeRecordFields(fields) {
+function sanitizeRecordFields(fields) {
 	if (!fields || typeof fields !== 'object') {
 		throw new Error('Fields must be an object');
 	}
@@ -232,7 +232,7 @@ export function sanitizeRecordFields(fields) {
  * @param {number} [depth=0] - Current depth (to prevent infinite recursion)
  * @returns {string|number|boolean|Object|null|undefined}
  */
-export function sanitizeObject(obj, depth = 0) {
+function sanitizeObject(obj, depth = 0) {
 	if (depth > 5) {
 		logger.warn('Object sanitization depth limit reached');
 		return obj;
@@ -274,7 +274,7 @@ export function sanitizeObject(obj, depth = 0) {
  * @param {string} url - URL to sanitize
  * @returns {string}
  */
-export function sanitizeUrl(url) {
+function sanitizeUrl(url) {
 	if (typeof url !== 'string') {
 		throw new Error('URL must be a string');
 	}
@@ -303,7 +303,7 @@ export function sanitizeUrl(url) {
  * @param {string} fileName - File name to sanitize
  * @returns {string}
  */
-export function sanitizeFileName(fileName) {
+function sanitizeFileName(fileName) {
 	if (typeof fileName !== 'string') {
 		throw new Error('File name must be a string');
 	}
@@ -337,7 +337,7 @@ export function sanitizeFileName(fileName) {
  * @param {string} email - Email to sanitize
  * @returns {string}
  */
-export function sanitizeEmail(email) {
+function sanitizeEmail(email) {
 	if (typeof email !== 'string') {
 		throw new Error('Email must be a string');
 	}
@@ -366,7 +366,7 @@ export function sanitizeEmail(email) {
  * @param {string} phone - Phone number to sanitize
  * @returns {string}
  */
-export function sanitizePhoneNumber(phone) {
+function sanitizePhoneNumber(phone) {
 	if (typeof phone !== 'string') {
 		throw new Error('Phone number must be a string');
 	}
@@ -382,7 +382,7 @@ export function sanitizePhoneNumber(phone) {
  * @param {string} formula - Airtable formula to sanitize
  * @returns {string}
  */
-export function sanitizeFormula(formula) {
+function sanitizeFormula(formula) {
 	if (typeof formula !== 'string') {
 		throw new Error('Formula must be a string');
 	}
@@ -414,7 +414,7 @@ export function sanitizeFormula(formula) {
  * @param {Object.<string, string|number|boolean|string[]|Object|null|undefined>} params - Query parameters to sanitize
  * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
-export function sanitizeQueryParams(params) {
+function sanitizeQueryParams(params) {
 	if (!params || typeof params !== 'object') {
 		return params;
 	}
@@ -444,7 +444,7 @@ export function sanitizeQueryParams(params) {
  * @param {string} input - Input to check
  * @returns {boolean}
  */
-export function containsMaliciousPatterns(input) {
+function containsMaliciousPatterns(input) {
 	if (typeof input !== 'string') {
 		return false;
 	}
@@ -473,7 +473,7 @@ export function containsMaliciousPatterns(input) {
  * @param {string|number|boolean|Object|null|undefined} data - Data to sanitize for logging
  * @returns {string|number|boolean|Object|null|undefined}
  */
-export function sanitizeForLogging(data) {
+function sanitizeForLogging(data) {
 	if (typeof data !== 'object' || data === null) {
 		return data;
 	}
@@ -504,7 +504,7 @@ export function sanitizeForLogging(data) {
  * @param {string} sanitized - Sanitized input
  * @returns {Object}
  */
-export function createSanitizationReport(original, sanitized) {
+function createSanitizationReport(original, sanitized) {
 	return {
 		originalLength: original.length,
 		sanitizedLength: sanitized.length,
@@ -520,7 +520,7 @@ export function createSanitizationReport(original, sanitized) {
  * @param {function(string|number|boolean|Object|null|undefined): (string|number|boolean|Object|null|undefined)} [sanitizer=sanitizeInput] - Sanitization function
  * @returns {(string|number|boolean|Object|null|undefined|null)[]}
  */
-export function batchSanitize(inputs, sanitizer = /** @type {function(string|number|boolean|Object|null|undefined): (string|number|boolean|Object|null|undefined)} */ (sanitizeInput)) {
+function batchSanitize(inputs, sanitizer = /** @type {function(string|number|boolean|Object|null|undefined): (string|number|boolean|Object|null|undefined)} */ (sanitizeInput)) {
 	if (!Array.isArray(inputs)) {
 		throw new Error('Inputs must be an array');
 	}
@@ -545,10 +545,7 @@ export function batchSanitize(inputs, sanitizer = /** @type {function(string|num
 	return results;
 }
 
-/**
- * Default export
- */
-export default {
+module.exports = {
 	sanitizeInput,
 	escapeHtml,
 	sanitizeFieldName,

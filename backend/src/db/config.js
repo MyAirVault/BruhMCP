@@ -1,7 +1,7 @@
 // @ts-check
 
-import pg from 'pg';
-import dotenv from 'dotenv';
+const pg = require('pg');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
@@ -24,13 +24,13 @@ const config = {
 /**
  * Database connection pool
  */
-export const pool = new Pool(config);
+const pool = new Pool(config);
 
 /**
  * Test database connection
  * @returns {Promise<void>}
  */
-export async function testConnection() {
+async function testConnection() {
 	try {
 		const client = await pool.connect();
 		console.log('Database connected successfully');
@@ -45,7 +45,7 @@ export async function testConnection() {
  * Check if required database tables exist
  * @returns {Promise<boolean>}
  */
-export async function checkDatabaseTables() {
+async function checkDatabaseTables() {
 	const requiredTables = [
 		'users',
 		'mcp_table',
@@ -89,7 +89,7 @@ export async function checkDatabaseTables() {
  * Initialize database connection and verify tables
  * @returns {Promise<void>}
  */
-export async function initializeDatabase() {
+async function initializeDatabase() {
 	try {
 		console.log('🔄 Initializing database connection...');
 		await testConnection();
@@ -103,3 +103,11 @@ export async function initializeDatabase() {
 		throw error;
 	}
 }
+
+module.exports = {
+	db: pool,
+	pool,
+	testConnection,
+	checkDatabaseTables,
+	initializeDatabase
+};

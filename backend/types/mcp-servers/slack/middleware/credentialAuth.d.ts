@@ -1,19 +1,4 @@
 /**
- * Create credential authentication middleware for OAuth Bearer tokens
- * @returns {Function} Express middleware function
- */
-export function createCredentialAuthMiddleware(): Function;
-/**
- * Create lightweight authentication middleware for non-critical endpoints
- * @returns {Function} Express middleware function
- */
-export function createLightweightAuthMiddleware(): Function;
-/**
- * Create cache performance monitoring middleware for development
- * @returns {Function} Express middleware function
- */
-export function createCachePerformanceMiddleware(): Function;
-/**
  * Slack error structure for OAuth operations
  */
 export type SlackError = {
@@ -45,7 +30,7 @@ export type SlackError = {
 /**
  * Extended error options for Slack error responses
  */
-export type ExtendedErrorOptions = import("../../../utils/errorResponse.js").ErrorOptions & {
+export type ExtendedErrorOptions = import('../../../utils/errorResponse.js').CustomErrorOptions & {
     expectedFormat?: string;
     error?: string;
     errorCode?: string;
@@ -54,7 +39,22 @@ export type ExtendedErrorOptions = import("../../../utils/errorResponse.js").Err
 /**
  * Extended OAuth update data for Slack
  */
-export type SlackOAuthUpdateData = import("../../../db/queries/mcpInstances/types.js").OAuthUpdateData & {
+export type SlackOAuthUpdateData = import('../../../db/queries/mcpInstances/types.js').OAuthUpdateData & {
     teamId?: string;
 };
+/**
+ * Create credential authentication middleware for OAuth Bearer tokens
+ * @returns {Function} Express middleware function
+ */
+export function createCredentialAuthMiddleware(): Function;
+/**
+ * Create lightweight authentication middleware for non-critical endpoints
+ * @returns {Function} Express middleware function
+ */
+export function createLightweightAuthMiddleware(): Function;
+/**
+ * Create cache performance monitoring middleware for development
+ * @returns {Function} Express middleware function
+ */
+export function createCachePerformanceMiddleware(): Function;
 //# sourceMappingURL=credentialAuth.d.ts.map

@@ -1,3 +1,4 @@
+export = setupCreateMultipleRecordsTool;
 /**
  * @typedef {Object} MCPServer
  * @property {Function} tool - Tool registration function
@@ -20,14 +21,17 @@
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupCreateMultipleRecordsTool(server: MCPServer, airtableService: import("../services/airtableService.js").AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
-export type MCPServer = {
+declare function setupCreateMultipleRecordsTool(server: MCPServer, airtableService: import('../services/airtableService.js').AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
+declare namespace setupCreateMultipleRecordsTool {
+    export { MCPServer, ServiceConfig, CreateMultipleRecordsParams };
+}
+type MCPServer = {
     /**
      * - Tool registration function
      */
     tool: Function;
 };
-export type ServiceConfig = {
+type ServiceConfig = {
     /**
      * - Service name
      */
@@ -37,7 +41,7 @@ export type ServiceConfig = {
      */
     displayName: string;
 };
-export type CreateMultipleRecordsParams = {
+type CreateMultipleRecordsParams = {
     /**
      * - The ID of the Airtable base
      */

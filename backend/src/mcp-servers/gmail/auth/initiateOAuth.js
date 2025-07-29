@@ -3,7 +3,7 @@
  * Standardized function for initiating Gmail OAuth flow
  */
 
-import GmailOAuthHandler from '../oauth/oauthHandler.js';
+const GmailOAuthHandler = require('../oauth/oauthHandler.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -70,4 +70,8 @@ async function initiateOAuth(credentials, userId, instanceId) {
 }
 
 
-export { initiateOAuth };
+;
+
+module.exports = {
+	initiateOAuth
+};

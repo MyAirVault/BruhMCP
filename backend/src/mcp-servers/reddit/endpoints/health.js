@@ -3,22 +3,13 @@
  * Returns service status and configuration
  */
 
-/**
- * @typedef {Object} ServiceConfig
- * @property {string} name - Service name
- * @property {string} displayName - Display name
- * @property {string} version - Service version
- * @property {number} port - Service port
- * @property {string} authType - Authentication type
- * @property {string} description - Service description
- */
 
 /**
  * Health check for Reddit service
- * @param {ServiceConfig} config - Service configuration
+ * @param {{name: string, displayName: string, version: string, port: number, authType: string, description: string}} config - Service configuration
  * @returns {{service: string, displayName: string, status: string, version: string, port: number, authType: string, description: string, endpoints: Object, features: Object, timestamp: string}} Health status object
  */
-export function healthCheck(config) {
+function healthCheck(config) {
   return {
     service: config.name,
     displayName: config.displayName,
@@ -42,3 +33,7 @@ export function healthCheck(config) {
     timestamp: new Date().toISOString()
   };
 }
+
+module.exports = {
+  healthCheck
+};

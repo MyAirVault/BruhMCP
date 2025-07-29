@@ -3,8 +3,8 @@
  * Express route handlers for the Sheets service
  */
 
-import { getOrCreateHandler } from './services/handlerSessions.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
+const { getOrCreateHandler  } = require('./services/handlerSessions');
+const { ErrorResponses  } = require('../../utils/errorResponse');
 
 /**
  * Service Configuration Type
@@ -94,7 +94,7 @@ function getHealthStatus(serviceConfig) {
  * @param {import('express').RequestHandler} credentialAuthMiddleware - Credential auth middleware
  * @param {import('express').RequestHandler} lightweightAuthMiddleware - Lightweight auth middleware
  */
-export function setupRoutes(app, SERVICE_CONFIG, credentialAuthMiddleware, lightweightAuthMiddleware) {
+function setupRoutes(app, SERVICE_CONFIG, credentialAuthMiddleware, lightweightAuthMiddleware) {
 	/**
 	 * Global health endpoint (no instance required)
 	 * @param {import('express').Request} _ - Express request object (unused)
@@ -234,3 +234,7 @@ export function setupRoutes(app, SERVICE_CONFIG, credentialAuthMiddleware, light
 		});
 	});
 }
+
+module.exports = {
+	setupRoutes
+};

@@ -1,8 +1,8 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
+const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/index.js');
 // Credential validation now handled per service
-import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
-import { validateInstanceCustomName } from './updateInstanceName.js';
-import { pool } from '../../../db/config.js';
+const { invalidateInstanceCache } = require('../../../services/cacheInvalidationService.js');
+const { validateInstanceCustomName } = require('./updateInstanceName.js');
+const { pool } = require('../../../db/config.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -39,7 +39,7 @@ import { pool } from '../../../db/config.js';
  * @param {Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function updateInstance(req, res) {
+async function updateInstance(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -347,3 +347,5 @@ function sanitizeUserInfo(userInfo) {
 
 	return Object.keys(sanitized).length > 0 ? sanitized : null;
 }
+
+module.exports = { updateInstance, sanitizeUserInfo };

@@ -1,15 +1,4 @@
 /**
- * Initialize the credential cache system
- * Called on service startup
- */
-export function initializeCredentialCache(): void;
-/**
- * Get cached credential for an instance
- * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cached credential data or null if not found/expired
- */
-export function getCachedCredential(instanceId: string): Object | null;
-/**
  * Store credential in cache
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} credentialData - Credential data to cache
@@ -24,6 +13,30 @@ export function setCachedCredential(instanceId: string, credentialData: {
     expiresAt: string;
     user_id: string;
 }): Promise<void>;
+/**
+ * Update cached credential metadata (status, expiration) without changing the credential itself
+ * Used for status changes and renewals to keep cache in sync
+ * @param {string} instanceId - UUID of the service instance
+ * @param {Object} updates - Updates to apply to cache entry
+ * @param {string} [updates.status] - New instance status
+ * @param {string} [updates.expires_at] - New expiration timestamp
+ * @returns {Promise<boolean>} True if cache entry was updated, false if not found
+ */
+export function updateCachedCredentialMetadata(instanceId: string, updates: {
+    status?: string | undefined;
+    expires_at?: string | undefined;
+}): Promise<boolean>;
+/**
+ * Initialize the credential cache system
+ * Called on service startup
+ */
+export function initializeCredentialCache(): void;
+/**
+ * Get cached credential for an instance
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Object|null} Cached credential data or null if not found/expired
+ */
+export function getCachedCredential(instanceId: string): Object | null;
 /**
  * Remove credential from cache
  * @param {string} instanceId - UUID of the service instance
@@ -55,19 +68,6 @@ export function clearCredentialCache(): void;
  * @returns {Object|null} Cache entry or null
  */
 export function peekCachedCredential(instanceId: string): Object | null;
-/**
- * Update cached credential metadata (status, expiration) without changing the credential itself
- * Used for status changes and renewals to keep cache in sync
- * @param {string} instanceId - UUID of the service instance
- * @param {Object} updates - Updates to apply to cache entry
- * @param {string} [updates.status] - New instance status
- * @param {string} [updates.expires_at] - New expiration timestamp
- * @returns {Promise<boolean>} True if cache entry was updated, false if not found
- */
-export function updateCachedCredentialMetadata(instanceId: string, updates: {
-    status?: string | undefined;
-    expires_at?: string | undefined;
-}): Promise<boolean>;
 /**
  * Remove expired or inactive instances from cache
  * Called by background watcher and status change operations

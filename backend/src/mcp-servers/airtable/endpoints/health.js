@@ -38,7 +38,7 @@
  * @param {ServiceConfig} config - Service configuration
  * @returns {HealthResponse} Health status object
  */
-export function healthCheck(config) {
+function healthCheck(config) {
   /** @type {HealthResponse} */
   const response = {
     service: config.name,
@@ -62,3 +62,5 @@ export function healthCheck(config) {
   };
   return response;
 }
+
+module.exports = { healthCheck };

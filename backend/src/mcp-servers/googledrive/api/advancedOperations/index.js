@@ -4,25 +4,40 @@
  */
 
 // Team Drive operations
-export {
-  listTeamDrives,
+const { listTeamDrives,
   getTeamDriveInfo,
   listTeamDriveFiles,
   addTeamDriveMember,
   moveToTeamDrive
-} from './teamDriveOperations.js';
+ } = require('./teamDriveOperations');
+
+module.exports = { listTeamDrives,
+  getTeamDriveInfo,
+  listTeamDriveFiles,
+  addTeamDriveMember,
+  moveToTeamDrive
+ };
 
 // Batch operations
-export {
-  batchDeleteFiles,
+const { batchDeleteFiles,
   batchUpdateMetadata,
   syncFolderPermissions
-} from './batchOperations.js';
+ } = require('./batchOperations');
+
+module.exports = { batchDeleteFiles,
+  batchUpdateMetadata,
+  syncFolderPermissions
+ };
 
 // Activity and revision operations
-export {
-  getFileRevisions,
+const { getFileRevisions,
   getRecentActivity,
   getFileComments,
   trackFileChanges
-} from './activityOperations.js';
+ } = require('./activityOperations');
+
+module.exports = { getFileRevisions,
+  getRecentActivity,
+  getFileComments,
+  trackFileChanges
+ };

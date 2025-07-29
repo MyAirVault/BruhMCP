@@ -1,5 +1,5 @@
-export type TokenInfo = import("../middleware/types.js").TokenInfo;
-export type TokenRefreshResult = import("../middleware/types.js").TokenRefreshResult;
+export type TokenInfo = import('../middleware/types.js').TokenInfo;
+export type TokenRefreshResult = import('../middleware/types.js').TokenRefreshResult;
 /**
  * OAuth credentials for token exchange
  */
@@ -85,7 +85,7 @@ export function validateScopeFormat(scope: string): boolean;
  * @param {number} [bufferMinutes=5] - Buffer time in minutes before considering expired
  * @returns {boolean} Whether the token is expired
  */
-export function isTokenExpired(expiresAt: number, bufferMinutes?: number): boolean;
+export function isTokenExpired(expiresAt: number, bufferMinutes?: number | undefined): boolean;
 /**
  * Validates client ID format for Reddit
  * @param {string} clientId - Client ID to validate

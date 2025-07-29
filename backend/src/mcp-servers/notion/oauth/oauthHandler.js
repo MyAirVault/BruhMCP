@@ -188,4 +188,4 @@ class NotionOAuthHandler {
 	}
 }
 
-export default NotionOAuthHandler;
+module.exports = NotionOAuthHandler;

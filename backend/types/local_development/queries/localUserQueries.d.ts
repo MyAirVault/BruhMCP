@@ -7,9 +7,9 @@
 export function updateUserPassword(userId: number, passwordHash: string): Promise<Object>;
 /**
  * Get all users with password status for local development
- * @returns {Promise<Array>}
+ * @returns {Promise<Array<Object>>}
  */
-export function getAllUsersWithPasswordStatus(): Promise<any[]>;
+export function getAllUsersWithPasswordStatus(): Promise<Array<Object>>;
 /**
  * Get user with password hash (for password verification)
  * @param {string} email

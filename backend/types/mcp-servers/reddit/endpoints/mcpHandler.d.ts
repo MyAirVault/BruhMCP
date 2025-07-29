@@ -1,3 +1,9 @@
+export type ServiceConfig = {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+};
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -26,7 +32,7 @@ export class RedditMCPHandler {
      * @param {Object} jsonSchema - JSON schema object
      * @returns {import('zod').ZodObject<Record<string, import('zod').ZodType>>} Zod schema
      */
-    convertJsonSchemaToZod(jsonSchema: Object): import("zod").ZodObject<Record<string, import("zod").ZodType>>;
+    convertJsonSchemaToZod(jsonSchema: Object): import('zod').ZodObject<Record<string, import('zod').ZodType>>;
     /**
      * Handle incoming MCP request using session-based transport
      * @param {any} req - Express request object
@@ -58,12 +64,6 @@ export class RedditMCPHandler {
      */
     cleanup(): Promise<void>;
 }
-export type ServiceConfig = {
-    name: string;
-    displayName: string;
-    version: string;
-    scopes: string[];
-};
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
 //# sourceMappingURL=mcpHandler.d.ts.map

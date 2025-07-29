@@ -3,7 +3,7 @@
  * Implements OAuth flow for Reddit MCP service
  */
 
-import fetch from 'node-fetch';
+const { axiosGet, axiosPost } = require('../../../utils/axiosUtils.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
@@ -112,22 +112,19 @@ class RedditOAuthHandler {
 
 			const basicAuth = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
 
-			const response = await fetch(this.tokenEndpoint, {
-				method: 'POST',
+			const response = await axiosPost(this.tokenEndpoint, tokenParams, {
 				headers: {
 					'Authorization': `Basic ${basicAuth}`,
 					'Content-Type': 'application/x-www-form-urlencoded',
 					'User-Agent': 'MinimCP:Reddit:v1.0.0 (by /u/minimcp)',
 				},
-				body: tokenParams,
 			});
 
-			if (!response.ok) {
-				const errorText = await response.text();
-				throw new Error(`Token exchange failed: ${response.status} ${errorText}`);
+			if (response.status < 200 || response.status >= 300) {
+				throw new Error(`Token exchange failed: ${response.status} ${response.statusText}`);
 			}
 
-			const tokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */ (await response.json());
+			const tokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number, scope?: string}} */ (response.data);
 
 			if (!tokens.access_token) {
 				throw new Error('Failed to obtain access token');
@@ -170,22 +167,19 @@ class RedditOAuthHandler {
 
 			const basicAuth = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
 
-			const response = await fetch(this.tokenEndpoint, {
-				method: 'POST',
+			const response = await axiosPost(this.tokenEndpoint, tokenParams, {
 				headers: {
 					'Authorization': `Basic ${basicAuth}`,
 					'Content-Type': 'application/x-www-form-urlencoded',
 					'User-Agent': 'MinimCP:Reddit:v1.0.0 (by /u/minimcp)',
 				},
-				body: tokenParams,
 			});
 
-			if (!response.ok) {
-				const errorText = await response.text();
-				throw new Error(`Token refresh failed: ${response.status} ${errorText}`);
+			if (response.status < 200 || response.status >= 300) {
+				throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
 			}
 
-			const newTokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number}} */ (await response.json());
+			const newTokens = /** @type {{access_token?: string, refresh_token?: string, expires_in?: number}} */ (response.data);
 
 			return {
 				access_token: /** @type {string} */ (newTokens.access_token),
@@ -199,4 +193,4 @@ class RedditOAuthHandler {
 	}
 }
 
-export default RedditOAuthHandler;
+module.exports = RedditOAuthHandler;

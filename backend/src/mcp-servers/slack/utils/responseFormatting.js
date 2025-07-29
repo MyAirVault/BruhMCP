@@ -3,7 +3,7 @@
  * Handles API responses, MCP responses, and data structures
  */
 
-import { debug } from './logger.js';
+const { debug  } = require('./logger');
 
 /**
  * @typedef {Object} SlackAPIResponse
@@ -42,7 +42,7 @@ import { debug } from './logger.js';
  * @param {SlackAPIResponse|null} response - Raw Slack API response
  * @returns {FormattedSlackResponse|null} Formatted response
  */
-export function formatSlackResponse(response) {
+function formatSlackResponse(response) {
 	if (!response) return null;
 
 	/** @type {FormattedSlackResponse} */
@@ -74,7 +74,7 @@ export function formatSlackResponse(response) {
  * @param {string} text - Response text
  * @returns {MCPResponse} MCP response object
  */
-export function createTextResponse(text) {
+function createTextResponse(text) {
 	return {
 		content: [
 			{
@@ -90,7 +90,7 @@ export function createTextResponse(text) {
  * @param {MCPContentBlock[]} blocks - Array of content blocks
  * @returns {MCPResponse} MCP response object
  */
-export function createFormattedResponse(blocks) {
+function createFormattedResponse(blocks) {
 	return {
 		content: blocks
 	};
@@ -101,7 +101,7 @@ export function createFormattedResponse(blocks) {
  * @param {Error} error - Error object
  * @returns {MCPResponse} MCP error response
  */
-export function formatErrorResponse(error) {
+function formatErrorResponse(error) {
 	debug('Formatting error response', { error: error.message });
 	
 	return {
@@ -122,7 +122,7 @@ export function formatErrorResponse(error) {
  * @param {Record<string, any>} metadata - Additional metadata
  * @returns {MCPResponse} Rich MCP response object
  */
-export function createRichTextResponse(title, content, metadata = {}) {
+function createRichTextResponse(title, content, metadata = {}) {
 	debug('Creating rich text response', { title, hasMetadata: Object.keys(metadata).length > 0 });
 	
 	const response = {
@@ -151,7 +151,7 @@ export function createRichTextResponse(title, content, metadata = {}) {
  * @param {string} title - Table title
  * @returns {MCPResponse} Table MCP response object
  */
-export function createTableResponse(headers, rows, title = '') {
+function createTableResponse(headers, rows, title = '') {
 	debug('Creating table response', { 
 		title, 
 		headerCount: headers.length, 
@@ -177,3 +177,12 @@ export function createTableResponse(headers, rows, title = '') {
 		]
 	};
 }
+
+module.exports = {
+	formatSlackResponse,
+	createTextResponse,
+	createFormattedResponse,
+	formatErrorResponse,
+	createRichTextResponse,
+	createTableResponse
+};

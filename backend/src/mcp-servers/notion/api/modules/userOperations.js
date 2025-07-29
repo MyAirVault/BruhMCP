@@ -3,8 +3,8 @@
  * Operations for managing Notion users and workspace information
  */
 
-import { makeNotionRequest } from './requestHandler.js';
-import { formatNotionResponse } from '../../utils/notionFormatting.js';
+const { makeNotionRequest  } = require('./requestHandler');
+const { formatNotionResponse  } = require('../../utils/notionFormatting');
 
 /**
  * Get current user
@@ -12,7 +12,7 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} User data
  */
-export async function getCurrentUser(_args, bearerToken) {
+async function getCurrentUser(_args, bearerToken) {
 	const result = await makeNotionRequest('/users/me', bearerToken);
 
 	return formatNotionResponse({
@@ -27,7 +27,7 @@ export async function getCurrentUser(_args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Users list
  */
-export async function listUsers(args, bearerToken) {
+async function listUsers(args, bearerToken) {
 	const { start_cursor = null, page_size = 100 } = args;
 
 	let endpoint = '/users';
@@ -48,3 +48,7 @@ export async function listUsers(args, bearerToken) {
 		next_cursor: /** @type {string|undefined} */ (result.next_cursor || undefined),
 	});
 }
+module.exports = {
+  getCurrentUser,
+  listUsers
+};

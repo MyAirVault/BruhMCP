@@ -1,3 +1,66 @@
+export type NotionParent = {
+    /**
+     * - Parent type
+     */
+    type: 'page_id' | 'database_id' | 'workspace';
+    /**
+     * - Page ID if type is 'page_id'
+     */
+    page_id?: string | undefined;
+    /**
+     * - Database ID if type is 'database_id'
+     */
+    database_id?: string | undefined;
+};
+export type NotionPageCreationData = {
+    /**
+     * - Parent object
+     */
+    parent: NotionParent;
+    /**
+     * - Page properties
+     */
+    properties?: Record<string, any> | undefined;
+    /**
+     * - Child blocks
+     */
+    children?: any[] | undefined;
+};
+export type NotionDatabaseCreationData = {
+    /**
+     * - Parent object
+     */
+    parent: NotionParent;
+    /**
+     * - Database title
+     */
+    title: Array<any>;
+    /**
+     * - Database properties
+     */
+    properties: Record<string, any>;
+};
+export type NotionBlockData = {
+    /**
+     * - Block type
+     */
+    type: string;
+    /**
+     * - Block properties
+     */
+    properties?: Record<string, any> | undefined;
+};
+export type ValidationResult = {
+    /**
+     * - Whether validation passed
+     */
+    valid: boolean;
+    /**
+     * - Array of error messages
+     */
+    errors: string[];
+};
+export type LogMetadata = Record<string, any>;
 /**
  * Input validation utilities for Notion MCP service
  */
@@ -110,81 +173,18 @@ export namespace Logger {
      * @param {string} message - Log message
      * @param {LogMetadata} [metadata] - Additional metadata
      */
-    function info(message: string, metadata?: LogMetadata): void;
+    function info(message: string, metadata?: Record<string, any> | undefined): void;
     /**
      * Log error message
      * @param {string} message - Log message
      * @param {Error|LogMetadata} [error] - Error object or metadata
      */
-    function error(message: string, error?: Error | LogMetadata): void;
+    function error(message: string, error?: Error | Record<string, any> | undefined): void;
     /**
      * Log general message
      * @param {string} message - Log message
      * @param {LogMetadata} [metadata] - Additional metadata
      */
-    function log(message: string, metadata?: LogMetadata): void;
+    function log(message: string, metadata?: Record<string, any> | undefined): void;
 }
-export type NotionParent = {
-    /**
-     * - Parent type
-     */
-    type: "page_id" | "database_id" | "workspace";
-    /**
-     * - Page ID if type is 'page_id'
-     */
-    page_id?: string | undefined;
-    /**
-     * - Database ID if type is 'database_id'
-     */
-    database_id?: string | undefined;
-};
-export type NotionPageCreationData = {
-    /**
-     * - Parent object
-     */
-    parent: NotionParent;
-    /**
-     * - Page properties
-     */
-    properties?: Record<string, any> | undefined;
-    /**
-     * - Child blocks
-     */
-    children?: any[] | undefined;
-};
-export type NotionDatabaseCreationData = {
-    /**
-     * - Parent object
-     */
-    parent: NotionParent;
-    /**
-     * - Database title
-     */
-    title: Array<any>;
-    /**
-     * - Database properties
-     */
-    properties: Record<string, any>;
-};
-export type NotionBlockData = {
-    /**
-     * - Block type
-     */
-    type: string;
-    /**
-     * - Block properties
-     */
-    properties?: Record<string, any> | undefined;
-};
-export type ValidationResult = {
-    /**
-     * - Whether validation passed
-     */
-    valid: boolean;
-    /**
-     * - Array of error messages
-     */
-    errors: string[];
-};
-export type LogMetadata = Record<string, any>;
 //# sourceMappingURL=validation.d.ts.map

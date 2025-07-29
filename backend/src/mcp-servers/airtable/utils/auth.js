@@ -3,9 +3,9 @@
  * Authentication helpers for Airtable API operations
  */
 
-import { createLogger } from './logger.js';
-import { validateApiToken } from './validation.js';
-import { AirtableErrorHandler, AuthenticationError } from './errorHandler.js';
+const { createLogger  } = require('./logger.js');
+const { validateApiToken  } = require('./validation.js');
+const { AirtableErrorHandler, AuthenticationError  } = require('./errorHandler.js');
 
 const logger = createLogger('AuthUtils');
 
@@ -18,7 +18,7 @@ const CACHE_DURATION = 300000; // 5 minutes
 /**
  * Token types
  */
-export const TOKEN_TYPES = {
+const TOKEN_TYPES = {
 	PERSONAL_ACCESS_TOKEN: 'personal_access_token',
 	LEGACY_API_KEY: 'legacy_api_key'
 };
@@ -37,7 +37,7 @@ export const TOKEN_TYPES = {
  * @param {string} token - Token to validate
  * @returns {Promise<TokenValidationResult>} Validation result
  */
-export async function validateToken(token) {
+async function validateToken(token) {
 	if (!token) {
 		throw new AuthenticationError('API token is required');
 	}
@@ -107,7 +107,7 @@ export async function validateToken(token) {
  * @param {string} token - Token string
  * @returns {string} Token type
  */
-export function getTokenType(token) {
+function getTokenType(token) {
 	if (token.startsWith('pat')) {
 		return TOKEN_TYPES.PERSONAL_ACCESS_TOKEN;
 	} else if (token.startsWith('key')) {
@@ -155,7 +155,7 @@ async function extractUserId(_response) {
  * @param {string} scope - Required scope
  * @returns {Promise<boolean>} True if token has scope
  */
-export async function hasScope(token, scope) {
+async function hasScope(token, scope) {
 	try {
 		const validation = await validateToken(token);
 		return validation.scopes.includes(scope);
@@ -175,7 +175,7 @@ export async function hasScope(token, scope) {
  * @param {string} token - API token
  * @returns {AuthHeader} Authorization header
  */
-export function createAuthHeader(token) {
+function createAuthHeader(token) {
 	if (!token) {
 		throw new AuthenticationError('Token is required for authorization header');
 	}
@@ -198,7 +198,7 @@ export function createAuthHeader(token) {
  * @param {AuthMiddlewareOptions} [options] - Middleware options
  * @returns {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} Express middleware
  */
-export function createAuthMiddleware(options = {}) {
+function createAuthMiddleware(options = {}) {
 	const {
 		tokenHeader = 'authorization',
 		tokenPrefix = 'Bearer ',
@@ -260,7 +260,7 @@ export function createAuthMiddleware(options = {}) {
  * @param {string} type - Token type
  * @returns {string} Generated token
  */
-export function generateTestToken(type = TOKEN_TYPES.PERSONAL_ACCESS_TOKEN) {
+function generateTestToken(type = TOKEN_TYPES.PERSONAL_ACCESS_TOKEN) {
 	const randomString = () => Math.random().toString(36).substring(2, 15);
 	
 	switch (type) {
@@ -278,7 +278,7 @@ export function generateTestToken(type = TOKEN_TYPES.PERSONAL_ACCESS_TOKEN) {
  * @param {string} token - Token to refresh
  * @returns {Promise<Object>} Validation result
  */
-export async function refreshTokenValidation(token) {
+async function refreshTokenValidation(token) {
 	const cacheKey = `validate_${token.substring(0, 10)}`;
 	tokenCache.delete(cacheKey);
 	
@@ -288,7 +288,7 @@ export async function refreshTokenValidation(token) {
 /**
  * Clear token cache
  */
-export function clearTokenCache() {
+function clearTokenCache() {
 	tokenCache.clear();
 	logger.debug('Token cache cleared');
 }
@@ -297,7 +297,7 @@ export function clearTokenCache() {
  * Get token cache statistics
  * @returns {Object} Cache statistics
  */
-export function getTokenCacheStats() {
+function getTokenCacheStats() {
 	return {
 		size: tokenCache.size,
 		keys: Array.from(tokenCache.keys()).map(key => key.substring(0, 20) + '...'),
@@ -311,7 +311,7 @@ export function getTokenCacheStats() {
  * @param {TokenValidationResult} tokenValidation - Token validation result
  * @returns {boolean} True if expired
  */
-export function isTokenExpired(tokenValidation) {
+function isTokenExpired(tokenValidation) {
 	if (!tokenValidation.expiresAt) {
 		return false; // Airtable tokens don't expire
 	}
@@ -337,7 +337,7 @@ export function isTokenExpired(tokenValidation) {
  * @param {string} token - API token
  * @returns {TokenInfo} Token info
  */
-export function createTokenInfo(token) {
+function createTokenInfo(token) {
 	return {
 		type: getTokenType(token),
 		prefix: token.substring(0, 6) + '...',
@@ -358,7 +358,7 @@ export function createTokenInfo(token) {
  * @param {Array<string>} tokens - Array of tokens
  * @returns {Promise<Array<TokenValidationResultWithInfo>>} Validation results
  */
-export async function validateMultipleTokens(tokens) {
+async function validateMultipleTokens(tokens) {
 	const results = [];
 	
 	for (const token of tokens) {
@@ -381,7 +381,7 @@ export async function validateMultipleTokens(tokens) {
  * @param {string} token - Token to display
  * @returns {string} Secure display string
  */
-export function createSecureTokenDisplay(token) {
+function createSecureTokenDisplay(token) {
 	if (!token || token.length < 10) {
 		return '[INVALID_TOKEN]';
 	}
@@ -396,19 +396,20 @@ export function createSecureTokenDisplay(token) {
 /**
  * Default export
  */
-export default {
-	validateToken,
+
+module.exports = {
+	TOKEN_TYPES,
 	getTokenType,
-	hasScope,
 	createAuthHeader,
 	createAuthMiddleware,
 	generateTestToken,
-	refreshTokenValidation,
 	clearTokenCache,
 	getTokenCacheStats,
 	isTokenExpired,
 	createTokenInfo,
-	validateMultipleTokens,
 	createSecureTokenDisplay,
-	TOKEN_TYPES
+	validateToken,
+	hasScope,
+	refreshTokenValidation,
+	validateMultipleTokens
 };

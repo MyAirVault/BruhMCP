@@ -1,5 +1,5 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
-import { pool } from '../../../db/config.js';
+const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/index.js');
+const { pool } = require('../../../db/config.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -10,7 +10,7 @@ import { pool } from '../../../db/config.js';
  * @param {Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function updateInstanceName(req, res) {
+async function updateInstanceName(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -233,6 +233,8 @@ function validateCustomName(name) {
  * @param {string} name - Name to validate
  * @returns {any} Validation result
  */
-export function validateInstanceCustomName(name) {
+function validateInstanceCustomName(name) {
 	return validateCustomName(name);
 }
+
+module.exports = { updateInstanceName, validateInstanceCustomName, validateCustomName };

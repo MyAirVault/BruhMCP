@@ -3,9 +3,9 @@
  * Updated to support OAuth Bearer token authentication
  */
 
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
-import { validateBearerToken } from '../utils/oauthValidation.js';
-import { Logger } from '../utils/validation.js';
+const { BaseValidator, createValidationResult  } = require('../../../services/validation/baseValidator');
+const { validateBearerToken  } = require('../utils/oauthValidation');
+const { Logger  } = require('../utils/validation');
 
 /**
  * Credentials object for OAuth authentication
@@ -23,7 +23,7 @@ import { Logger } from '../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token to validate
  * @returns {Promise<{valid: boolean, error?: string, user?: Object}>} Validation result
  */
-export async function validateNotionBearerToken(bearerToken) {
+async function validateNotionBearerToken(bearerToken) {
 	try {
 		// Basic format validation
 		if (!bearerToken || typeof bearerToken !== 'string') {
@@ -84,7 +84,7 @@ export async function validateNotionBearerToken(bearerToken) {
  * @param {OAuthCredentials} credentials - Credentials object
  * @returns {boolean} True if valid structure
  */
-export function validateCredentialStructure(credentials) {
+function validateCredentialStructure(credentials) {
 	if (!credentials || typeof credentials !== 'object') {
 		return false;
 	}
@@ -114,7 +114,7 @@ export function validateCredentialStructure(credentials) {
  * @param {Object} credentials - Credentials object
  * @returns {Object|null} OAuth credentials or null if not found
  */
-export function extractOAuthCredentials(credentials) {
+function extractOAuthCredentials(credentials) {
 	if (!credentials || typeof credentials !== 'object') {
 		return null;
 	}
@@ -145,7 +145,7 @@ export function extractOAuthCredentials(credentials) {
  * @param {Object} credentials - Credentials object
  * @returns {Promise<{valid: boolean, oauthCredentials?: Object, error?: string}>} Validation result
  */
-export async function validateAndExtractCredentials(credentials) {
+async function validateAndExtractCredentials(credentials) {
 	try {
 		// Validate structure
 		if (!validateCredentialStructure(/** @type {OAuthCredentials} */ (credentials))) {
@@ -398,4 +398,4 @@ function createNotionValidator(credentials) {
   }
 }
 
-export default createNotionValidator;
+module.exports = createNotionValidator;

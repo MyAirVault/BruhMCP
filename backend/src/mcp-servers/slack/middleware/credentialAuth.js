@@ -18,7 +18,7 @@
 
 /**
  * Extended error options for Slack error responses
- * @typedef {import('../../../utils/errorResponse.js').ErrorOptions & {
+ * @typedef {import('../../../utils/errorResponse.js').CustomErrorOptions & {
  *   expectedFormat?: string,
  *   error?: string,
  *   errorCode?: string,
@@ -32,19 +32,19 @@
  *   teamId?: string
  * }} SlackOAuthUpdateData
  */
-import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
-import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
-import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauthValidation.js';
-import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
-import { ErrorResponses } from '../../../utils/errorResponse.js';
-import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauthErrorHandler.js';
-import { recordTokenRefreshMetrics } from '../utils/tokenMetrics.js';
+const { getCachedCredential, setCachedCredential  } = require('../services/credentialCache');
+const { lookupInstanceCredentials, updateInstanceUsage  } = require('../services/database');
+const { refreshBearerToken, refreshBearerTokenDirect  } = require('../utils/oauthValidation');
+const { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog  } = require('../../../db/queries/mcpInstances/index');
+const { ErrorResponses  } = require('../../../utils/errorResponse');
+const { handleTokenRefreshFailure, logOAuthError  } = require('../utils/oauthErrorHandler');
+const { recordTokenRefreshMetrics  } = require('../utils/tokenMetrics');
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
  * @returns {Function} Express middleware function
  */
-export function createCredentialAuthMiddleware() {
+function createCredentialAuthMiddleware() {
   return async (/** @type {import('./types.js').ExpressRequest} */ req, /** @type {import('./types.js').ExpressResponse} */ res, /** @type {import('./types.js').ExpressNext} */ next) => {
     const { instanceId } = req.params;
     
@@ -383,7 +383,7 @@ export function createCredentialAuthMiddleware() {
  * Create lightweight authentication middleware for non-critical endpoints
  * @returns {Function} Express middleware function
  */
-export function createLightweightAuthMiddleware() {
+function createLightweightAuthMiddleware() {
   return async (/** @type {import('./types.js').ExpressRequest} */ req, /** @type {import('./types.js').ExpressResponse} */ res, /** @type {import('./types.js').ExpressNext} */ next) => {
     const { instanceId } = req.params;
     
@@ -436,7 +436,7 @@ export function createLightweightAuthMiddleware() {
  * Create cache performance monitoring middleware for development
  * @returns {Function} Express middleware function
  */
-export function createCachePerformanceMiddleware() {
+function createCachePerformanceMiddleware() {
   return (/** @type {import('./types.js').ExpressRequest} */ req, /** @type {import('./types.js').ExpressResponse} */ res, /** @type {import('./types.js').ExpressNext} */ next) => {
     const startTime = Date.now();
     
@@ -461,3 +461,9 @@ export function createCachePerformanceMiddleware() {
     next();
   };
 }
+
+module.exports = {
+  createCredentialAuthMiddleware,
+  createLightweightAuthMiddleware,
+  createCachePerformanceMiddleware
+};

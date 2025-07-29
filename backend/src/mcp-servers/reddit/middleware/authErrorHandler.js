@@ -5,9 +5,9 @@
 
 /// <reference path="./types.js" />
 
-import { ErrorResponses } from '../../../utils/errorResponse.js';
-import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauthErrorHandler.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/index.js';
+const { ErrorResponses  } = require('../../../utils/errorResponse');
+const { handleTokenRefreshFailure, logOAuthError  } = require('../utils/oauthErrorHandler');
+const { updateOAuthStatus  } = require('../../../db/queries/mcpInstances/index');
 
 /**
  * Create system error response for authentication middleware
@@ -16,7 +16,7 @@ import { updateOAuthStatus } from '../../../db/queries/mcpInstances/index.js';
  * @param {Error} error - The error that occurred
  * @returns {void} Express response
  */
-export function createSystemErrorResponse(res, instanceId, error) {
+function createSystemErrorResponse(res, instanceId, error) {
   console.error('Credential authentication middleware error:', error);
   const errorMessage = error instanceof Error ? error.message : String(error);
   
@@ -33,7 +33,7 @@ export function createSystemErrorResponse(res, instanceId, error) {
  * @param {Error} error - The error that occurred
  * @returns {void} Express response
  */
-export function createLightweightSystemErrorResponse(res, instanceId, error) {
+function createLightweightSystemErrorResponse(res, instanceId, error) {
   console.error('Lightweight authentication middleware error:', error);
   const errorMessage = error instanceof Error ? error.message : String(error);
   
@@ -49,7 +49,7 @@ export function createLightweightSystemErrorResponse(res, instanceId, error) {
  * @param {import('./types.js').TokenRefreshError} refreshError - The token refresh error
  * @returns {Promise<import('./types.js').AuthErrorResult>} Error handling result
  */
-export async function handleRefreshFailure(instanceId, refreshError) {
+async function handleRefreshFailure(instanceId, refreshError) {
   // Convert TokenRefreshError to Error for compatibility with error handler
   const compatibleError = new Error(refreshError.message);
   compatibleError.name = refreshError.name || 'TokenRefreshError';
@@ -96,7 +96,7 @@ export async function handleRefreshFailure(instanceId, refreshError) {
  * @param {import('./types.js').AuthErrorResult} errorResult - The error result from handling
  * @returns {void} Express response
  */
-export function createRefreshFailureResponse(res, errorResult) {
+function createRefreshFailureResponse(res, errorResult) {
   if (errorResult.requiresReauth) {
     return ErrorResponses.unauthorized(res, errorResult.error, {
       instanceId: errorResult.instanceId,
@@ -125,7 +125,7 @@ export function createRefreshFailureResponse(res, errorResult) {
  * @param {string} [refreshToken] - The refresh token to preserve
  * @returns {Promise<void>} Express response
  */
-export async function createReauthenticationResponse(res, instanceId, refreshToken) {
+async function createReauthenticationResponse(res, instanceId, refreshToken) {
   console.log(`🔐 Full OAuth exchange required for instance: ${instanceId}`);
   
   // Mark OAuth status as failed in database to indicate re-authentication needed
@@ -153,6 +153,10 @@ export async function createReauthenticationResponse(res, instanceId, refreshTok
  * @param {import('./types.js').TokenRefreshError} refreshError - The token refresh error
  * @returns {void}
  */
-export function logRefreshFallback(refreshError) {
+function logRefreshFallback(refreshError) {
   console.log(`🔄 Falling back to full OAuth exchange due to refresh error: ${refreshError.message}`);
 }
+module.exports = {
+  handleRefreshFailure,
+  createReauthenticationResponse
+};

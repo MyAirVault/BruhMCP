@@ -3,8 +3,8 @@
  * Handles file upload, download, and basic file management
  */
 
-import { formatFileResponse, formatUploadResponse } from '../../utils/googledriveFormatting.js';
-import { validateFileId, validateFileName, validateLocalPath } from '../../utils/validation.js';
+const { formatFileResponse, formatUploadResponse  } = require('../../utils/googledriveFormatting');
+const { validateFileId, validateFileName, validateLocalPath  } = require('../../utils/validation');
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 const UPLOAD_API_BASE = 'https://www.googleapis.com/upload/drive/v3';
@@ -65,7 +65,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<any>} Upload result
  */
-export async function uploadFile(args, bearerToken) {
+async function uploadFile(args, bearerToken) {
 	const { localPath, fileName, parentFolderId, mimeType } = args;
 
 	// Validate input parameters
@@ -191,7 +191,7 @@ export async function uploadFile(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<any>} Download result
  */
-export async function downloadFile(args, bearerToken) {
+async function downloadFile(args, bearerToken) {
 	const { fileId, localPath } = args;
 
 	// Validate input parameters
@@ -290,7 +290,7 @@ export async function downloadFile(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<any>} File metadata
  */
-export async function getFileMetadata(args, bearerToken) {
+async function getFileMetadata(args, bearerToken) {
 	const { fileId } = args;
 
 	if (!fileId) {
@@ -360,3 +360,8 @@ function getExportMimeType(googleMimeType) {
 
 	return exportTypes[googleMimeType] || 'application/pdf';
 }
+module.exports = {
+  uploadFile,
+  downloadFile,
+  getFileMetadata
+};

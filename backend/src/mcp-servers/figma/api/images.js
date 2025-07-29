@@ -3,7 +3,7 @@
  * Handles image and rendering-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest, handleApiError } from './common.js';
+const { makeAuthenticatedRequest, handleApiError } = require('./common.js');
 
 /**
  * Get rendered images from a file
@@ -14,7 +14,7 @@ import { makeAuthenticatedRequest, handleApiError } from './common.js';
  * @param {number} [scale=1] - Image scale factor
  * @returns {Promise<any>}
  */
-export async function getFigmaImages(fileKey, apiKey, nodeIds, format = 'png', scale = 1) {
+async function getFigmaImages(fileKey, apiKey, nodeIds, format = 'png', scale = 1) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -47,7 +47,7 @@ export async function getFigmaImages(fileKey, apiKey, nodeIds, format = 'png', s
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaImageFills(fileKey, apiKey) {
+async function getFigmaImageFills(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -62,3 +62,7 @@ export async function getFigmaImageFills(fileKey, apiKey) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	getFigmaImages,
+	getFigmaImageFills
+};

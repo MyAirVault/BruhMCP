@@ -3,8 +3,8 @@
  * Handles JSON schema validation for objects and tools
  */
 
-import { validateProperty } from './coreValidation.js';
-import { logValidationError } from './logger.js';
+const { validateProperty  } = require('./coreValidation');
+const { logValidationError  } = require('./logger');
 
 /**
  * @typedef {Object} JSONSchema
@@ -31,7 +31,7 @@ import { logValidationError } from './logger.js';
  * @param {string} context - Context for error messages
  * @param {string} instanceId - Instance ID for logging
  */
-export function validateObject(obj, schema, context, instanceId = 'unknown') {
+function validateObject(obj, schema, context, instanceId = 'unknown') {
 	if (schema.type !== 'object') {
 		const error = new Error(`Invalid schema type for ${context}: expected object`);
 		logValidationError('invalid_schema_type', 'schema.type', schema.type, instanceId, { 
@@ -85,7 +85,7 @@ export function validateObject(obj, schema, context, instanceId = 'unknown') {
  * @param {string} instanceId - Instance ID for logging
  * @throws {Error} Validation error if arguments are invalid
  */
-export async function validateToolArguments(toolName, args, instanceId = 'unknown') {
+async function validateToolArguments(toolName, args, instanceId = 'unknown') {
 	try {
 		const { getTools } = await import('../endpoints/tools.js');
 		const toolsData = getTools();
@@ -117,3 +117,7 @@ export async function validateToolArguments(toolName, args, instanceId = 'unknow
 		throw error;
 	}
 }
+module.exports = {
+  validateToolArguments,
+  validateObject
+};

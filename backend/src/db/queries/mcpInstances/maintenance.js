@@ -3,7 +3,7 @@
  * @fileoverview Contains functions for background cleanup and maintenance tasks
  */
 
-import { pool } from '../../config.js';
+const { pool } = require('../../config.js');
 
 /**
  * @typedef {import('./types.js').InstanceStatusRecord} InstanceStatusRecord
@@ -14,7 +14,7 @@ import { pool } from '../../config.js';
  * @param {string} status - Status to filter by
  * @returns {Promise<InstanceStatusRecord[]>} Array of instances with the specified status
  */
-export async function getInstancesByStatus(status) {
+async function getInstancesByStatus(status) {
 	const query = `
 		SELECT 
 			ms.instance_id,
@@ -37,7 +37,7 @@ export async function getInstancesByStatus(status) {
  * Get expired instances (for background cleanup)
  * @returns {Promise<InstanceStatusRecord[]>} Array of expired instances
  */
-export async function getExpiredInstances() {
+async function getExpiredInstances() {
 	const query = `
 		SELECT 
 			ms.instance_id,
@@ -60,7 +60,7 @@ export async function getExpiredInstances() {
  * Get failed OAuth instances (for background cleanup)
  * @returns {Promise<InstanceStatusRecord[]>} Array of instances with failed OAuth status
  */
-export async function getFailedOAuthInstances() {
+async function getFailedOAuthInstances() {
 	const query = `
 		SELECT 
 			ms.instance_id,
@@ -84,7 +84,7 @@ export async function getFailedOAuthInstances() {
  * @param {number} [minutesOld=5] - Minutes threshold (default: 5)
  * @returns {Promise<InstanceStatusRecord[]>} Array of instances with pending OAuth status older than threshold
  */
-export async function getPendingOAuthInstances(minutesOld = 5) {
+async function getPendingOAuthInstances(minutesOld = 5) {
 	const query = `
 		SELECT 
 			ms.instance_id,
@@ -110,7 +110,7 @@ export async function getPendingOAuthInstances(minutesOld = 5) {
  * @param {string[]} instanceIds - Array of instance IDs to mark as expired
  * @returns {Promise<number>} Number of instances updated
  */
-export async function bulkMarkInstancesExpired(instanceIds) {
+async function bulkMarkInstancesExpired(instanceIds) {
 	if (instanceIds.length === 0) return 0;
 
 	const placeholders = instanceIds.map((_, index) => `$${index + 1}`).join(',');
@@ -123,3 +123,11 @@ export async function bulkMarkInstancesExpired(instanceIds) {
 	const result = await pool.query(query, instanceIds);
 	return result.rowCount ?? 0;
 }
+
+module.exports = {
+	getInstancesByStatus,
+	getExpiredInstances,
+	getFailedOAuthInstances,
+	getPendingOAuthInstances,
+	bulkMarkInstancesExpired
+};

@@ -1,3 +1,9 @@
+export type ServiceConfig = {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+};
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -31,13 +37,7 @@ export class DropboxMCPHandler {
      */
     handleMCPRequest(req: any, res: any, message: any): Promise<void>;
 }
-export type ServiceConfig = {
-    name: string;
-    displayName: string;
-    version: string;
-    scopes: string[];
-};
-import { DropboxAPI } from '../api/dropboxApi.js';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { DropboxAPI } from "../api/dropboxApi.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 //# sourceMappingURL=mcpHandler.d.ts.map

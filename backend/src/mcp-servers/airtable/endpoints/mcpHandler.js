@@ -3,14 +3,14 @@
  * Enhanced with comprehensive service layer and optimization
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { AirtableService } from '../services/airtableService.js';
-import { createLogger, measurePerformance } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
-import { setupAllTools } from '../tools/index.js';
+const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
+const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
+const { isInitializeRequest } = require('@modelcontextprotocol/sdk/types.js');
+const { randomUUID } = require('node:crypto');
+const { AirtableService } = require('../services/airtableService.js');
+const { createLogger, measurePerformance } = require('../utils/logger.js');
+const { AirtableErrorHandler } = require('../utils/errorHandler.js');
+const { setupAllTools } = require('../tools/index.js');
 
 const logger = createLogger('AirtableMCPHandler');
 
@@ -44,7 +44,7 @@ const logger = createLogger('AirtableMCPHandler');
  * @property {Object} service - Service statistics
  */
 
-export class AirtableMCPHandler {
+class AirtableMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} apiKey
@@ -267,3 +267,5 @@ export class AirtableMCPHandler {
 		logger.info('AirtableMCPHandler shutdown completed');
 	}
 }
+
+module.exports = { AirtableMCPHandler };

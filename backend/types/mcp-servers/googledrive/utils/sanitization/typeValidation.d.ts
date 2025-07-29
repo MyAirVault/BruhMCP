@@ -16,9 +16,9 @@ export function sanitizeInteger(value: string | number | null | undefined, optio
 export function sanitizeBoolean(value: string | number | boolean | null | undefined): boolean;
 /**
  * Sanitize array input
- * @param {Array|string|null|undefined} value - Value to sanitize as array
+ * @param {any[]|string|null|undefined} value - Value to sanitize as array
  * @param {Object} options - Sanitization options
- * @returns {Array} Sanitized array
+ * @returns {any[]} Sanitized array
  */
 export function sanitizeArray(value: any[] | string | null | undefined, options?: Object): any[];
 //# sourceMappingURL=typeValidation.d.ts.map

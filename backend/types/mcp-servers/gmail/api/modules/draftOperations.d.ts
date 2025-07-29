@@ -1,69 +1,3 @@
-/**
- * @typedef {Object} GmailDraftResponse
- * @property {string} id - Draft ID
- * @property {GmailMessage} message - Draft message object
- */
-/**
- * @typedef {Object} GmailMessage
- * @property {string} id - Message ID
- * @property {string} threadId - Thread ID
- * @property {string} snippet - Message snippet
- * @property {string} internalDate - Internal date timestamp
- */
-/**
- * @typedef {Object} GmailDraftListResponse
- * @property {GmailDraft[]} [drafts] - Array of draft objects
- * @property {string} [nextPageToken] - Token for next page
- */
-/**
- * @typedef {Object} GmailDraft
- * @property {string} id - Draft ID
- * @property {GmailMessage} message - Message object
- */
-/**
- * @typedef {Object} GmailSendResponse
- * @property {string} id - Message ID
- * @property {string} threadId - Thread ID
- */
-/**
- * @typedef {Object} CreateDraftArgs
- * @property {string} to - Recipient email address
- * @property {string} subject - Email subject
- * @property {string} body - Email body content
- * @property {string} [cc] - CC recipients
- * @property {string} [bcc] - BCC recipients
- * @property {string} [format] - Email format (text|html)
- */
-/**
- * @typedef {Object} SendDraftArgs
- * @property {string} draftId - Draft ID to send
- */
-/**
- * @typedef {Object} ListDraftsArgs
- * @property {number} [maxResults] - Maximum results to return
- * @property {string} [query] - Search query for drafts
- */
-/**
- * Create an email draft
- * @param {CreateDraftArgs} args - Draft arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<string>} Draft creation result
- */
-export function createDraft(args: CreateDraftArgs, bearerToken: string): Promise<string>;
-/**
- * Send a draft email
- * @param {SendDraftArgs} args - Send draft arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<string>} Send result
- */
-export function sendDraft(args: SendDraftArgs, bearerToken: string): Promise<string>;
-/**
- * List email drafts
- * @param {ListDraftsArgs} args - List arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<string>} Drafts list
- */
-export function listDrafts(args: ListDraftsArgs, bearerToken: string): Promise<string>;
 export type GmailDraftResponse = {
     /**
      * - Draft ID
@@ -164,4 +98,70 @@ export type ListDraftsArgs = {
      */
     query?: string | undefined;
 };
+/**
+ * @typedef {Object} GmailDraftResponse
+ * @property {string} id - Draft ID
+ * @property {GmailMessage} message - Draft message object
+ */
+/**
+ * @typedef {Object} GmailMessage
+ * @property {string} id - Message ID
+ * @property {string} threadId - Thread ID
+ * @property {string} snippet - Message snippet
+ * @property {string} internalDate - Internal date timestamp
+ */
+/**
+ * @typedef {Object} GmailDraftListResponse
+ * @property {GmailDraft[]} [drafts] - Array of draft objects
+ * @property {string} [nextPageToken] - Token for next page
+ */
+/**
+ * @typedef {Object} GmailDraft
+ * @property {string} id - Draft ID
+ * @property {GmailMessage} message - Message object
+ */
+/**
+ * @typedef {Object} GmailSendResponse
+ * @property {string} id - Message ID
+ * @property {string} threadId - Thread ID
+ */
+/**
+ * @typedef {Object} CreateDraftArgs
+ * @property {string} to - Recipient email address
+ * @property {string} subject - Email subject
+ * @property {string} body - Email body content
+ * @property {string} [cc] - CC recipients
+ * @property {string} [bcc] - BCC recipients
+ * @property {string} [format] - Email format (text|html)
+ */
+/**
+ * @typedef {Object} SendDraftArgs
+ * @property {string} draftId - Draft ID to send
+ */
+/**
+ * @typedef {Object} ListDraftsArgs
+ * @property {number} [maxResults] - Maximum results to return
+ * @property {string} [query] - Search query for drafts
+ */
+/**
+ * Create an email draft
+ * @param {CreateDraftArgs} args - Draft arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<string>} Draft creation result
+ */
+export function createDraft(args: CreateDraftArgs, bearerToken: string): Promise<string>;
+/**
+ * Send a draft email
+ * @param {SendDraftArgs} args - Send draft arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<string>} Send result
+ */
+export function sendDraft(args: SendDraftArgs, bearerToken: string): Promise<string>;
+/**
+ * List email drafts
+ * @param {ListDraftsArgs} args - List arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<string>} Drafts list
+ */
+export function listDrafts(args: ListDraftsArgs, bearerToken: string): Promise<string>;
 //# sourceMappingURL=draftOperations.d.ts.map

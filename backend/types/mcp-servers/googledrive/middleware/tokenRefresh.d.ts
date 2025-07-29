@@ -6,5 +6,5 @@
  * @param {import('./types.js').ExpressRequest} req - Express request
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Refresh result
  */
-export function performTokenRefresh(instanceId: string, refreshToken: string, instance: import("./types.js").DatabaseInstance, req: import("./types.js").ExpressRequest): Promise<import("./types.js").TokenRefreshResult>;
+export function performTokenRefresh(instanceId: string, refreshToken: string, instance: import('./types.js').DatabaseInstance, req: import('./types.js').ExpressRequest): Promise<import('./types.js').TokenRefreshResult>;
 //# sourceMappingURL=tokenRefresh.d.ts.map

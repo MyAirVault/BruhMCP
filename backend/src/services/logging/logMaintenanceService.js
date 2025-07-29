@@ -1,12 +1,10 @@
-import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
-import { exec } from 'child_process';
-import { fileURLToPath } from 'url';
-import loggingService from './loggingService.js';
+const fs = require('fs');
+const path = require('path');
+const { promisify } = require('util');
+const { exec } = require('child_process');
+const loggingService = require('./loggingService.js');
 
 const execAsync = promisify(exec);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * @typedef {Object} CleanupStats
@@ -673,4 +671,4 @@ class LogMaintenanceService {
 // Create and export singleton instance
 const logMaintenanceService = new LogMaintenanceService();
 
-export default logMaintenanceService;
+module.exports = logMaintenanceService;

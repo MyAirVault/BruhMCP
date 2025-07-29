@@ -4,68 +4,79 @@
  */
 
 // File operations
-export {
+const { getFigmaFile, getFigmaNodes, getFigmaFileMeta, getFigmaFileVersions, getFigmaFileWithVersion } = require('./files.js');
+
+// Component and style operations
+const { getFigmaComponents, getFigmaStyles, getFigmaComponentSets, getFigmaComponentInfo, getFigmaComponentSetInfo } = require('./components.js');
+
+// Comment operations
+const { getFigmaComments, postFigmaComment, deleteFigmaComment } = require('./comments.js');
+
+// Image operations
+const { getFigmaImages, getFigmaImageFills } = require('./images.js');
+
+// Team and project operations
+const { getFigmaTeamProjects, getFigmaProjectFiles, getFigmaTeamComponents } = require('./teams.js');
+
+// User operations
+const { getFigmaUser } = require('./user.js');
+
+// Variables operations (Enterprise only)
+const { getFigmaLocalVariables, getFigmaPublishedVariables, postFigmaVariables, putFigmaVariables, deleteFigmaVariables } = require('./variables.js');
+
+// Webhook operations
+const { postFigmaWebhook, getFigmaWebhooks, putFigmaWebhook, deleteFigmaWebhook } = require('./webhooks.js');
+
+// Common utilities and types
+const { FIGMA_BASE_URL, handleApiError, makeAuthenticatedRequest } = require('./common.js');
+
+module.exports = {
+	// File operations
 	getFigmaFile,
 	getFigmaNodes,
 	getFigmaFileMeta,
 	getFigmaFileVersions,
-	getFigmaFileWithVersion
-} from './files.js';
-
-// Component and style operations
-export {
+	getFigmaFileWithVersion,
+	
+	// Component and style operations
 	getFigmaComponents,
 	getFigmaStyles,
 	getFigmaComponentSets,
 	getFigmaComponentInfo,
-	getFigmaComponentSetInfo
-} from './components.js';
-
-// Comment operations
-export {
+	getFigmaComponentSetInfo,
+	
+	// Comment operations
 	getFigmaComments,
 	postFigmaComment,
-	deleteFigmaComment
-} from './comments.js';
-
-// Image operations
-export {
+	deleteFigmaComment,
+	
+	// Image operations
 	getFigmaImages,
-	getFigmaImageFills
-} from './images.js';
-
-// Team and project operations
-export {
+	getFigmaImageFills,
+	
+	// Team and project operations
 	getFigmaTeamProjects,
 	getFigmaProjectFiles,
-	getFigmaTeamComponents
-} from './teams.js';
-
-// User operations
-export {
-	getFigmaUser
-} from './user.js';
-
-// Variables operations (Enterprise only)
-export {
+	getFigmaTeamComponents,
+	
+	// User operations
+	getFigmaUser,
+	
+	// Variables operations (Enterprise only)
 	getFigmaLocalVariables,
 	getFigmaPublishedVariables,
 	postFigmaVariables,
 	putFigmaVariables,
-	deleteFigmaVariables
-} from './variables.js';
-
-// Webhook operations
-export {
+	deleteFigmaVariables,
+	
+	// Webhook operations
 	postFigmaWebhook,
 	getFigmaWebhooks,
 	putFigmaWebhook,
-	deleteFigmaWebhook
-} from './webhooks.js';
-
-// Common utilities and types
-export {
+	deleteFigmaWebhook,
+	
+	// Common utilities and types
 	FIGMA_BASE_URL,
 	handleApiError,
 	makeAuthenticatedRequest
-} from './common.js';
+};

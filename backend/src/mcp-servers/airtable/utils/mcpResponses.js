@@ -3,7 +3,7 @@
  * Standardized response formatting for MCP tools
  */
 
-import * as yaml from 'js-yaml';
+const yaml = require('js-yaml');
 
 /**
  * Create successful text response
@@ -11,7 +11,7 @@ import * as yaml from 'js-yaml';
  * @param {Object} [options] - Response options
  * @returns {Object} MCP response
  */
-export function createTextResponse(text, options = {}) {
+function createTextResponse(text, options = {}) {
 	return {
 		content: [{ type: 'text', text }],
 		...options
@@ -24,7 +24,7 @@ export function createTextResponse(text, options = {}) {
  * @param {{operation?: string}} [context] - Error context
  * @returns {Object} MCP error response
  */
-export function createErrorResponse(message, context = {}) {
+function createErrorResponse(message, context = {}) {
 	return {
 		isError: true,
 		content: [{ 
@@ -40,7 +40,7 @@ export function createErrorResponse(message, context = {}) {
  * @param {Object} [options] - YAML formatting options
  * @returns {Object} MCP response with YAML content
  */
-export function createYamlResponse(data, options = {}) {
+function createYamlResponse(data, options = {}) {
 	const yamlOptions = {
 		indent: 2,
 		lineWidth: 120,
@@ -62,7 +62,7 @@ export function createYamlResponse(data, options = {}) {
  * @param {number} [indent] - JSON indentation
  * @returns {Object} MCP response with JSON content
  */
-export function createJsonResponse(data, indent = 2) {
+function createJsonResponse(data, indent = 2) {
 	const jsonText = JSON.stringify(data, null, indent);
 	
 	return {
@@ -76,7 +76,7 @@ export function createJsonResponse(data, indent = 2) {
  * @param {Array<string>} [columns] - Column names to include
  * @returns {Object} MCP response with table content
  */
-export function createTableResponse(data, columns) {
+function createTableResponse(data, columns) {
 	if (!Array.isArray(data) || data.length === 0) {
 		return createTextResponse('No data to display');
 	}
@@ -106,7 +106,7 @@ export function createTableResponse(data, columns) {
  * @param {boolean} [numbered] - Whether to use numbered list
  * @returns {Object} MCP response with list content
  */
-export function createListResponse(items, numbered = false) {
+function createListResponse(items, numbered = false) {
 	if (!Array.isArray(items) || items.length === 0) {
 		return createTextResponse('No items to display');
 	}
@@ -129,7 +129,7 @@ export function createListResponse(items, numbered = false) {
  * @param {Object} stats - Statistics object
  * @returns {Object} MCP response with summary
  */
-export function createSummaryResponse(data, stats) {
+function createSummaryResponse(data, stats) {
 	const summary = [
 		'Summary:',
 		...Object.entries(stats).map(([key, value]) => `- ${key}: ${value}`),
@@ -155,7 +155,7 @@ export function createSummaryResponse(data, stats) {
  * @param {{page?: number, hasMore?: boolean, total?: number}} pagination - Pagination info
  * @returns {Object} MCP response with pagination info
  */
-export function createPaginatedResponse(data, pagination) {
+function createPaginatedResponse(data, pagination) {
 	const paginationInfo = [
 		`Page ${pagination.page || 1}`,
 		pagination.hasMore ? '(More data available)' : '(Last page)',
@@ -181,7 +181,7 @@ export function createPaginatedResponse(data, pagination) {
  * @param {{operation?: string}} context - Error context
  * @returns {Object} MCP error response
  */
-export function formatAirtableError(error, context = {}) {
+function formatAirtableError(error, context = {}) {
 	const errorMessage = error.message || 'Unknown error occurred';
 	const operation = context.operation || 'operation';
 	
@@ -196,7 +196,7 @@ export function formatAirtableError(error, context = {}) {
  * @param {string} [status] - Additional status message
  * @returns {Object} MCP response with progress
  */
-export function createProgressResponse(operation, current, total, status = '') {
+function createProgressResponse(operation, current, total, status = '') {
 	const percentage = Math.round((current / total) * 100);
 	const progressBar = '█'.repeat(Math.floor(percentage / 5)) + '░'.repeat(20 - Math.floor(percentage / 5));
 	
@@ -210,3 +210,16 @@ export function createProgressResponse(operation, current, total, status = '') {
 		content: [{ type: 'text', text: progressText }]
 	};
 }
+
+module.exports = {
+	createTextResponse,
+	createErrorResponse,
+	createYamlResponse,
+	createJsonResponse,
+	createTableResponse,
+	createListResponse,
+	createSummaryResponse,
+	createPaginatedResponse,
+	formatAirtableError,
+	createProgressResponse
+};

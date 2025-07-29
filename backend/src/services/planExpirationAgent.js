@@ -5,8 +5,8 @@
 
 /* global setTimeout, setInterval */
 
-import { pool } from '../db/config.js';
-import { handlePlanCancellation } from '../utils/planLimits.js';
+const { pool } = require('../db/config.js');
+const { handlePlanCancellation } = require('../utils/planLimits.js');
 
 /**
  * @typedef {Object} ExpiredProUser
@@ -60,7 +60,7 @@ import { handlePlanCancellation } from '../utils/planLimits.js';
  * Get all users with expired pro plans that still have active instances
  * @returns {Promise<ExpiredProUser[]>} Array of users with expired plans and active instances
  */
-export async function getExpiredProUsersWithActiveInstances() {
+async function getExpiredProUsersWithActiveInstances() {
 	try {
 		const query = `
 			SELECT DISTINCT 
@@ -95,7 +95,7 @@ export async function getExpiredProUsersWithActiveInstances() {
  * @param {ExpiredProUser} user - User object with expired plan
  * @returns {Promise<ProcessResult>} Processing result
  */
-export async function processExpiredProUser(user) {
+async function processExpiredProUser(user) {
 	const { user_id, email, plan_expires_at, active_instance_count } = user;
 
 	try {
@@ -137,7 +137,7 @@ export async function processExpiredProUser(user) {
  * Run the plan expiration agent - process all expired pro users
  * @returns {Promise<AgentResult>} Overall processing result
  */
-export async function runPlanExpirationAgent() {
+async function runPlanExpirationAgent() {
 	const startTime = new Date();
 	console.log(`🤖 Plan Expiration Agent started at ${startTime.toISOString()}`);
 
@@ -216,7 +216,7 @@ export async function runPlanExpirationAgent() {
  * Check if there are any users that need plan expiration processing
  * @returns {Promise<ExpiredUserCheck>} Check result with count of users needing processing
  */
-export async function checkForExpiredUsers() {
+async function checkForExpiredUsers() {
 	try {
 		const expiredUsers = await getExpiredProUsersWithActiveInstances();
 
@@ -247,7 +247,7 @@ export async function checkForExpiredUsers() {
  * @param {number} intervalMinutes - How often to run the agent (in minutes)
  * @returns {NodeJS.Timeout} Timer object for the scheduled job
  */
-export function schedulePlanExpirationAgent(intervalMinutes = 60) {
+function schedulePlanExpirationAgent(intervalMinutes = 60) {
 	const intervalMs = intervalMinutes * 60 * 1000;
 
 	console.log(`📅 Scheduling Plan Expiration Agent to run every ${intervalMinutes} minutes`);
@@ -268,3 +268,11 @@ export function schedulePlanExpirationAgent(intervalMinutes = 60) {
 		}
 	}, intervalMs);
 }
+
+module.exports = {
+	getExpiredProUsersWithActiveInstances,
+	processExpiredProUser,
+	runPlanExpirationAgent,
+	checkForExpiredUsers,
+	schedulePlanExpirationAgent
+};

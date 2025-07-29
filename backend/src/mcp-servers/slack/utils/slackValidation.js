@@ -3,7 +3,7 @@
  * Validates Slack IDs, formats, and business logic
  */
 
-import { logValidationError } from './logger.js';
+const { logValidationError  } = require('./logger');
 
 /**
  * Validate Slack channel types string
@@ -11,7 +11,7 @@ import { logValidationError } from './logger.js';
  * @param {string} instanceId - Instance ID for logging
  * @returns {boolean} True if valid
  */
-export function validateSlackChannelTypes(types, instanceId = 'unknown') {
+function validateSlackChannelTypes(types, instanceId = 'unknown') {
 	const validTypes = [
 		'public_channel',
 		'private_channel',
@@ -40,7 +40,7 @@ export function validateSlackChannelTypes(types, instanceId = 'unknown') {
  * @param {string} instanceId - Instance ID for logging
  * @returns {boolean} True if valid
  */
-export function validateSlackFileId(fileId, instanceId = 'unknown') {
+function validateSlackFileId(fileId, instanceId = 'unknown') {
 	// Slack file IDs typically start with 'F' followed by alphanumeric characters
 	const fileIdPattern = /^F[A-Z0-9]+$/;
 
@@ -62,7 +62,7 @@ export function validateSlackFileId(fileId, instanceId = 'unknown') {
  * @param {string} instanceId - Instance ID for logging
  * @returns {boolean} True if valid
  */
-export function validateSlackEmojiName(emojiName, instanceId = 'unknown') {
+function validateSlackEmojiName(emojiName, instanceId = 'unknown') {
 	// Emoji names should be alphanumeric with underscores, no colons
 	const emojiPattern = /^[a-zA-Z0-9_+-]+$/;
 
@@ -100,7 +100,7 @@ export function validateSlackEmojiName(emojiName, instanceId = 'unknown') {
  * @param {string} time - Time string to validate
  * @returns {boolean} True if valid
  */
-export function validateSlackReminderTime(time) {
+function validateSlackReminderTime(time) {
 	if (!time || typeof time !== 'string' || time.trim().length === 0) {
 		throw new Error('Reminder time cannot be empty');
 	}
@@ -128,7 +128,7 @@ export function validateSlackReminderTime(time) {
  * @param {string} text - Message text to validate
  * @returns {boolean} True if valid
  */
-export function validateSlackMessageText(text) {
+function validateSlackMessageText(text) {
 	if (!text || typeof text !== 'string') {
 		throw new Error('Message text must be a non-empty string');
 	}
@@ -159,7 +159,7 @@ export function validateSlackMessageText(text) {
  * @param {string} filename - Filename to validate
  * @returns {boolean} True if valid
  */
-export function validateSlackFilename(filename) {
+function validateSlackFilename(filename) {
 	if (!filename || typeof filename !== 'string' || filename.trim().length === 0) {
 		throw new Error('Filename cannot be empty');
 	}
@@ -184,3 +184,12 @@ export function validateSlackFilename(filename) {
 
 	return true;
 }
+
+module.exports = {
+	validateSlackChannelTypes,
+	validateSlackFileId,
+	validateSlackEmojiName,
+	validateSlackReminderTime,
+	validateSlackMessageText,
+	validateSlackFilename
+};

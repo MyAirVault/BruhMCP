@@ -1,17 +1,3 @@
-/**
- * Start the credential watcher service
- * @returns {NodeJS.Timeout} Watcher interval
- */
-export function startCredentialWatcher(): NodeJS.Timeout;
-/**
- * Stop the credential watcher service
- */
-export function stopCredentialWatcher(): void;
-/**
- * Get watcher status
- * @returns {WatcherStatistics} Watcher status and statistics
- */
-export function getWatcherStatus(): WatcherStatistics;
 export type CachedCredential = {
     /**
      * - OAuth bearer token
@@ -76,7 +62,7 @@ export type WatcherStatistics = {
      */
     isRunning: boolean;
 };
-export type DatabaseInstance = import("./database.js").InstanceCredentials;
+export type DatabaseInstance = import('./database.js').InstanceCredentials;
 export type TokenRefreshResult = {
     /**
      * - New access token
@@ -117,4 +103,18 @@ export type CacheStatistics = {
      */
     newestEntry: string | null;
 };
+/**
+ * Start the credential watcher service
+ * @returns {NodeJS.Timeout} Watcher interval
+ */
+export function startCredentialWatcher(): NodeJS.Timeout;
+/**
+ * Stop the credential watcher service
+ */
+export function stopCredentialWatcher(): void;
+/**
+ * Get watcher status
+ * @returns {WatcherStatistics} Watcher status and statistics
+ */
+export function getWatcherStatus(): WatcherStatistics;
 //# sourceMappingURL=credentialWatcher.d.ts.map

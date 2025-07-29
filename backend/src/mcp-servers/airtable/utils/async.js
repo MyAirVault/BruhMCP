@@ -3,7 +3,7 @@
  * Utilities for asynchronous operations, retries, and timing
  */
 
-import { createLogger } from './logger.js';
+const { createLogger  } = require('./logger.js');
 
 const logger = createLogger('AsyncUtils');
 
@@ -12,7 +12,7 @@ const logger = createLogger('AsyncUtils');
  * @param {number} ms - Milliseconds to sleep
  * @returns {Promise<void>}
  */
-export function sleep(ms) {
+function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -32,7 +32,7 @@ export function sleep(ms) {
  * @param {RetryOptions} [options] - Retry options
  * @returns {Promise<T>}
  */
-export async function retry(fn, options = {}) {
+async function retry(fn, options = {}) {
 	const {
 		maxAttempts = 3,
 		baseDelay = 1000,
@@ -83,7 +83,7 @@ export async function retry(fn, options = {}) {
  * @param {() => Promise<T>} fn - Function to measure
  * @returns {Promise<ExecutionResult<T>>}
  */
-export async function measureExecutionTime(fn) {
+async function measureExecutionTime(fn) {
 	const startTime = Date.now();
 	try {
 		const result = await fn();
@@ -107,7 +107,7 @@ export async function measureExecutionTime(fn) {
  * @param {string} [timeoutMessage] - Custom timeout message
  * @returns {Promise<T>}
  */
-export async function withTimeout(promise, timeoutMs, timeoutMessage = 'Operation timed out') {
+async function withTimeout(promise, timeoutMs, timeoutMessage = 'Operation timed out') {
 	const timeoutPromise = new Promise((_, reject) => {
 		setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
 	});
@@ -122,7 +122,7 @@ export async function withTimeout(promise, timeoutMs, timeoutMessage = 'Operatio
  * @param {boolean} [immediate] - Execute immediately on first call
  * @returns {Function} Debounced function
  */
-export function debounce(func, wait, immediate = false) {
+function debounce(func, wait, immediate = false) {
 	/** @type {NodeJS.Timeout | null} */
 	let timeout = null;
 	
@@ -147,7 +147,7 @@ export function debounce(func, wait, immediate = false) {
  * @param {number} limit - Time limit in milliseconds
  * @returns {Function} Throttled function
  */
-export function throttle(func, limit) {
+function throttle(func, limit) {
 	/** @type {boolean} */
 	let inThrottle = false;
 	
@@ -169,7 +169,7 @@ export function throttle(func, limit) {
  * @param {number} [concurrency] - Maximum concurrent executions
  * @returns {Promise<Array<R>>} Results array
  */
-export async function parallelLimit(items, fn, concurrency = 5) {
+async function parallelLimit(items, fn, concurrency = 5) {
 	/** @type {Array<R>} */
 	const results = [];
 	/** @type {Array<Promise<R>>} */
@@ -206,7 +206,7 @@ export async function parallelLimit(items, fn, concurrency = 5) {
  * @param {CircuitBreakerOptions} [options] - Circuit breaker options
  * @returns {Function} Circuit breaker wrapped function
  */
-export function circuitBreaker(fn, options = {}) {
+function circuitBreaker(fn, options = {}) {
 	const {
 		failureThreshold = 5,
 		resetTimeout = 60000
@@ -249,3 +249,14 @@ export function circuitBreaker(fn, options = {}) {
 		}
 	};
 }
+
+module.exports = {
+	sleep,
+	debounce,
+	throttle,
+	circuitBreaker,
+	retry,
+	measureExecutionTime,
+	withTimeout,
+	parallelLimit
+};

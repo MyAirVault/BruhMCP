@@ -1,3 +1,6 @@
+export type MCPInstanceFilters = import('./types.js').MCPInstanceFilters;
+export type MCPInstanceRecord = import('./types.js').MCPInstanceRecord;
+export type MCPInstanceUpdateData = import('./types.js').MCPInstanceUpdateData;
 /**
  * @typedef {import('./types.js').MCPInstanceFilters} MCPInstanceFilters
  * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
@@ -10,7 +13,7 @@
  * @returns {Promise<MCPInstanceRecord[]>} Array of MCP instance records
  * @throws {Error} When database query fails
  */
-export function getAllMCPInstances(userId: string, filters?: MCPInstanceFilters): Promise<MCPInstanceRecord[]>;
+export function getAllMCPInstances(userId: string, filters?: import("./types.js").MCPInstanceFilters | undefined): Promise<MCPInstanceRecord[]>;
 /**
  * Get single MCP instance by ID
  * @param {string} instanceId - Instance ID to retrieve
@@ -36,7 +39,4 @@ export function updateMCPInstance(instanceId: string, userId: string, updateData
  * @throws {Error} When database query fails
  */
 export function deleteMCPInstance(instanceId: string, userId: string): Promise<boolean>;
-export type MCPInstanceFilters = import("./types.js").MCPInstanceFilters;
-export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
-export type MCPInstanceUpdateData = import("./types.js").MCPInstanceUpdateData;
 //# sourceMappingURL=crud.d.ts.map

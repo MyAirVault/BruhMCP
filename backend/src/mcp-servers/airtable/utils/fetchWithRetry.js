@@ -2,10 +2,10 @@
  * Fetch with Retry * Provides robust fetching with curl fallback for corporate networks
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
-import fetch from 'node-fetch';
-import { createLogger } from './logger.js';
+const { exec  } = require('child_process');
+const { promisify  } = require('util');
+const { axios } = require('../../../utils/axiosUtils.js');
+const { createLogger  } = require('./logger.js');
 
 const logger = createLogger('FetchWithRetry');
 
@@ -16,6 +16,7 @@ const execAsync = promisify(exec);
  * @property {Record<string, string>} [headers] - Request headers
  * @property {string} [method] - HTTP method
  * @property {string | Buffer} [body] - Request body
+ * @property {number} [timeout] - Request timeout in milliseconds
  */
 
 /**
@@ -33,10 +34,30 @@ const execAsync = promisify(exec);
  * @param {FetchOptions} [options] - Request options
  * @returns {Promise<import('node-fetch').Response | MockResponse>} Response data
  */
-export async function fetchWithRetry(url, options = {}) {
+async function fetchWithRetry(url, options = {}) {
 	try {
-		const response = await fetch(url, options);
-		return /** @type {import('node-fetch').Response | MockResponse} */ (response);
+		const response = await axios({
+			method: options.method || 'GET',
+			url: url,
+			headers: options.headers,
+			data: options.body,
+			timeout: options.timeout || 30000,
+			...options
+		});
+		
+		// Create a fetch-like response object for backwards compatibility
+		/** @type {any} */
+		const fetchLikeResponse = {
+			ok: response.status >= 200 && response.status < 300,
+			status: response.status,
+			statusText: response.statusText,
+			headers: response.headers,
+			data: response.data,
+			json: async () => response.data,
+			text: async () => typeof response.data === 'string' ? response.data : JSON.stringify(response.data)
+		};
+		
+		return fetchLikeResponse;
 	} catch (fetchError) {
 		logger.warn(
 			`Initial fetch failed for ${url}: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}. Likely a corporate proxy or SSL issue. Attempting curl fallback.`
@@ -102,3 +123,5 @@ function formatHeadersForCurl(headers) {
 
 	return Object.entries(headers).map(([key, value]) => `-H "${key}: ${value}"`);
 }
+
+module.exports = fetchWithRetry;

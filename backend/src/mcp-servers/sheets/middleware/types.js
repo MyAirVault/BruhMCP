@@ -71,4 +71,5 @@
  * @property {string} [scope] - Token scopes
  */
 
-export {};
+// TypeScript declarations - no exports needed
+module.exports = {};

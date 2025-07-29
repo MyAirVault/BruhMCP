@@ -296,4 +296,5 @@
  * @property {AuditLogMetadata} metadata - Additional metadata
  */
 
-export {};
+// TypeScript declarations - no exports needed
+module.exports = {};

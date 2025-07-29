@@ -24,7 +24,7 @@ const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
  * @returns {Promise<Record<string, any>>} API response
  * @throws {Error} When API request fails
  */
-export async function makeSheetsRequest(endpoint, bearerToken, options = {}) {
+async function makeSheetsRequest(endpoint, bearerToken, options = {}) {
 	const url = `${SHEETS_API_BASE}${endpoint}`;
 
 	/** @type {RequestInit} */
@@ -83,7 +83,7 @@ export async function makeSheetsRequest(endpoint, bearerToken, options = {}) {
  * @returns {Promise<Record<string, any>>} API response
  * @throws {Error} When API request fails
  */
-export async function makeDriveRequest(endpoint, bearerToken, options = {}) {
+async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 	const url = `${DRIVE_API_BASE}${endpoint}`;
 
 	/** @type {RequestInit} */
@@ -133,3 +133,7 @@ export async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 
 	return data;
 }
+module.exports = {
+  makeSheetsRequest,
+  makeDriveRequest
+};

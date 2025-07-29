@@ -4,44 +4,69 @@
  */
 
 // Message operations
-export {
-	sendMessage,
+const { sendMessage,
 	getMessages,
 	getThreadMessages,
 	deleteMessage,
 	updateMessage
-} from './messageOperations.js';
+ } = require('./messageOperations');
+
+module.exports = { sendMessage,
+	getMessages,
+	getThreadMessages,
+	deleteMessage,
+	updateMessage
+ };
 
 // Channel operations
-export {
-	listChannels,
+const { listChannels,
 	getChannelInfo,
 	joinChannel,
 	leaveChannel
-} from './channelOperations.js';
+ } = require('./channelOperations');
+
+module.exports = { listChannels,
+	getChannelInfo,
+	joinChannel,
+	leaveChannel
+ };
 
 // User operations
-export {
-	getUserInfo,
+const { getUserInfo,
 	listUsers
-} from './userOperations.js';
+ } = require('./userOperations');
+
+module.exports = { getUserInfo,
+	listUsers
+ };
 
 // Reaction operations
-export {
-	addReaction,
+const { addReaction,
 	removeReaction,
 	getReactions
-} from './reactionOperations.js';
+ } = require('./reactionOperations');
+
+module.exports = { addReaction,
+	removeReaction,
+	getReactions
+ };
 
 // File operations
-export {
-	uploadFile,
+const { uploadFile,
 	getFileInfo
-} from './fileOperations.js';
+ } = require('./fileOperations');
+
+module.exports = { uploadFile,
+	getFileInfo
+ };
 
 // Miscellaneous operations
-export {
-	createReminder,
+const { createReminder,
 	getTeamInfo,
 	testAuth
-} from './miscOperations.js';
+ } = require('./miscOperations');
+
+module.exports = { createReminder,
+	getTeamInfo,
+	testAuth
+ };

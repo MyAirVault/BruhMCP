@@ -3,9 +3,9 @@
  * @fileoverview Manages subscription creation and checkout session handling
  */
 
-import { createProSubscriptionCheckout, getSubscriptionDetails, validateRazorpayConfig } from '../services/paymentGateway.js';
-import { getUserPlan, updateUserPlan } from '../../db/queries/userPlansQueries.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
+const { createProSubscriptionCheckout, getSubscriptionDetails, validateRazorpayConfig } = require('../services/paymentGateway.js');
+const { getUserPlan, updateUserPlan } = require('../../db/queries/userPlansQueries.js');
+const { ErrorResponses } = require('../../utils/errorResponse.js');
 
 /**
  * @typedef {import('../../types/billing.d.ts').UserPlan} UserPlan
@@ -21,7 +21,7 @@ import { ErrorResponses } from '../../utils/errorResponse.js';
  * @param {import('express').Response} res
  * @returns {Promise<void>}
  */
-export async function createCheckoutSession(req, res) {
+async function createCheckoutSession(req, res) {
 	try {
 		// Check authentication
 		if (!req.user) {
@@ -118,7 +118,7 @@ export async function createCheckoutSession(req, res) {
  * @param {import('express').Response} res
  * @returns {Promise<void>}
  */
-export async function handleCheckoutSuccess(req, res) {
+async function handleCheckoutSuccess(req, res) {
 	try {
 		// Check authentication
 		if (!req.user) {
@@ -201,7 +201,7 @@ export async function handleCheckoutSuccess(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function getBillingStatus(req, res) {
+async function getBillingStatus(req, res) {
 	try {
 		// Check authentication
 		if (!req.user) {
@@ -267,7 +267,7 @@ export async function getBillingStatus(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function cancelSubscription(req, res) {
+async function cancelSubscription(req, res) {
 	try {
 		// Check authentication
 		if (!req.user) {
@@ -308,8 +308,8 @@ export async function cancelSubscription(req, res) {
 		}
 
 		// Cancel subscription via payment gateway
-		const { cancelSubscription } = await import('../services/paymentGateway.js');
-		const cancellationResult = await cancelSubscription(userPlan.subscription_id);
+		const paymentGateway = require('../services/paymentGateway.js');
+		const cancellationResult = await paymentGateway.cancelSubscription(userPlan.subscription_id);
 
 		// Update payment status (the plan downgrade will happen via webhook)
 		await updateUserPlan(userId, userPlan.plan_type, {
@@ -344,7 +344,7 @@ export async function cancelSubscription(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function getPaymentHistory(req, res) {
+async function getPaymentHistory(req, res) {
 	try {
 		// Check authentication
 		if (!req.user) {
@@ -376,7 +376,7 @@ export async function getPaymentHistory(req, res) {
 
 		// Get payments from Razorpay via subscription
 		/** @type {any} */
-		const { razorpay } = await import('../services/paymentGateway.js');
+		const { razorpay } = require('../services/paymentGateway.js');
 		
 		// Get invoices for this subscription instead of all payments
 		/** @type {any} */
@@ -434,7 +434,7 @@ export async function getPaymentHistory(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function getDetailedSubscriptionInfo(req, res) {
+async function getDetailedSubscriptionInfo(req, res) {
 	try {
 		// Check authentication
 		if (!req.user) {
@@ -462,12 +462,12 @@ export async function getDetailedSubscriptionInfo(req, res) {
 		}
 
 		// Get subscription details from Razorpay
-		const { getSubscriptionDetails } = await import('../services/paymentGateway.js');
-		const subscriptionDetails = await getSubscriptionDetails(userPlan.subscription_id);
+		const paymentGatewayModule = require('../services/paymentGateway.js');
+		const subscriptionDetails = await paymentGatewayModule.getSubscriptionDetails(userPlan.subscription_id);
 
 		// Get additional subscription info from Razorpay
 		/** @type {any} */
-		const { razorpay } = await import('../services/paymentGateway.js');
+		const { razorpay } = paymentGatewayModule;
 		/** @type {any} */
 		const subscription = await razorpay.subscriptions.fetch(userPlan.subscription_id);
 		
@@ -506,3 +506,12 @@ export async function getDetailedSubscriptionInfo(req, res) {
 		return;
 	}
 }
+
+module.exports = {
+	createCheckoutSession,
+	handleCheckoutSuccess,
+	getBillingStatus,
+	cancelSubscription,
+	getPaymentHistory,
+	getDetailedSubscriptionInfo
+};

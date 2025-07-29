@@ -1,5 +1,5 @@
 // @ts-check
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -9,7 +9,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
  * @param {{id: string, email: string}} user
  * @returns {string} JWT token
  */
-export function generateJWT(user) {
+function generateJWT(user) {
 	const payload = {
 		sub: user.id,
 		type: 'access',
@@ -25,10 +25,15 @@ export function generateJWT(user) {
  * @param {string} token
  * @returns {any} Decoded payload or null
  */
-export function verifyJWT(token) {
+function verifyJWT(token) {
 	try {
 		return /** @type {any} */ (jwt.verify(token, JWT_SECRET));
 	} catch {
 		return null;
 	}
 }
+
+module.exports = {
+	generateJWT,
+	verifyJWT
+};

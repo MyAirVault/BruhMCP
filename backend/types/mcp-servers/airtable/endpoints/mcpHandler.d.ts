@@ -1,3 +1,48 @@
+export type ServiceConfig = {
+    /**
+     * - Service name
+     */
+    name: string;
+    /**
+     * - Display name
+     */
+    displayName: string;
+    /**
+     * - Service version
+     */
+    version: string;
+};
+export type RequestWithHeaders = import('http').IncomingMessage & {
+    headers: Record<string, string | undefined>;
+};
+export type ResponseObject = import('http').ServerResponse & {
+    status: (arg0: number) => ResponseObject;
+    json: (arg0: Object) => void;
+};
+export type MCPMessage = {
+    /**
+     * - Message ID
+     */
+    id?: string | undefined;
+    /**
+     * - Method name
+     */
+    method?: string | undefined;
+};
+export type HandlerStatistics = {
+    /**
+     * - Handler statistics
+     */
+    handler: {
+        initialized: boolean;
+        activeSessions: number;
+        serviceConfig: ServiceConfig;
+    };
+    /**
+     * - Service statistics
+     */
+    service: Object;
+};
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name - Service name
@@ -69,52 +114,7 @@ export class AirtableMCPHandler {
      */
     shutdown(): Promise<void>;
 }
-export type ServiceConfig = {
-    /**
-     * - Service name
-     */
-    name: string;
-    /**
-     * - Display name
-     */
-    displayName: string;
-    /**
-     * - Service version
-     */
-    version: string;
-};
-export type RequestWithHeaders = import("http").IncomingMessage & {
-    headers: Record<string, string | undefined>;
-};
-export type ResponseObject = import("http").ServerResponse & {
-    status: (arg0: number) => ResponseObject;
-    json: (arg0: Object) => void;
-};
-export type MCPMessage = {
-    /**
-     * - Message ID
-     */
-    id?: string | undefined;
-    /**
-     * - Method name
-     */
-    method?: string | undefined;
-};
-export type HandlerStatistics = {
-    /**
-     * - Handler statistics
-     */
-    handler: {
-        initialized: boolean;
-        activeSessions: number;
-        serviceConfig: ServiceConfig;
-    };
-    /**
-     * - Service statistics
-     */
-    service: Object;
-};
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { AirtableService } from '../services/airtableService.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { AirtableService } from "../services/airtableService.js";
 //# sourceMappingURL=mcpHandler.d.ts.map

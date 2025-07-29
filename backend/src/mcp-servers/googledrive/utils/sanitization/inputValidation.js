@@ -2,8 +2,8 @@
  * General input validation utilities for Google Drive MCP Service
  */
 
-import { sanitizeString } from './stringValidation.js';
-import { sanitizeInteger, sanitizeBoolean, sanitizeArray } from './typeValidation.js';
+const { sanitizeString  } = require('./stringValidation');
+const { sanitizeInteger, sanitizeBoolean, sanitizeArray  } = require('./typeValidation');
 
 /**
  * @typedef {Object} ValidationConfig
@@ -37,7 +37,7 @@ import { sanitizeInteger, sanitizeBoolean, sanitizeArray } from './typeValidatio
  * @returns {SanitizedObject} Sanitized input object
  * @throws {ValidationError} When validation fails
  */
-export function sanitizeInput(input, schema) {
+function sanitizeInput(input, schema) {
   if (!input || typeof input !== 'object') {
     throw new Error('Input must be an object');
   }
@@ -129,3 +129,7 @@ export function sanitizeInput(input, schema) {
   
   return sanitized;
 }
+
+module.exports = {
+  sanitizeInput
+};

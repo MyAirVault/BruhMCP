@@ -415,5 +415,9 @@ class CircuitBreakerManager {
 // Export singleton instance
 const circuitBreakerManager = new CircuitBreakerManager();
 
-export { CircuitBreaker, CircuitBreakerManager, CIRCUIT_STATES };
-export default circuitBreakerManager;
+module.exports = {
+  CircuitBreaker,
+  CircuitBreakerManager,
+  CIRCUIT_STATES,
+  default: circuitBreakerManager
+};

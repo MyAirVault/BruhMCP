@@ -5,13 +5,13 @@
  * @fileoverview Service for managing user authentication in local development mode
  */
 
-import bcrypt from 'bcrypt';
-import { findOrCreateUser } from '../../db/queries/userQueries.js';
-import { 
+const bcrypt = require('bcrypt');
+const { findOrCreateUser } = require('../../db/queries/userQueries.js');
+const { 
     getUserWithPasswordHash, 
     updateUserPassword, 
     getAllUsersWithPasswordStatus 
-} from '../queries/localUserQueries.js';
+} = require('../queries/localUserQueries.js');
 
 class LocalUserService {
     /**
@@ -26,7 +26,7 @@ class LocalUserService {
             
             if (user) {
                 // User exists - verify password
-                if (!user.password_hash) {
+                if (!(/** @type {any} */ (user)).password_hash) {
                     return { 
                         success: false, 
                         error: 'PASSWORD_NOT_SET',
@@ -34,7 +34,7 @@ class LocalUserService {
                     };
                 }
 
-                const isValid = await bcrypt.compare(password, user.password_hash);
+                const isValid = await bcrypt.compare(password, (/** @type {any} */ (user)).password_hash);
                 if (!isValid) {
                     return { 
                         success: false, 
@@ -46,8 +46,8 @@ class LocalUserService {
                 return {
                     success: true,
                     user: {
-                        id: user.id,
-                        email: user.email
+                        id: (/** @type {any} */ (user)).id,
+                        email: (/** @type {any} */ (user)).email
                     },
                     isNewUser: false
                 };
@@ -60,13 +60,13 @@ class LocalUserService {
                 user = await findOrCreateUser(email);
                 
                 // Set password hash
-                await updateUserPassword(user.id, passwordHash);
+                await updateUserPassword((/** @type {any} */ (user)).id, passwordHash);
                 
                 return {
                     success: true,
                     user: {
-                        id: user.id,
-                        email: user.email
+                        id: (/** @type {any} */ (user)).id,
+                        email: (/** @type {any} */ (user)).email
                     },
                     isNewUser: true
                 };
@@ -98,15 +98,15 @@ class LocalUserService {
 
             const saltRounds = 10;
             const passwordHash = await bcrypt.hash(password, saltRounds);
-            await updateUserPassword(user.id, passwordHash);
+            await updateUserPassword((/** @type {any} */ (user)).id, passwordHash);
             
-            const isNewUser = !user.password_hash;
+            const isNewUser = !(/** @type {any} */ (user)).password_hash;
             console.log(`✅ Password ${isNewUser ? 'set' : 'updated'} for user: ${email}`);
             
             return { success: true, isNewUser };
         } catch (error) {
             console.error('Error setting password:', error);
-            return { success: false, error: error.message };
+            return { success: false, error: (/** @type {Error} */ (error)).message };
         }
     }
 
@@ -119,7 +119,7 @@ class LocalUserService {
             return { success: true, users };
         } catch (error) {
             console.error('Error listing users:', error);
-            return { success: false, error: error.message };
+            return { success: false, error: (/** @type {Error} */ (error)).message };
         }
     }
 
@@ -140,7 +140,7 @@ class LocalUserService {
                 };
             }
 
-            if (!user.password_hash) {
+            if (!(/** @type {any} */ (user)).password_hash) {
                 return { 
                     success: false, 
                     error: 'PASSWORD_NOT_SET',
@@ -148,7 +148,7 @@ class LocalUserService {
                 };
             }
 
-            const isValid = await bcrypt.compare(password, user.password_hash);
+            const isValid = await bcrypt.compare(password, (/** @type {any} */ (user)).password_hash);
             
             if (!isValid) {
                 return { 
@@ -161,8 +161,8 @@ class LocalUserService {
             return {
                 success: true,
                 user: {
-                    id: user.id,
-                    email: user.email
+                    id: (/** @type {any} */ (user)).id,
+                    email: (/** @type {any} */ (user)).email
                 }
             };
         } catch (error) {
@@ -176,4 +176,6 @@ class LocalUserService {
     }
 }
 
-export const localUserService = new LocalUserService();
+const localUserService = new LocalUserService();
+
+module.exports = { localUserService };

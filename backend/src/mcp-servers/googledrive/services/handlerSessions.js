@@ -6,7 +6,7 @@
  * required by the MCP protocol specification.
  */
 
-import { GoogleDriveMCPHandler } from '../endpoints/mcpHandler.js';
+const { GoogleDriveMCPHandler  } = require('../endpoints/mcpHandler');
 
 // Global handler session cache for Google Drive service instances
 const handlerSessions = new Map();
@@ -22,13 +22,13 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {GoogleDriveMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
+function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	let session = handlerSessions.get(instanceId);
 	
 	if (!session) {
 		// Create new handler instance for this instanceId
 		console.log(`🔧 Creating new Google Drive handler session for instance: ${instanceId}`);
-		const handler = new GoogleDriveMCPHandler(serviceConfig, bearerToken);
+		const handler = new GoogleDriveMCPHandler(/** @type {any} */ (serviceConfig), bearerToken);
 		
 		session = {
 			handler,
@@ -60,7 +60,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if session was removed, false if not found
  */
-export function removeHandlerSession(instanceId) {
+function removeHandlerSession(instanceId) {
 	const removed = handlerSessions.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️  Removed Google Drive handler session for instance: ${instanceId}`);
@@ -72,7 +72,7 @@ export function removeHandlerSession(instanceId) {
  * Get statistics about current handler sessions
  * @returns {Object} Session statistics
  */
-export function getSessionStatistics() {
+function getSessionStatistics() {
 	const now = Date.now();
 	const sessions = Array.from(handlerSessions.values());
 	
@@ -114,13 +114,14 @@ function cleanupExpiredSessions() {
 }
 
 // Cleanup interval handle
+/** @type {NodeJS.Timeout | null} */
 let cleanupInterval = null;
 
 /**
  * Start the session cleanup service
  * Called when the server starts
  */
-export function startSessionCleanup() {
+function startSessionCleanup() {
 	if (cleanupInterval) {
 		console.warn('⚠️  Google Drive session cleanup already running');
 		return;
@@ -134,7 +135,7 @@ export function startSessionCleanup() {
  * Stop the session cleanup service
  * Called during graceful shutdown
  */
-export function stopSessionCleanup() {
+function stopSessionCleanup() {
 	if (cleanupInterval) {
 		clearInterval(cleanupInterval);
 		cleanupInterval = null;
@@ -151,7 +152,7 @@ export function stopSessionCleanup() {
  * When credentials are invalidated, also remove the handler session
  * @param {string} instanceId - UUID of the service instance
  */
-export function invalidateHandlerSession(instanceId) {
+function invalidateHandlerSession(instanceId) {
 	const removed = removeHandlerSession(instanceId);
 	if (removed) {
 		console.log(`🔄 Google Drive handler session invalidated due to credential change: ${instanceId}`);
@@ -164,7 +165,7 @@ export function invalidateHandlerSession(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newBearerToken - New bearer token
  */
-export function updateSessionBearerToken(instanceId, newBearerToken) {
+function updateSessionBearerToken(instanceId, newBearerToken) {
 	const session = handlerSessions.get(instanceId);
 	if (session && session.handler) {
 		session.handler.bearerToken = newBearerToken;
@@ -174,3 +175,14 @@ export function updateSessionBearerToken(instanceId, newBearerToken) {
 	}
 	return false;
 }
+
+module.exports = {
+	getOrCreateHandler,
+	removeHandlerSession,
+	getSessionStatistics,
+	cleanupExpiredSessions,
+	startSessionCleanup,
+	stopSessionCleanup,
+	invalidateHandlerSession,
+	updateSessionBearerToken
+};

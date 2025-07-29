@@ -3,7 +3,7 @@
  * Validates tool arguments against defined schemas
  */
 
-import { getTools } from '../endpoints/tools.js';
+const { getTools  } = require('../endpoints/tools');
 
 /**
  * @typedef {Object} JsonSchemaProperty
@@ -54,7 +54,7 @@ import { getTools } from '../endpoints/tools.js';
  * @param {Record<string, any>} args - Arguments to validate
  * @throws {Error} Validation error if arguments are invalid
  */
-export function validateToolArguments(toolName, args) {
+function validateToolArguments(toolName, args) {
   const toolsData = /** @type {ToolsData} */ (getTools());
   const tool = toolsData.tools.find((/** @type {Tool} */ t) => t.name === toolName);
   
@@ -294,7 +294,7 @@ function validateUsername(value, context) {
  * @param {string} postId - Reddit post ID
  * @throws {Error} If post ID format is invalid
  */
-export function validatePostId(postId) {
+function validatePostId(postId) {
   if (!postId || typeof postId !== 'string') {
     throw new Error('Post ID is required and must be a string');
   }
@@ -315,7 +315,7 @@ export function validatePostId(postId) {
  * @param {string} commentId - Reddit comment ID
  * @throws {Error} If comment ID format is invalid
  */
-export function validateCommentId(commentId) {
+function validateCommentId(commentId) {
   if (!commentId || typeof commentId !== 'string') {
     throw new Error('Comment ID is required and must be a string');
   }
@@ -336,7 +336,7 @@ export function validateCommentId(commentId) {
  * @param {string} fullname - Reddit fullname
  * @throws {Error} If fullname format is invalid
  */
-export function validateFullname(fullname) {
+function validateFullname(fullname) {
   if (!fullname || typeof fullname !== 'string') {
     throw new Error('Fullname is required and must be a string');
   }
@@ -357,7 +357,7 @@ export function validateFullname(fullname) {
  * @param {string} query - Search query
  * @throws {Error} If query contains invalid characters
  */
-export function validateRedditQuery(query) {
+function validateRedditQuery(query) {
   if (!query || typeof query !== 'string') {
     return; // Empty queries are allowed
   }
@@ -387,7 +387,7 @@ export function validateRedditQuery(query) {
  * @param {number} direction - Vote direction
  * @throws {Error} If direction is invalid
  */
-export function validateVoteDirection(direction) {
+function validateVoteDirection(direction) {
   if (typeof direction !== 'number') {
     throw new Error('Vote direction must be a number');
   }
@@ -403,7 +403,7 @@ export function validateVoteDirection(direction) {
  * @param {'title' | 'text' | 'url'} type - Content type ('title', 'text', 'url')
  * @throws {Error} If content is invalid
  */
-export function validatePostContent(content, type) {
+function validatePostContent(content, type) {
   if (!content || typeof content !== 'string') {
     throw new Error(`${type} is required and must be a string`);
   }
@@ -433,3 +433,7 @@ export function validatePostContent(content, type) {
       break;
   }
 }
+
+module.exports = {
+  validateToolArguments
+};

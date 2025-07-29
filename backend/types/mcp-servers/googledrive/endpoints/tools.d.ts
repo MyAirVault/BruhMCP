@@ -31,12 +31,6 @@ export function getTools(): {
     }[];
 };
 /**
- * Get tool by name
- * @param {string} toolName - Name of the tool
- * @returns {Object|null} Tool definition or null if not found
- */
-export function getToolByName(toolName: string): Object | null;
-/**
  * Get all tool names
  * @returns {string[]} Array of tool names
  */

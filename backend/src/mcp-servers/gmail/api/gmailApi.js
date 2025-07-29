@@ -4,7 +4,7 @@
  */
 
 // Re-export all functions from modular structure
-export {
+const {
 	makeGmailRequest,
 	sendEmail,
 	fetchEmails,
@@ -22,4 +22,24 @@ export {
 	downloadAttachment,
 	listAttachments,
 	sendEmailWithAttachments
-} from './modules/index.js';
+} = require('./modules/index.js');
+
+module.exports = {
+	makeGmailRequest,
+	sendEmail,
+	fetchEmails,
+	fetchMessageById,
+	replyToEmail,
+	deleteMessage,
+	moveToTrash,
+	searchEmails,
+	createDraft,
+	sendDraft,
+	listDrafts,
+	getThread,
+	markAsRead,
+	markAsUnread,
+	downloadAttachment,
+	listAttachments,
+	sendEmailWithAttachments
+};

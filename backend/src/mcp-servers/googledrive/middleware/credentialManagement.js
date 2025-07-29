@@ -4,15 +4,15 @@
 
 /// <reference path="./types.js" />
 
-import { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata } from '../services/cache/index.js';
-import { updateInstanceUsage } from '../services/database.js';
+const { getCachedCredential, setCachedCredential, updateCachedCredentialMetadata  } = require('../services/cache/index');
+const { updateInstanceUsage  } = require('../services/database');
 
 /**
  * Checks for cached credentials
  * @param {string} instanceId - Instance ID
  * @returns {import('./types.js').CachedCredential|null} Cached credential or null
  */
-export function checkCachedCredentials(instanceId) {
+function checkCachedCredentials(instanceId) {
   return getCachedCredential(instanceId);
 }
 
@@ -21,7 +21,7 @@ export function checkCachedCredentials(instanceId) {
  * @param {import('./types.js').CachedCredential|null} cachedCredential - Cached credential
  * @returns {boolean} Whether bearer token exists
  */
-export function hasCachedBearerToken(cachedCredential) {
+function hasCachedBearerToken(cachedCredential) {
   return !!(cachedCredential && cachedCredential.bearerToken);
 }
 
@@ -32,7 +32,7 @@ export function hasCachedBearerToken(cachedCredential) {
  * @param {string} instanceId - Instance ID
  * @returns {Promise<void>}
  */
-export async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
+async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
   console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`);
   req.bearerToken = cachedCredential.bearerToken;
   req.instanceId = instanceId;
@@ -54,7 +54,7 @@ export async function setupRequestWithCachedToken(req, cachedCredential, instanc
  * @param {import('./types.js').CachedCredential|null} cachedCredential - Cached credential
  * @returns {{refreshToken: string|undefined, accessToken: string|undefined, tokenExpiresAt: number|undefined}}
  */
-export function getTokenInfo(instance, cachedCredential) {
+function getTokenInfo(instance, cachedCredential) {
   const refreshToken = cachedCredential?.refreshToken || instance.refresh_token;
   const accessToken = instance.bearer_token;
   const tokenExpiresAt = instance.bearer_token_expires_at || instance.expires_at;
@@ -68,7 +68,7 @@ export function getTokenInfo(instance, cachedCredential) {
  * @param {number|undefined} tokenExpiresAt - Token expiration timestamp
  * @returns {boolean} Whether token is valid
  */
-export function isAccessTokenValid(accessToken, tokenExpiresAt) {
+function isAccessTokenValid(accessToken, tokenExpiresAt) {
   if (!accessToken || !tokenExpiresAt) return false;
   
   // Check if token expires in more than 5 minutes
@@ -87,7 +87,7 @@ export function isAccessTokenValid(accessToken, tokenExpiresAt) {
  * @param {import('./types.js').CachedCredential|null} existingCache - Existing cache
  * @returns {Promise<void>}
  */
-export async function cacheAndSetupToken(instanceId, accessToken, tokenExpiresAt, userId, req, refreshToken, existingCache) {
+async function cacheAndSetupToken(instanceId, accessToken, tokenExpiresAt, userId, req, refreshToken, existingCache) {
   // Cache the valid token
   setCachedCredential(instanceId, {
     bearerToken: accessToken,
@@ -119,7 +119,16 @@ export async function cacheAndSetupToken(instanceId, accessToken, tokenExpiresAt
  * @param {string} userId - User ID
  * @returns {void}
  */
-export function setupLightweightRequest(req, instanceId, userId) {
+function setupLightweightRequest(req, instanceId, userId) {
   req.instanceId = instanceId;
   req.userId = userId;
 }
+module.exports = {
+  checkCachedCredentials,
+  hasCachedBearerToken,
+  getTokenInfo,
+  isAccessTokenValid,
+  setupLightweightRequest,
+  setupRequestWithCachedToken,
+  cacheAndSetupToken
+};

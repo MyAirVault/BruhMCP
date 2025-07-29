@@ -1,6 +1,6 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
-import fetch from 'node-fetch';
+const { BaseValidator, createValidationResult  } = require('../../../services/validation/baseValidator.js');
+const { axiosGet } = require('../../../utils/axiosUtils.js');
 
 /**
  * Airtable API key validator
@@ -50,15 +50,15 @@ class AirtableAPIKeyValidator extends BaseValidator {
     }
 
     try {
-      const response = await fetch('https://api.airtable.com/v0/meta/bases', {
+      const response = await axiosGet('https://api.airtable.com/v0/meta/bases', {
         headers: {
           'Authorization': `Bearer ${credentials.api_key}`,
           'Content-Type': 'application/json'
         },
       });
 
-      if (response.ok) {
-        const data = /** @type {any} */ (await response.json());
+      if (response.status >= 200 && response.status < 300) {
+        const data = response.data;
         console.log('✅ Airtable API validation successful:', { basesCount: data.bases?.length || 0 });
         return createValidationResult(true, null, null, {
           service: 'Airtable API',
@@ -104,4 +104,4 @@ function createAirtableValidator(credentials) {
   }
 }
 
-export default createAirtableValidator;
+module.exports = createAirtableValidator;

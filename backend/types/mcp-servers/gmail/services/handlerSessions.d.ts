@@ -5,7 +5,7 @@
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {GmailMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: import("../middleware/types.js").ServiceConfig, bearerToken: string): GmailMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: import('../middleware/types.js').ServiceConfig, bearerToken: string): GmailMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance
@@ -40,5 +40,5 @@ export function invalidateHandlerSession(instanceId: string): void;
  * @param {string} newBearerToken - New bearer token
  */
 export function updateSessionBearerToken(instanceId: string, newBearerToken: string): boolean;
-import { GmailMCPHandler } from '../endpoints/mcpHandler.js';
+import GmailMCPHandler = require("../endpoints/mcpHandler.js");
 //# sourceMappingURL=handlerSessions.d.ts.map

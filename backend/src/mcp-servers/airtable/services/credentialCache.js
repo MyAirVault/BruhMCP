@@ -13,7 +13,7 @@ const airtableCredentialCache = new Map();
  * Initialize the credential cache system
  * Called on service startup
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Airtable credential cache system');
 	airtableCredentialCache.clear();
 	console.log('✅ Airtable credential cache initialized');
@@ -24,7 +24,7 @@ export function initializeCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = airtableCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -53,7 +53,7 @@ export function getCachedCredential(instanceId) {
  * @param {string} credentialData.expires_at - Instance expiration timestamp
  * @param {string} credentialData.user_id - User ID who owns this instance
  */
-export function setCachedCredential(instanceId, credentialData) {
+function setCachedCredential(instanceId, credentialData) {
 	const cacheEntry = {
 		credential: credentialData.api_key,
 		expires_at: credentialData.expires_at,
@@ -71,7 +71,7 @@ export function setCachedCredential(instanceId, credentialData) {
  * Remove credential from cache
  * @param {string} instanceId - UUID of the service instance
  */
-export function removeCachedCredential(instanceId) {
+function removeCachedCredential(instanceId) {
 	const removed = airtableCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed credential from cache: ${instanceId}`);
@@ -83,7 +83,7 @@ export function removeCachedCredential(instanceId) {
  * Get cache statistics for monitoring
  * @returns {Object} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
 	const totalEntries = airtableCredentialCache.size;
 	const entries = Array.from(airtableCredentialCache.values());
 	
@@ -120,7 +120,7 @@ export function getCacheStatistics() {
  * Get all cached instance IDs (for debugging/monitoring)
  * @returns {string[]} Array of cached instance IDs
  */
-export function getCachedInstanceIds() {
+function getCachedInstanceIds() {
 	return Array.from(airtableCredentialCache.keys());
 }
 
@@ -129,7 +129,7 @@ export function getCachedInstanceIds() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if instance is cached and valid
  */
-export function isInstanceCached(instanceId) {
+function isInstanceCached(instanceId) {
 	const cached = airtableCredentialCache.get(instanceId);
 	if (!cached) return false;
 	
@@ -144,7 +144,7 @@ export function isInstanceCached(instanceId) {
 /**
  * Clear all cached credentials (for testing/restart)
  */
-export function clearCredentialCache() {
+function clearCredentialCache() {
 	const count = airtableCredentialCache.size;
 	airtableCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} entries from credential cache`);
@@ -155,7 +155,7 @@ export function clearCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cache entry or null
  */
-export function peekCachedCredential(instanceId) {
+function peekCachedCredential(instanceId) {
 	return airtableCredentialCache.get(instanceId) || null;
 }
 
@@ -168,7 +168,7 @@ export function peekCachedCredential(instanceId) {
  * @param {string} [updates.expires_at] - New expiration timestamp
  * @returns {boolean} True if cache entry was updated, false if not found
  */
-export function updateCachedCredentialMetadata(instanceId, updates) {
+function updateCachedCredentialMetadata(instanceId, updates) {
 	const cached = airtableCredentialCache.get(instanceId);
 	if (!cached) {
 		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
@@ -199,7 +199,7 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
  * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
  * @returns {number} Number of entries removed
  */
-export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = new Date();
 
@@ -232,3 +232,17 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 
 	return removedCount;
 }
+
+module.exports = {
+	initializeCredentialCache,
+	getCachedCredential,
+	setCachedCredential,
+	removeCachedCredential,
+	getCacheStatistics,
+	getCachedInstanceIds,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential,
+	updateCachedCredentialMetadata,
+	cleanupInvalidCacheEntries
+};

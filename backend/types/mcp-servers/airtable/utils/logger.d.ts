@@ -5,6 +5,10 @@
  */
 export function createLogger(component: string): Logger;
 /**
+ * Global logger for service-wide events
+ */
+export const serviceLogger: Logger;
+/**
  * Request logger middleware
  * @param {string} instanceId - Instance ID
  * @returns {Function}
@@ -23,24 +27,11 @@ export function logError(error: Error, context?: Object): void;
  * @returns {Function}
  */
 export function measurePerformance(operation: string, fn: Function): Function;
-/**
- * Global logger for service-wide events
- */
-export const serviceLogger: Logger;
 export namespace logLevel {
     function setLevel(level: string): void;
     function getLevel(): string | undefined;
     function isDebugEnabled(): boolean;
 }
-declare namespace _default {
-    export { createLogger };
-    export { serviceLogger };
-    export { createRequestLogger };
-    export { logError };
-    export { measurePerformance };
-    export { logLevel };
-}
-export default _default;
 /**
  * Logger class
  */
@@ -158,6 +149,7 @@ declare class Logger {
      * @param {string} message - Message
      * @param {Object} metadata - Metadata
      */
-    withContext(level: "debug" | "info" | "warn" | "error", message: string, metadata?: Object): void;
+    withContext(level: 'debug' | 'info' | 'warn' | 'error', message: string, metadata?: Object): void;
 }
+export {};
 //# sourceMappingURL=logger.d.ts.map

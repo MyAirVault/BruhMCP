@@ -3,7 +3,7 @@
  * @fileoverview Contains all database query functions for user management
  */
 
-import { pool } from '../config.js';
+const { pool } = require('../config.js');
 
 /**
  * @typedef {Object} DatabaseUser
@@ -29,7 +29,7 @@ import { pool } from '../config.js';
  * @param {string} email - User email
  * @returns {Promise<DatabaseUser|null>} User record or null
  */
-export async function findUserByEmail(email) {
+async function findUserByEmail(email) {
 	const query = `
 		SELECT 
 			id,
@@ -50,7 +50,7 @@ export async function findUserByEmail(email) {
  * @param {string} userId - User ID (UUID)
  * @returns {Promise<DatabaseUser|null>} User record or null
  */
-export async function findUserById(userId) {
+async function findUserById(userId) {
 	const query = `
 		SELECT 
 			id,
@@ -73,7 +73,7 @@ export async function findUserById(userId) {
  * @param {string|null} [userData.name] - User name
  * @returns {Promise<DatabaseUser>} Created user record
  */
-export async function createUser(userData) {
+async function createUser(userData) {
 	const { email, name } = userData;
 	
 	const query = `
@@ -92,7 +92,7 @@ export async function createUser(userData) {
  * @param {string|null} [name] - User name
  * @returns {Promise<DatabaseUser>} User record (existing or newly created)
  */
-export async function findOrCreateUser(email, name = null) {
+async function findOrCreateUser(email, name = null) {
 	const client = await pool.connect();
 	try {
 		await client.query('BEGIN');
@@ -138,7 +138,7 @@ export async function findOrCreateUser(email, name = null) {
  * @param {string} [updateData.email] - User email
  * @returns {Promise<DatabaseUser|null>} Updated user record or null
  */
-export async function updateUser(userId, updateData) {
+async function updateUser(userId, updateData) {
 	const setClauses = [];
 	const params = [];
 	let paramIndex = 1;
@@ -178,7 +178,7 @@ export async function updateUser(userId, updateData) {
  * @param {string} userId - User ID
  * @returns {Promise<UserStats>} User statistics
  */
-export async function getUserStats(userId) {
+async function getUserStats(userId) {
 	const query = `
 		SELECT 
 			COUNT(ms.instance_id) as total_instances,
@@ -203,3 +203,12 @@ export async function getUserStats(userId) {
 		last_activity: null
 	};
 }
+
+module.exports = {
+	findUserByEmail,
+	findUserById,
+	createUser,
+	findOrCreateUser,
+	updateUser,
+	getUserStats
+};

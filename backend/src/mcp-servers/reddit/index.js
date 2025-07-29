@@ -5,29 +5,27 @@
 
 /// <reference path="../../types/reddit.d.ts" />
 
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+const dotenv = require('dotenv');
+const { join  } = require('path');
 
 // Load .env from backend root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const backendRoot = join(__dirname, '../../..');
 dotenv.config({ path: join(backendRoot, '.env') });
 
-import express from 'express';
-import cors from 'cors';
-import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
-import { createRedditApiRateLimitMiddleware, getRateLimitStatistics } from './middleware/rateLimit.js';
-import { createResponseCacheMiddleware, createCacheInvalidationMiddleware } from './middleware/responseCache.js';
-import { createResponseSizeLimitMiddleware, getSizeLimits } from './middleware/responseSizeLimit.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
-import { initializeResponseCache, getCacheStatistics as getResponseCacheStatistics } from './services/responseCache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
-import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
+const express = require('express');
+const cors = require('cors');
+const { healthCheck  } = require('./endpoints/health');
+const { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware  } = require('./middleware/credentialAuth');
+const { createRedditApiRateLimitMiddleware, getRateLimitStatistics  } = require('./middleware/rateLimit');
+const { createResponseCacheMiddleware, createCacheInvalidationMiddleware  } = require('./middleware/responseCache');
+const { createResponseSizeLimitMiddleware, getSizeLimits  } = require('./middleware/responseSizeLimit');
+const { initializeCredentialCache, getCacheStatistics  } = require('./services/credentialCache');
+const { initializeResponseCache } = require('./services/responseCache');
+const { getCacheStatistics: getResponseCacheStatistics } = require('./services/responseCache');
+const { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus  } = require('./services/credentialWatcher');
+const { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics  } = require('./services/handlerSessions');
+const { ErrorResponses  } = require('../../utils/errorResponse');
+const { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger  } = require('../../middleware/mcpLoggingMiddleware');
 
 // Service configuration (from mcp-ports/reddit/config.json)
 const SERVICE_CONFIG = {
@@ -392,4 +390,4 @@ process.on('SIGINT', () => {
   });
 });
 
-export default app;
+module.exports = app;

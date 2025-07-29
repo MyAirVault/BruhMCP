@@ -35,7 +35,7 @@ function cloneRegExp(obj) {
  * @param {*} obj - Object to clone
  * @returns {*} Cloned object
  */
-export function deepClone(obj) {
+function deepClone(obj) {
 	if (obj === null || typeof obj !== 'object') {
 		return obj;
 	}
@@ -72,7 +72,7 @@ export function deepClone(obj) {
  * @param {...Record<string, T>} sources - Source objects to merge
  * @returns {Record<string, T>} Merged object
  */
-export function deepMerge(target, ...sources) {
+function deepMerge(target, ...sources) {
 	if (!sources.length) return target;
 	const source = sources.shift();
 
@@ -95,7 +95,7 @@ export function deepMerge(target, ...sources) {
  * @param {Object | null | undefined | string | number | boolean} item - Item to check
  * @returns {boolean} True if object
  */
-export function isObject(item) {
+function isObject(item) {
 	return !!(item && typeof item === 'object' && !Array.isArray(item));
 }
 
@@ -106,7 +106,7 @@ export function isObject(item) {
  * @param {number} size - Chunk size
  * @returns {Array<Array<T>>} Array of chunks
  */
-export function chunkArray(array, size) {
+function chunkArray(array, size) {
 	const chunks = [];
 	for (let i = 0; i < array.length; i += size) {
 		chunks.push(array.slice(i, i + size));
@@ -120,7 +120,7 @@ export function chunkArray(array, size) {
  * @param {number} [depth] - Depth to flatten (default: Infinity)
  * @returns {Object[]} Flattened array
  */
-export function flattenArray(arr, depth = Infinity) {
+function flattenArray(arr, depth = Infinity) {
 	return depth > 0 ? arr.reduce((/** @type {Object[]} */ acc, val) => {
 		if (Array.isArray(val)) {
 			return acc.concat(flattenArray(val, depth - 1));
@@ -137,7 +137,7 @@ export function flattenArray(arr, depth = Infinity) {
  * @param {((item: T) => string | number) | null} [keyFn] - Key function for objects
  * @returns {Array<T>} Array without duplicates
  */
-export function uniqueArray(array, keyFn = null) {
+function uniqueArray(array, keyFn = null) {
 	if (!keyFn) {
 		return Array.from(new Set(array));
 	}
@@ -159,7 +159,7 @@ export function uniqueArray(array, keyFn = null) {
  * @param {((item: Object) => string) | string} keyFn - Key function or property name
  * @returns {Record<string, Object[]>} Grouped object
  */
-export function groupBy(array, keyFn) {
+function groupBy(array, keyFn) {
 	const getKey = typeof keyFn === 'function' ? keyFn : (/** @type {Object} */ item) => (/** @type {Record<string, string>} */ (item))[/** @type {string} */ (keyFn)];
 	
 	return array.reduce((/** @type {Record<string, Object[]>} */ groups, item) => {
@@ -185,7 +185,7 @@ export function groupBy(array, keyFn) {
  * @param {Array<SortKey>} sortKeys - Array of sort configurations
  * @returns {Array<T>} Sorted array
  */
-export function multiSort(array, sortKeys) {
+function multiSort(array, sortKeys) {
 	return array.sort((a, b) => {
 		for (const { key, direction = 'asc' } of sortKeys) {
 			const aVal = typeof key === 'function' ? key(/** @type {Object} */ (a)) : (/** @type {Record<string, string | number>} */ (a))[/** @type {string} */ (key)];
@@ -206,7 +206,7 @@ export function multiSort(array, sortKeys) {
  * @param {Array<K>} keys - Keys to pick
  * @returns {Pick<T, K>} Object with picked properties
  */
-export function pick(obj, keys) {
+function pick(obj, keys) {
 	/** @type {Partial<T>} */
 	const result = {};
 	for (const key of keys) {
@@ -225,7 +225,7 @@ export function pick(obj, keys) {
  * @param {Array<K>} keys - Keys to omit
  * @returns {Omit<T, K>} Object without omitted properties
  */
-export function omit(obj, keys) {
+function omit(obj, keys) {
 	const result = { ...obj };
 	for (const key of keys) {
 		delete result[/** @type {string} */ (key)];
@@ -240,7 +240,7 @@ export function omit(obj, keys) {
  * @param {Object | null} [defaultValue] - Default value if path not found
  * @returns {Object | null | undefined} Property value or default
  */
-export function get(obj, path, defaultValue) {
+function get(obj, path, defaultValue) {
 	const keys = path.split('.');
 	let result = /** @type {Object} */ (obj);
 	
@@ -261,7 +261,7 @@ export function get(obj, path, defaultValue) {
  * @param {Object} value - Value to set
  * @returns {Record<string, Object>} Modified object
  */
-export function set(obj, path, value) {
+function set(obj, path, value) {
 	const keys = path.split('.');
 	const lastKey = keys.pop();
 	/** @type {Record<string, Object>} */
@@ -286,7 +286,7 @@ export function set(obj, path, value) {
  * @param {(key: string) => string} transformFn - Key transformation function
  * @returns {Object | Object[]} Object with transformed keys
  */
-export function transformKeys(obj, transformFn) {
+function transformKeys(obj, transformFn) {
 	if (Array.isArray(obj)) {
 		return obj.map(item => transformKeys(item, transformFn));
 	}
@@ -309,7 +309,7 @@ export function transformKeys(obj, transformFn) {
  * @param {string} str - String to convert
  * @returns {string} snake_case string
  */
-export function camelToSnake(str) {
+function camelToSnake(str) {
 	return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 }
 
@@ -318,6 +318,24 @@ export function camelToSnake(str) {
  * @param {string} str - String to convert
  * @returns {string} camelCase string
  */
-export function snakeToCamel(str) {
+function snakeToCamel(str) {
 	return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
+
+module.exports = {
+	deepClone,
+	deepMerge,
+	isObject,
+	chunkArray,
+	flattenArray,
+	uniqueArray,
+	groupBy,
+	multiSort,
+	pick,
+	omit,
+	get,
+	set,
+	transformKeys,
+	camelToSnake,
+	snakeToCamel
+};

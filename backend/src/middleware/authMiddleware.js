@@ -1,8 +1,8 @@
 // @ts-check
-import { verifyJWT } from '../utils/jwt.js';
-import { findUserByEmail } from '../db/queries/userQueries.js';
-import loggingService from '../services/logging/loggingService.js';
-import { ErrorResponses } from '../utils/errorResponse.js';
+const { verifyJWT } = require('../utils/jwt.js');
+const { findUserByEmail } = require('../db/queries/userQueries.js');
+const loggingService = require('../services/logging/loggingService.js');
+const { ErrorResponses } = require('../utils/errorResponse.js');
 
 /**
  * @typedef {Object} AuthenticatedUser
@@ -23,7 +23,7 @@ import { ErrorResponses } from '../utils/errorResponse.js';
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-export async function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
 	const token = req.cookies.authToken;
 
 	if (!token) {
@@ -100,7 +100,7 @@ export async function authenticate(req, res, next) {
  * @param {import('express').Response} _res
  * @param {import('express').NextFunction} next
  */
-export async function optionalAuthenticate(req, _res, next) {
+async function optionalAuthenticate(req, _res, next) {
 	const token = req.cookies.authToken;
 
 	if (!token) {
@@ -141,7 +141,7 @@ export async function optionalAuthenticate(req, _res, next) {
  * Get current user from request
  * @param {AuthenticatedRequest} req
  */
-export function getCurrentUser(req) {
+function getCurrentUser(req) {
 	return req.user || null;
 }
 
@@ -149,11 +149,19 @@ export function getCurrentUser(req) {
  * Check if user is authenticated
  * @param {AuthenticatedRequest} req
  */
-export function isAuthenticated(req) {
+function isAuthenticated(req) {
 	return req.user !== null && req.user !== undefined;
 }
 
 /**
  * Require authentication middleware - alias for authenticate
  */
-export const requireAuth = authenticate;
+const requireAuth = authenticate;
+
+module.exports = {
+	authenticate,
+	optionalAuthenticate,
+	getCurrentUser,
+	isAuthenticated,
+	requireAuth
+};

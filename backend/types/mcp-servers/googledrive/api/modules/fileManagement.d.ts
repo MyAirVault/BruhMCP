@@ -1,31 +1,3 @@
-/**
- * Create a folder in Google Drive
- * @param {CreateFolderArgs} args - Folder creation arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Created folder info
- */
-export function createFolder(args: CreateFolderArgs, bearerToken: string): Promise<import("../../utils/googledriveFormatting.js").FormattedFile | null>;
-/**
- * Delete a file or folder from Google Drive
- * @param {DeleteFileArgs} args - Deletion arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<FileOperationResult>} Deletion result
- */
-export function deleteFile(args: DeleteFileArgs, bearerToken: string): Promise<FileOperationResult>;
-/**
- * Copy a file in Google Drive
- * @param {CopyFileArgs} args - Copy arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Copied file info
- */
-export function copyFile(args: CopyFileArgs, bearerToken: string): Promise<import("../../utils/googledriveFormatting.js").FormattedFile | null>;
-/**
- * Move a file to a different folder in Google Drive
- * @param {MoveFileArgs} args - Move arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Moved file info
- */
-export function moveFile(args: MoveFileArgs, bearerToken: string): Promise<import("../../utils/googledriveFormatting.js").FormattedFile | null>;
 export type RequestOptions = {
     /**
      * - HTTP method
@@ -166,4 +138,32 @@ export type FileOperationResult = {
      */
     file?: Object | undefined;
 };
+/**
+ * Create a folder in Google Drive
+ * @param {CreateFolderArgs} args - Folder creation arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Created folder info
+ */
+export function createFolder(args: CreateFolderArgs, bearerToken: string): Promise<import('../../utils/googledriveFormatting.js').FormattedFile | null>;
+/**
+ * Delete a file or folder from Google Drive
+ * @param {DeleteFileArgs} args - Deletion arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<FileOperationResult>} Deletion result
+ */
+export function deleteFile(args: DeleteFileArgs, bearerToken: string): Promise<FileOperationResult>;
+/**
+ * Copy a file in Google Drive
+ * @param {CopyFileArgs} args - Copy arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Copied file info
+ */
+export function copyFile(args: CopyFileArgs, bearerToken: string): Promise<import('../../utils/googledriveFormatting.js').FormattedFile | null>;
+/**
+ * Move a file to a different folder in Google Drive
+ * @param {MoveFileArgs} args - Move arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Moved file info
+ */
+export function moveFile(args: MoveFileArgs, bearerToken: string): Promise<import('../../utils/googledriveFormatting.js').FormattedFile | null>;
 //# sourceMappingURL=fileManagement.d.ts.map

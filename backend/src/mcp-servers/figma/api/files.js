@@ -3,7 +3,7 @@
  * Handles file-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest, handleApiError } from './common.js';
+const { makeAuthenticatedRequest, handleApiError } = require('./common.js');
 
 /**
  * Get file details from Figma API
@@ -11,7 +11,7 @@ import { makeAuthenticatedRequest, handleApiError } from './common.js';
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaFile(fileKey, apiKey) {
+async function getFigmaFile(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -34,7 +34,7 @@ export async function getFigmaFile(fileKey, apiKey) {
  * @param {string[]} nodeIds - Array of node IDs to fetch
  * @returns {Promise<any>}
  */
-export async function getFigmaNodes(fileKey, apiKey, nodeIds) {
+async function getFigmaNodes(fileKey, apiKey, nodeIds) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -61,7 +61,7 @@ export async function getFigmaNodes(fileKey, apiKey, nodeIds) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaFileMeta(fileKey, apiKey) {
+async function getFigmaFileMeta(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -83,7 +83,7 @@ export async function getFigmaFileMeta(fileKey, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaFileVersions(fileKey, apiKey) {
+async function getFigmaFileVersions(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -106,7 +106,7 @@ export async function getFigmaFileVersions(fileKey, apiKey) {
  * @param {string} versionId - Version ID to retrieve
  * @returns {Promise<any>}
  */
-export async function getFigmaFileWithVersion(fileKey, apiKey, versionId) {
+async function getFigmaFileWithVersion(fileKey, apiKey, versionId) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -125,3 +125,10 @@ export async function getFigmaFileWithVersion(fileKey, apiKey, versionId) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	getFigmaFile,
+	getFigmaNodes,
+	getFigmaFileMeta,
+	getFigmaFileVersions,
+	getFigmaFileWithVersion
+};

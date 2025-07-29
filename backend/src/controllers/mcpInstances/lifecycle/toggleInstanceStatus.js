@@ -1,7 +1,7 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
-import { invalidateInstanceCache } from '../../../services/cacheInvalidationService.js';
-// import { checkInstanceLimit } from '../../../utils/planLimits.js';
-import { pool } from '../../../db/config.js';
+const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/index.js');
+const { invalidateInstanceCache } = require('../../../services/cacheInvalidationService.js');
+// const { checkInstanceLimit } = require('../../../utils/planLimits.js');
+const { pool } = require('../../../db/config.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -23,7 +23,7 @@ import { pool } from '../../../db/config.js';
  * @param {Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function toggleInstanceStatus(req, res) {
+async function toggleInstanceStatus(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -274,3 +274,5 @@ export async function toggleInstanceStatus(req, res) {
 		});
 	}
 }
+
+module.exports = { toggleInstanceStatus };

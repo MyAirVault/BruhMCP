@@ -1,3 +1,98 @@
+export type Collaborator = {
+    /**
+     * - Collaborator email
+     */
+    email: string;
+};
+export type Attachment = {
+    /**
+     * - Attachment URL
+     */
+    url: string;
+};
+export type Barcode = {
+    /**
+     * - Barcode text
+     */
+    text: string;
+};
+export type FieldOptions = {
+    /**
+     * - Available choices for select fields
+     *
+     * Validate field value based on field type
+     */
+    choices?: string[] | undefined;
+};
+export type FieldSchema = {
+    /**
+     * - Field name
+     */
+    name: string;
+    /**
+     * - Field type
+     */
+    type: string;
+    /**
+     * - Field options
+     */
+    options?: {
+        /**
+         * - Available choices for select fields
+         */
+        choices?: string[] | undefined;
+    } | undefined;
+};
+export type TableSchema = {
+    /**
+     * - Schema fields array
+     *
+     * Validate record fields
+     */
+    fields?: FieldSchema[] | undefined;
+};
+export type SortItem = {
+    /**
+     * - Field name to sort by
+     */
+    field: string;
+    /**
+     * - Sort direction
+     */
+    direction?: "asc" | "desc" | undefined;
+};
+export type QueryParams = {
+    /**
+     * - Maximum number of records
+     */
+    maxRecords?: number | undefined;
+    /**
+     * - Fields to include
+     */
+    fields?: string[] | undefined;
+    /**
+     * - Sort configuration
+     */
+    sort?: SortItem[] | undefined;
+    /**
+     * - View name
+     */
+    view?: string | undefined;
+    /**
+     * - Filter formula
+     *
+     * Validate query parameters
+     */
+    filterByFormula?: string | undefined;
+};
+export type RecordData = {
+    /**
+     * - Record fields
+     *
+     * Validate batch records
+     */
+    fields: Record<string, string | number | boolean | string[] | Collaborator | Collaborator[] | Attachment[] | Barcode>;
+};
 /**
  * Validate Airtable ID
  * @param {string} id - ID to validate
@@ -112,99 +207,4 @@ export function getValidationErrorMessage(error: Error): string;
  * @returns {Error}
  */
 export function createValidationError(message: string, details?: Record<string, string | number | boolean>): Error;
-export type Collaborator = {
-    /**
-     * - Collaborator email
-     */
-    email: string;
-};
-export type Attachment = {
-    /**
-     * - Attachment URL
-     */
-    url: string;
-};
-export type Barcode = {
-    /**
-     * - Barcode text
-     */
-    text: string;
-};
-export type FieldOptions = {
-    /**
-     * - Available choices for select fields
-     *
-     * Validate field value based on field type
-     */
-    choices?: string[] | undefined;
-};
-export type FieldSchema = {
-    /**
-     * - Field name
-     */
-    name: string;
-    /**
-     * - Field type
-     */
-    type: string;
-    /**
-     * - Field options
-     */
-    options?: {
-        /**
-         * - Available choices for select fields
-         */
-        choices?: string[] | undefined;
-    } | undefined;
-};
-export type TableSchema = {
-    /**
-     * - Schema fields array
-     *
-     * Validate record fields
-     */
-    fields?: FieldSchema[] | undefined;
-};
-export type SortItem = {
-    /**
-     * - Field name to sort by
-     */
-    field: string;
-    /**
-     * - Sort direction
-     */
-    direction?: "asc" | "desc" | undefined;
-};
-export type QueryParams = {
-    /**
-     * - Maximum number of records
-     */
-    maxRecords?: number | undefined;
-    /**
-     * - Fields to include
-     */
-    fields?: string[] | undefined;
-    /**
-     * - Sort configuration
-     */
-    sort?: SortItem[] | undefined;
-    /**
-     * - View name
-     */
-    view?: string | undefined;
-    /**
-     * - Filter formula
-     *
-     * Validate query parameters
-     */
-    filterByFormula?: string | undefined;
-};
-export type RecordData = {
-    /**
-     * - Record fields
-     *
-     * Validate batch records
-     */
-    fields: Record<string, string | number | boolean | string[] | Collaborator | Collaborator[] | Attachment[] | Barcode>;
-};
 //# sourceMappingURL=validation.d.ts.map

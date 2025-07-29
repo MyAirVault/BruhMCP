@@ -60,7 +60,7 @@
  *   instanceId?: string,
  *   userId?: string,
  *   bearerToken?: string,
- *   params: { instanceId: string }
+ *   params: { instanceId?: string }
  * }} ExpressRequest
  */
 
@@ -72,4 +72,5 @@
  * @typedef {import('express').NextFunction} ExpressNext
  */
 
-export {};
+// TypeScript declarations - no exports needed
+module.exports = {};

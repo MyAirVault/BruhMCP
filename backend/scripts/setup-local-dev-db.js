@@ -6,8 +6,8 @@
  * @fileoverview Sets up database schema changes needed for local development
  */
 
-import { db } from '../src/db/connection.js';
-import { isLocalMode } from '../src/local_development/config/localMode.js';
+const { pool: db } = require('../src/db/config.js');
+const { isLocalMode } = require('../src/local_development/config/localMode.js');
 
 /**
  * Add password_hash column for local development

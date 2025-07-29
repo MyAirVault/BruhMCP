@@ -5,8 +5,8 @@
 
 /* global clearInterval, setTimeout */
 
-import { schedulePlanExpirationAgent, runPlanExpirationAgent, checkForExpiredUsers } from './planExpirationAgent.js';
-import { isPaymentsDisabled } from '../utils/planLimits.js';
+const { schedulePlanExpirationAgent, runPlanExpirationAgent, checkForExpiredUsers } = require('./planExpirationAgent.js');
+const { isPaymentsDisabled } = require('../utils/planLimits.js');
 
 /**
  * Plan monitoring service instance
@@ -141,7 +141,7 @@ if (autoStartEnabled && !skipInLocalDev) {
 	console.log('🚫 Plan Monitoring Service disabled in local development (DISABLE_PAYMENTS=true)');
 }
 
-export default planMonitoringService;
+module.exports = planMonitoringService;
 
 /**
  * Express route handlers for plan monitoring management
@@ -152,7 +152,7 @@ export default planMonitoringService;
  * @param {import('express').Request} _req - Request object (unused)
  * @param {import('express').Response} res - Response object
  */
-export async function getPlanMonitoringStatus(/** @type {import('express').Request} */ _req, res) {
+async function getPlanMonitoringStatus(/** @type {import('express').Request} */ _req, res) {
 	try {
 		const status = planMonitoringService.getStatus();
 		const expiredSummary = await planMonitoringService.getExpiredUsersSummary();
@@ -179,7 +179,7 @@ export async function getPlanMonitoringStatus(/** @type {import('express').Reque
  * @param {import('express').Request} _req - Request object (unused)
  * @param {import('express').Response} res - Response object
  */
-export async function triggerPlanExpirationAgent(/** @type {import('express').Request} */ _req, res) {
+async function triggerPlanExpirationAgent(/** @type {import('express').Request} */ _req, res) {
 	try {
 		const result = await planMonitoringService.runOnce();
 
@@ -205,7 +205,7 @@ export async function triggerPlanExpirationAgent(/** @type {import('express').Re
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function updatePlanMonitoringConfig(req, res) {
+async function updatePlanMonitoringConfig(req, res) {
 	try {
 		const { intervalMinutes, enabled } = req.body;
 
@@ -235,3 +235,8 @@ export async function updatePlanMonitoringConfig(req, res) {
 		});
 	}
 }
+
+// Also export the route handlers
+module.exports.getPlanMonitoringStatus = getPlanMonitoringStatus;
+module.exports.triggerPlanExpirationAgent = triggerPlanExpirationAgent;
+module.exports.updatePlanMonitoringConfig = updatePlanMonitoringConfig;

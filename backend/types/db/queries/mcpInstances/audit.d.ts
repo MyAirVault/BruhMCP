@@ -1,3 +1,7 @@
+export type TokenAuditData = import('./types.js').TokenAuditData;
+export type AuditLogRecord = import('./types.js').AuditLogRecord;
+export type AuditLogOptions = import('./types.js').AuditLogOptions;
+export type AuditStats = import('./types.js').AuditStats;
 /**
  * @typedef {import('./types.js').TokenAuditData} TokenAuditData
  * @typedef {import('./types.js').AuditLogRecord} AuditLogRecord
@@ -18,7 +22,7 @@ export function createTokenAuditLog(auditData: TokenAuditData): Promise<AuditLog
  * @returns {Promise<AuditLogRecord[]>} Array of audit log entries with parsed metadata
  * @throws {Error} When database query fails (returns empty array if audit table doesn't exist)
  */
-export function getTokenAuditLogs(instanceId: string, options?: AuditLogOptions): Promise<AuditLogRecord[]>;
+export function getTokenAuditLogs(instanceId: string, options?: import("./types.js").AuditLogOptions | undefined): Promise<AuditLogRecord[]>;
 /**
  * Get audit log statistics
  * @param {string|undefined} [instanceId] - Instance ID (optional, for all instances if not provided)
@@ -26,16 +30,12 @@ export function getTokenAuditLogs(instanceId: string, options?: AuditLogOptions)
  * @returns {Promise<AuditStats>} Comprehensive audit statistics including operations, errors, and daily breakdown
  * @throws {Error} When database query fails (returns empty stats if audit table doesn't exist)
  */
-export function getTokenAuditStats(instanceId?: string | undefined, days?: number): Promise<AuditStats>;
+export function getTokenAuditStats(instanceId?: string | undefined, days?: number | undefined): Promise<AuditStats>;
 /**
  * Clean up old audit logs
  * @param {number} [daysToKeep=90] - Number of days to keep audit logs (default: 90)
  * @returns {Promise<number>} Number of deleted audit log records
  * @throws {Error} When database query fails (returns 0 if audit table doesn't exist)
  */
-export function cleanupTokenAuditLogs(daysToKeep?: number): Promise<number>;
-export type TokenAuditData = import("./types.js").TokenAuditData;
-export type AuditLogRecord = import("./types.js").AuditLogRecord;
-export type AuditLogOptions = import("./types.js").AuditLogOptions;
-export type AuditStats = import("./types.js").AuditStats;
+export function cleanupTokenAuditLogs(daysToKeep?: number | undefined): Promise<number>;
 //# sourceMappingURL=audit.d.ts.map

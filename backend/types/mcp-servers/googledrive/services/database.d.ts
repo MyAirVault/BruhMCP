@@ -1,96 +1,5 @@
 /**
  * Instance credentials with service information from database query
- * @typedef {Object} GoogleDriveInstanceCredentials
- * @property {string} instance_id - Unique instance identifier
- * @property {string} user_id - User ID who owns the instance
- * @property {string} oauth_status - OAuth status (pending, completed, failed, expired)
- * @property {string} status - Instance status (active, inactive, expired)
- * @property {string|null} expires_at - Expiration timestamp
- * @property {number} usage_count - Usage count
- * @property {string|null} custom_name - Custom name for the instance
- * @property {string|null} last_used_at - Last usage timestamp
- * @property {string} mcp_service_name - MCP service name
- * @property {string} display_name - Service display name
- * @property {string} auth_type - Service type ('api_key' or 'oauth')
- * @property {boolean} service_active - Whether the service is active
- * @property {number} port - Service port
- * @property {string|null} api_key - API key (only for api_key type services)
- * @property {string|null} client_id - OAuth client ID
- * @property {string|null} client_secret - OAuth client secret
- * @property {string|null} access_token - OAuth access token
- * @property {string|null} refresh_token - OAuth refresh token
- * @property {string|null} token_expires_at - Token expiration timestamp
- * @property {string|null} oauth_completed_at - OAuth completion timestamp
- */
-/**
- * Lookup instance credentials from database
- * @param {string} instanceId - UUID of the service instance
- * @param {string} serviceName - Name of the MCP service (googledrive)
- * @returns {Promise<GoogleDriveInstanceCredentials|null>} Instance credentials or null if not found
- */
-export function lookupInstanceCredentials(instanceId: string, serviceName: string): Promise<GoogleDriveInstanceCredentials | null>;
-/**
- * Update instance usage tracking
- * @param {string} instanceId - UUID of the service instance
- * @returns {Promise<boolean>} True if update was successful
- */
-export function updateInstanceUsage(instanceId: string): Promise<boolean>;
-/**
- * Instance statistics from database query
- * @typedef {Object} GoogleDriveInstanceStatistics
- * @property {string} instance_id - Unique instance identifier
- * @property {string} user_id - User ID who owns the instance
- * @property {string} status - Instance status (active, inactive, expired)
- * @property {number} usage_count - Usage count
- * @property {string|null} last_used_at - Last usage timestamp
- * @property {string} created_at - Creation timestamp
- * @property {string|null} expires_at - Expiration timestamp
- * @property {string|null} custom_name - Custom name for the instance
- * @property {string} mcp_service_name - MCP service name
- * @property {string} display_name - Service display name
- */
-/**
- * Get instance statistics
- * @param {string} instanceId - UUID of the service instance
- * @returns {Promise<GoogleDriveInstanceStatistics|null>} Instance statistics or null if not found
- */
-export function getInstanceStatistics(instanceId: string): Promise<GoogleDriveInstanceStatistics | null>;
-/**
- * Update instance status
- * @param {string} instanceId - UUID of the service instance
- * @param {string} newStatus - New status (active, inactive, expired)
- * @returns {Promise<boolean>} True if update was successful
- */
-export function updateInstanceStatus(instanceId: string, newStatus: string): Promise<boolean>;
-/**
- * Active Google Drive instance record from database query
- * @typedef {Object} ActiveGoogleDriveInstance
- * @property {string} instance_id - Unique instance identifier
- * @property {string} user_id - User ID who owns the instance
- * @property {number} usage_count - Usage count
- * @property {string|null} last_used_at - Last usage timestamp
- * @property {string} created_at - Creation timestamp
- * @property {string|null} custom_name - Custom name for the instance
- */
-/**
- * Get all active instances for Google Drive service
- * @returns {Promise<ActiveGoogleDriveInstance[]>} Array of active instance records
- */
-export function getActiveGoogleDriveInstances(): Promise<ActiveGoogleDriveInstance[]>;
-/**
- * Validate instance exists and is accessible
- * @param {string} instanceId - UUID of the service instance
- * @param {string} userId - UUID of the user (for additional security)
- * @returns {Promise<boolean>} True if instance is valid and accessible
- */
-export function validateInstanceAccess(instanceId: string, userId: string): Promise<boolean>;
-/**
- * Clean up expired instances
- * @returns {Promise<number>} Number of instances marked as expired
- */
-export function cleanupExpiredInstances(): Promise<number>;
-/**
- * Instance credentials with service information from database query
  */
 export type GoogleDriveInstanceCredentials = {
     /**
@@ -248,4 +157,95 @@ export type ActiveGoogleDriveInstance = {
      */
     custom_name: string | null;
 };
+/**
+ * Instance credentials with service information from database query
+ * @typedef {Object} GoogleDriveInstanceCredentials
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {string} oauth_status - OAuth status (pending, completed, failed, expired)
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {string|null} expires_at - Expiration timestamp
+ * @property {number} usage_count - Usage count
+ * @property {string|null} custom_name - Custom name for the instance
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} mcp_service_name - MCP service name
+ * @property {string} display_name - Service display name
+ * @property {string} auth_type - Service type ('api_key' or 'oauth')
+ * @property {boolean} service_active - Whether the service is active
+ * @property {number} port - Service port
+ * @property {string|null} api_key - API key (only for api_key type services)
+ * @property {string|null} client_id - OAuth client ID
+ * @property {string|null} client_secret - OAuth client secret
+ * @property {string|null} access_token - OAuth access token
+ * @property {string|null} refresh_token - OAuth refresh token
+ * @property {string|null} token_expires_at - Token expiration timestamp
+ * @property {string|null} oauth_completed_at - OAuth completion timestamp
+ */
+/**
+ * Lookup instance credentials from database
+ * @param {string} instanceId - UUID of the service instance
+ * @param {string} serviceName - Name of the MCP service (googledrive)
+ * @returns {Promise<GoogleDriveInstanceCredentials|null>} Instance credentials or null if not found
+ */
+export function lookupInstanceCredentials(instanceId: string, serviceName: string): Promise<GoogleDriveInstanceCredentials | null>;
+/**
+ * Update instance usage tracking
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Promise<boolean>} True if update was successful
+ */
+export function updateInstanceUsage(instanceId: string): Promise<boolean>;
+/**
+ * Instance statistics from database query
+ * @typedef {Object} GoogleDriveInstanceStatistics
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {string} status - Instance status (active, inactive, expired)
+ * @property {number} usage_count - Usage count
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} created_at - Creation timestamp
+ * @property {string|null} expires_at - Expiration timestamp
+ * @property {string|null} custom_name - Custom name for the instance
+ * @property {string} mcp_service_name - MCP service name
+ * @property {string} display_name - Service display name
+ */
+/**
+ * Get instance statistics
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {Promise<GoogleDriveInstanceStatistics|null>} Instance statistics or null if not found
+ */
+export function getInstanceStatistics(instanceId: string): Promise<GoogleDriveInstanceStatistics | null>;
+/**
+ * Update instance status
+ * @param {string} instanceId - UUID of the service instance
+ * @param {string} newStatus - New status (active, inactive, expired)
+ * @returns {Promise<boolean>} True if update was successful
+ */
+export function updateInstanceStatus(instanceId: string, newStatus: string): Promise<boolean>;
+/**
+ * Active Google Drive instance record from database query
+ * @typedef {Object} ActiveGoogleDriveInstance
+ * @property {string} instance_id - Unique instance identifier
+ * @property {string} user_id - User ID who owns the instance
+ * @property {number} usage_count - Usage count
+ * @property {string|null} last_used_at - Last usage timestamp
+ * @property {string} created_at - Creation timestamp
+ * @property {string|null} custom_name - Custom name for the instance
+ */
+/**
+ * Get all active instances for Google Drive service
+ * @returns {Promise<ActiveGoogleDriveInstance[]>} Array of active instance records
+ */
+export function getActiveGoogleDriveInstances(): Promise<ActiveGoogleDriveInstance[]>;
+/**
+ * Validate instance exists and is accessible
+ * @param {string} instanceId - UUID of the service instance
+ * @param {string} userId - UUID of the user (for additional security)
+ * @returns {Promise<boolean>} True if instance is valid and accessible
+ */
+export function validateInstanceAccess(instanceId: string, userId: string): Promise<boolean>;
+/**
+ * Clean up expired instances
+ * @returns {Promise<number>} Number of instances marked as expired
+ */
+export function cleanupExpiredInstances(): Promise<number>;
 //# sourceMappingURL=database.d.ts.map

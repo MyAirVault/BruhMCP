@@ -19,7 +19,7 @@ const SERVICE_CACHE_HANDLERS = {
  * @param {string} instanceId - Instance ID to remove from cache
  * @returns {Promise<boolean>} Success status of cache invalidation
  */
-export async function invalidateInstanceCache(serviceName, instanceId) {
+async function invalidateInstanceCache(serviceName, instanceId) {
 	try {
 		console.log(`🗑️ Invalidating cache for ${serviceName} instance: ${instanceId}`);
 
@@ -68,8 +68,8 @@ async function performServiceCacheCleanup(serviceName, instanceId) {
  */
 async function cleanupFigmaCache(instanceId) {
 	try {
-		// Dynamic import to avoid circular dependency
-		const { removeCachedCredential } = await import('../mcp-servers/figma/services/credentialCache.js');
+		// Dynamic require to avoid circular dependency
+		const { removeCachedCredential } = require('../mcp-servers/figma/services/credentialCache.js');
 		
 		const removed = removeCachedCredential(instanceId);
 		
@@ -125,7 +125,7 @@ async function cleanupSlackCache(instanceId) {
  * @param {string} instanceId - Instance ID to verify
  * @returns {Promise<boolean>} True if instance is not in cache
  */
-export async function validateCacheCleanup(serviceName, instanceId) {
+async function validateCacheCleanup(serviceName, instanceId) {
 	try {
 		switch (serviceName) {
 			case 'figma':
@@ -153,7 +153,7 @@ export async function validateCacheCleanup(serviceName, instanceId) {
  */
 async function validateFigmaCacheCleanup(instanceId) {
 	try {
-		const { isInstanceCached } = await import('../mcp-servers/figma/services/credentialCache.js');
+		const { isInstanceCached } = require('../mcp-servers/figma/services/credentialCache.js');
 		const stillCached = isInstanceCached(instanceId);
 		
 		if (stillCached) {
@@ -193,7 +193,7 @@ async function validateSlackCacheCleanup(_instanceId) {
  * Get supported services for cache invalidation
  * @returns {string[]} Array of supported service names
  */
-export function getSupportedServices() {
+function getSupportedServices() {
 	return Object.keys(SERVICE_CACHE_HANDLERS);
 }
 
@@ -202,7 +202,7 @@ export function getSupportedServices() {
  * @param {string} serviceName - Service name to check
  * @returns {boolean} True if service supports cache invalidation
  */
-export function isServiceSupported(serviceName) {
+function isServiceSupported(serviceName) {
 	return serviceName in SERVICE_CACHE_HANDLERS;
 }
 
@@ -211,7 +211,7 @@ export function isServiceSupported(serviceName) {
  * @param {Array<{serviceName: string, instanceId: string}>} instances - Instances to invalidate
  * @returns {Promise<Array<{instanceId: string, success: boolean}>>} Results for each instance
  */
-export async function bulkInvalidateCache(instances) {
+async function bulkInvalidateCache(instances) {
 	const results = [];
 	
 	for (const { serviceName, instanceId } of instances) {
@@ -233,13 +233,13 @@ export async function bulkInvalidateCache(instances) {
  * @param {string} serviceName - Service name to clear completely
  * @returns {Promise<boolean>} Success status
  */
-export async function emergencyCacheClear(serviceName) {
+async function emergencyCacheClear(serviceName) {
 	try {
 		console.warn(`🚨 Emergency cache clear requested for service: ${serviceName}`);
 		
 		switch (serviceName) {
 			case 'figma':
-				const { clearCredentialCache } = await import('../mcp-servers/figma/services/credentialCache.js');
+				const { clearCredentialCache } = require('../mcp-servers/figma/services/credentialCache.js');
 				clearCredentialCache();
 				console.log(`🧹 Cleared entire Figma credential cache`);
 				return true;
@@ -271,7 +271,7 @@ export async function emergencyCacheClear(serviceName) {
  * @param {string} [updates.expires_at] - New expiration timestamp
  * @returns {Promise<boolean>} Success status of cache update
  */
-export async function updateInstanceCacheMetadata(serviceName, instanceId, updates) {
+async function updateInstanceCacheMetadata(serviceName, instanceId, updates) {
 	try {
 		console.log(`🔄 Updating cache metadata for ${serviceName} instance: ${instanceId}`);
 		
@@ -322,8 +322,8 @@ async function performCacheMetadataUpdate(serviceName, instanceId, updates) {
  */
 async function updateFigmaCacheMetadata(instanceId, updates) {
 	try {
-		// Dynamic import to avoid circular dependency
-		const { updateCachedCredentialMetadata } = await import('../mcp-servers/figma/services/credentialCache.js');
+		// Dynamic require to avoid circular dependency
+		const { updateCachedCredentialMetadata } = require('../mcp-servers/figma/services/credentialCache.js');
 		
 		const updated = updateCachedCredentialMetadata(instanceId, updates);
 		
@@ -379,7 +379,7 @@ async function updateSlackCacheMetadata(instanceId, _updates) {
  * @param {string} reason - Reason for cleanup (scheduled, manual, etc.)
  * @returns {Promise<Object>} Cleanup results by service
  */
-export async function cleanupInvalidCacheEntries(reason = 'cleanup') {
+async function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	const results = {};
 	
 	try {
@@ -387,7 +387,7 @@ export async function cleanupInvalidCacheEntries(reason = 'cleanup') {
 		
 		// Cleanup Figma cache
 		try {
-			const { cleanupInvalidCacheEntries: figmaCleanup } = await import('../mcp-servers/figma/services/credentialCache.js');
+			const { cleanupInvalidCacheEntries: figmaCleanup } = require('../mcp-servers/figma/services/credentialCache.js');
 			results.figma = figmaCleanup(reason);
 		} catch (error) {
 			console.error(`❌ Figma cache cleanup failed:`, error);
@@ -409,3 +409,14 @@ export async function cleanupInvalidCacheEntries(reason = 'cleanup') {
 		return results;
 	}
 }
+
+module.exports = {
+	invalidateInstanceCache,
+	validateCacheCleanup,
+	getSupportedServices,
+	isServiceSupported,
+	bulkInvalidateCache,
+	emergencyCacheClear,
+	updateInstanceCacheMetadata,
+	cleanupInvalidCacheEntries
+};

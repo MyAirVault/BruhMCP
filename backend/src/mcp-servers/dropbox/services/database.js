@@ -3,7 +3,7 @@
  * Handles instance credential lookup and usage tracking
  */
 
-import { pool } from '../../../db/config.js';
+const { pool } = require('../../../db/config.js');
 
 /**
  * Instance credentials with service information from database query
@@ -36,7 +36,7 @@ import { pool } from '../../../db/config.js';
  * @param {string} serviceName - Name of the MCP service (dropbox)
  * @returns {Promise<InstanceCredentials|null>} Instance credentials or null if not found
  */
-export async function lookupInstanceCredentials(instanceId, serviceName) {
+async function lookupInstanceCredentials(instanceId, serviceName) {
   try {
     
     const query = `
@@ -92,7 +92,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<boolean>} True if update was successful
  */
-export async function updateInstanceUsage(instanceId) {
+async function updateInstanceUsage(instanceId) {
   try {
     
     const query = `
@@ -144,7 +144,7 @@ export async function updateInstanceUsage(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<InstanceStatistics|null>} Instance statistics or null if not found
  */
-export async function getInstanceStatistics(instanceId) {
+async function getInstanceStatistics(instanceId) {
   try {
     
     const query = `
@@ -184,7 +184,7 @@ export async function getInstanceStatistics(instanceId) {
  * @param {string} newStatus - New status (active, inactive, expired)
  * @returns {Promise<boolean>} True if update was successful
  */
-export async function updateInstanceStatus(instanceId, newStatus) {
+async function updateInstanceStatus(instanceId, newStatus) {
   try {
     
     const query = `
@@ -227,7 +227,7 @@ export async function updateInstanceStatus(instanceId, newStatus) {
  * Get all active instances for Dropbox service
  * @returns {Promise<ActiveDropboxInstance[]>} Array of active instance records
  */
-export async function getActiveDropboxInstances() {
+async function getActiveDropboxInstances() {
   try {
     
     const query = `
@@ -265,7 +265,7 @@ export async function getActiveDropboxInstances() {
  * @param {string} userId - UUID of the user (for additional security)
  * @returns {Promise<boolean>} True if instance is valid and accessible
  */
-export async function validateInstanceAccess(instanceId, userId) {
+async function validateInstanceAccess(instanceId, userId) {
   try {
     
     const query = `
@@ -298,7 +298,7 @@ export async function validateInstanceAccess(instanceId, userId) {
  * Clean up expired instances
  * @returns {Promise<number>} Number of instances marked as expired
  */
-export async function cleanupExpiredInstances() {
+async function cleanupExpiredInstances() {
   try {
     
     const query = `
@@ -329,3 +329,13 @@ export async function cleanupExpiredInstances() {
     throw new Error(`Failed to cleanup expired instances: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
+
+module.exports = {
+  lookupInstanceCredentials,
+  updateInstanceUsage,
+  getInstanceStatistics,
+  updateInstanceStatus,
+  getActiveDropboxInstances,
+  validateInstanceAccess,
+  cleanupExpiredInstances
+};

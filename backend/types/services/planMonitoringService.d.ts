@@ -1,25 +1,4 @@
-/**
- * Express route handlers for plan monitoring management
- */
-/**
- * Get plan monitoring service status
- * @param {import('express').Request} _req - Request object (unused)
- * @param {import('express').Response} res - Response object
- */
-export function getPlanMonitoringStatus(_req: import("express").Request, res: import("express").Response): Promise<void>;
-/**
- * Manually trigger plan expiration agent
- * @param {import('express').Request} _req - Request object (unused)
- * @param {import('express').Response} res - Response object
- */
-export function triggerPlanExpirationAgent(_req: import("express").Request, res: import("express").Response): Promise<void>;
-/**
- * Update plan monitoring service configuration
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-export function updatePlanMonitoringConfig(req: import("express").Request, res: import("express").Response): Promise<void>;
-export default planMonitoringService;
+export = planMonitoringService;
 declare const planMonitoringService: PlanMonitoringService;
 /**
  * Plan monitoring service instance
@@ -41,7 +20,7 @@ declare class PlanMonitoringService {
      * Restart the plan monitoring service with new interval
      * @param {number} [intervalMinutes] - New interval in minutes (optional)
      */
-    restart(intervalMinutes?: number): void;
+    restart(intervalMinutes?: number | undefined): void;
     /**
      * Run the plan expiration agent manually (one-time execution)
      * @returns {Promise<Object>} Execution result

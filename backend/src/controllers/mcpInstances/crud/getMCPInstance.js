@@ -1,5 +1,5 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
-import { generateAccessUrl } from '../utils.js';
+const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/index.js');
+const { generateAccessUrl } = require('../utils.js');
 
 /**
  * @typedef {Object} User
@@ -38,7 +38,7 @@ import { generateAccessUrl } from '../utils.js';
  * @param {Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function getMCPInstance(req, res) {
+async function getMCPInstance(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -119,3 +119,5 @@ export async function getMCPInstance(req, res) {
 		return;
 	}
 }
+
+module.exports = { getMCPInstance };

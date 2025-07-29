@@ -3,18 +3,18 @@
  * @fileoverview Defines all billing-related API routes
  */
 
-import { Router } from 'express';
-import express from 'express';
-import {
+const { Router } = require('express');
+const express = require('express');
+const {
 	createCheckoutSession,
 	handleCheckoutSuccess,
 	getBillingStatus,
 	cancelSubscription,
 	getPaymentHistory,
 	getDetailedSubscriptionInfo,
-} from '../controllers/checkoutController.js';
-import { handleRazorpayWebhook } from '../controllers/webhookController.js';
-import { requireAuth } from '../../middleware/authMiddleware.js';
+} = require('../controllers/checkoutController.js');
+const { handleRazorpayWebhook } = require('../controllers/webhookController.js');
+const { requireAuth } = require('../../middleware/authMiddleware.js');
 
 const router = Router();
 
@@ -40,7 +40,7 @@ router.get('/payment-history', requireAuth, getPaymentHistory);
 router.get('/subscription-details', requireAuth, getDetailedSubscriptionInfo);
 
 // GET /api/v1/billing/saved-cards - Get saved cards from Razorpay
-import { getSavedCards } from '../controllers/savedCardsController.js';
+const { getSavedCards } = require('../controllers/savedCardsController.js');
 router.get('/saved-cards', requireAuth, getSavedCards);
 
 // === Webhooks ===
@@ -60,4 +60,4 @@ router.post('/subscription-callback', (req, res) => {
 });
 
 
-export default router;
+module.exports = router;

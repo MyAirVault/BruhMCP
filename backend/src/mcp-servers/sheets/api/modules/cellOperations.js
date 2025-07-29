@@ -4,9 +4,9 @@
  * Functions for reading and writing cell data
  */
 
-import { makeSheetsRequest } from './requestHandler.js';
-import { formatSheetsResponse } from '../../utils/sheetsFormatting.js';
-import { validateSheetsInput } from '../../utils/validation.js';
+const { makeSheetsRequest  } = require('./requestHandler');
+const { formatSheetsResponse  } = require('../../utils/sheetsFormatting');
+const { validateSheetsInput  } = require('../../utils/validation');
 
 /**
  * Get cell values from a range
@@ -17,7 +17,7 @@ import { validateSheetsInput } from '../../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<import('../../types/index.js').GetCellsResponse>} Cell values
  */
-export async function getCells(params, bearerToken) {
+async function getCells(params, bearerToken) {
 	const validation = validateSheetsInput.getCells(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -55,7 +55,7 @@ export async function getCells(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<import('../../types/index.js').UpdateCellsResponse>} Update result
  */
-export async function updateCells(params, bearerToken) {
+async function updateCells(params, bearerToken) {
 	/** @type {{spreadsheetId: string, range: string, values: (string|number)[][], valueInputOption: string}} */
 	const validatedParams = {
 		spreadsheetId: params.spreadsheetId,
@@ -107,7 +107,7 @@ export async function updateCells(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Append result
  */
-export async function appendValues(params, bearerToken) {
+async function appendValues(params, bearerToken) {
 	/** @type {{spreadsheetId: string, range: string, values: (string|number)[][], valueInputOption: string}} */
 	const validatedParams = {
 		spreadsheetId: params.spreadsheetId,
@@ -162,7 +162,7 @@ export async function appendValues(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Clear result
  */
-export async function clearCells(params, bearerToken) {
+async function clearCells(params, bearerToken) {
 	const validation = validateSheetsInput.clearCells(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -185,3 +185,9 @@ export async function clearCells(params, bearerToken) {
 
 	return formatSheetsResponse.clearResult(clearResult);
 }
+module.exports = {
+  getCells,
+  updateCells,
+  appendValues,
+  clearCells
+};

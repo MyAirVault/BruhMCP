@@ -1,12 +1,12 @@
 // @ts-check
-import rateLimit from 'express-rate-limit';
-import { ErrorResponses } from './errorResponse.js';
+const rateLimit = require('express-rate-limit');
+const { ErrorResponses } = require('./errorResponse.js');
 
 /**
  * Rate limiter for authentication endpoints
  * 5 requests per minute per IP as specified in docs
  */
-export const authRateLimiter = rateLimit({
+const authRateLimiter = rateLimit.default({
 	windowMs: 60 * 1000, // 1 minute
 	max: 5, // 5 requests per minute
 	message: {
@@ -17,7 +17,7 @@ export const authRateLimiter = rateLimit({
 	},
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-	handler: (_req, res) => {
+	handler: (/** @type {import('express').Request} */ _req, /** @type {import('express').Response} */ res) => {
 		ErrorResponses.rateLimited(res, 'Too many authentication requests, please try again later');
 	},
 });
@@ -26,7 +26,7 @@ export const authRateLimiter = rateLimit({
  * General API rate limiter
  * More permissive for general API usage
  */
-export const apiRateLimiter = rateLimit({
+const apiRateLimiter = rateLimit.default({
 	windowMs: 60 * 1000, // 1 minute
 	max: 100, // 100 requests per minute
 	message: {
@@ -37,7 +37,7 @@ export const apiRateLimiter = rateLimit({
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
-	handler: (_req, res) => {
+	handler: (/** @type {import('express').Request} */ _req, /** @type {import('express').Response} */ res) => {
 		ErrorResponses.rateLimited(res, 'Too many API requests, please try again later');
 	},
 });
@@ -45,7 +45,7 @@ export const apiRateLimiter = rateLimit({
 /**
  * Strict rate limiter for sensitive operations
  */
-export const strictRateLimiter = rateLimit({
+const strictRateLimiter = rateLimit.default({
 	windowMs: 60 * 1000, // 1 minute
 	max: 10, // 10 requests per minute
 	message: {
@@ -56,7 +56,13 @@ export const strictRateLimiter = rateLimit({
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
-	handler: (_req, res) => {
+	handler: (/** @type {import('express').Request} */ _req, /** @type {import('express').Response} */ res) => {
 		ErrorResponses.rateLimited(res, 'Too many requests for this operation, please try again later');
 	},
 });
+
+module.exports = {
+	authRateLimiter,
+	apiRateLimiter,
+	strictRateLimiter
+};

@@ -1,6 +1,6 @@
-import { getMCPInstanceById } from '../../../db/queries/mcpInstances/index.js';
-// import { checkInstanceLimit } from '../../../utils/planLimits.js';
-import { pool } from '../../../db/config.js';
+const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/index.js');
+// const { checkInstanceLimit } = require('../../../utils/planLimits.js');
+const { pool } = require('../../../db/config.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -33,7 +33,7 @@ import { pool } from '../../../db/config.js';
  * @param {Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function renewInstance(req, res) {
+async function renewInstance(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -298,3 +298,5 @@ export async function renewInstance(req, res) {
 		});
 	}
 }
+
+module.exports = { renewInstance };

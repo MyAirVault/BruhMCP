@@ -3,12 +3,12 @@
  * Core business logic for Airtable operations with response optimization
  */
 
-import * as AirtableAPI from '../api/index.js';
-import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
-import { validateAirtableId, validateRecordFields, validateQueryParams, validateBatchRecords } from '../utils/validation.js';
-import { sanitizeRecordFields, sanitizeQueryParams } from '../utils/sanitization.js';
-import { chunkArray, measureExecutionTime, withTimeout } from '../utils/common.js';
+const AirtableAPI = require('../api/index.js');
+const { createLogger } = require('../utils/logger.js');
+const { AirtableErrorHandler } = require('../utils/errorHandler.js');
+const { validateAirtableId, validateRecordFields, validateQueryParams, validateBatchRecords } = require('../utils/validation.js');
+const { sanitizeRecordFields, sanitizeQueryParams } = require('../utils/sanitization.js');
+const { chunkArray, measureExecutionTime, withTimeout } = require('../utils/common.js');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -65,7 +65,7 @@ import { chunkArray, measureExecutionTime, withTimeout } from '../utils/common.j
 
 const logger = createLogger('AirtableService');
 
-export class AirtableService {
+class AirtableService {
 	/**
 	 * @param {ServiceConfig} config - Service configuration
 	 */
@@ -698,3 +698,5 @@ export class AirtableService {
 		}
 	}
 }
+
+module.exports = { AirtableService };

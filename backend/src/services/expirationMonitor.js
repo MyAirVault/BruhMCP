@@ -1,5 +1,5 @@
-import { getExpiredInstances, updateMCPInstance, getMCPInstanceById, getFailedOAuthInstances, getPendingOAuthInstances, deleteMCPInstance } from '../db/queries/mcpInstances/index.js';
-import { invalidateInstanceCache } from './cacheInvalidationService.js';
+const { getExpiredInstances, updateMCPInstance, getMCPInstanceById, getFailedOAuthInstances, getPendingOAuthInstances, deleteMCPInstance } = require('../db/queries/mcpInstances/index.js');
+const { invalidateInstanceCache } = require('./cacheInvalidationService.js');
 
 /**
  * @typedef {Object} MCPInstance
@@ -315,4 +315,4 @@ class ExpirationMonitor {
 // Create singleton instance
 const expirationMonitor = new ExpirationMonitor();
 
-export default expirationMonitor;
+module.exports = expirationMonitor;

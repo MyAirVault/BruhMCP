@@ -5,7 +5,7 @@
 
 /// <reference path="../types.js" />
 
-import { validateFileId } from '../../utils/validation.js';
+const { validateFileId  } = require('../../utils/validation');
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
@@ -65,7 +65,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{fileId: string, revisions: Array<any>, count: number}>} File revisions
  */
-export async function getFileRevisions(fileId, bearerToken) {
+async function getFileRevisions(fileId, bearerToken) {
   if (!fileId) {
     throw new Error('File ID is required');
   }
@@ -103,7 +103,7 @@ export async function getFileRevisions(fileId, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{files: Array<any>, count: number}>} Recent activity
  */
-export async function getRecentActivity(bearerToken, options = {}) {
+async function getRecentActivity(bearerToken, options = {}) {
   const { pageSize = 50, filterByMe = false } = options;
 
   // Build query for recent files
@@ -148,7 +148,7 @@ export async function getRecentActivity(bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{fileId: string, comments: Array<any>, count: number}>} File comments
  */
-export async function getFileComments(fileId, bearerToken, options = {}) {
+async function getFileComments(fileId, bearerToken, options = {}) {
   if (!fileId) {
     throw new Error('File ID is required');
   }
@@ -198,7 +198,7 @@ export async function getFileComments(fileId, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{startPageToken?: string, message?: string, changes?: Array<any>, changeCount?: number, nextPageToken?: string, newStartPageToken?: string}>} Changes and next page token
  */
-export async function trackFileChanges(bearerToken, options = {}) {
+async function trackFileChanges(bearerToken, options = {}) {
   const { pageToken, pageSize = 100, includeRemoved = true, restrictToMyDrive = false } = options;
 
   // If no pageToken, get the starting token
@@ -241,3 +241,9 @@ export async function trackFileChanges(bearerToken, options = {}) {
     newStartPageToken: data.newStartPageToken
   };
 }
+module.exports = {
+  getFileRevisions,
+  getRecentActivity,
+  getFileComments,
+  trackFileChanges
+};

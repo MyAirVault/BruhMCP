@@ -3,7 +3,7 @@
  * Standardized function for initiating Slack OAuth flow
  */
 
-import SlackOAuthHandler from '../oauth/oauthHandler.js';
+const SlackOAuthHandler = require('../oauth/oauthHandler');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -67,4 +67,5 @@ async function initiateOAuth(credentials, userId, instanceId) {
 	}
 }
 
-export { initiateOAuth };
+
+module.exports = { initiateOAuth  };

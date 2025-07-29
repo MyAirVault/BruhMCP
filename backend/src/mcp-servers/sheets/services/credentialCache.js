@@ -3,7 +3,7 @@
  * Manages in-memory caching of OAuth tokens
  */
 
-import { pool } from '../../../db/config.js';
+const { pool  } = require('../../../db/config');
 
 // Global credential cache for Google Sheets service instances
 const sheetsCredentialCache = new Map();
@@ -16,7 +16,7 @@ let syncInterval = null;
 /**
  * Initialize the credential cache system
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Google Sheets OAuth credential cache system');
 	sheetsCredentialCache.clear();
 	
@@ -31,7 +31,7 @@ export function initializeCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = sheetsCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -57,7 +57,7 @@ export function getCachedCredential(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @param {{bearerToken: string, refreshToken?: string, expiresAt: number, user_id: string}} credentialData - Credential data to cache
  */
-export function setCachedCredential(instanceId, credentialData) {
+function setCachedCredential(instanceId, credentialData) {
 	const cacheEntry = {
 		bearerToken: credentialData.bearerToken,
 		refreshToken: credentialData.refreshToken,
@@ -79,7 +79,7 @@ export function setCachedCredential(instanceId, credentialData) {
  * @param {string} instanceId - UUID of the service instance
  * @param {Object} metadata - Metadata to update
  */
-export function updateCachedCredentialMetadata(instanceId, metadata) {
+function updateCachedCredentialMetadata(instanceId, metadata) {
 	const cached = sheetsCredentialCache.get(instanceId);
 	
 	if (cached) {
@@ -95,7 +95,7 @@ export function updateCachedCredentialMetadata(instanceId, metadata) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if deleted, false if not found
  */
-export function deleteCachedCredential(instanceId) {
+function deleteCachedCredential(instanceId) {
 	const deleted = sheetsCredentialCache.delete(instanceId);
 	
 	if (deleted) {
@@ -109,7 +109,7 @@ export function deleteCachedCredential(instanceId) {
  * Get cache statistics
  * @returns {Object} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
 	const now = Date.now();
 	const entries = Array.from(sheetsCredentialCache.entries());
 	
@@ -150,7 +150,7 @@ export function getCacheStatistics() {
  * Clear all cached credentials
  * @returns {number} Number of entries cleared
  */
-export function clearCache() {
+function clearCache() {
 	const size = sheetsCredentialCache.size;
 	sheetsCredentialCache.clear();
 	console.log(`🧹 Cleared ${size} cached credentials`);
@@ -175,7 +175,7 @@ function startBackgroundSync() {
 /**
  * Stop background synchronization
  */
-export function stopBackgroundSync() {
+function stopBackgroundSync() {
 	if (syncInterval) {
 		clearInterval(syncInterval);
 		syncInterval = null;
@@ -240,3 +240,10 @@ async function updateDatabaseMetadata(instanceId, metadata) {
 		console.error(`Failed to update database metadata for ${instanceId}:`, error);
 	}
 }
+
+module.exports = {
+	initializeCredentialCache,
+	getCachedCredential,
+	getCacheStatistics,
+	setCachedCredential
+};

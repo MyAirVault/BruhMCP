@@ -478,4 +478,6 @@
  * @property {AuditLogMetadata} metadata - Additional metadata
  */
 
-export {};
+// TypeScript declarations - no exports needed
+// Export empty object to make this a valid module
+module.exports = {};

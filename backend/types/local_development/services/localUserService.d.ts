@@ -32,7 +32,7 @@ declare class LocalUserService {
         error?: undefined;
     } | {
         success: boolean;
-        error: any;
+        error: string;
         isNewUser?: undefined;
     }>;
     /**
@@ -40,11 +40,11 @@ declare class LocalUserService {
      */
     listUsers(): Promise<{
         success: boolean;
-        users: any[];
+        users: Object[];
         error?: undefined;
     } | {
         success: boolean;
-        error: any;
+        error: string;
         users?: undefined;
     }>;
     /**

@@ -11,7 +11,7 @@ export function postFigmaWebhook(apiKey: string, webhookData: any): Promise<any>
  * @param {string} [teamId] - Optional team ID to filter webhooks
  * @returns {Promise<any>}
  */
-export function getFigmaWebhooks(apiKey: string, teamId?: string): Promise<any>;
+export function getFigmaWebhooks(apiKey: string, teamId?: string | undefined): Promise<any>;
 /**
  * Update a webhook (Webhooks V2 API)
  * @param {string} apiKey - User's Figma API key

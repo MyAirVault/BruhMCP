@@ -90,5 +90,5 @@
  */
 
 
-// Export an empty object to make this a proper ES module
-export {};
+// Export an empty object to make this a proper CommonJS module
+module.exports = {};

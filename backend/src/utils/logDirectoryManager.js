@@ -3,11 +3,10 @@
  * Handles creation and management of MCP instance log directories
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const fs = require('fs');
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(__filename);
 
 /**
  * Result of log directory creation operation
@@ -38,7 +37,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * @param {string} instanceId - MCP instance ID
  * @returns {Promise<LogDirectoryResult>}
  */
-export async function createMCPLogDirectory(userId, instanceId) {
+async function createMCPLogDirectory(userId, instanceId) {
 	try {
 		// Calculate project root from utils directory (backend/src/utils -> project root)
 		const projectRoot = path.resolve(__dirname, '../../../');
@@ -82,7 +81,7 @@ export async function createMCPLogDirectory(userId, instanceId) {
  * @param {string} instanceId - MCP instance ID
  * @returns {Promise<RemoveDirectoryResult>}
  */
-export async function removeMCPLogDirectory(userId, instanceId) {
+async function removeMCPLogDirectory(userId, instanceId) {
 	try {
 		// Calculate project root from utils directory (backend/src/utils -> project root)
 		const projectRoot = path.resolve(__dirname, '../../../');
@@ -114,7 +113,7 @@ export async function removeMCPLogDirectory(userId, instanceId) {
  * @param {string} instanceId - MCP instance ID
  * @returns {string} Log directory path
  */
-export function getMCPLogDirectoryPath(userId, instanceId) {
+function getMCPLogDirectoryPath(userId, instanceId) {
 	// Calculate project root from utils directory (backend/src/utils -> project root)
 	const projectRoot = path.resolve(__dirname, '../../../');
 	return path.join(projectRoot, 'logs', 'users', `user_${userId}`, `mcp_${instanceId}`);
@@ -126,7 +125,7 @@ export function getMCPLogDirectoryPath(userId, instanceId) {
  * @param {string} instanceId - MCP instance ID
  * @returns {boolean} True if directory exists
  */
-export function mcpLogDirectoryExists(userId, instanceId) {
+function mcpLogDirectoryExists(userId, instanceId) {
 	const logDir = getMCPLogDirectoryPath(userId, instanceId);
 	return fs.existsSync(logDir);
 }
@@ -136,7 +135,7 @@ export function mcpLogDirectoryExists(userId, instanceId) {
  * @param {string} userId - User ID
  * @returns {Promise<UserLogDirectoryResult>}
  */
-export async function createUserLogDirectory(userId) {
+async function createUserLogDirectory(userId) {
 	try {
 		// Calculate project root from utils directory (backend/src/utils -> project root)
 		const projectRoot = path.resolve(__dirname, '../../../');
@@ -162,3 +161,11 @@ export async function createUserLogDirectory(userId) {
 		};
 	}
 }
+
+module.exports = {
+	createMCPLogDirectory,
+	removeMCPLogDirectory,
+	getMCPLogDirectoryPath,
+	mcpLogDirectoryExists,
+	createUserLogDirectory
+};

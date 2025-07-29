@@ -3,7 +3,7 @@
  * Implements OAuth flow for Gmail MCP service
  */
 
-import { google } from 'googleapis';
+const { google } = require('googleapis');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
@@ -121,7 +121,7 @@ class GmailOAuthHandler {
 				success: true,
 				tokens: {
 					access_token: tokens.access_token,
-					refresh_token: tokens.refresh_token,
+					refresh_token: tokens.refresh_token || undefined,
 					expires_in: tokens.expiry_date ? Math.floor((tokens.expiry_date - Date.now()) / 1000) : 3600,
 					scope: this.scopes.join(' '),
 				},
@@ -154,7 +154,7 @@ class GmailOAuthHandler {
 			const { credentials: newTokens } = await oauth2Client.refreshAccessToken();
 
 			return {
-				access_token: newTokens.access_token,
+				access_token: newTokens.access_token || '',
 				refresh_token: newTokens.refresh_token || refreshToken,
 				expires_in: newTokens.expiry_date ? Math.floor((newTokens.expiry_date - Date.now()) / 1000) : 3600,
 			};
@@ -165,4 +165,7 @@ class GmailOAuthHandler {
 	}
 }
 
-export default GmailOAuthHandler;
+
+
+
+module.exports = GmailOAuthHandler;

@@ -5,13 +5,13 @@
 
 /// <reference path="./types.js" />
 
-import { lookupInstanceCredentials } from '../services/database.js';
-import { 
+const { lookupInstanceCredentials } = require('../services/database.js');
+const { 
   isValidInstanceId, 
   createInstanceIdValidationError, 
   validateInstance 
-} from './validation.js';
-import { 
+} = require('./validation.js');
+const { 
   checkCachedCredentials, 
   hasCachedBearerToken, 
   setupRequestWithCachedToken, 
@@ -19,27 +19,27 @@ import {
   isAccessTokenValid, 
   cacheAndSetupToken, 
   setupLightweightRequest 
-} from './credentialManagement.js';
-import { performTokenRefresh } from './tokenRefresh.js';
-import { 
+} = require('./credentialManagement.js');
+const { performTokenRefresh } = require('./tokenRefresh.js');
+const { 
   createSystemErrorResponse, 
   createLightweightSystemErrorResponse, 
   handleRefreshFailure, 
   createRefreshFailureResponse, 
   createReauthenticationResponse, 
   logRefreshFallback 
-} from './authErrorHandler.js';
-import { 
+} = require('./authErrorHandler.js');
+const { 
   logSuccessfulTokenRefresh, 
   logFailedTokenRefresh, 
   logReauthenticationRequired 
-} from './auditLogger.js';
+} = require('./auditLogger.js');
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCredentialAuthMiddleware() {
+function createCredentialAuthMiddleware() {
   /**
    * @param {import('./types.js').ExpressRequest} req - Express request object
    * @param {import('./types.js').ExpressResponse} res - Express response object
@@ -164,7 +164,7 @@ export function createCredentialAuthMiddleware() {
  * Create lightweight authentication middleware for non-critical endpoints
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createLightweightAuthMiddleware() {
+function createLightweightAuthMiddleware() {
   /**
    * @param {import('./types.js').ExpressRequest} req - Express request object
    * @param {import('./types.js').ExpressResponse} res - Express response object
@@ -206,7 +206,7 @@ export function createLightweightAuthMiddleware() {
  * Create cache performance monitoring middleware for development
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCachePerformanceMiddleware() {
+function createCachePerformanceMiddleware() {
   /**
    * @param {import('./types.js').ExpressRequest} req - Express request object
    * @param {import('./types.js').ExpressResponse} res - Express response object
@@ -240,52 +240,53 @@ export function createCachePerformanceMiddleware() {
 }
 
 // Export all modular components (explicit exports to avoid type conflicts)
-export {
-  isValidInstanceId,
-  createInstanceIdValidationError,
-  validateInstance,
-  validateInstanceExists,
-  validateServiceActive,
-  validateInstanceStatus,
-  validateInstanceNotExpired,
-  validateOAuthCredentials
-} from './validation.js';
+;
 
-export {
-  checkCachedCredentials,
-  hasCachedBearerToken,
-  setupRequestWithCachedToken,
-  getTokenInfo,
-  isAccessTokenValid,
-  cacheAndSetupToken,
-  cacheNewTokens,
-  setupRequestWithNewTokens,
-  setupLightweightRequest
-} from './credentialManagement.js';
+;
 
-export {
-  attemptTokenRefresh,
-  recordSuccessfulRefreshMetrics,
-  recordFailedRefreshMetrics,
-  updateDatabaseWithNewTokens,
-  processSuccessfulRefresh,
-  processFailedRefresh,
-  performTokenRefresh
-} from './tokenRefresh.js';
+;
 
-export {
-  createSystemErrorResponse,
-  createLightweightSystemErrorResponse,
-  handleRefreshFailure,
-  createRefreshFailureResponse,
-  createReauthenticationResponse,
-  logRefreshFallback
-} from './authErrorHandler.js';
+;
 
-export {
-  logSuccessfulTokenRefresh,
-  logFailedTokenRefresh,
-  logReauthenticationRequired,
-  createAuditLogEntry,
-  logTokenValidationSuccess
-} from './auditLogger.js';
+;
+
+module.exports = {
+	createCredentialAuthMiddleware,
+	createLightweightAuthMiddleware,
+	createCachePerformanceMiddleware,
+	isValidInstanceId: require('./validation.js').isValidInstanceId,
+	createInstanceIdValidationError: require('./validation.js').createInstanceIdValidationError,
+	validateInstance: require('./validation.js').validateInstance,
+	validateInstanceExists: require('./validation.js').validateInstanceExists,
+	validateServiceActive: require('./validation.js').validateServiceActive,
+	validateInstanceStatus: require('./validation.js').validateInstanceStatus,
+	validateInstanceNotExpired: require('./validation.js').validateInstanceNotExpired,
+	validateOAuthCredentials: require('./validation.js').validateOAuthCredentials,
+	checkCachedCredentials: require('./credentialManagement.js').checkCachedCredentials,
+	hasCachedBearerToken: require('./credentialManagement.js').hasCachedBearerToken,
+	setupRequestWithCachedToken: require('./credentialManagement.js').setupRequestWithCachedToken,
+	getTokenInfo: require('./credentialManagement.js').getTokenInfo,
+	isAccessTokenValid: require('./credentialManagement.js').isAccessTokenValid,
+	cacheAndSetupToken: require('./credentialManagement.js').cacheAndSetupToken,
+	cacheNewTokens: require('./credentialManagement.js').cacheNewTokens,
+	setupRequestWithNewTokens: require('./credentialManagement.js').setupRequestWithNewTokens,
+	setupLightweightRequest: require('./credentialManagement.js').setupLightweightRequest,
+	attemptTokenRefresh: require('./tokenRefresh.js').attemptTokenRefresh,
+	recordSuccessfulRefreshMetrics: require('./tokenRefresh.js').recordSuccessfulRefreshMetrics,
+	recordFailedRefreshMetrics: require('./tokenRefresh.js').recordFailedRefreshMetrics,
+	updateDatabaseWithNewTokens: require('./tokenRefresh.js').updateDatabaseWithNewTokens,
+	processSuccessfulRefresh: require('./tokenRefresh.js').processSuccessfulRefresh,
+	processFailedRefresh: require('./tokenRefresh.js').processFailedRefresh,
+	performTokenRefresh: require('./tokenRefresh.js').performTokenRefresh,
+	createSystemErrorResponse: require('./authErrorHandler.js').createSystemErrorResponse,
+	createLightweightSystemErrorResponse: require('./authErrorHandler.js').createLightweightSystemErrorResponse,
+	handleRefreshFailure: require('./authErrorHandler.js').handleRefreshFailure,
+	createRefreshFailureResponse: require('./authErrorHandler.js').createRefreshFailureResponse,
+	createReauthenticationResponse: require('./authErrorHandler.js').createReauthenticationResponse,
+	logRefreshFallback: require('./authErrorHandler.js').logRefreshFallback,
+	logSuccessfulTokenRefresh: require('./auditLogger.js').logSuccessfulTokenRefresh,
+	logFailedTokenRefresh: require('./auditLogger.js').logFailedTokenRefresh,
+	logReauthenticationRequired: require('./auditLogger.js').logReauthenticationRequired,
+	createAuditLogEntry: require('./auditLogger.js').createAuditLogEntry,
+	logTokenValidationSuccess: require('./auditLogger.js').logTokenValidationSuccess
+};

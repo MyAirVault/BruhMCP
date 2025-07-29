@@ -1,5 +1,14 @@
-export default createRedditValidator;
-export type RedditOAuthCredentials = {
+export = createRedditValidator;
+/**
+ * Reddit validator factory - determines which validator to use based on credentials
+ * @param {RedditOAuthCredentials | RedditAPIKeyCredentials} credentials - Credentials to validate
+ * @returns {BaseValidator} Appropriate validator instance
+ */
+declare function createRedditValidator(credentials: RedditOAuthCredentials | RedditAPIKeyCredentials): BaseValidator;
+declare namespace createRedditValidator {
+    export { RedditOAuthCredentials, RedditAPIKeyCredentials, RedditServiceInfo, RedditValidationResult };
+}
+type RedditOAuthCredentials = {
     /**
      * - Reddit OAuth client ID
      */
@@ -9,13 +18,14 @@ export type RedditOAuthCredentials = {
      */
     client_secret: string;
 };
-export type RedditAPIKeyCredentials = {
+type RedditAPIKeyCredentials = {
     /**
      * - Reddit API key
      */
     api_key: string;
 };
-export type RedditServiceInfo = {
+import { BaseValidator } from "../../../services/validation/baseValidator";
+type RedditServiceInfo = {
     /**
      * - Service name
      */
@@ -41,7 +51,7 @@ export type RedditServiceInfo = {
      */
     permissions: string[];
 };
-export type RedditValidationResult = {
+type RedditValidationResult = {
     /**
      * - Whether credentials are valid
      */
@@ -55,11 +65,4 @@ export type RedditValidationResult = {
      */
     field?: string | undefined;
 };
-/**
- * Reddit validator factory - determines which validator to use based on credentials
- * @param {RedditOAuthCredentials | RedditAPIKeyCredentials} credentials - Credentials to validate
- * @returns {BaseValidator} Appropriate validator instance
- */
-declare function createRedditValidator(credentials: RedditOAuthCredentials | RedditAPIKeyCredentials): BaseValidator;
-import { BaseValidator } from '../../../services/validation/baseValidator.js';
 //# sourceMappingURL=credentialValidator.d.ts.map

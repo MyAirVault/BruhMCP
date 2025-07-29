@@ -12,7 +12,7 @@
  * @param {number} duration - Operation duration in ms
  * @param {Object} metadata - Additional metadata
  */
-export function logSuccessfulTokenRefresh(instanceId, method, duration, metadata = {}) {
+function logSuccessfulTokenRefresh(instanceId, method, duration, metadata = {}) {
 	console.log(`✅ Token refresh successful for instance ${instanceId}`, {
 		method,
 		duration,
@@ -27,7 +27,7 @@ export function logSuccessfulTokenRefresh(instanceId, method, duration, metadata
  * @param {Error} error - Error object
  * @param {number} duration - Operation duration in ms
  */
-export function logFailedTokenRefresh(instanceId, method, error, duration) {
+function logFailedTokenRefresh(instanceId, method, error, duration) {
 	console.error(`❌ Token refresh failed for instance ${instanceId}`, {
 		method,
 		duration,
@@ -41,6 +41,12 @@ export function logFailedTokenRefresh(instanceId, method, error, duration) {
  * @param {string} instanceId - Instance ID
  * @param {Object} details - Additional details
  */
-export function logReauthenticationRequired(instanceId, details = {}) {
+function logReauthenticationRequired(instanceId, details = {}) {
 	console.log(`🔐 Re-authentication required for instance ${instanceId}`, details);
 }
+
+module.exports = {
+	logSuccessfulTokenRefresh,
+	logFailedTokenRefresh,
+	logReauthenticationRequired
+};

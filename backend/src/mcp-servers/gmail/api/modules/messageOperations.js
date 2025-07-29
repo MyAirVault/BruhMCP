@@ -3,8 +3,8 @@
  * Core message handling functionality for Gmail API
  */
 
-import { makeGmailRequest } from './requestHandler.js';
-import { formatEmailResponse, formatMessageResponse } from '../../utils/gmailFormatting.js';
+const { makeGmailRequest } = require('./requestHandler.js');
+const { formatEmailResponse, formatMessageResponse } = require('../../utils/gmailFormatting.js');
 
 /**
  * @typedef {Object} SendEmailArgs
@@ -114,7 +114,7 @@ import { formatEmailResponse, formatMessageResponse } from '../../utils/gmailFor
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Send result
  */
-export async function sendEmail(args, bearerToken) {
+async function sendEmail(args, bearerToken) {
 	const { to, subject, body, cc = '', bcc = '', format = 'text' } = args;
 
 	// Create email message in RFC 2822 format
@@ -168,7 +168,7 @@ export async function sendEmail(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Fetched emails
  */
-export async function fetchEmails(args, bearerToken) {
+async function fetchEmails(args, bearerToken) {
 	const { query = '', maxResults = 10, labelIds = [], includeSpamTrash = false } = args;
 
 	let queryParams = new URLSearchParams({
@@ -220,7 +220,7 @@ export async function fetchEmails(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<FormattedMessage>} Message details
  */
-export async function fetchMessageById(args, bearerToken) {
+async function fetchMessageById(args, bearerToken) {
 	const { messageId, format = 'full' } = args;
 
 	const queryParams = new URLSearchParams({ format });
@@ -236,7 +236,7 @@ export async function fetchMessageById(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Reply result
  */
-export async function replyToEmail(args, bearerToken) {
+async function replyToEmail(args, bearerToken) {
 	const { threadId, body, subject = '', format = 'text' } = args;
 
 	// Get the original thread to extract reply information
@@ -295,7 +295,7 @@ export async function replyToEmail(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Delete result
  */
-export async function deleteMessage(args, bearerToken) {
+async function deleteMessage(args, bearerToken) {
 	const { messageId } = args;
 
 	await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken, {
@@ -315,7 +315,7 @@ export async function deleteMessage(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Trash result
  */
-export async function moveToTrash(args, bearerToken) {
+async function moveToTrash(args, bearerToken) {
 	const { messageId } = args;
 
 	/** @type {GmailSendResponse} */
@@ -336,7 +336,7 @@ export async function moveToTrash(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Search results
  */
-export async function searchEmails(args, bearerToken) {
+async function searchEmails(args, bearerToken) {
 	const { query, maxResults = 50, newerThan = '', olderThan = '' } = args;
 
 	let searchQuery = query;
@@ -359,3 +359,13 @@ export async function searchEmails(args, bearerToken) {
 		bearerToken
 	);
 }
+
+module.exports = {
+	sendEmail,
+	fetchEmails,
+	fetchMessageById,
+	replyToEmail,
+	deleteMessage,
+	moveToTrash,
+	searchEmails
+};

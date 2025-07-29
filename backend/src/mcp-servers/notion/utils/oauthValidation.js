@@ -26,7 +26,7 @@
  * @param {OAuthCredentials} credentials - OAuth credentials
  * @returns {Promise<TokenResponse>} Token response with access_token and refresh_token
  */
-export async function exchangeOAuthForBearer(credentials) {
+async function exchangeOAuthForBearer(credentials) {
     const { clientId, clientSecret, scopes } = credentials;
     
     // Validate required credentials
@@ -56,7 +56,7 @@ export async function exchangeOAuthForBearer(credentials) {
  * @param {RefreshData} refreshData - Refresh token data
  * @returns {Promise<TokenResponse>} New token response
  */
-export async function refreshBearerToken(refreshData) {
+async function refreshBearerToken(refreshData) {
     const { refreshToken, clientId, clientSecret } = refreshData;
     
     // Validate required data
@@ -88,7 +88,7 @@ export async function refreshBearerToken(refreshData) {
  * @param {string} bearerToken - Bearer token to validate
  * @returns {Promise<TokenValidationResult>} Token validation result
  */
-export async function validateBearerToken(bearerToken) {
+async function validateBearerToken(bearerToken) {
     if (!bearerToken) {
         throw new Error('Bearer token is required for validation');
     }
@@ -138,7 +138,7 @@ export async function validateBearerToken(bearerToken) {
  * @param {number} [bufferMinutes=5] - Minutes before expiry to consider token as expired
  * @returns {boolean} True if token is expired or will expire soon
  */
-export function isTokenExpired(tokenData, bufferMinutes = 5) {
+function isTokenExpired(tokenData, bufferMinutes = 5) {
     // Notion tokens don't expire
     // Parameters are kept for API compatibility but not used
     void tokenData;
@@ -179,7 +179,7 @@ export function isTokenExpired(tokenData, bufferMinutes = 5) {
  * @param {string} bearerToken - Bearer token
  * @returns {Promise<UserInfo>} User information
  */
-export async function getUserInfoFromToken(bearerToken) {
+async function getUserInfoFromToken(bearerToken) {
     if (!bearerToken) {
         throw new Error('Bearer token is required');
     }
@@ -219,7 +219,7 @@ export async function getUserInfoFromToken(bearerToken) {
  * @param {RefreshData} refreshData - Refresh token data
  * @returns {Promise<TokenResponse>} New token response
  */
-export async function refreshBearerTokenDirect(refreshData) {
+async function refreshBearerTokenDirect(refreshData) {
     const { refreshToken, clientId, clientSecret } = refreshData;
     
     // Validate required data
@@ -294,7 +294,7 @@ export async function refreshBearerTokenDirect(refreshData) {
  * @param {string} token - Token to revoke (access or refresh token)
  * @returns {Promise<boolean>} True if revocation was successful
  */
-export async function revokeToken(token) {
+async function revokeToken(token) {
     if (!token) {
         throw new Error('Token is required for revocation');
     }
@@ -308,7 +308,7 @@ export async function revokeToken(token) {
     return true; // Return true since there's no error, just not supported
 }
 
-export default {
+module.exports = {
     exchangeOAuthForBearer,
     refreshBearerToken,
     validateBearerToken,

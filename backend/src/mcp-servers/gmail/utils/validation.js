@@ -3,7 +3,7 @@
  * Validates tool arguments against defined schemas
  */
 
-import { getTools } from '../endpoints/tools.js';
+const { getTools } = require('../endpoints/tools.js');
 
 /**
  * Validate tool arguments against schema
@@ -11,7 +11,7 @@ import { getTools } from '../endpoints/tools.js';
  * @param {Record<string, any>} args - Arguments to validate
  * @throws {Error} Validation error if arguments are invalid
  */
-export function validateToolArguments(toolName, args) {
+function validateToolArguments(toolName, args) {
   const toolsData = /** @type {{tools: Array<{name: string, inputSchema?: JSONSchema}>}} */ (getTools());
   const tool = toolsData.tools.find(/** @param {{name: string}} t */ t => t.name === toolName);
   
@@ -237,7 +237,7 @@ function validateEmailField(value, context) {
  * @param {string} query - Search query
  * @throws {Error} If query contains invalid operators
  */
-export function validateGmailQuery(query) {
+function validateGmailQuery(query) {
   if (!query || typeof query !== 'string') {
     return; // Empty queries are allowed
   }
@@ -279,7 +279,7 @@ export function validateGmailQuery(query) {
  * @param {string} messageId - Gmail message ID
  * @throws {Error} If message ID format is invalid
  */
-export function validateMessageId(messageId) {
+function validateMessageId(messageId) {
   if (!messageId || typeof messageId !== 'string') {
     throw new Error('Message ID is required and must be a string');
   }
@@ -304,7 +304,7 @@ export function validateMessageId(messageId) {
  * @param {string} threadId - Gmail thread ID
  * @throws {Error} If thread ID format is invalid
  */
-export function validateThreadId(threadId) {
+function validateThreadId(threadId) {
   if (!threadId || typeof threadId !== 'string') {
     throw new Error('Thread ID is required and must be a string');
   }
@@ -329,7 +329,7 @@ export function validateThreadId(threadId) {
  * @param {string} labelId - Gmail label ID
  * @throws {Error} If label ID format is invalid
  */
-export function validateLabelId(labelId) {
+function validateLabelId(labelId) {
   if (!labelId || typeof labelId !== 'string') {
     throw new Error('Label ID is required and must be a string');
   }
@@ -344,3 +344,11 @@ export function validateLabelId(labelId) {
     console.warn(`Unusual label ID format: ${labelId} (may still be valid)`);
   }
 }
+
+module.exports = {
+	validateToolArguments,
+	validateGmailQuery,
+	validateMessageId,
+	validateThreadId,
+	validateLabelId
+};

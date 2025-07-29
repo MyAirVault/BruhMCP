@@ -44,5 +44,5 @@ export const renewMCPSchema: z.ZodObject<{
 }, {
     expiration_option: "never" | "1h" | "6h" | "1day" | "30days";
 }>;
-import { z } from 'zod';
+import { z } from "zod";
 //# sourceMappingURL=schemas.d.ts.map

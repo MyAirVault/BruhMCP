@@ -3,8 +3,8 @@
  * Handles file uploading and info retrieval
  */
 
-import { makeSlackRequest } from './requestHandler.js';
-import { formatFile } from '../../utils/slackFormatting.js';
+const { makeSlackRequest  } = require('./requestHandler');
+const { formatFile  } = require('../../utils/slackFormatting');
 
 /**
  * @typedef {Object} UploadFileArgs
@@ -50,7 +50,7 @@ import { formatFile } from '../../utils/slackFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<FileUploadResult>} Upload result
  */
-export async function uploadFile(args, bearerToken) {
+async function uploadFile(args, bearerToken) {
 	const { channels, content, filename, title, filetype, initial_comment } = args;
 
 	const formData = new FormData();
@@ -89,7 +89,7 @@ export async function uploadFile(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<FileInfoResult>} File info result
  */
-export async function getFileInfo(args, bearerToken) {
+async function getFileInfo(args, bearerToken) {
 	const { file } = args;
 
 	const params = new URLSearchParams({ file });
@@ -102,3 +102,7 @@ export async function getFileInfo(args, bearerToken) {
 		summary: `Retrieved info for file: ${response.file?.name || file}`,
 	};
 }
+module.exports = {
+  uploadFile,
+  getFileInfo
+};

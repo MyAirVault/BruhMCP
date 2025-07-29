@@ -5,8 +5,8 @@
  * Thread management functionality for Gmail API
  */
 
-import { makeGmailRequest } from './requestHandler.js';
-import { formatMessageResponse } from '../../utils/gmailFormatting.js';
+const { makeGmailRequest } = require('./requestHandler.js');
+const { formatMessageResponse } = require('../../utils/gmailFormatting.js');
 
 /**
  * @typedef {import('../../middleware/types.js').GmailMessage} GmailMessage
@@ -68,7 +68,7 @@ import { formatMessageResponse } from '../../utils/gmailFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ThreadResult>} Thread details
  */
-export async function getThread(args, bearerToken) {
+async function getThread(args, bearerToken) {
 	const { threadId, format = 'full' } = args;
 
 	const queryParams = new URLSearchParams({ format });
@@ -87,3 +87,7 @@ export async function getThread(args, bearerToken) {
 		messages,
 	};
 }
+
+module.exports = {
+	getThread
+};

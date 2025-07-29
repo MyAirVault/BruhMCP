@@ -1,35 +1,3 @@
-/**
- * Record token refresh metrics
- * @param {string} instanceId - Instance ID
- * @param {string} method - Method used for refresh (oauth_service, direct_oauth)
- * @param {boolean} success - Whether the refresh was successful
- * @param {string|null} errorType - Type of error if failed
- * @param {string|null} errorMessage - Error message if failed
- * @param {number} startTime - Start timestamp
- * @param {number} endTime - End timestamp
- */
-export function recordTokenRefreshMetrics(instanceId: string, method: string, success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
-/**
- * Get token refresh metrics for an instance
- * @param {string} instanceId - Instance ID
- * @returns {TokenMetric[]} Array of metrics
- */
-export function getTokenRefreshMetrics(instanceId: string): TokenMetric[];
-/**
- * Get aggregated token refresh statistics
- * @param {string|null} instanceId - Instance ID (optional)
- * @returns {TokenRefreshStats} Aggregated statistics
- */
-export function getTokenRefreshStats(instanceId?: string | null): TokenRefreshStats;
-/**
- * Clear all metrics (for testing)
- */
-export function clearAllMetrics(): void;
-/**
- * Export metrics for external monitoring systems
- * @returns {TokenMetric[]} All metrics
- */
-export function exportMetrics(): TokenMetric[];
 export type TokenMetric = {
     /**
      * - Instance ID
@@ -111,4 +79,20 @@ export type TokenRefreshStats = {
         latest: string | undefined;
     };
 };
+/**
+ * Record token refresh metrics
+ * @param {string} instanceId - Instance ID
+ * @param {string} method - Method used for refresh (oauth_service, direct_oauth)
+ * @param {boolean} success - Whether the refresh was successful
+ * @param {string|null} errorType - Type of error if failed
+ * @param {string|null} errorMessage - Error message if failed
+ * @param {number} startTime - Start timestamp
+ * @param {number} endTime - End timestamp
+ */
+export function recordTokenRefreshMetrics(instanceId: string, method: string, success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
+/**
+ * Export metrics for external monitoring systems
+ * @returns {TokenMetric[]} All metrics
+ */
+export function exportMetrics(): TokenMetric[];
 //# sourceMappingURL=tokenMetrics.d.ts.map

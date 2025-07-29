@@ -1,8 +1,31 @@
 /**
+ * Plan limits configuration
+ */
+export type PlanConfig = {
+    /**
+     * - Maximum active instances (null = unlimited)
+     */
+    max_instances: number | null;
+    /**
+     * - Plan features
+     */
+    features: string[];
+};
+/**
  * Check if payments are disabled in local development
  * @returns {boolean} True if payments are disabled
  */
 export function isPaymentsDisabled(): boolean;
+/**
+ * Plan limits configuration
+ * @typedef {Object} PlanConfig
+ * @property {number|null} max_instances - Maximum active instances (null = unlimited)
+ * @property {string[]} features - Plan features
+ */
+/**
+ * @type {Record<string, PlanConfig>}
+ */
+export const PLAN_LIMITS: Record<string, PlanConfig>;
 /**
  * Get instance limit for a plan type
  * @param {string} planType - Plan type ('free' or 'pro')
@@ -47,27 +70,4 @@ export function handlePlanCancellation(userId: string): Promise<Object>;
  * @returns {Object} Validation result
  */
 export function validatePlanTransition(currentPlan: string, newPlan: string): Object;
-/**
- * Plan limits configuration
- * @typedef {Object} PlanConfig
- * @property {number|null} max_instances - Maximum active instances (null = unlimited)
- * @property {string[]} features - Plan features
- */
-/**
- * @type {Record<string, PlanConfig>}
- */
-export const PLAN_LIMITS: Record<string, PlanConfig>;
-/**
- * Plan limits configuration
- */
-export type PlanConfig = {
-    /**
-     * - Maximum active instances (null = unlimited)
-     */
-    max_instances: number | null;
-    /**
-     * - Plan features
-     */
-    features: string[];
-};
 //# sourceMappingURL=planLimits.d.ts.map

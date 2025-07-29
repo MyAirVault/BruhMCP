@@ -3,7 +3,7 @@
  * Handles instance credential lookup and usage tracking
  */
 
-import { pool } from '../../../db/config.js';
+const { pool  } = require('../../../db/config');
 
 /**
  * Instance credentials with service information from database query
@@ -36,7 +36,7 @@ import { pool } from '../../../db/config.js';
  * @param {string} serviceName - Name of the MCP service (googledrive)
  * @returns {Promise<GoogleDriveInstanceCredentials|null>} Instance credentials or null if not found
  */
-export async function lookupInstanceCredentials(instanceId, serviceName) {
+async function lookupInstanceCredentials(instanceId, serviceName) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -100,7 +100,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<boolean>} True if update was successful
  */
-export async function updateInstanceUsage(instanceId) {
+async function updateInstanceUsage(instanceId) {
   try {
     
     const query = `
@@ -152,7 +152,7 @@ export async function updateInstanceUsage(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<GoogleDriveInstanceStatistics|null>} Instance statistics or null if not found
  */
-export async function getInstanceStatistics(instanceId) {
+async function getInstanceStatistics(instanceId) {
   try {
     
     const query = `
@@ -193,7 +193,7 @@ export async function getInstanceStatistics(instanceId) {
  * @param {string} newStatus - New status (active, inactive, expired)
  * @returns {Promise<boolean>} True if update was successful
  */
-export async function updateInstanceStatus(instanceId, newStatus) {
+async function updateInstanceStatus(instanceId, newStatus) {
   try {
     
     const query = `
@@ -237,7 +237,7 @@ export async function updateInstanceStatus(instanceId, newStatus) {
  * Get all active instances for Google Drive service
  * @returns {Promise<ActiveGoogleDriveInstance[]>} Array of active instance records
  */
-export async function getActiveGoogleDriveInstances() {
+async function getActiveGoogleDriveInstances() {
   try {
     
     const query = `
@@ -276,7 +276,7 @@ export async function getActiveGoogleDriveInstances() {
  * @param {string} userId - UUID of the user (for additional security)
  * @returns {Promise<boolean>} True if instance is valid and accessible
  */
-export async function validateInstanceAccess(instanceId, userId) {
+async function validateInstanceAccess(instanceId, userId) {
   try {
     
     const query = `
@@ -309,7 +309,7 @@ export async function validateInstanceAccess(instanceId, userId) {
  * Clean up expired instances
  * @returns {Promise<number>} Number of instances marked as expired
  */
-export async function cleanupExpiredInstances() {
+async function cleanupExpiredInstances() {
   try {
     
     const query = `
@@ -341,3 +341,12 @@ export async function cleanupExpiredInstances() {
     throw new Error(`Failed to cleanup expired instances: ${errorMessage}`);
   }
 }
+module.exports = {
+  lookupInstanceCredentials,
+  updateInstanceUsage,
+  getInstanceStatistics,
+  updateInstanceStatus,
+  getActiveGoogleDriveInstances,
+  validateInstanceAccess,
+  cleanupExpiredInstances
+};

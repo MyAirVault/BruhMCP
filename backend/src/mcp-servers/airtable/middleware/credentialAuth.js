@@ -5,8 +5,8 @@
  * Primary middleware that checks credential cache first, falls back to database lookup
  */
 
-import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
-import { validateInstanceAccess, getApiKeyForInstance, updateAirtableUsageTracking, getAirtableInstanceCredentials } from '../services/instanceUtils.js';
+const { getCachedCredential, setCachedCredential } = require('../services/credentialCache.js');
+const { validateInstanceAccess, getApiKeyForInstance, updateAirtableUsageTracking, getAirtableInstanceCredentials } = require('../services/instanceUtils.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -49,7 +49,7 @@ import { validateInstanceAccess, getApiKeyForInstance, updateAirtableUsageTracki
  * This is the new primary middleware that replaces instance-auth for better performance
  * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | Response>} Express middleware function
  */
-export function createCredentialAuthMiddleware() {
+function createCredentialAuthMiddleware() {
 	return async (req, res, next) => {
 		try {
 			const { instanceId } = req.params;
@@ -179,7 +179,7 @@ export function createCredentialAuthMiddleware() {
  * Used for health checks and discovery endpoints that don't need API keys
  * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | Response>} Express middleware function
  */
-export function createLightweightAuthMiddleware() {
+function createLightweightAuthMiddleware() {
 	return async (req, res, next) => {
 		try {
 			const { instanceId } = req.params;
@@ -256,7 +256,7 @@ export function createLightweightAuthMiddleware() {
  * Create debugging middleware that logs cache performance
  * @returns {(req: AuthenticatedRequest, res: Response, next: NextFunction) => void} Express middleware function
  */
-export function createCachePerformanceMiddleware() {
+function createCachePerformanceMiddleware() {
 	return (req, res, next) => {
 		const startTime = Date.now();
 
@@ -277,3 +277,9 @@ export function createCachePerformanceMiddleware() {
 		next();
 	};
 }
+
+module.exports = {
+	createCredentialAuthMiddleware,
+	createLightweightAuthMiddleware,
+	createCachePerformanceMiddleware
+};

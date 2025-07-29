@@ -3,9 +3,9 @@
  * Standardized function for revoking Google Drive OAuth instance
  */
 
-import { deleteMCPInstance } from '../../../db/queries/mcpInstances/crud.js';
-import { removeCachedCredential } from '../services/cache/index.js';
-import { removeHandlerSession } from '../services/handlerSessions.js';
+const { deleteMCPInstance  } = require('../../../db/queries/mcpInstances/crud');
+const { removeCachedCredential  } = require('../services/cache/index');
+const { removeHandlerSession  } = require('../services/handlerSessions');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').RevokeResult} RevokeResult
@@ -64,4 +64,5 @@ async function revokeInstance(instanceId, userId) {
 }
 
 
-export { revokeInstance };
+
+module.exports = { revokeInstance  };

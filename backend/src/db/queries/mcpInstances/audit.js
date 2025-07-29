@@ -3,7 +3,7 @@
  * @fileoverview Contains functions for token audit logging and statistics
  */
 
-import { pool } from '../../config.js';
+const { pool } = require('../../config.js');
 
 /**
  * @typedef {import('./types.js').TokenAuditData} TokenAuditData
@@ -18,7 +18,7 @@ import { pool } from '../../config.js';
  * @returns {Promise<AuditLogRecord|null>} Created audit log entry or null if audit table doesn't exist
  * @throws {Error} When required fields are missing or database query fails
  */
-export async function createTokenAuditLog(auditData) {
+async function createTokenAuditLog(auditData) {
 	const { instanceId, operation, status, method, errorType, errorMessage, metadata, userId } = auditData;
 
 	// Validate required fields
@@ -76,7 +76,7 @@ export async function createTokenAuditLog(auditData) {
  * @returns {Promise<AuditLogRecord[]>} Array of audit log entries with parsed metadata
  * @throws {Error} When database query fails (returns empty array if audit table doesn't exist)
  */
-export async function getTokenAuditLogs(instanceId, options = {}) {
+async function getTokenAuditLogs(instanceId, options = {}) {
 	const { limit = 50, offset = 0, operation, status, since } = options;
 
 	let query = `
@@ -149,7 +149,7 @@ export async function getTokenAuditLogs(instanceId, options = {}) {
  * @returns {Promise<AuditStats>} Comprehensive audit statistics including operations, errors, and daily breakdown
  * @throws {Error} When database query fails (returns empty stats if audit table doesn't exist)
  */
-export async function getTokenAuditStats(instanceId, days = 30) {
+async function getTokenAuditStats(instanceId, days = 30) {
 	const cutoffDate = new Date();
 	cutoffDate.setDate(cutoffDate.getDate() - days);
 
@@ -262,7 +262,7 @@ export async function getTokenAuditStats(instanceId, days = 30) {
  * @returns {Promise<number>} Number of deleted audit log records
  * @throws {Error} When database query fails (returns 0 if audit table doesn't exist)
  */
-export async function cleanupTokenAuditLogs(daysToKeep = 90) {
+async function cleanupTokenAuditLogs(daysToKeep = 90) {
 	const cutoffDate = new Date();
 	cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
@@ -288,3 +288,10 @@ export async function cleanupTokenAuditLogs(daysToKeep = 90) {
 		throw error;
 	}
 }
+
+module.exports = {
+	createTokenAuditLog,
+	getTokenAuditLogs,
+	getTokenAuditStats,
+	cleanupTokenAuditLogs
+};

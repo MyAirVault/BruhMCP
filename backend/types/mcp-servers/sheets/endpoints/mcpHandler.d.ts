@@ -1,3 +1,9 @@
+export type ServiceConfig = {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+};
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -28,26 +34,20 @@ export class SheetsMCPHandler {
      * @param {import('express').Response} [_res] - Express response object (unused)
      * @returns {StreamableHTTPServerTransport} Transport instance
      */
-    getTransport(sessionId: string, _req?: import("express").Request, _res?: import("express").Response): StreamableHTTPServerTransport;
+    getTransport(sessionId: string, _req?: import("express").Request<import("express-serve-static-core").ParamsDictionary, any, any, qs.ParsedQs, Record<string, any>> | undefined, _res?: import("express").Response<any, Record<string, any>> | undefined): StreamableHTTPServerTransport;
     /**
      * Handle MCP request using new SDK signature
      * @param {import('express').Request} req - Express request object
      * @param {import('express').Response} res - Express response object
      * @param {Object} message - MCP message body
      */
-    handleMCPRequest(req: import("express").Request, res: import("express").Response, message: Object): Promise<void>;
+    handleMCPRequest(req: import('express').Request, res: import('express').Response, message: Object): Promise<void>;
     /**
      * Clean up transport for a session
      * @param {string} sessionId - Session identifier
      */
     cleanupTransport(sessionId: string): void;
 }
-export type ServiceConfig = {
-    name: string;
-    displayName: string;
-    version: string;
-    scopes: string[];
-};
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
 //# sourceMappingURL=mcpHandler.d.ts.map

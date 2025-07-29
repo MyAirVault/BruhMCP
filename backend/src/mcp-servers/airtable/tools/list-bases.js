@@ -3,9 +3,9 @@
  * Enhanced with optimization and YAML formatting
  */
 
-import * as yaml from 'js-yaml';
-import { createLogger } from '../utils/logger.js';
-import { AirtableErrorHandler } from '../utils/errorHandler.js';
+const yaml = require('js-yaml');
+const { createLogger } = require('../utils/logger.js');
+const { AirtableErrorHandler } = require('../utils/errorHandler.js');
 
 const logger = createLogger('ListBasesTool');
 
@@ -27,7 +27,7 @@ const logger = createLogger('ListBasesTool');
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupListBasesTool(server, airtableService, measurePerformance, serviceConfig) {
+function setupListBasesTool(server, airtableService, measurePerformance, serviceConfig) {
 	server.tool('list_bases', 'List all accessible Airtable bases', {}, 
 		measurePerformance('list_bases', async () => {
 			logger.info(`Tool call: list_bases for ${serviceConfig.name}`);
@@ -62,3 +62,5 @@ export function setupListBasesTool(server, airtableService, measurePerformance, 
 		})
 	);
 }
+
+module.exports = { setupListBasesTool };

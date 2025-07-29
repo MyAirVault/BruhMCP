@@ -2,10 +2,10 @@
  * Figma Service Layer * Handles authentication, API calls, and data processing
  */
 
-import { fetchWithRetry } from '../utils/fetchWithRetry.js';
-import { parseFigmaResponse } from './responseSimplifier.js';
-import { downloadFigmaImage } from '../utils/common.js';
-import { Logger } from '../utils/logger.js';
+const { fetchWithRetry } = require('../utils/fetchWithRetry.js');
+const { parseFigmaResponse } = require('./responseSimplifier.js');
+const { downloadFigmaImage } = require('../utils/common.js');
+const { Logger } = require('../utils/logger.js');
 
 const FIGMA_BASE_URL = 'https://api.figma.com/v1';
 
@@ -44,7 +44,7 @@ const FIGMA_BASE_URL = 'https://api.figma.com/v1';
  * @typedef {Record<string, string>} ImageFilesMap
  */
 
-export class FigmaService {
+class FigmaService {
 	/**
 	 * @param {FigmaAuthOptions} authOptions
 	 */
@@ -100,18 +100,18 @@ export class FigmaService {
 		try {
 			const endpoint = `/files/${fileKey}${depth ? `?depth=${depth}` : ''}`;
 			Logger.log(`Retrieving Figma file: ${fileKey} (depth: ${depth ?? 'default'})`);
-			
+
 			const response = await this.request(endpoint);
 			Logger.log('Got response');
-			
+
 			// Check if response is valid before parsing
 			if (!response || typeof response !== 'object') {
 				throw new Error('Invalid response from Figma API');
 			}
-			
+
 			// Simplify the response
 			const simplifiedResponse = parseFigmaResponse(response);
-			
+
 			return simplifiedResponse;
 		} catch (error) {
 			Logger.error('Failed to get file:', error);
@@ -129,18 +129,18 @@ export class FigmaService {
 	async getNode(fileKey, nodeId, depth = null) {
 		try {
 			const endpoint = `/files/${fileKey}/nodes?ids=${nodeId}${depth ? `&depth=${depth}` : ''}`;
-			
+
 			const response = await this.request(endpoint);
 			Logger.log('Got response from getNode, now parsing.');
-			
+
 			// Check if response is valid before parsing
 			if (!response || typeof response !== 'object') {
 				throw new Error('Invalid response from Figma API');
 			}
-			
+
 			// Simplify the response
 			const simplifiedResponse = parseFigmaResponse(response);
-			
+
 			return simplifiedResponse;
 		} catch (error) {
 			Logger.error('Failed to get node:', error);
@@ -159,39 +159,39 @@ export class FigmaService {
 	 */
 	async getImages(fileKey, nodes, localPath, pngScale = 2, svgOptions = {}) {
 		const { outlineText = false, includeId = false, simplifyStroke = false } = svgOptions;
-		
-		const pngIds = nodes.filter(({ fileType }) => fileType === "png").map(({ nodeId }) => nodeId);
-		const pngFiles = pngIds.length > 0
-			? this.request(`/images/${fileKey}?ids=${pngIds.join(",")}&format=png&scale=${pngScale}`)
-				.then(({ images = {} }) => images)
-			: {};
 
-		const svgIds = nodes.filter(({ fileType }) => fileType === "svg").map(({ nodeId }) => nodeId);
+		const pngIds = nodes.filter(({ fileType }) => fileType === 'png').map(({ nodeId }) => nodeId);
+		const pngFiles =
+			pngIds.length > 0
+				? this.request(`/images/${fileKey}?ids=${pngIds.join(',')}&format=png&scale=${pngScale}`).then(
+						({ images = {} }) => images
+					)
+				: {};
+
+		const svgIds = nodes.filter(({ fileType }) => fileType === 'svg').map(({ nodeId }) => nodeId);
 		const svgParams = [
-			`ids=${svgIds.join(",")}`,
-			"format=svg",
+			`ids=${svgIds.join(',')}`,
+			'format=svg',
 			`svg_outline_text=${outlineText}`,
 			`svg_include_id=${includeId}`,
 			`svg_simplify_stroke=${simplifyStroke}`,
-		].join("&");
+		].join('&');
 
-		const svgFiles = svgIds.length > 0
-			? this.request(`/images/${fileKey}?${svgParams}`)
-				.then(({ images = {} }) => images)
-			: {};
+		const svgFiles =
+			svgIds.length > 0 ? this.request(`/images/${fileKey}?${svgParams}`).then(({ images = {} }) => images) : {};
 
 		/** @type {ImageFilesMap} */
 		const files = await Promise.all([pngFiles, svgFiles]).then(([f, l]) => ({ ...f, ...l }));
 
-		const downloads = nodes
-			.map(({ nodeId, fileName }) => {
-				const imageUrl = files[nodeId];
-				if (imageUrl) {
-					return downloadFigmaImage(fileName, localPath, imageUrl);
-				}
-				return false;
-			})
-			.filter((url) => !!url);
+		/** @type {Promise<string>[]} */
+		const downloads = [];
+
+		for (const { nodeId, fileName } of nodes) {
+			const imageUrl = files[nodeId];
+			if (imageUrl) {
+				downloads.push(downloadFigmaImage(fileName, localPath, imageUrl));
+			}
+		}
 
 		return Promise.all(downloads);
 	}
@@ -215,10 +215,12 @@ export class FigmaService {
 		promises = nodes.map(async ({ imageRef, fileName }) => {
 			const imageUrl = imageFiles[imageRef];
 			if (!imageUrl) {
-				return "";
+				return '';
 			}
 			return downloadFigmaImage(fileName, localPath, imageUrl);
 		});
 		return Promise.all(promises);
 	}
 }
+
+module.exports = { FigmaService };

@@ -2,13 +2,13 @@
  * Airtable Records API operations
  */
 
-import {
+const {
 	makeAuthenticatedRequest,
 	handleApiError,
 	formatApiResponse,
 	buildQueryParams,
 	validateAirtableId,
-} from './common.js';
+} = require('./common.js');
 
 /**
  * @typedef {import('./common.js').AirtableRecord} AirtableRecord
@@ -32,7 +32,7 @@ import {
  * @param {ListRecordsOptions} [options] - Query options
  * @returns {Promise<Object>} Records list
  */
-export async function listRecords(baseId, tableId, apiKey, options = {}) {
+async function listRecords(baseId, tableId, apiKey, options = {}) {
 	validateAirtableId(baseId, 'base');
 	validateAirtableId(tableId, 'table');
 
@@ -63,7 +63,7 @@ export async function listRecords(baseId, tableId, apiKey, options = {}) {
  * @param {string} apiKey - Airtable API key
  * @returns {Promise<AirtableRecord>} Record data
  */
-export async function getRecord(baseId, tableId, recordId, apiKey) {
+async function getRecord(baseId, tableId, recordId, apiKey) {
 	validateAirtableId(baseId, 'base');
 	validateAirtableId(tableId, 'table');
 	validateAirtableId(recordId, 'record');
@@ -86,7 +86,7 @@ export async function getRecord(baseId, tableId, recordId, apiKey) {
  * @param {string} apiKey - Airtable API key
  * @returns {Promise<AirtableRecord>} Created record
  */
-export async function createRecord(baseId, tableId, fields, apiKey) {
+async function createRecord(baseId, tableId, fields, apiKey) {
 	validateAirtableId(baseId, 'base');
 	validateAirtableId(tableId, 'table');
 
@@ -112,7 +112,7 @@ export async function createRecord(baseId, tableId, fields, apiKey) {
  * @param {string} apiKey - Airtable API key
  * @returns {Promise<AirtableRecord>} Updated record
  */
-export async function updateRecord(baseId, tableId, recordId, fields, apiKey) {
+async function updateRecord(baseId, tableId, recordId, fields, apiKey) {
 	validateAirtableId(baseId, 'base');
 	validateAirtableId(tableId, 'table');
 	validateAirtableId(recordId, 'record');
@@ -144,7 +144,7 @@ export async function updateRecord(baseId, tableId, recordId, fields, apiKey) {
  * @param {string} apiKey - Airtable API key
  * @returns {Promise<DeleteResponse>} Deletion confirmation
  */
-export async function deleteRecord(baseId, tableId, recordId, apiKey) {
+async function deleteRecord(baseId, tableId, recordId, apiKey) {
 	validateAirtableId(baseId, 'base');
 	validateAirtableId(tableId, 'table');
 	validateAirtableId(recordId, 'record');
@@ -179,7 +179,7 @@ export async function deleteRecord(baseId, tableId, recordId, apiKey) {
  * @param {string} apiKey - Airtable API key
  * @returns {Promise<BatchCreateResponse>} Created records
  */
-export async function createMultipleRecords(baseId, tableId, records, apiKey) {
+async function createMultipleRecords(baseId, tableId, records, apiKey) {
 	validateAirtableId(baseId, 'base');
 	validateAirtableId(tableId, 'table');
 
@@ -203,3 +203,12 @@ export async function createMultipleRecords(baseId, tableId, records, apiKey) {
 	const data = /** @type {BatchCreateResponse} */ (rawData);
 	return /** @type {BatchCreateResponse} */ (formatApiResponse(data, 'create_multiple_records'));
 }
+
+module.exports = {
+	listRecords,
+	getRecord,
+	createRecord,
+	updateRecord,
+	deleteRecord,
+	createMultipleRecords
+};

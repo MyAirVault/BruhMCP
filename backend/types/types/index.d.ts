@@ -29,9 +29,9 @@ export type MCPInstance = {
     custom_name?: string | undefined;
     instance_number: number;
     access_token: string;
-    status: ("active" | "inactive" | "expired");
+    status: ('active' | 'inactive' | 'expired');
     is_active: boolean;
-    expiration_option: ("never" | "1h" | "6h" | "1day" | "30days");
+    expiration_option: ('never' | '1h' | '6h' | '1day' | '30days');
     expires_at?: Date | undefined;
     last_renewed_at?: Date | undefined;
     config: Object;

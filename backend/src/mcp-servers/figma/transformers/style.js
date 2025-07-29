@@ -2,8 +2,8 @@
  * Style Transformer * Handles strokes and visual styling
  */
 
-import { generateCSSShorthand, isVisible, parsePaint } from '../utils/common.js';
-import { hasValue, isStrokeWeights } from '../utils/identity.js';
+const { generateCSSShorthand, isVisible, parsePaint } = require('../utils/common.js');
+const { hasValue, isStrokeWeights } = require('../utils/identity.js');
 
 /**
  * @typedef {Object} FigmaPaint
@@ -37,7 +37,7 @@ import { hasValue, isStrokeWeights } from '../utils/identity.js';
  * @param {FigmaNode} n - Figma node
  * @returns {SimplifiedStroke}
  */
-export function buildSimplifiedStrokes(n) {
+function buildSimplifiedStrokes(n) {
 	/** @type {SimplifiedStroke} */
 	let strokes = { colors: [] };
 	
@@ -62,3 +62,7 @@ export function buildSimplifiedStrokes(n) {
 	return strokes;
 }
 
+
+module.exports = {
+	buildSimplifiedStrokes
+};

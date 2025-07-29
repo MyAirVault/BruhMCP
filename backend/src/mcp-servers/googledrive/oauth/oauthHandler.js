@@ -3,7 +3,7 @@
  * Implements OAuth flow for Google Drive MCP service
  */
 
-import { google } from 'googleapis';
+const { google  } = require('googleapis');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
@@ -121,7 +121,7 @@ class GoogleDriveOAuthHandler {
 				success: true,
 				tokens: {
 					access_token: tokens.access_token,
-					refresh_token: tokens.refresh_token,
+					refresh_token: tokens.refresh_token || undefined,
 					expires_in: tokens.expiry_date ? Math.floor((tokens.expiry_date - Date.now()) / 1000) : 3600,
 					scope: this.scopes.join(' '),
 				},
@@ -153,6 +153,10 @@ class GoogleDriveOAuthHandler {
 
 			const { credentials: newTokens } = await oauth2Client.refreshAccessToken();
 
+			if (!newTokens.access_token) {
+				throw new Error('No access token returned from Google');
+			}
+
 			return {
 				access_token: newTokens.access_token,
 				refresh_token: newTokens.refresh_token || refreshToken,
@@ -165,4 +169,4 @@ class GoogleDriveOAuthHandler {
 	}
 }
 
-export default GoogleDriveOAuthHandler;
+module.exports = GoogleDriveOAuthHandler;

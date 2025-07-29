@@ -3,7 +3,7 @@
  * @fileoverview Contains all database query functions for MCP service types management
  */
 
-import { pool } from '../config.js';
+const { pool } = require('../config.js');
 
 /**
  * @typedef {Object} MCPServiceType
@@ -30,7 +30,7 @@ import { pool } from '../config.js';
  * @param {boolean} [activeOnly=false] - Whether to return only active services
  * @returns {Promise<MCPServiceType[]>} Array of MCP service type records
  */
-export async function getAllMCPTypes(activeOnly = false) {
+async function getAllMCPTypes(activeOnly = false) {
 	let query = `
 		SELECT 
 			mcp_service_id,
@@ -65,7 +65,7 @@ export async function getAllMCPTypes(activeOnly = false) {
  * @param {string} serviceName - Service name (e.g., 'figma', 'github')
  * @returns {Promise<MCPServiceType|null>} MCP service type record or null
  */
-export async function getMCPTypeByName(serviceName) {
+async function getMCPTypeByName(serviceName) {
 	const query = `
 		SELECT 
 			mcp_service_id,
@@ -92,7 +92,7 @@ export async function getMCPTypeByName(serviceName) {
  * @param {string} serviceId - Service ID (UUID)
  * @returns {Promise<MCPServiceType|null>} MCP service type record or null
  */
-export async function getMCPTypeById(serviceId) {
+async function getMCPTypeById(serviceId) {
 	const query = `
 		SELECT 
 			mcp_service_id,
@@ -120,7 +120,7 @@ export async function getMCPTypeById(serviceId) {
  * @param {MCPTypeStats} stats - Statistics to update
  * @returns {Promise<MCPServiceType|null>} Updated service record or null
  */
-export async function updateMCPTypeStats(serviceId, stats) {
+async function updateMCPTypeStats(serviceId, stats) {
 	const setClauses = [];
 	const params = [];
 	let paramIndex = 1;
@@ -155,7 +155,7 @@ export async function updateMCPTypeStats(serviceId, stats) {
  * @param {boolean} isActive - Active status
  * @returns {Promise<MCPServiceType|null>} Updated service record or null
  */
-export async function toggleMCPType(serviceId, isActive) {
+async function toggleMCPType(serviceId, isActive) {
 	const query = `
 		UPDATE mcp_table 
 		SET 
@@ -168,3 +168,11 @@ export async function toggleMCPType(serviceId, isActive) {
 	const result = await pool.query(query, [isActive, serviceId]);
 	return result.rows[0] || null;
 }
+
+module.exports = {
+	getAllMCPTypes,
+	getMCPTypeByName,
+	getMCPTypeById,
+	updateMCPTypeStats,
+	toggleMCPType
+};

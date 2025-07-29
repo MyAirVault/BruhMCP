@@ -3,9 +3,9 @@
  * Core registry class that manages service discovery and function calling
  */
 
-import { join } from 'path';
-import { discoverServices } from './serviceDiscovery.js';
-import { loadServiceFunctions, loadSpecificFunction, safeCallFunction } from './serviceLoader.js';
+const { join } = require('path');
+const { discoverServices } = require('./serviceDiscovery.js');
+const { loadServiceFunctions, loadSpecificFunction, safeCallFunction } = require('./serviceLoader.js');
 
 /**
  * @typedef {import('../types/serviceTypes.js').ServiceRegistryMap} ServiceRegistryMap
@@ -264,4 +264,4 @@ class ServiceRegistry {
 }
 
 
-export { ServiceRegistry };
+module.exports = { ServiceRegistry };

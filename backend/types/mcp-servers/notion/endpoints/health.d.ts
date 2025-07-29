@@ -3,44 +3,17 @@
  * Returns service status and configuration
  */
 /**
- * @typedef {Object} ServiceConfig
- * @property {string} name - Service name
- * @property {string} displayName - Display name
- * @property {string} version - Service version
- * @property {number} port - Service port
- * @property {string} authType - Authentication type
- * @property {string} description - Service description
- */
-/**
  * Health check for Notion service
- * @param {ServiceConfig} config - Service configuration
+ * @param {{name: string, displayName: string, version: string, port: number, authType: string, description: string}} config - Service configuration
  * @returns {Object} Health status object
  */
-export function healthCheck(config: ServiceConfig): Object;
-export type ServiceConfig = {
-    /**
-     * - Service name
-     */
+export function healthCheck(config: {
     name: string;
-    /**
-     * - Display name
-     */
     displayName: string;
-    /**
-     * - Service version
-     */
     version: string;
-    /**
-     * - Service port
-     */
     port: number;
-    /**
-     * - Authentication type
-     */
     authType: string;
-    /**
-     * - Service description
-     */
     description: string;
-};
+}): Object;
+export { healthCheck as getHealthStatus };
 //# sourceMappingURL=health.d.ts.map

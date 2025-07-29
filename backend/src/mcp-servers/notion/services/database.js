@@ -4,7 +4,7 @@
  * Updated to support OAuth authentication
  */
 
-import { pool } from '../../../db/config.js';
+const { pool  } = require('../../../db/config');
 
 /**
  * Lookup instance credentials for OAuth authentication
@@ -12,7 +12,7 @@ import { pool } from '../../../db/config.js';
  * @param {string} serviceName - Name of the MCP service (e.g., 'notion')
  * @returns {Promise<Object|null>} Instance data with credentials or null if not found
  */
-export async function lookupInstanceCredentials(instanceId, serviceName = 'notion') {
+async function lookupInstanceCredentials(instanceId, serviceName = 'notion') {
 	const query = `
     SELECT 
       ms.instance_id,
@@ -76,7 +76,7 @@ export async function lookupInstanceCredentials(instanceId, serviceName = 'notio
  * @param {{ service_active?: boolean, status?: string, oauth_status?: string, expires_at?: string, auth_type?: string, api_key?: string, client_id?: string, client_secret?: string, access_token?: string, refresh_token?: string, token_expires_at?: string }|null} instance - Instance data from database
  * @returns {{ isValid: boolean, error?: string, statusCode?: number }} Validation result with isValid boolean and error message
  */
-export function validateInstanceAccess(instance) {
+function validateInstanceAccess(instance) {
 	if (!instance) {
 		return {
 			isValid: false,
@@ -194,7 +194,7 @@ export function validateInstanceAccess(instance) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<void>}
  */
-export async function updateInstanceUsage(instanceId) {
+async function updateInstanceUsage(instanceId) {
 	const query = `
     UPDATE mcp_service_table 
     SET 
@@ -217,7 +217,7 @@ export async function updateInstanceUsage(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<void>}
  */
-export async function updateUsageTracking(instanceId) {
+async function updateUsageTracking(instanceId) {
 	return updateInstanceUsage(instanceId);
 }
 
@@ -225,7 +225,7 @@ export async function updateUsageTracking(instanceId) {
  * Get API key for Notion service instance (legacy)
  * @param {{ auth_type?: string, api_key?: string, access_token?: string }} instance - Instance data from database
  */
-export function getApiKeyForInstance(instance) {
+function getApiKeyForInstance(instance) {
 	if (instance.auth_type === 'api_key') {
 		return instance.api_key;
 	}
@@ -243,6 +243,13 @@ export function getApiKeyForInstance(instance) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<Object|null>} Instance data with credentials or null if not found
  */
-export async function getInstanceCredentials(instanceId) {
+async function getInstanceCredentials(instanceId) {
 	return lookupInstanceCredentials(instanceId, 'notion');
 }
+
+module.exports = {
+  lookupInstanceCredentials,
+  updateInstanceUsage,
+  updateUsageTracking,
+  getInstanceCredentials
+};

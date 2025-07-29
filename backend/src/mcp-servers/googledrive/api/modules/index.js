@@ -4,29 +4,45 @@
  */
 
 // File operations
-export { 
-  uploadFile, 
+const { uploadFile, 
   downloadFile, 
   getFileMetadata 
-} from './fileOperations.js';
+ } = require('./fileOperations');
+
+module.exports = { uploadFile, 
+  downloadFile, 
+  getFileMetadata 
+ };
 
 // List and search operations
-export { 
-  listFiles, 
+const { listFiles, 
   searchFiles, 
   getDriveInfo 
-} from './listOperations.js';
+ } = require('./listOperations');
+
+module.exports = { listFiles, 
+  searchFiles, 
+  getDriveInfo 
+ };
 
 // File management operations
-export { 
-  createFolder, 
+const { createFolder, 
   deleteFile, 
   copyFile, 
   moveFile 
-} from './fileManagement.js';
+ } = require('./fileManagement');
+
+module.exports = { createFolder, 
+  deleteFile, 
+  copyFile, 
+  moveFile 
+ };
 
 // Permission operations
-export { 
-  shareFile, 
+const { shareFile, 
   getFilePermissions 
-} from './permissionOperations.js';
+ } = require('./permissionOperations');
+
+module.exports = { shareFile, 
+  getFilePermissions 
+ };

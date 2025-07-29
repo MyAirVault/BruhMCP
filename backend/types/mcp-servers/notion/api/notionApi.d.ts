@@ -1,3 +1,18 @@
+import { makeNotionRequest } from "./modules/index";
+import { getPage } from "./modules/index";
+import { getPageBlocks } from "./modules/index";
+import { createPage } from "./modules/index";
+import { updatePage } from "./modules/index";
+import { getDatabase } from "./modules/index";
+import { queryDatabase } from "./modules/index";
+import { createDatabase } from "./modules/index";
+import { updateDatabase } from "./modules/index";
+import { appendBlocks } from "./modules/index";
+import { deleteBlock } from "./modules/index";
+import { getCurrentUser } from "./modules/index";
+import { listUsers } from "./modules/index";
+import { searchNotion } from "./modules/index";
+import { makeRawApiCall } from "./modules/index";
 /**
  * NotionService class that wraps all Notion API functions
  */
@@ -22,8 +37,8 @@ export class NotionService {
             property: string;
         };
         sort?: {
-            direction: "ascending" | "descending";
-            timestamp: "last_edited_time";
+            direction: 'ascending' | 'descending';
+            timestamp: 'last_edited_time';
         };
     }): Promise<Record<string, unknown>>;
     /**
@@ -50,9 +65,9 @@ export class NotionService {
      * @returns {Promise<Record<string, unknown>>} Created page
      */
     createPage(args: {
-        parent: import("../utils/notionFormatting.js").NotionParent;
-        properties: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
-        children?: import("../utils/notionFormatting.js").NotionBlock[];
+        parent: import('../utils/notionFormatting.js').NotionParent;
+        properties: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
+        children?: import('../utils/notionFormatting.js').NotionBlock[];
     }): Promise<Record<string, unknown>>;
     /**
      * Update page properties
@@ -61,7 +76,7 @@ export class NotionService {
      */
     updatePage(args: {
         pageId: string;
-        properties?: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
+        properties?: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
         archived?: boolean;
     }): Promise<Record<string, unknown>>;
     /**
@@ -79,8 +94,8 @@ export class NotionService {
      */
     queryDatabase(args: {
         databaseId: string;
-        filter?: import("../utils/notionFormatting.js").NotionFilter;
-        sorts?: import("../utils/notionFormatting.js").NotionSort[];
+        filter?: import('../utils/notionFormatting.js').NotionFilter;
+        sorts?: import('../utils/notionFormatting.js').NotionSort[];
         start_cursor?: string;
         page_size?: number;
     }): Promise<Record<string, unknown>>;
@@ -90,9 +105,9 @@ export class NotionService {
      * @returns {Promise<Record<string, unknown>>} Created database
      */
     createDatabase(args: {
-        parent: import("../utils/notionFormatting.js").NotionParent;
-        title: import("../utils/notionFormatting.js").NotionRichText[];
-        properties: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
+        parent: import('../utils/notionFormatting.js').NotionParent;
+        title: import('../utils/notionFormatting.js').NotionRichText[];
+        properties: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
     }): Promise<Record<string, unknown>>;
     /**
      * Update database properties
@@ -101,8 +116,8 @@ export class NotionService {
      */
     updateDatabase(args: {
         databaseId: string;
-        title?: import("../utils/notionFormatting.js").NotionRichText[];
-        properties?: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
+        title?: import('../utils/notionFormatting.js').NotionRichText[];
+        properties?: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
     }): Promise<Record<string, unknown>>;
     /**
      * Append blocks to a page or block
@@ -111,7 +126,7 @@ export class NotionService {
      */
     appendBlocks(args: {
         blockId: string;
-        children: import("../utils/notionFormatting.js").NotionBlock[];
+        children: import('../utils/notionFormatting.js').NotionBlock[];
     }): Promise<Record<string, unknown>>;
     /**
      * Delete a block
@@ -143,24 +158,9 @@ export class NotionService {
      */
     makeRawApiCall(args: {
         endpoint: string;
-        method?: "GET" | "POST" | "PATCH" | "DELETE";
+        method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
         body?: Record<string, unknown>;
     }): Promise<Record<string, unknown>>;
 }
-import { makeNotionRequest } from './modules/index.js';
-import { getPage } from './modules/index.js';
-import { getPageBlocks } from './modules/index.js';
-import { createPage } from './modules/index.js';
-import { updatePage } from './modules/index.js';
-import { getDatabase } from './modules/index.js';
-import { queryDatabase } from './modules/index.js';
-import { createDatabase } from './modules/index.js';
-import { updateDatabase } from './modules/index.js';
-import { appendBlocks } from './modules/index.js';
-import { deleteBlock } from './modules/index.js';
-import { getCurrentUser } from './modules/index.js';
-import { listUsers } from './modules/index.js';
-import { searchNotion } from './modules/index.js';
-import { makeRawApiCall } from './modules/index.js';
 export { makeNotionRequest, getPage, getPageBlocks, createPage, updatePage, getDatabase, queryDatabase, createDatabase, updateDatabase, appendBlocks, deleteBlock, getCurrentUser, listUsers, searchNotion, makeRawApiCall };
 //# sourceMappingURL=notionApi.d.ts.map

@@ -3,7 +3,7 @@
  * Handles caching of API responses to improve performance
  */
 
-import { getCachedResponse, setCachedResponse } from '../services/responseCache.js';
+const { getCachedResponse, setCachedResponse  } = require('../services/responseCache');
 
 /**
  * Cache configuration for different Reddit operations
@@ -80,7 +80,7 @@ const CACHE_MAPPINGS = {
  * @param {Object} options - Cache options
  * @returns {Function} Middleware function
  */
-export function createResponseCacheMiddleware(options = /** @type {{enabled?: boolean, skipCacheForErrors?: boolean, skipCacheForPrivate?: boolean}} */ ({})) {
+function createResponseCacheMiddleware(options = /** @type {{enabled?: boolean, skipCacheForErrors?: boolean, skipCacheForPrivate?: boolean}} */ ({})) {
   const { 
     enabled = true,
     skipCacheForErrors = true,
@@ -218,7 +218,7 @@ function isPrivateOperation(toolName) {
  * Invalidates cache entries when data changes
  * @returns {Function} Middleware function
  */
-export function createCacheInvalidationMiddleware() {
+function createCacheInvalidationMiddleware() {
   return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
     const operation = req.body?.method;
     const toolName = req.body?.params?.name;
@@ -278,7 +278,7 @@ export function createCacheInvalidationMiddleware() {
  * Get cache mappings configuration
  * @returns {Object} Cache mappings
  */
-export function getCacheMappings() {
+function getCacheMappings() {
   return { ...CACHE_MAPPINGS };
 }
 
@@ -286,7 +286,15 @@ export function getCacheMappings() {
  * Update cache mappings
  * @param {Object} newMappings - New cache mappings
  */
-export function updateCacheMappings(newMappings) {
+function updateCacheMappings(newMappings) {
   Object.assign(CACHE_MAPPINGS, newMappings);
   console.log('⚙️ Updated cache mappings:', CACHE_MAPPINGS);
 }
+
+module.exports = {
+  createResponseCacheMiddleware,
+  isPrivateOperation,
+  createCacheInvalidationMiddleware,
+  getCacheMappings,
+  updateCacheMappings
+};

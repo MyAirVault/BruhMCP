@@ -6,11 +6,11 @@
  * @typedef {import('express').NextFunction} NextFunction
  */
 
-import { Router } from 'express';
-import { getAPIKeys } from '../controllers/apiKeys/getAPIKeys.js';
-import { storeAPIKeyHandler } from '../controllers/apiKeys/storeAPIKey.js';
-import { deleteAPIKeyHandler } from '../controllers/apiKeys/deleteAPIKey.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
+const { Router } = require('express');
+const { getAPIKeys } = require('../controllers/apiKeys/getAPIKeys.js');
+const { storeAPIKeyHandler } = require('../controllers/apiKeys/storeAPIKey.js');
+const { deleteAPIKeyHandler } = require('../controllers/apiKeys/deleteAPIKey.js');
+const { requireAuth } = require('../middleware/authMiddleware.js');
 
 const router = Router();
 
@@ -26,4 +26,4 @@ router.post('/', storeAPIKeyHandler);
 // DELETE /api/v1/api-keys/:id - Delete API key
 router.delete('/:id', deleteAPIKeyHandler);
 
-export default router;
+module.exports = router;

@@ -3,7 +3,7 @@
 /**
  * Base validation interface that all service validators should implement
  */
-export class BaseValidator {
+class BaseValidator {
   /**
    * @param {string} serviceName - Name of the service (gmail, figma, github, etc.)
    * @param {string} authType - Type of authentication (api_key, oauth, bearer_token, etc.)
@@ -63,7 +63,7 @@ export class BaseValidator {
  * @param {Object|null} service_info - Service information if validation succeeded
  * @returns {ValidationResult} Validation result
  */
-export function createValidationResult(valid, error = null, field = null, service_info = null) {
+function createValidationResult(valid, error = null, field = null, service_info = null) {
   return {
     valid,
     error,
@@ -71,3 +71,8 @@ export function createValidationResult(valid, error = null, field = null, servic
     service_info,
   };
 }
+
+module.exports = {
+  BaseValidator,
+  createValidationResult
+};

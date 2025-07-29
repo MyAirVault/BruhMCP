@@ -1,6 +1,6 @@
-import { z } from 'zod';
+const { z } = require('zod');
 
-export const credentialValidationSchema = z.object({
+const credentialValidationSchema = z.object({
 	mcp_type_id: z.string().refine(
 		value => {
 			// Check if it's a valid UUID
@@ -18,9 +18,11 @@ export const credentialValidationSchema = z.object({
 		.refine(creds => Object.keys(creds).length > 0, { message: 'At least one credential is required' }),
 });
 
-export const storeAPIKeySchema = z.object({
+const storeAPIKeySchema = z.object({
 	mcp_type_id: z.string().uuid('MCP type ID must be a valid UUID'),
 	credentials: z
 		.record(z.string())
 		.refine(creds => Object.keys(creds).length > 0, { message: 'At least one credential is required' }),
 });
+
+module.exports = { credentialValidationSchema, storeAPIKeySchema };

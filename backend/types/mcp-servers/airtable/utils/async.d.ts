@@ -1,84 +1,3 @@
-/**
- * Sleep for specified milliseconds
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise<void>}
- */
-export function sleep(ms: number): Promise<void>;
-/**
- * @typedef {Object} RetryOptions
- * @property {number} [maxAttempts] - Maximum number of attempts
- * @property {number} [baseDelay] - Base delay in milliseconds
- * @property {number} [maxDelay] - Maximum delay in milliseconds
- * @property {number} [backoffFactor] - Backoff multiplier
- * @property {boolean} [jitter] - Add jitter to delays
- */
-/**
- * Retry function with exponential backoff
- * @template T
- * @param {() => Promise<T>} fn - Function to retry
- * @param {RetryOptions} [options] - Retry options
- * @returns {Promise<T>}
- */
-export function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T>;
-/**
- * @template T
- * @typedef {Object} ExecutionResult
- * @property {T} result - Function result
- * @property {number} duration - Execution duration in milliseconds
- */
-/**
- * Measure execution time of a function
- * @template T
- * @param {() => Promise<T>} fn - Function to measure
- * @returns {Promise<ExecutionResult<T>>}
- */
-export function measureExecutionTime<T>(fn: () => Promise<T>): Promise<ExecutionResult<T>>;
-/**
- * Execute function with timeout
- * @template T
- * @param {Promise<T>} promise - Promise to execute
- * @param {number} timeoutMs - Timeout in milliseconds
- * @param {string} [timeoutMessage] - Custom timeout message
- * @returns {Promise<T>}
- */
-export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage?: string): Promise<T>;
-/**
- * Debounce function execution
- * @param {Function} func - Function to debounce
- * @param {number} wait - Wait time in milliseconds
- * @param {boolean} [immediate] - Execute immediately on first call
- * @returns {Function} Debounced function
- */
-export function debounce(func: Function, wait: number, immediate?: boolean): Function;
-/**
- * Throttle function execution
- * @param {Function} func - Function to throttle
- * @param {number} limit - Time limit in milliseconds
- * @returns {Function} Throttled function
- */
-export function throttle(func: Function, limit: number): Function;
-/**
- * Execute functions in parallel with concurrency limit
- * @template T, R
- * @param {Array<T>} items - Items to process
- * @param {(item: T) => Promise<R>} fn - Function to execute for each item
- * @param {number} [concurrency] - Maximum concurrent executions
- * @returns {Promise<Array<R>>} Results array
- */
-export function parallelLimit<T, R>(items: Array<T>, fn: (item: T) => Promise<R>, concurrency?: number): Promise<Array<R>>;
-/**
- * @typedef {Object} CircuitBreakerOptions
- * @property {number} [failureThreshold] - Number of failures before opening circuit
- * @property {number} [resetTimeout] - Time before attempting to close circuit
- * @property {number} [monitoringPeriod] - Period for monitoring failures
- */
-/**
- * Create a circuit breaker
- * @param {Function} fn - Function to wrap
- * @param {CircuitBreakerOptions} [options] - Circuit breaker options
- * @returns {Function} Circuit breaker wrapped function
- */
-export function circuitBreaker(fn: Function, options?: CircuitBreakerOptions): Function;
 export type RetryOptions = {
     /**
      * - Maximum number of attempts
@@ -125,4 +44,85 @@ export type CircuitBreakerOptions = {
      */
     monitoringPeriod?: number | undefined;
 };
+/**
+ * Sleep for specified milliseconds
+ * @param {number} ms - Milliseconds to sleep
+ * @returns {Promise<void>}
+ */
+export function sleep(ms: number): Promise<void>;
+/**
+ * Debounce function execution
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @param {boolean} [immediate] - Execute immediately on first call
+ * @returns {Function} Debounced function
+ */
+export function debounce(func: Function, wait: number, immediate?: boolean | undefined): Function;
+/**
+ * Throttle function execution
+ * @param {Function} func - Function to throttle
+ * @param {number} limit - Time limit in milliseconds
+ * @returns {Function} Throttled function
+ */
+export function throttle(func: Function, limit: number): Function;
+/**
+ * @typedef {Object} CircuitBreakerOptions
+ * @property {number} [failureThreshold] - Number of failures before opening circuit
+ * @property {number} [resetTimeout] - Time before attempting to close circuit
+ * @property {number} [monitoringPeriod] - Period for monitoring failures
+ */
+/**
+ * Create a circuit breaker
+ * @param {Function} fn - Function to wrap
+ * @param {CircuitBreakerOptions} [options] - Circuit breaker options
+ * @returns {Function} Circuit breaker wrapped function
+ */
+export function circuitBreaker(fn: Function, options?: CircuitBreakerOptions | undefined): Function;
+/**
+ * @typedef {Object} RetryOptions
+ * @property {number} [maxAttempts] - Maximum number of attempts
+ * @property {number} [baseDelay] - Base delay in milliseconds
+ * @property {number} [maxDelay] - Maximum delay in milliseconds
+ * @property {number} [backoffFactor] - Backoff multiplier
+ * @property {boolean} [jitter] - Add jitter to delays
+ */
+/**
+ * Retry function with exponential backoff
+ * @template T
+ * @param {() => Promise<T>} fn - Function to retry
+ * @param {RetryOptions} [options] - Retry options
+ * @returns {Promise<T>}
+ */
+export function retry<T>(fn: () => Promise<T>, options?: RetryOptions | undefined): Promise<T>;
+/**
+ * @template T
+ * @typedef {Object} ExecutionResult
+ * @property {T} result - Function result
+ * @property {number} duration - Execution duration in milliseconds
+ */
+/**
+ * Measure execution time of a function
+ * @template T
+ * @param {() => Promise<T>} fn - Function to measure
+ * @returns {Promise<ExecutionResult<T>>}
+ */
+export function measureExecutionTime<T>(fn: () => Promise<T>): Promise<ExecutionResult<T>>;
+/**
+ * Execute function with timeout
+ * @template T
+ * @param {Promise<T>} promise - Promise to execute
+ * @param {number} timeoutMs - Timeout in milliseconds
+ * @param {string} [timeoutMessage] - Custom timeout message
+ * @returns {Promise<T>}
+ */
+export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage?: string | undefined): Promise<T>;
+/**
+ * Execute functions in parallel with concurrency limit
+ * @template T, R
+ * @param {Array<T>} items - Items to process
+ * @param {(item: T) => Promise<R>} fn - Function to execute for each item
+ * @param {number} [concurrency] - Maximum concurrent executions
+ * @returns {Promise<Array<R>>} Results array
+ */
+export function parallelLimit<T, R>(items: T[], fn: (item: T) => Promise<R>, concurrency?: number | undefined): Promise<R[]>;
 //# sourceMappingURL=async.d.ts.map

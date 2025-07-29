@@ -1,9 +1,9 @@
-export const emailService: EmailService;
 export type EmailResult = {
     success: boolean;
     messageId?: string | undefined;
     error?: string | undefined;
 };
+export const emailService: EmailService;
 /**
  * @typedef {Object} EmailResult
  * @property {boolean} success
@@ -29,6 +29,6 @@ declare class EmailService {
      */
     verifyConnection(): Promise<boolean>;
 }
-import nodemailer from 'nodemailer';
+import nodemailer = require("nodemailer");
 export {};
 //# sourceMappingURL=emailService.d.ts.map

@@ -3,21 +3,19 @@
  * OAuth-based API client for Google Sheets operations
  */
 
-import {
-	makeSheetsRequest,
-	createSpreadsheet as createSpreadsheetModule,
-	getSpreadsheet as getSpreadsheetModule,
-	updateCells,
-	appendValues as appendValuesModule,
-	clearCells,
-	addWorksheet,
-	batchUpdate as batchUpdateModule
-} from './modules/index.js';
+const { makeSheetsRequest } = require('./modules/index');
+const { createSpreadsheet: createSpreadsheetModule } = require('./modules/index');
+const { getSpreadsheet: getSpreadsheetModule } = require('./modules/index');
+const { updateCells } = require('./modules/index');
+const { appendValues: appendValuesModule } = require('./modules/index');
+const { clearCells } = require('./modules/index');
+const { addWorksheet } = require('./modules/index');
+const { batchUpdate: batchUpdateModule } = require('./modules/index');
 
 /**
  * Google Sheets API Client
  */
-export class SheetsApi {
+class SheetsApi {
 	/**
 	 * @param {string} bearerToken - OAuth Bearer token
 	 */
@@ -123,3 +121,7 @@ export class SheetsApi {
 		return addWorksheet({ spreadsheetId, title: sheetName, rows: 1000, cols: 26 }, this.bearerToken);
 	}
 }
+
+module.exports = {
+	SheetsApi
+};

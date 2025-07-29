@@ -34,7 +34,7 @@ export type DatabaseInstance = {
     /**
      * - Instance status
      */
-    status: "active" | "inactive" | "expired";
+    status: 'active' | 'inactive' | 'expired';
     /**
      * - Instance expiration timestamp
      */
@@ -42,7 +42,7 @@ export type DatabaseInstance = {
     /**
      * - Authentication type
      */
-    auth_type: "oauth";
+    auth_type: 'oauth';
     /**
      * - OAuth client ID
      */
@@ -177,7 +177,7 @@ export type TokenRefreshResult = {
 /**
  * Express request with authentication data
  */
-export type ExpressRequest = import("express").Request & {
+export type ExpressRequest = import('express').Request & {
     instanceId?: string;
     bearerToken?: string;
     userId?: string;
@@ -188,11 +188,11 @@ export type ExpressRequest = import("express").Request & {
 /**
  * Express response object
  */
-export type ExpressResponse = import("express").Response;
+export type ExpressResponse = import('express').Response;
 /**
  * Express next function
  */
-export type ExpressNext = import("express").NextFunction;
+export type ExpressNext = import('express').NextFunction;
 /**
  * Instance validation result
  */

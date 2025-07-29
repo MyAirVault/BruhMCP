@@ -7,8 +7,8 @@
 export function uploadFile(args: {
     localPath: string;
     fileName: string;
-    parentFolderId?: string;
-    mimeType?: string;
+    parentFolderId?: string | undefined;
+    mimeType?: string | undefined;
 }, bearerToken: string): Promise<any>;
 /**
  * Download a file from Google Drive

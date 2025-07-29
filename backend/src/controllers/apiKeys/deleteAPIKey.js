@@ -1,4 +1,4 @@
-import { deleteAPIKey } from '../../db/queries/apiKeysQueries.js';
+const { deleteAPIKey } = require('../../db/queries/apiKeysQueries.js');
 
 /**
  * Delete API key
@@ -6,7 +6,7 @@ import { deleteAPIKey } from '../../db/queries/apiKeysQueries.js';
  * @param {import('express').Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function deleteAPIKeyHandler(req, res) {
+async function deleteAPIKeyHandler(req, res) {
 	try {
 		const userId = req.user?.id || '';
 		const { id } = req.params;
@@ -45,3 +45,5 @@ export async function deleteAPIKeyHandler(req, res) {
 		return;
 	}
 }
+
+module.exports = { deleteAPIKeyHandler };

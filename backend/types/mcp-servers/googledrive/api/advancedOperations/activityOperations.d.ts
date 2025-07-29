@@ -15,7 +15,7 @@ export function getFileRevisions(fileId: string, bearerToken: string): Promise<{
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{files: Array<any>, count: number}>} Recent activity
  */
-export function getRecentActivity(bearerToken: string, options?: import("../types.js").ActivityOptions): Promise<{
+export function getRecentActivity(bearerToken: string, options?: import("../types.js").ActivityOptions | undefined): Promise<{
     files: Array<any>;
     count: number;
 }>;
@@ -26,7 +26,7 @@ export function getRecentActivity(bearerToken: string, options?: import("../type
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{fileId: string, comments: Array<any>, count: number}>} File comments
  */
-export function getFileComments(fileId: string, bearerToken: string, options?: import("../types.js").CommentOptions): Promise<{
+export function getFileComments(fileId: string, bearerToken: string, options?: import("../types.js").CommentOptions | undefined): Promise<{
     fileId: string;
     comments: Array<any>;
     count: number;
@@ -37,7 +37,7 @@ export function getFileComments(fileId: string, bearerToken: string, options?: i
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{startPageToken?: string, message?: string, changes?: Array<any>, changeCount?: number, nextPageToken?: string, newStartPageToken?: string}>} Changes and next page token
  */
-export function trackFileChanges(bearerToken: string, options?: import("../types.js").ChangeTrackingOptions): Promise<{
+export function trackFileChanges(bearerToken: string, options?: import("../types.js").ChangeTrackingOptions | undefined): Promise<{
     startPageToken?: string;
     message?: string;
     changes?: Array<any>;

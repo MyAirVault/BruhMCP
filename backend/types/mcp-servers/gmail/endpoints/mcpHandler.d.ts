@@ -1,3 +1,4 @@
+export = GmailMCPHandler;
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -5,7 +6,7 @@
  * @property {string} version
  * @property {string[]} scopes
  */
-export class GmailMCPHandler {
+declare class GmailMCPHandler {
     /**
      * @param {ServiceConfig} serviceConfig
      * @param {string} bearerToken
@@ -30,12 +31,15 @@ export class GmailMCPHandler {
      */
     handleMCPRequest(req: any, res: any, message: any): Promise<void>;
 }
-export type ServiceConfig = {
+declare namespace GmailMCPHandler {
+    export { ServiceConfig };
+}
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+type ServiceConfig = {
     name: string;
     displayName: string;
     version: string;
     scopes: string[];
 };
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 //# sourceMappingURL=mcpHandler.d.ts.map

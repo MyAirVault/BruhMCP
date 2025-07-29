@@ -3,16 +3,16 @@
  * Provides service health status and metrics
  */
 
-import { getCacheStatistics } from '../services/credentialCache.js';
-import { getAggregatedTokenMetrics } from '../utils/tokenMetrics.js';
-import { getActiveSlackInstances } from '../services/database.js';
+const { getCacheStatistics } = require('../services/credentialCache');
+const { getAggregatedTokenMetrics } = require('../utils/tokenMetrics');
+const { getActiveSlackInstances } = require('../services/database');
 
 /**
  * Basic health check function for Slack MCP service
  * @param {Object} serviceConfig - Service configuration
  * @returns {Object} Health status object
  */
-export function healthCheck(serviceConfig) {
+function healthCheck(serviceConfig) {
   const config = /** @type {Record<string, any>} */ (serviceConfig);
   return {
     status: 'healthy',
@@ -29,7 +29,7 @@ export function healthCheck(serviceConfig) {
  * Get detailed health status for Slack MCP service
  * @returns {Promise<Object>} Health status object
  */
-export async function getHealthStatus() {
+async function getHealthStatus() {
   try {
     // Get cache statistics - cast to allow property access
     const cacheStats = /** @type {Record<string, any>} */ (getCacheStatistics());
@@ -138,7 +138,7 @@ function calculateHealthScore(cacheStats, tokenMetrics, activeInstances) {
  * Get basic health status (lightweight)
  * @returns {Object} Basic health status
  */
-export function getBasicHealthStatus() {
+function getBasicHealthStatus() {
   return {
     status: 'healthy',
     service: 'slack',
@@ -146,3 +146,9 @@ export function getBasicHealthStatus() {
     timestamp: new Date().toISOString()
   };
 }
+
+module.exports = {
+  healthCheck,
+  getHealthStatus,
+  getBasicHealthStatus
+};

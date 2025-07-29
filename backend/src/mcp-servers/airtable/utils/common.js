@@ -4,41 +4,16 @@
  */
 
 // Async utilities
-export {
-	sleep,
-	retry,
-	measureExecutionTime,
-	withTimeout,
-	debounce,
-	throttle,
-	parallelLimit,
-	circuitBreaker
-} from './async.js';
+const { sleep, retry, measureExecutionTime, withTimeout, debounce, throttle, parallelLimit, circuitBreaker } = require('./async.js');
 
 // Data utilities
-export {
-	deepClone,
-	deepMerge,
-	isObject,
-	chunkArray,
-	flattenArray,
-	uniqueArray,
-	groupBy,
-	multiSort,
-	pick,
-	omit,
-	get,
-	set,
-	transformKeys,
-	camelToSnake,
-	snakeToCamel
-} from './data.js';
+const { deepClone, deepMerge, isObject, chunkArray, flattenArray, uniqueArray, groupBy, multiSort, pick, omit, get, set, transformKeys, camelToSnake, snakeToCamel } = require('./data.js');
 
 /**
  * Generate UUID v4
  * @returns {string} UUID
  */
-export function generateUUID() {
+function generateUUID() {
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		const r = Math.random() * 16 | 0;
 		const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -50,7 +25,7 @@ export function generateUUID() {
  * Check if running in development mode
  * @returns {boolean} True if development
  */
-export function isDevelopment() {
+function isDevelopment() {
 	return process.env.NODE_ENV === 'development';
 }
 
@@ -58,7 +33,7 @@ export function isDevelopment() {
  * Check if running in production mode
  * @returns {boolean} True if production
  */
-export function isProduction() {
+function isProduction() {
 	return process.env.NODE_ENV === 'production';
 }
 
@@ -68,7 +43,7 @@ export function isProduction() {
  * @param {string} defaultValue - Default value
  * @returns {string} Environment variable value or default
  */
-export function getEnv(key, defaultValue = '') {
+function getEnv(key, defaultValue = '') {
 	return process.env[key] || defaultValue;
 }
 
@@ -78,7 +53,7 @@ export function getEnv(key, defaultValue = '') {
  * @param {number} [decimals] - Number of decimal places
  * @returns {string} Formatted string
  */
-export function formatBytes(bytes, decimals = 2) {
+function formatBytes(bytes, decimals = 2) {
 	if (bytes === 0) return '0 Bytes';
 
 	const k = 1024;
@@ -95,7 +70,7 @@ export function formatBytes(bytes, decimals = 2) {
  * @param {number} ms - Duration in milliseconds
  * @returns {string} Formatted duration
  */
-export function formatDuration(ms) {
+function formatDuration(ms) {
 	if (ms < 1000) return `${ms}ms`;
 	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
 	if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
@@ -123,7 +98,7 @@ export function formatDuration(ms) {
  * @param {number} [ttl] - Time to live in milliseconds
  * @returns {SimpleCache} Cache instance
  */
-export function createCache(ttl = 300000) { // 5 minutes default
+function createCache(ttl = 300000) { // 5 minutes default
 	/** @type {Map<string, CacheEntry>} */
 	const cache = new Map();
 	
@@ -176,3 +151,36 @@ export function createCache(ttl = 300000) { // 5 minutes default
 		}
 	};
 }
+
+module.exports = {
+	sleep,
+	retry,
+	measureExecutionTime,
+	withTimeout,
+	debounce,
+	throttle,
+	parallelLimit,
+	circuitBreaker,
+	generateUUID,
+	isDevelopment,
+	isProduction,
+	getEnv,
+	formatBytes,
+	formatDuration,
+	createCache,
+	deepClone,
+	deepMerge,
+	isObject,
+	chunkArray,
+	flattenArray,
+	uniqueArray,
+	groupBy,
+	multiSort,
+	pick,
+	omit,
+	get,
+	set,
+	transformKeys,
+	camelToSnake,
+	snakeToCamel
+};

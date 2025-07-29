@@ -4,45 +4,74 @@
  */
 
 // Message and file formatting
-export {
-	formatMessageResponse,
+const { formatMessageResponse,
 	formatAttachment,
 	formatReaction,
 	formatFile,
 	formatFileUploadResult
-} from './messageFormatting.js';
+ } = require('./messageFormatting');
+
+module.exports = { formatMessageResponse,
+	formatAttachment,
+	formatReaction,
+	formatFile,
+	formatFileUploadResult
+ };
 
 // Entity formatting (channels, users, teams)
-export {
-	formatChannelResponse,
+const { formatChannelResponse,
 	formatUserResponse,
 	formatTeamResponse
-} from './entityFormatting.js';
+ } = require('./entityFormatting');
+
+module.exports = { formatChannelResponse,
+	formatUserResponse,
+	formatTeamResponse
+ };
 
 // Text processing and formatting
-export {
-	formatSlackTimestamp,
+const { formatSlackTimestamp,
 	formatSlackText,
 	sanitizeContent,
 	truncateText
-} from './textFormatting.js';
+ } = require('./textFormatting');
+
+module.exports = { formatSlackTimestamp,
+	formatSlackText,
+	sanitizeContent,
+	truncateText
+ };
 
 // Response and MCP formatting
-export {
-	formatSlackResponse,
+const { formatSlackResponse,
 	createTextResponse,
 	createFormattedResponse,
 	formatErrorResponse,
 	createRichTextResponse,
 	createTableResponse
-} from './responseFormatting.js';
+ } = require('./responseFormatting');
+
+module.exports = { formatSlackResponse,
+	createTextResponse,
+	createFormattedResponse,
+	formatErrorResponse,
+	createRichTextResponse,
+	createTableResponse
+ };
 
 // Analytics and bulk operations
-export {
-	formatSearchResults,
+const { formatSearchResults,
 	formatConversationHistory,
 	formatBulkOperationResults,
 	formatChannelAnalytics,
 	formatUserActivity,
 	formatWorkspaceStats
-} from './analyticsFormatting.js';
+ } = require('./analyticsFormatting');
+
+module.exports = { formatSearchResults,
+	formatConversationHistory,
+	formatBulkOperationResults,
+	formatChannelAnalytics,
+	formatUserActivity,
+	formatWorkspaceStats
+ };

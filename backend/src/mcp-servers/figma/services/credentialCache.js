@@ -47,7 +47,7 @@ const figmaCredentialCache = new Map();
  * Initialize the credential cache system
  * Called on service startup
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Figma credential cache system');
 	figmaCredentialCache.clear();
 	console.log('✅ Figma credential cache initialized');
@@ -58,7 +58,7 @@ export function initializeCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {CacheEntry|null} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = figmaCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -84,7 +84,7 @@ export function getCachedCredential(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @param {CredentialData} credentialData - Credential data to cache
  */
-export function setCachedCredential(instanceId, credentialData) {
+function setCachedCredential(instanceId, credentialData) {
 	const cacheEntry = {
 		credential: credentialData.api_key,
 		expires_at: credentialData.expires_at,
@@ -102,7 +102,7 @@ export function setCachedCredential(instanceId, credentialData) {
  * Remove credential from cache
  * @param {string} instanceId - UUID of the service instance
  */
-export function removeCachedCredential(instanceId) {
+function removeCachedCredential(instanceId) {
 	const removed = figmaCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed credential from cache: ${instanceId}`);
@@ -114,7 +114,7 @@ export function removeCachedCredential(instanceId) {
  * Get cache statistics for monitoring
  * @returns {CacheStatistics} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
 	const totalEntries = figmaCredentialCache.size;
 	const entries = Array.from(figmaCredentialCache.values());
 	
@@ -142,7 +142,7 @@ export function getCacheStatistics() {
  * Get all cached instance IDs (for debugging/monitoring)
  * @returns {string[]} Array of cached instance IDs
  */
-export function getCachedInstanceIds() {
+function getCachedInstanceIds() {
 	return Array.from(figmaCredentialCache.keys());
 }
 
@@ -151,7 +151,7 @@ export function getCachedInstanceIds() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if instance is cached and valid
  */
-export function isInstanceCached(instanceId) {
+function isInstanceCached(instanceId) {
 	const cached = figmaCredentialCache.get(instanceId);
 	if (!cached) return false;
 	
@@ -166,7 +166,7 @@ export function isInstanceCached(instanceId) {
 /**
  * Clear all cached credentials (for testing/restart)
  */
-export function clearCredentialCache() {
+function clearCredentialCache() {
 	const count = figmaCredentialCache.size;
 	figmaCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} entries from credential cache`);
@@ -177,7 +177,7 @@ export function clearCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {CacheEntry|null} Cache entry or null
  */
-export function peekCachedCredential(instanceId) {
+function peekCachedCredential(instanceId) {
 	return figmaCredentialCache.get(instanceId) || null;
 }
 
@@ -188,7 +188,7 @@ export function peekCachedCredential(instanceId) {
  * @param {MetadataUpdates} updates - Updates to apply to cache entry
  * @returns {boolean} True if cache entry was updated, false if not found
  */
-export function updateCachedCredentialMetadata(instanceId, updates) {
+function updateCachedCredentialMetadata(instanceId, updates) {
 	const cached = figmaCredentialCache.get(instanceId);
 	if (!cached) {
 		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
@@ -219,7 +219,7 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
  * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
  * @returns {number} Number of entries removed
  */
-export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = new Date();
 
@@ -252,3 +252,16 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 
 	return removedCount;
 }
+module.exports = {
+	initializeCredentialCache,
+	getCachedCredential,
+	setCachedCredential,
+	removeCachedCredential,
+	getCacheStatistics,
+	getCachedInstanceIds,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential,
+	updateCachedCredentialMetadata,
+	cleanupInvalidCacheEntries
+};

@@ -1,5 +1,52 @@
 /**
  * Result of log directory creation operation
+ */
+export type LogDirectoryResult = {
+    /**
+     * - Whether the operation was successful
+     */
+    success: boolean;
+    /**
+     * - Path to the created log directory (on success)
+     */
+    logDir?: string | undefined;
+    /**
+     * - Error message (on failure)
+     */
+    error?: string | undefined;
+};
+/**
+ * Result of user log directory creation operation
+ */
+export type UserLogDirectoryResult = {
+    /**
+     * - Whether the operation was successful
+     */
+    success: boolean;
+    /**
+     * - Path to the created user log directory (on success)
+     */
+    userLogDir?: string | undefined;
+    /**
+     * - Error message (on failure)
+     */
+    error?: string | undefined;
+};
+/**
+ * Result of log directory removal operation
+ */
+export type RemoveDirectoryResult = {
+    /**
+     * - Whether the operation was successful
+     */
+    success: boolean;
+    /**
+     * - Error message (on failure)
+     */
+    error?: string | undefined;
+};
+/**
+ * Result of log directory creation operation
  * @typedef {Object} LogDirectoryResult
  * @property {boolean} success - Whether the operation was successful
  * @property {string} [logDir] - Path to the created log directory (on success)
@@ -52,51 +99,4 @@ export function mcpLogDirectoryExists(userId: string, instanceId: string): boole
  * @returns {Promise<UserLogDirectoryResult>}
  */
 export function createUserLogDirectory(userId: string): Promise<UserLogDirectoryResult>;
-/**
- * Result of log directory creation operation
- */
-export type LogDirectoryResult = {
-    /**
-     * - Whether the operation was successful
-     */
-    success: boolean;
-    /**
-     * - Path to the created log directory (on success)
-     */
-    logDir?: string | undefined;
-    /**
-     * - Error message (on failure)
-     */
-    error?: string | undefined;
-};
-/**
- * Result of user log directory creation operation
- */
-export type UserLogDirectoryResult = {
-    /**
-     * - Whether the operation was successful
-     */
-    success: boolean;
-    /**
-     * - Path to the created user log directory (on success)
-     */
-    userLogDir?: string | undefined;
-    /**
-     * - Error message (on failure)
-     */
-    error?: string | undefined;
-};
-/**
- * Result of log directory removal operation
- */
-export type RemoveDirectoryResult = {
-    /**
-     * - Whether the operation was successful
-     */
-    success: boolean;
-    /**
-     * - Error message (on failure)
-     */
-    error?: string | undefined;
-};
 //# sourceMappingURL=logDirectoryManager.d.ts.map

@@ -5,18 +5,17 @@
 
 /// <reference path="./types.js" />
 
-import { 
-  getCachedCredential, 
+const { getCachedCredential, 
   setCachedCredential
-} from '../services/credentialCache.js';
-import { updateInstanceUsage } from '../services/database.js';
+ } = require('../services/credentialCache');
+const { updateInstanceUsage  } = require('../services/database');
 
 /**
  * Check for cached credentials
  * @param {string} instanceId - The instance ID to check
  * @returns {import('./types.js').CachedCredential | null} Cached credential or null
  */
-export function checkCachedCredentials(instanceId) {
+function checkCachedCredentials(instanceId) {
   return /** @type {import('./types.js').CachedCredential | null} */ (getCachedCredential(instanceId));
 }
 
@@ -25,7 +24,7 @@ export function checkCachedCredentials(instanceId) {
  * @param {import('./types.js').CachedCredential | null} cachedCredential - Cached credential object
  * @returns {boolean} True if has valid bearer token
  */
-export function hasCachedBearerToken(cachedCredential) {
+function hasCachedBearerToken(cachedCredential) {
   return !!(cachedCredential && cachedCredential.bearerToken);
 }
 
@@ -36,7 +35,7 @@ export function hasCachedBearerToken(cachedCredential) {
  * @param {string} instanceId - The instance ID
  * @returns {Promise<void>} Promise that resolves when setup is complete
  */
-export async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
+async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
   console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`, {
     tokenLength: cachedCredential.bearerToken.length,
     tokenPrefix: cachedCredential.bearerToken.substring(0, 10) + '...',
@@ -60,7 +59,7 @@ export async function setupRequestWithCachedToken(req, cachedCredential, instanc
  * @param {import('./types.js').CachedCredential | null} cachedCredential - Cached credential object
  * @returns {{refreshToken: string | undefined, accessToken: string | undefined, tokenExpiresAt: number | null}} Token information
  */
-export function getTokenInfo(instance, cachedCredential) {
+function getTokenInfo(instance, cachedCredential) {
   const refreshToken = cachedCredential?.refreshToken || instance.refresh_token;
   const accessToken = cachedCredential?.bearerToken || instance.access_token;
   const tokenExpiresAt = cachedCredential?.expiresAt || 
@@ -76,7 +75,7 @@ export function getTokenInfo(instance, cachedCredential) {
  * @param {string} serviceName - Service name (defaults to 'notion')
  * @returns {boolean} True if token is valid
  */
-export function isAccessTokenValid(accessToken, tokenExpiresAt, serviceName = 'notion') {
+function isAccessTokenValid(accessToken, tokenExpiresAt, serviceName = 'notion') {
   if (!accessToken) return false;
   
   // For Notion, tokens don't expire, so if we have an access token, use it
@@ -99,7 +98,7 @@ export function isAccessTokenValid(accessToken, tokenExpiresAt, serviceName = 'n
  * @param {import('./types.js').CachedCredential | null} cachedCredential - Existing cached credential
  * @returns {Promise<void>} Promise that resolves when setup is complete
  */
-export async function cacheAndSetupToken(instanceId, accessToken, tokenExpiresAt, userId, req, refreshToken, cachedCredential) {
+async function cacheAndSetupToken(instanceId, accessToken, tokenExpiresAt, userId, req, refreshToken, cachedCredential) {
   console.log(`✅ Using valid access token for instance: ${instanceId}`);
 
   // Cache the token if it wasn't cached before
@@ -127,7 +126,7 @@ export async function cacheAndSetupToken(instanceId, accessToken, tokenExpiresAt
  * @param {string} userId - User ID
  * @returns {void}
  */
-export function cacheNewTokens(instanceId, newTokens, userId) {
+function cacheNewTokens(instanceId, newTokens, userId) {
   const newExpiresAt = new Date(Date.now() + newTokens.expires_in * 1000);
   
   setCachedCredential(instanceId, {
@@ -146,7 +145,7 @@ export function cacheNewTokens(instanceId, newTokens, userId) {
  * @param {string} userId - User ID
  * @returns {Promise<void>} Promise that resolves when setup is complete
  */
-export async function setupRequestWithNewTokens(req, instanceId, newTokens, userId) {
+async function setupRequestWithNewTokens(req, instanceId, newTokens, userId) {
   req.bearerToken = newTokens.access_token;
   req.instanceId = instanceId;
   req.userId = userId;
@@ -162,12 +161,12 @@ export async function setupRequestWithNewTokens(req, instanceId, newTokens, user
  * @param {string} userId - User ID
  * @returns {void}
  */
-export function setupLightweightRequest(req, instanceId, userId) {
+function setupLightweightRequest(req, instanceId, userId) {
   req.instanceId = instanceId;
   req.userId = userId;
 }
 
-export default {
+module.exports = {
   checkCachedCredentials,
   hasCachedBearerToken,
   setupRequestWithCachedToken,

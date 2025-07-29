@@ -1,5 +1,5 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
+const { BaseValidator, createValidationResult  } = require('../../../services/validation/baseValidator');
 
 /**
  * Slack OAuth credentials object
@@ -241,4 +241,4 @@ function createSlackValidator(credentials) {
   }
 }
 
-export default createSlackValidator;
+module.exports = createSlackValidator;

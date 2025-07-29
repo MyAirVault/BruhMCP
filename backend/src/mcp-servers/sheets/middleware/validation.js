@@ -5,14 +5,14 @@
 
 /// <reference path="./types.js" />
 
-import { ErrorResponses } from '../../../utils/errorResponse.js';
+const { ErrorResponses  } = require('../../../utils/errorResponse');
 
 /**
  * Validate instance ID format (UUID v4)
  * @param {string} instanceId - Instance ID to validate
  * @returns {boolean} Whether instance ID is valid
  */
-export function isValidInstanceId(instanceId) {
+function isValidInstanceId(instanceId) {
 	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 	return uuidRegex.test(instanceId);
 }
@@ -23,7 +23,7 @@ export function isValidInstanceId(instanceId) {
  * @param {string} instanceId - Invalid instance ID
  * @returns {any} Error response
  */
-export function createInstanceIdValidationError(res, instanceId) {
+function createInstanceIdValidationError(res, instanceId) {
 	return ErrorResponses.badRequest(res, 'Invalid instance ID format', {
 		instanceId
 	});
@@ -37,7 +37,7 @@ export function createInstanceIdValidationError(res, instanceId) {
  * @param {boolean} [checkOAuth=false] - Whether to check OAuth configuration
  * @returns {import('./types.js').ValidationResult} Validation result
  */
-export function validateInstance(instance, res, instanceId, checkOAuth = false) {
+function validateInstance(instance, res, instanceId, checkOAuth = false) {
 	// Check if instance exists
 	if (!instance) {
 		ErrorResponses.notFound(res, 'Instance', {
@@ -110,3 +110,9 @@ export function validateInstance(instance, res, instanceId, checkOAuth = false) 
 		errorResponse: undefined 
 	};
 }
+
+module.exports = {
+	isValidInstanceId,
+	createInstanceIdValidationError,
+	validateInstance
+};

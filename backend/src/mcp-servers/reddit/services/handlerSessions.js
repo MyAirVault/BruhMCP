@@ -6,7 +6,7 @@
  * required by the MCP protocol specification.
  */
 
-import { RedditMCPHandler } from '../endpoints/mcpHandler.js';
+const { RedditMCPHandler  } = require('../endpoints/mcpHandler');
 
 // Global handler session cache for Reddit service instances
 const handlerSessions = new Map();
@@ -22,7 +22,7 @@ const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {RedditMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
+function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
 	/** @type {{handler: RedditMCPHandler, lastAccessed: number, instanceId: string, createdAt: number, bearerToken: string}|undefined} */
 	let session = handlerSessions.get(instanceId);
 	
@@ -63,7 +63,7 @@ export function getOrCreateHandler(instanceId, serviceConfig, bearerToken) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if session was removed, false if not found
  */
-export function removeHandlerSession(instanceId) {
+function removeHandlerSession(instanceId) {
 	const removed = handlerSessions.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️  Removed Reddit handler session for instance: ${instanceId}`);
@@ -75,7 +75,7 @@ export function removeHandlerSession(instanceId) {
  * Get statistics about current handler sessions
  * @returns {Object} Session statistics
  */
-export function getSessionStatistics() {
+function getSessionStatistics() {
 	const now = Date.now();
 	const sessions = Array.from(handlerSessions.values());
 	
@@ -125,7 +125,7 @@ let cleanupInterval = null;
  * Start the session cleanup service
  * Called when the server starts
  */
-export function startSessionCleanup() {
+function startSessionCleanup() {
 	if (cleanupInterval) {
 		console.warn('⚠️  Reddit session cleanup already running');
 		return;
@@ -139,7 +139,7 @@ export function startSessionCleanup() {
  * Stop the session cleanup service
  * Called during graceful shutdown
  */
-export function stopSessionCleanup() {
+function stopSessionCleanup() {
 	if (cleanupInterval) {
 		clearInterval(cleanupInterval);
 		cleanupInterval = null;
@@ -156,7 +156,7 @@ export function stopSessionCleanup() {
  * When credentials are invalidated, also remove the handler session
  * @param {string} instanceId - UUID of the service instance
  */
-export function invalidateHandlerSession(instanceId) {
+function invalidateHandlerSession(instanceId) {
 	const removed = removeHandlerSession(instanceId);
 	if (removed) {
 		console.log(`🔄 Reddit handler session invalidated due to credential change: ${instanceId}`);
@@ -169,7 +169,7 @@ export function invalidateHandlerSession(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @param {string} newBearerToken - New bearer token
  */
-export function updateSessionBearerToken(instanceId, newBearerToken) {
+function updateSessionBearerToken(instanceId, newBearerToken) {
 	const session = handlerSessions.get(instanceId);
 	if (session && session.handler) {
 		session.handler.updateBearerToken(newBearerToken);
@@ -180,3 +180,11 @@ export function updateSessionBearerToken(instanceId, newBearerToken) {
 	}
 	return false;
 }
+
+module.exports = {
+	getOrCreateHandler,
+	getSessionStatistics,
+	startSessionCleanup,
+	stopSessionCleanup,
+	updateSessionBearerToken
+};

@@ -3,7 +3,7 @@
  * Executes Dropbox API operations using OAuth Bearer tokens
  */
 
-import { 
+const { 
   listFiles,
   getFileMetadata,
   downloadFile,
@@ -16,9 +16,9 @@ import {
   getSharedLinks,
   createSharedLink,
   getSpaceUsage
-} from '../api/dropboxApi.js';
-import { validateToolArguments } from '../utils/validation.js';
-import { formatDropboxResponse, formatDropboxError } from '../utils/dropboxFormatting.js';
+} = require('../api/dropboxApi.js');
+const { validateToolArguments } = require('../utils/validation.js');
+const { formatDropboxResponse, formatDropboxError } = require('../utils/dropboxFormatting.js');
 
 /**
  * Execute a Dropbox tool call
@@ -28,7 +28,7 @@ import { formatDropboxResponse, formatDropboxError } from '../utils/dropboxForma
  * @returns {Promise<Record<string, unknown>>} Tool execution result in MCP format
  * @throws {Error} If tool execution fails or validation errors occur
  */
-export async function executeToolCall(toolName, args, bearerToken) {
+async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Dropbox tool: ${toolName}`);
   console.log(`📋 Arguments:`, JSON.stringify(args, null, 2));
 
@@ -145,3 +145,4 @@ export async function executeToolCall(toolName, args, bearerToken) {
   }
 }
 
+module.exports = { executeToolCall };

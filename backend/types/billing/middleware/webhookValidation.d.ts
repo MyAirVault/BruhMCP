@@ -1,3 +1,24 @@
+export type RequestWithRawBody = import('express').Request & {
+    rawBody?: string;
+};
+export type WebhookRateLimitStore = Map<string, number[]>;
+export type GlobalWithWebhookStore = typeof globalThis & {
+    webhookRateLimitStore?: Map<string, number[]>;
+};
+export type BillingConfigValidation = {
+    /**
+     * - Whether the configuration is valid
+     */
+    valid: boolean;
+    /**
+     * - Array of missing environment variable names
+     */
+    missingVars?: string[] | undefined;
+    /**
+     * - Validation message
+     */
+    message: string;
+};
 /**
  * Webhook Validation Middleware
  * @fileoverview Middleware for validating webhook signatures and payloads
@@ -13,7 +34,7 @@
  * @param {import('express').NextFunction} next
  * @returns {void}
  */
-export function captureRawBody(req: RequestWithRawBody, _res: import("express").Response, next: import("express").NextFunction): void;
+export function captureRawBody(req: RequestWithRawBody, _res: import('express').Response, next: import('express').NextFunction): void;
 /**
  * @typedef {Map<string, number[]>} WebhookRateLimitStore
  */
@@ -27,7 +48,7 @@ export function captureRawBody(req: RequestWithRawBody, _res: import("express").
  * @param {import('express').NextFunction} next
  * @returns {void | import('express').Response}
  */
-export function webhookRateLimit(req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): void | import("express").Response;
+export function webhookRateLimit(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction): void | import('express').Response;
 /**
  * @typedef {Object} BillingConfigValidation
  * @property {boolean} valid - Whether the configuration is valid
@@ -46,26 +67,5 @@ export function validateBillingConfig(): BillingConfigValidation;
  * @param {import('express').NextFunction} next
  * @returns {void | import('express').Response}
  */
-export function checkBillingConfig(_req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): void | import("express").Response;
-export type RequestWithRawBody = import("express").Request & {
-    rawBody?: string;
-};
-export type WebhookRateLimitStore = Map<string, number[]>;
-export type GlobalWithWebhookStore = typeof globalThis & {
-    webhookRateLimitStore?: WebhookRateLimitStore;
-};
-export type BillingConfigValidation = {
-    /**
-     * - Whether the configuration is valid
-     */
-    valid: boolean;
-    /**
-     * - Array of missing environment variable names
-     */
-    missingVars?: string[] | undefined;
-    /**
-     * - Validation message
-     */
-    message: string;
-};
+export function checkBillingConfig(_req: import('express').Request, res: import('express').Response, next: import('express').NextFunction): void | import('express').Response;
 //# sourceMappingURL=webhookValidation.d.ts.map

@@ -3,8 +3,7 @@
  * Executes Google Drive API operations using OAuth Bearer tokens
  */
 
-import { 
-  listFiles, 
+const { listFiles, 
   getFileMetadata, 
   downloadFile, 
   uploadFile, 
@@ -16,9 +15,9 @@ import {
   searchFiles,
   getFilePermissions,
   getDriveInfo
-} from '../api/googledriveApi.js';
+ } = require('../api/googledriveApi');
 
-import { validateToolArguments } from '../utils/validation.js';
+const { validateToolArguments  } = require('../utils/validation');
 
 /**
  * Execute a Google Drive tool call
@@ -27,7 +26,7 @@ import { validateToolArguments } from '../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token for Google Drive API
  * @returns {Promise<Object>} Tool execution result
  */
-export async function executeToolCall(toolName, args, bearerToken) {
+async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Google Drive tool: ${toolName}`);
   console.log(`📋 Arguments:`, JSON.stringify(args, null, 2));
 
@@ -127,7 +126,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
  * Get list of available Google Drive tools
  * @returns {Array<Object>} List of tool definitions
  */
-export function getAvailableTools() {
+function getAvailableTools() {
   return [
     {
       name: 'list_files',
@@ -235,3 +234,7 @@ export function getAvailableTools() {
     }
   ];
 }
+module.exports = {
+  executeToolCall,
+  getAvailableTools
+};

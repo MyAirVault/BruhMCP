@@ -5,8 +5,8 @@
 
 /// <reference path="../types.js" />
 
-import { formatFileResponse, formatFileListResponse } from '../../utils/googledriveFormatting.js';
-import { validateFileId, validateEmailAddress } from '../../utils/validation.js';
+const { formatFileResponse, formatFileListResponse  } = require('../../utils/googledriveFormatting');
+const { validateFileId, validateEmailAddress  } = require('../../utils/validation');
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
@@ -65,7 +65,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{drives: Array<any>, count: number, nextPageToken?: string}>} List of team drives
  */
-export async function listTeamDrives(bearerToken) {
+async function listTeamDrives(bearerToken) {
   const endpoint = '/drives?pageSize=100';
   const data = await makeDriveRequest(endpoint, bearerToken);
   
@@ -82,7 +82,7 @@ export async function listTeamDrives(bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{id: string, name: string, colorRgb?: string, capabilities?: any, createdTime?: string, hidden?: boolean, restrictions?: any}>} Team drive information
  */
-export async function getTeamDriveInfo(driveId, bearerToken) {
+async function getTeamDriveInfo(driveId, bearerToken) {
   if (!driveId) {
     throw new Error('Team Drive ID is required');
   }
@@ -114,7 +114,7 @@ export async function getTeamDriveInfo(driveId, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<any>} List of files
  */
-export async function listTeamDriveFiles(driveId, bearerToken, options = {}) {
+async function listTeamDriveFiles(driveId, bearerToken, options = {}) {
   if (!driveId) {
     throw new Error('Team Drive ID is required');
   }
@@ -149,7 +149,7 @@ export async function listTeamDriveFiles(driveId, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{success: boolean, driveId: string, permissionId: string, emailAddress: string, role: string, message: string}>} Result
  */
-export async function addTeamDriveMember(driveId, emailAddress, role, bearerToken) {
+async function addTeamDriveMember(driveId, emailAddress, role, bearerToken) {
   if (!driveId) {
     throw new Error('Team Drive ID is required');
   }
@@ -204,7 +204,7 @@ export async function addTeamDriveMember(driveId, emailAddress, role, bearerToke
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<any>} Moved file information
  */
-export async function moveToTeamDrive(fileId, teamDriveId, bearerToken) {
+async function moveToTeamDrive(fileId, teamDriveId, bearerToken) {
   if (!fileId || !teamDriveId) {
     throw new Error('File ID and Team Drive ID are required');
   }
@@ -239,3 +239,10 @@ export async function moveToTeamDrive(fileId, teamDriveId, bearerToken) {
 
   return formatFileResponse(data);
 }
+module.exports = {
+  listTeamDrives,
+  getTeamDriveInfo,
+  listTeamDriveFiles,
+  addTeamDriveMember,
+  moveToTeamDrive
+};

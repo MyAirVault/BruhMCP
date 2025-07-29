@@ -1,1 +1,1 @@
-{"version":3,"file":"health.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/slack/endpoints/health.js"],"names":[],"mappings":"AASA;;;;GAIG;AACH,2CAHW,MAAM,GACJ,MAAM,CAalB;AAED;;;GAGG;AACH,mCAFa,OAAO,CAAC,MAAM,CAAC,CA+D3B;AA4CD;;;GAGG;AACH,wCAFa,MAAM,CASlB"}
+{"version":3,"file":"health.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/slack/endpoints/health.js"],"names":[],"mappings":"AASA;;;;GAIG;AACH,2CAHW,MAAM,GACJ,MAAM,CAalB;AAED;;;GAGG;AACH,mCAFa,QAAQ,MAAM,CAAC,CA+D3B;AA4CD;;;GAGG;AACH,wCAFa,MAAM,CASlB"}

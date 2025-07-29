@@ -1,3 +1,5 @@
+export type Request = import('express').Request;
+export type Response = import('express').Response;
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /**
@@ -13,6 +15,10 @@ export function updateInstanceName(req: Request, res: Response): Promise<void>;
  * @returns {any} Validation result
  */
 export function validateInstanceCustomName(name: string): any;
-export type Request = import("express").Request;
-export type Response = import("express").Response;
+/**
+ * Validate custom name format and content
+ * @param {string} name - Name to validate
+ * @returns {any} Validation result with cleaned name
+ */
+export function validateCustomName(name: string): any;
 //# sourceMappingURL=updateInstanceName.d.ts.map

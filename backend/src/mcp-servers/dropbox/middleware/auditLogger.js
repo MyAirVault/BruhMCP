@@ -22,7 +22,7 @@
  * @param {string} clientId - OAuth client ID
  * @returns {void}
  */
-export function logOAuthInitiation(instanceId, userId, clientId) {
+function logOAuthInitiation(instanceId, userId, clientId) {
   console.log(`🔐 [AUDIT] OAuth flow initiated`, {
     instanceId,
     userId,
@@ -41,7 +41,7 @@ export function logOAuthInitiation(instanceId, userId, clientId) {
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logOAuthCallback(instanceId, userId, success, error) {
+function logOAuthCallback(instanceId, userId, success, error) {
   /** @type {AuditLogData} */
   const logData = {
     instanceId,
@@ -68,7 +68,7 @@ export function logOAuthCallback(instanceId, userId, success, error) {
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logTokenRefresh(instanceId, userId, success, method, error) {
+function logTokenRefresh(instanceId, userId, success, method, error) {
   /** @type {AuditLogData} */
   const logData = {
     instanceId,
@@ -95,7 +95,7 @@ export function logTokenRefresh(instanceId, userId, success, method, error) {
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logTokenValidation(instanceId, userId, success, error) {
+function logTokenValidation(instanceId, userId, success, error) {
   /** @type {AuditLogData} */
   const logData = {
     instanceId,
@@ -121,7 +121,7 @@ export function logTokenValidation(instanceId, userId, success, error) {
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logInstanceRevocation(instanceId, userId, success, error) {
+function logInstanceRevocation(instanceId, userId, success, error) {
   /** @type {AuditLogData} */
   const logData = {
     instanceId,
@@ -148,7 +148,7 @@ export function logInstanceRevocation(instanceId, userId, success, error) {
  * @param {Object} [metadata] - Additional metadata
  * @returns {void}
  */
-export function logSecurityEvent(event, instanceId, userId, description, metadata) {
+function logSecurityEvent(event, instanceId, userId, description, metadata) {
   const logData = {
     instanceId,
     userId,
@@ -171,7 +171,7 @@ export function logSecurityEvent(event, instanceId, userId, description, metadat
  * @param {number} statusCode - Response status code
  * @returns {void}
  */
-export function logAPIRequest(instanceId, userId, endpoint, method, statusCode) {
+function logAPIRequest(instanceId, userId, endpoint, method, statusCode) {
   console.log(`📡 [AUDIT] API request`, {
     instanceId,
     userId,
@@ -183,3 +183,13 @@ export function logAPIRequest(instanceId, userId, endpoint, method, statusCode) 
     statusCode
   });
 }
+
+module.exports = {
+  logOAuthInitiation,
+  logOAuthCallback,
+  logTokenRefresh,
+  logTokenValidation,
+  logInstanceRevocation,
+  logSecurityEvent,
+  logAPIRequest
+};

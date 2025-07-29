@@ -3,7 +3,7 @@
  * Handles file sharing and permission management
  */
 
-import { validateFileId, validateEmailAddress, validateDomainName, validatePermissionType, validatePermissionRole } from '../../utils/validation.js';
+const { validateFileId, validateEmailAddress, validateDomainName, validatePermissionType, validatePermissionRole  } = require('../../utils/validation');
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
@@ -146,7 +146,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ShareFileResult>} Sharing result
  */
-export async function shareFile(args, bearerToken) {
+async function shareFile(args, bearerToken) {
 	const { fileId, emailAddress, role = 'reader', type = 'user', sendNotificationEmail = true, emailMessage } = args;
 
 	if (!fileId) {
@@ -242,7 +242,7 @@ export async function shareFile(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<FilePermissionsResult>} File permissions
  */
-export async function getFilePermissions(args, bearerToken) {
+async function getFilePermissions(args, bearerToken) {
 	const { fileId } = args;
 
 	if (!fileId) {
@@ -265,3 +265,7 @@ export async function getFilePermissions(args, bearerToken) {
 		count: (data.permissions || []).length,
 	};
 }
+module.exports = {
+  shareFile,
+  getFilePermissions
+};

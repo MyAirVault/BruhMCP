@@ -4,23 +4,23 @@
  */
 
 // Base operations
-export {
+const {
 	listBases,
 	getBaseSchema
-} from './bases.js';
+} = require('./bases.js');
 
 // Record operations
-export {
+const {
 	listRecords,
 	getRecord,
 	createRecord,
 	updateRecord,
 	deleteRecord,
 	createMultipleRecords
-} from './records.js';
+} = require('./records.js');
 
 // Common utilities and types
-export {
+const {
 	AIRTABLE_BASE_URL,
 	handleApiError,
 	makeAuthenticatedRequest,
@@ -28,4 +28,25 @@ export {
 	validateAirtableId,
 	sanitizeInput,
 	formatApiResponse
-} from './common.js';
+} = require('./common.js');
+
+module.exports = {
+	// Base operations
+	listBases,
+	getBaseSchema,
+	// Record operations
+	listRecords,
+	getRecord,
+	createRecord,
+	updateRecord,
+	deleteRecord,
+	createMultipleRecords,
+	// Common utilities and types
+	AIRTABLE_BASE_URL,
+	handleApiError,
+	makeAuthenticatedRequest,
+	buildQueryParams,
+	validateAirtableId,
+	sanitizeInput,
+	formatApiResponse
+};

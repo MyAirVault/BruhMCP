@@ -1,140 +1,4 @@
 /**
- * OAuth validation and token management utilities for Slack
- * Handles OAuth 2.0 token exchange and refresh operations for Slack API
- */
-/**
- * OAuth credentials for token exchange
- * @typedef {Object} OAuthCredentials
- * @property {string} clientId - OAuth Client ID
- * @property {string} clientSecret - OAuth Client Secret
- * @property {Array<string>} scopes - Required OAuth scopes
- */
-/**
- * OAuth token response from Slack
- * @typedef {Object} TokenResponse
- * @property {string} access_token - Access token
- * @property {string} refresh_token - Refresh token
- * @property {number} expires_in - Token expiration in seconds
- * @property {string} token_type - Token type (usually 'Bearer')
- * @property {string} scope - Granted scopes
- * @property {string} team_id - Slack team ID
- */
-/**
- * Slack auth.test API response
- * @typedef {Object} SlackAuthTestResponse
- * @property {boolean} ok - Whether the request was successful
- * @property {string} url - Team URL
- * @property {string} team - Team name
- * @property {string} user - User name
- * @property {string} team_id - Team ID
- * @property {string} user_id - User ID
- * @property {string} [bot_id] - Bot ID (if applicable)
- * @property {boolean} [is_admin] - Whether user is admin
- * @property {string} [error] - Error message if ok is false
- */
-/**
- * Slack OAuth token response from oauth.v2.access
- * @typedef {Object} SlackOAuthTokenResponse
- * @property {boolean} ok - Whether the request was successful
- * @property {string} access_token - Access token
- * @property {string} [refresh_token] - Refresh token
- * @property {number} [expires_in] - Token expiration in seconds
- * @property {string} token_type - Token type (usually 'Bearer')
- * @property {string} scope - Granted scopes
- * @property {{id: string}} team - Team object with ID
- * @property {string} [error] - Error message if ok is false
- */
-/**
- * Slack auth.revoke API response
- * @typedef {Object} SlackRevokeResponse
- * @property {boolean} ok - Whether the request was successful
- * @property {boolean} [revoked] - Whether token was revoked
- * @property {string} [error] - Error message if ok is false
- */
-/**
- * Extended Error object with additional properties
- * @typedef {Error} ExtendedError
- * @property {string} [code] - Error code
- * @property {number} [status] - HTTP status code
- */
-/**
- * Exchange OAuth credentials for Bearer token via OAuth service
- * @param {OAuthCredentials} credentials - OAuth credentials
- * @returns {Promise<TokenResponse>} Token response with access_token and refresh_token
- */
-export function exchangeOAuthForBearer(credentials: OAuthCredentials): Promise<TokenResponse>;
-/**
- * Refresh token data for Slack
- * @typedef {Object} RefreshData
- * @property {string} refreshToken - OAuth refresh token
- * @property {string} clientId - OAuth Client ID
- * @property {string} clientSecret - OAuth Client Secret
- */
-/**
- * Refresh an expired Bearer token using refresh token
- * @param {RefreshData} refreshData - Refresh token data
- * @returns {Promise<TokenResponse>} New token response
- */
-export function refreshBearerToken(refreshData: RefreshData): Promise<TokenResponse>;
-/**
- * Token validation result for Slack
- * @typedef {Object} TokenValidationResult
- * @property {boolean} valid - Whether token is valid
- * @property {string} url - Team URL
- * @property {string} team - Team name
- * @property {string} user - User name
- * @property {string} team_id - Team ID
- * @property {string} user_id - User ID
- * @property {string} bot_id - Bot ID (if applicable)
- */
-/**
- * Validate OAuth Bearer token with Slack
- * @param {string} bearerToken - Bearer token to validate
- * @returns {Promise<TokenValidationResult>} Token validation result
- */
-export function validateBearerToken(bearerToken: string): Promise<TokenValidationResult>;
-/**
- * Token expiration data
- * @typedef {Object} TokenData
- * @property {number} expiresAt - Token expiration timestamp
- */
-/**
- * Check if Bearer token is expired or will expire soon
- * @param {TokenData} tokenData - Token data with expiration info
- * @param {number} [bufferMinutes=5] - Minutes before expiry to consider token as expired
- * @returns {boolean} True if token is expired or will expire soon
- */
-export function isTokenExpired(tokenData: TokenData, bufferMinutes?: number): boolean;
-/**
- * User information from Slack token
- * @typedef {Object} UserInfo
- * @property {string} id - User ID
- * @property {string} name - User name
- * @property {string} team_id - Team ID
- * @property {string} team - Team name
- * @property {string} url - Team URL
- * @property {boolean} is_admin - Whether user is admin
- * @property {boolean} is_bot - Whether this is a bot token
- */
-/**
- * Extract user information from Bearer token
- * @param {string} bearerToken - Bearer token
- * @returns {Promise<UserInfo>} User information
- */
-export function getUserInfoFromToken(bearerToken: string): Promise<UserInfo>;
-/**
- * Direct Slack OAuth token refresh (bypass OAuth service)
- * @param {RefreshData} refreshData - Refresh token data
- * @returns {Promise<TokenResponse>} New token response
- */
-export function refreshBearerTokenDirect(refreshData: RefreshData): Promise<TokenResponse>;
-/**
- * Revoke OAuth token with Slack
- * @param {string} token - Token to revoke (access token)
- * @returns {Promise<boolean>} True if revocation was successful
- */
-export function revokeToken(token: string): Promise<boolean>;
-/**
  * OAuth credentials for token exchange
  */
 export type OAuthCredentials = {
@@ -373,4 +237,128 @@ export type UserInfo = {
      */
     is_bot: boolean;
 };
+/**
+ * OAuth validation and token management utilities for Slack
+ * Handles OAuth 2.0 token exchange and refresh operations for Slack API
+ */
+/**
+ * OAuth credentials for token exchange
+ * @typedef {Object} OAuthCredentials
+ * @property {string} clientId - OAuth Client ID
+ * @property {string} clientSecret - OAuth Client Secret
+ * @property {Array<string>} scopes - Required OAuth scopes
+ */
+/**
+ * OAuth token response from Slack
+ * @typedef {Object} TokenResponse
+ * @property {string} access_token - Access token
+ * @property {string} refresh_token - Refresh token
+ * @property {number} expires_in - Token expiration in seconds
+ * @property {string} token_type - Token type (usually 'Bearer')
+ * @property {string} scope - Granted scopes
+ * @property {string} team_id - Slack team ID
+ */
+/**
+ * Slack auth.test API response
+ * @typedef {Object} SlackAuthTestResponse
+ * @property {boolean} ok - Whether the request was successful
+ * @property {string} url - Team URL
+ * @property {string} team - Team name
+ * @property {string} user - User name
+ * @property {string} team_id - Team ID
+ * @property {string} user_id - User ID
+ * @property {string} [bot_id] - Bot ID (if applicable)
+ * @property {boolean} [is_admin] - Whether user is admin
+ * @property {string} [error] - Error message if ok is false
+ */
+/**
+ * Slack OAuth token response from oauth.v2.access
+ * @typedef {Object} SlackOAuthTokenResponse
+ * @property {boolean} ok - Whether the request was successful
+ * @property {string} access_token - Access token
+ * @property {string} [refresh_token] - Refresh token
+ * @property {number} [expires_in] - Token expiration in seconds
+ * @property {string} token_type - Token type (usually 'Bearer')
+ * @property {string} scope - Granted scopes
+ * @property {{id: string}} team - Team object with ID
+ * @property {string} [error] - Error message if ok is false
+ */
+/**
+ * Slack auth.revoke API response
+ * @typedef {Object} SlackRevokeResponse
+ * @property {boolean} ok - Whether the request was successful
+ * @property {boolean} [revoked] - Whether token was revoked
+ * @property {string} [error] - Error message if ok is false
+ */
+/**
+ * Extended Error object with additional properties
+ * @typedef {Error} ExtendedError
+ * @property {string} [code] - Error code
+ * @property {number} [status] - HTTP status code
+ */
+/**
+ * Exchange OAuth credentials for Bearer token via OAuth service
+ * @param {OAuthCredentials} credentials - OAuth credentials
+ * @returns {Promise<TokenResponse>} Token response with access_token and refresh_token
+ */
+export function exchangeOAuthForBearer(credentials: OAuthCredentials): Promise<TokenResponse>;
+/**
+ * Refresh token data for Slack
+ * @typedef {Object} RefreshData
+ * @property {string} refreshToken - OAuth refresh token
+ * @property {string} clientId - OAuth Client ID
+ * @property {string} clientSecret - OAuth Client Secret
+ */
+/**
+ * Refresh an expired Bearer token using refresh token
+ * @param {RefreshData} refreshData - Refresh token data
+ * @returns {Promise<TokenResponse>} New token response
+ */
+export function refreshBearerToken(refreshData: RefreshData): Promise<TokenResponse>;
+/**
+ * Token validation result for Slack
+ * @typedef {Object} TokenValidationResult
+ * @property {boolean} valid - Whether token is valid
+ * @property {string} url - Team URL
+ * @property {string} team - Team name
+ * @property {string} user - User name
+ * @property {string} team_id - Team ID
+ * @property {string} user_id - User ID
+ * @property {string} bot_id - Bot ID (if applicable)
+ */
+/**
+ * Validate OAuth Bearer token with Slack
+ * @param {string} bearerToken - Bearer token to validate
+ * @returns {Promise<TokenValidationResult>} Token validation result
+ */
+export function validateBearerToken(bearerToken: string): Promise<TokenValidationResult>;
+/**
+ * User information from Slack token
+ * @typedef {Object} UserInfo
+ * @property {string} id - User ID
+ * @property {string} name - User name
+ * @property {string} team_id - Team ID
+ * @property {string} team - Team name
+ * @property {string} url - Team URL
+ * @property {boolean} is_admin - Whether user is admin
+ * @property {boolean} is_bot - Whether this is a bot token
+ */
+/**
+ * Extract user information from Bearer token
+ * @param {string} bearerToken - Bearer token
+ * @returns {Promise<UserInfo>} User information
+ */
+export function getUserInfoFromToken(bearerToken: string): Promise<UserInfo>;
+/**
+ * Direct Slack OAuth token refresh (bypass OAuth service)
+ * @param {RefreshData} refreshData - Refresh token data
+ * @returns {Promise<TokenResponse>} New token response
+ */
+export function refreshBearerTokenDirect(refreshData: RefreshData): Promise<TokenResponse>;
+/**
+ * Revoke OAuth token with Slack
+ * @param {string} token - Token to revoke (access token)
+ * @returns {Promise<boolean>} True if revocation was successful
+ */
+export function revokeToken(token: string): Promise<boolean>;
 //# sourceMappingURL=oauthValidation.d.ts.map

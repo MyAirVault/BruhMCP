@@ -1,7 +1,7 @@
 /// <reference types="../../../types/express.d.ts" />
 
-import { getAllMCPInstances } from '../../../db/queries/mcpInstances/index.js';
-import { generateAccessUrl } from '../utils.js';
+const { getAllMCPInstances } = require('../../../db/queries/mcpInstances/index.js');
+const { generateAccessUrl } = require('../utils.js');
 
 /**
  * Get MCP instances for user
@@ -9,7 +9,7 @@ import { generateAccessUrl } from '../utils.js';
  * @param {import('express').Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function getMCPInstances(req, res) {
+async function getMCPInstances(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -84,3 +84,5 @@ export async function getMCPInstances(req, res) {
 		});
 	}
 }
+
+module.exports = { getMCPInstances };

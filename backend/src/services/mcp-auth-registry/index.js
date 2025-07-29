@@ -3,13 +3,9 @@
  * Central authentication registry using Service Registry pattern
  */
 
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { ServiceRegistry } from './core/registry.js';
-import { createAuthRoutes } from './routes/authRoutes.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const { join } = require('path');
+const { ServiceRegistry } = require('./core/registry.js');
+const { createAuthRoutes } = require('./routes/authRoutes.js');
 
 /**
  * @typedef {Object} AuthRegistryConfig
@@ -280,4 +276,4 @@ class MCPAuthRegistry {
 const authRegistry = new MCPAuthRegistry();
 
 
-export { MCPAuthRegistry, authRegistry };
+module.exports = { MCPAuthRegistry, authRegistry };

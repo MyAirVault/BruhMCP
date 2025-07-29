@@ -5,39 +5,31 @@
 
 // Types are defined in ../../types/googledrive.d.ts
 
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-// Load .env from backend root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const dotenv = require('dotenv');
+const { join  } = require('path');
 const backendRoot = join(__dirname, '../../..');
 dotenv.config({ path: join(backendRoot, '.env') });
 
-import express from 'express';
-import cors from 'cors';
-import { healthCheck } from './endpoints/health.js';
-import {
-	createCredentialAuthMiddleware,
+const express = require('express');
+const cors = require('cors');
+const { healthCheck  } = require('./endpoints/health');
+const { createCredentialAuthMiddleware,
 	createLightweightAuthMiddleware,
 	createCachePerformanceMiddleware,
-} from './middleware/credentialAuth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/cache/index.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
-import {
-	getOrCreateHandler,
+ } = require('./middleware/credentialAuth');
+const { initializeCredentialCache, getCacheStatistics  } = require('./services/cache/index');
+const { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus  } = require('./services/credentialWatcher');
+const { getOrCreateHandler,
 	startSessionCleanup,
 	stopSessionCleanup,
 	getSessionStatistics,
-} from './services/handlerSessions.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
-import {
-	createMCPLoggingMiddleware,
+ } = require('./services/handlerSessions');
+const { ErrorResponses  } = require('../../utils/errorResponse');
+const { createMCPLoggingMiddleware,
 	createMCPErrorMiddleware,
 	createMCPOperationMiddleware,
 	createMCPServiceLogger,
-} from '../../middleware/mcpLoggingMiddleware.js';
+ } = require('../../middleware/mcpLoggingMiddleware');
 // Service configuration (from mcp-ports/googledrive/config.json)
 const SERVICE_CONFIG = {
 	name: 'googledrive',
@@ -110,9 +102,10 @@ app.post('/cache-tokens', async (req, res) => {
 		});
 	} catch (error) {
 		console.error('Token caching error:', error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		res.status(500).json({
 			error: 'Failed to cache tokens',
-			details: error.message,
+			details: errorMessage,
 		});
 	}
 });
@@ -137,7 +130,7 @@ app.get('/health', (_, res) => {
 // Instance-based endpoints with multi-tenant routing
 
 // OAuth well-known endpoint for OAuth 2.0 discovery
-app.get('/.well-known/oauth-authorization-server/:instanceId', (req, res) => {
+app.get('/.well-known/oauth-authorization-server/:instanceId', (_, res) => {
 	res.json({
 		issuer: `https://accounts.google.com`,
 		authorization_endpoint: 'https://accounts.google.com/o/oauth2/auth',
@@ -175,7 +168,7 @@ app.get('/:instanceId/health', lightweightAuthMiddleware, (req, res) => {
 app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
 	try {
 		// Get or create persistent handler for this instance
-		const mcpHandler = getOrCreateHandler(req.instanceId, SERVICE_CONFIG, req.bearerToken || '');
+		const mcpHandler = getOrCreateHandler(req.instanceId || '', SERVICE_CONFIG, req.bearerToken || '');
 
 		// Process the MCP message with persistent handler (using new SDK signature)
 		await mcpHandler.handleMCPRequest(req, res, req.body);
@@ -200,7 +193,7 @@ app.post('/:instanceId', credentialAuthMiddleware, async (req, res) => {
 app.post('/:instanceId/mcp', credentialAuthMiddleware, async (req, res) => {
 	try {
 		// Get or create persistent handler for this instance
-		const mcpHandler = getOrCreateHandler(req.instanceId, SERVICE_CONFIG, req.bearerToken || '');
+		const mcpHandler = getOrCreateHandler(req.instanceId || '', SERVICE_CONFIG, req.bearerToken || '');
 
 		// Process the MCP message with persistent handler (using new SDK signature)
 		await mcpHandler.handleMCPRequest(req, res, req.body);
@@ -256,7 +249,7 @@ app.use(createMCPErrorMiddleware(SERVICE_CONFIG.name));
  * @param {any} res
  * @param {any} _next
  */
-app.use((err, req, res, _next) => {
+app.use((/** @type {any} */ err, /** @type {any} */ _req, /** @type {any} */ res, /** @type {any} */ _next) => {
 	console.error(`${SERVICE_CONFIG.displayName} service error:`, err);
 	const errorMessage = err instanceof Error ? err.message : String(err);
 	ErrorResponses.internal(res, 'Internal server error', {
@@ -324,4 +317,4 @@ process.on('SIGINT', () => {
 	});
 });
 
-export default app;
+module.exports = app;

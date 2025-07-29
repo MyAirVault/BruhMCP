@@ -11,7 +11,7 @@ export function getCells(params: {
     spreadsheetId: string;
     range: string;
     valueRenderOption: string;
-}, bearerToken: string): Promise<import("../../types/index.js").GetCellsResponse>;
+}, bearerToken: string): Promise<import('../../types/index.js').GetCellsResponse>;
 /**
  * Update cell values in a range
  * @param {Object} params - Update parameters
@@ -25,9 +25,9 @@ export function getCells(params: {
 export function updateCells(params: {
     spreadsheetId: string;
     range: string;
-    values: import("../../types/index.js").CellGrid;
+    values: import('../../types/index.js').CellGrid;
     valueInputOption: string;
-}, bearerToken: string): Promise<import("../../types/index.js").UpdateCellsResponse>;
+}, bearerToken: string): Promise<import('../../types/index.js').UpdateCellsResponse>;
 /**
  * Append values to a range
  * @param {Object} params - Append parameters
@@ -41,7 +41,7 @@ export function updateCells(params: {
 export function appendValues(params: {
     spreadsheetId: string;
     range: string;
-    values: import("../../types/index.js").CellGrid;
+    values: import('../../types/index.js').CellGrid;
     valueInputOption: string;
 }, bearerToken: string): Promise<Record<string, any>>;
 /**

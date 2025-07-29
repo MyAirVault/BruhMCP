@@ -15,7 +15,7 @@
  * @param {import('express').NextFunction} next
  * @returns {void}
  */
-export function captureRawBody(req, _res, next) {
+function captureRawBody(req, _res, next) {
 	if (req.path.includes('/webhooks/')) {
 		let rawBody = '';
 		
@@ -47,7 +47,7 @@ export function captureRawBody(req, _res, next) {
  * @param {import('express').NextFunction} next
  * @returns {void | import('express').Response}
  */
-export function webhookRateLimit(req, res, next) {
+function webhookRateLimit(req, res, next) {
 	// Basic rate limiting for webhooks
 	// In production, consider using express-rate-limit or similar
 	const ip = req.ip || req.connection?.remoteAddress || 'unknown';
@@ -94,7 +94,7 @@ export function webhookRateLimit(req, res, next) {
  * Validate required environment variables for billing
  * @returns {BillingConfigValidation} Validation result
  */
-export function validateBillingConfig() {
+function validateBillingConfig() {
 	const requiredVars = [
 		'RAZORPAY_KEY_ID',
 		'RAZORPAY_KEY_SECRET',
@@ -124,7 +124,7 @@ export function validateBillingConfig() {
  * @param {import('express').NextFunction} next
  * @returns {void | import('express').Response}
  */
-export function checkBillingConfig(_req, res, next) {
+function checkBillingConfig(_req, res, next) {
 	const validation = validateBillingConfig();
 	
 	if (!validation.valid) {
@@ -141,3 +141,10 @@ export function checkBillingConfig(_req, res, next) {
 	
 	next();
 }
+
+module.exports = {
+	captureRawBody,
+	webhookRateLimit,
+	validateBillingConfig,
+	checkBillingConfig
+};

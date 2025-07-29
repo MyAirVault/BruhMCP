@@ -1,9 +1,9 @@
 // @ts-check
-import { z } from 'zod';
-import { authService } from '../services/authService.js';
-import { emailService } from '../services/emailService.js';
-import { ErrorResponses, formatZodErrors } from '../utils/errorResponse.js';
-import { getUserPlanSummary } from '../utils/planLimits.js';
+const { z } = require('zod');
+const { authService } = require('../services/authService.js');
+const { emailService } = require('../services/emailService.js');
+const { ErrorResponses, formatZodErrors } = require('../utils/errorResponse.js');
+const { getUserPlanSummary } = require('../utils/planLimits.js');
 
 /**
  * @typedef {import('../types/auth.d.ts').AuthRequestTokenResult} AuthRequestTokenResult
@@ -24,7 +24,7 @@ const authVerifySchema = z.object({
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function requestToken(req, res) {
+async function requestToken(req, res) {
 	try {
 		// Validate request body
 		const validationResult = authRequestSchema.safeParse(req.body);
@@ -96,7 +96,7 @@ export async function requestToken(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function verifyToken(req, res) {
+async function verifyToken(req, res) {
 	try {
 		// Validate request body
 		const validationResult = authVerifySchema.safeParse(req.body);
@@ -152,7 +152,7 @@ export async function verifyToken(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function getCurrentUser(req, res) {
+async function getCurrentUser(req, res) {
 	try {
 		// User is already available via authenticate middleware
 		res.status(200).json({
@@ -176,7 +176,7 @@ export async function getCurrentUser(req, res) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function getUserPlan(req, res) {
+async function getUserPlan(req, res) {
 	try {
 		const userId = req.user?.id;
 		if (!userId) {
@@ -203,7 +203,7 @@ export async function getUserPlan(req, res) {
  * @param {import('express').Request} _req
  * @param {import('express').Response} res
  */
-export async function logout(_req, res) {
+async function logout(_req, res) {
 	try {
 		// Clear the authentication cookie
 		res.clearCookie('authToken', {
@@ -223,3 +223,11 @@ export async function logout(_req, res) {
 		return;
 	}
 }
+
+module.exports = {
+	requestToken,
+	verifyToken,
+	getCurrentUser,
+	getUserPlan,
+	logout
+};

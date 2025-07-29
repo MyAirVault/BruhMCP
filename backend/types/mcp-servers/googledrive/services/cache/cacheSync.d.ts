@@ -1,9 +1,3 @@
-/**
- * Start background cache synchronization service
- * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
- * @returns {SyncController} Sync service controller
- */
-export function startBackgroundCacheSync(intervalMinutes?: number): SyncController;
 export type SyncStats = {
     /**
      * - Number of cache entries checked
@@ -98,4 +92,10 @@ export type SyncController = {
      */
     runSync: () => Promise<SyncStats>;
 };
+/**
+ * Start background cache synchronization service
+ * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
+ * @returns {SyncController} Sync service controller
+ */
+export function startBackgroundCacheSync(intervalMinutes?: number | undefined): SyncController;
 //# sourceMappingURL=cacheSync.d.ts.map

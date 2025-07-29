@@ -3,7 +3,7 @@
  * Standardized function for initiating Dropbox OAuth flow
  */
 
-import DropboxOAuthHandler from '../oauth/oauthHandler.js';
+const DropboxOAuthHandler = require('../oauth/oauthHandler.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
@@ -67,4 +67,4 @@ async function initiateOAuth(credentials, userId, instanceId) {
 	}
 }
 
-export { initiateOAuth };
+module.exports = { initiateOAuth };

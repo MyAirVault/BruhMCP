@@ -42,7 +42,7 @@ async function acquireSyncLock(instanceId) {
  * Initialize the credential cache system
  * Called on service startup
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Reddit OAuth credential cache system');
 	redditCredentialCache.clear();
 	syncLocks.clear();
@@ -54,7 +54,7 @@ export function initializeCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = redditCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -84,7 +84,7 @@ export function getCachedCredential(instanceId) {
  * @param {number} tokenData.expiresAt - Token expiration timestamp
  * @param {string} tokenData.user_id - User ID who owns this instance
  */
-export function setCachedCredential(instanceId, tokenData) {
+function setCachedCredential(instanceId, tokenData) {
 	const cacheEntry = {
 		bearerToken: tokenData.bearerToken,
 		refreshToken: tokenData.refreshToken,
@@ -104,7 +104,7 @@ export function setCachedCredential(instanceId, tokenData) {
  * Remove credential from cache
  * @param {string} instanceId - UUID of the service instance
  */
-export function removeCachedCredential(instanceId) {
+function removeCachedCredential(instanceId) {
 	const removed = redditCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed OAuth tokens from cache: ${instanceId}`);
@@ -116,7 +116,7 @@ export function removeCachedCredential(instanceId) {
  * Get cache statistics for monitoring
  * @returns {Object} Cache statistics
  */
-export function getCacheStatistics() {
+function getCacheStatistics() {
 	const totalEntries = redditCredentialCache.size;
 	const entries = Array.from(redditCredentialCache.values());
 	
@@ -152,7 +152,7 @@ export function getCacheStatistics() {
  * Get all cached instance IDs (for debugging/monitoring)
  * @returns {string[]} Array of cached instance IDs
  */
-export function getCachedInstanceIds() {
+function getCachedInstanceIds() {
 	return Array.from(redditCredentialCache.keys());
 }
 
@@ -161,7 +161,7 @@ export function getCachedInstanceIds() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if instance is cached and token is valid
  */
-export function isInstanceCached(instanceId) {
+function isInstanceCached(instanceId) {
 	const cached = redditCredentialCache.get(instanceId);
 	if (!cached) return false;
 	
@@ -176,7 +176,7 @@ export function isInstanceCached(instanceId) {
 /**
  * Clear all cached credentials (for testing/restart)
  */
-export function clearCredentialCache() {
+function clearCredentialCache() {
 	const count = redditCredentialCache.size;
 	redditCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} entries from OAuth credential cache`);
@@ -187,7 +187,7 @@ export function clearCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cache entry or null
  */
-export function peekCachedCredential(instanceId) {
+function peekCachedCredential(instanceId) {
 	return redditCredentialCache.get(instanceId) || null;
 }
 
@@ -202,7 +202,7 @@ export function peekCachedCredential(instanceId) {
  * @param {string} [updates.refreshToken] - New refresh token
  * @returns {boolean} True if cache entry was updated, false if not found
  */
-export function updateCachedCredentialMetadata(instanceId, updates) {
+function updateCachedCredentialMetadata(instanceId, updates) {
 	const cached = redditCredentialCache.get(instanceId);
 	if (!cached) {
 		console.log(`ℹ️ No cache entry to update for instance: ${instanceId}`);
@@ -244,7 +244,7 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
  * @param {string} reason - Reason for cleanup (expired, inactive, deleted)
  * @returns {number} Number of entries removed
  */
-export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	let removedCount = 0;
 	const now = Date.now();
 
@@ -283,7 +283,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
  * @param {string} instanceId - UUID of the service instance
  * @returns {number} Current refresh attempt count
  */
-export function incrementRefreshAttempts(instanceId) {
+function incrementRefreshAttempts(instanceId) {
 	const cached = redditCredentialCache.get(instanceId);
 	if (!cached) {
 		return 0;
@@ -302,7 +302,7 @@ export function incrementRefreshAttempts(instanceId) {
  * Reset refresh attempt count (after successful refresh)
  * @param {string} instanceId - UUID of the service instance
  */
-export function resetRefreshAttempts(instanceId) {
+function resetRefreshAttempts(instanceId) {
 	const cached = redditCredentialCache.get(instanceId);
 	if (!cached) {
 		return;
@@ -325,7 +325,7 @@ export function resetRefreshAttempts(instanceId) {
  * @param {boolean} [options.updateDatabase] - Update database if cache is newer
  * @returns {Promise<boolean>} True if sync was successful
  */
-export async function syncCacheWithDatabase(instanceId, options = {}) {
+async function syncCacheWithDatabase(instanceId, options = {}) {
 	const { forceRefresh = false, updateDatabase = false } = options;
 	
 	// Acquire synchronization lock to prevent race conditions
@@ -433,7 +433,7 @@ export async function syncCacheWithDatabase(instanceId, options = {}) {
  * @param {boolean} [options.removeOrphaned] - Remove orphaned cache entries
  * @returns {Promise<Object>} Sync results
  */
-export async function backgroundCacheSync(options = {}) {
+async function backgroundCacheSync(options = {}) {
 	const { maxInstances = 50, removeOrphaned = true } = options;
 	
 	const results = {
@@ -493,7 +493,7 @@ export async function backgroundCacheSync(options = {}) {
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
  * @returns {Object} Sync service controller
  */
-export function startBackgroundCacheSync(intervalMinutes = 5) {
+function startBackgroundCacheSync(intervalMinutes = 5) {
 	const intervalMs = intervalMinutes * 60 * 1000;
 	
 	console.log(`🚀 Starting background cache sync service (interval: ${intervalMinutes} minutes)`);
@@ -515,3 +515,17 @@ export function startBackgroundCacheSync(intervalMinutes = 5) {
 		runSync: () => backgroundCacheSync()
 	};
 }
+module.exports = {
+  initializeCredentialCache,
+  getCachedCredential,
+  setCachedCredential,
+  peekCachedCredential,
+  updateCachedCredentialMetadata,
+  incrementRefreshAttempts,
+  resetRefreshAttempts,
+  getCachedInstanceIds,
+  cleanupInvalidCacheEntries,
+  getCacheStatistics,
+  syncCacheWithDatabase,
+  backgroundCacheSync
+};

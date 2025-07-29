@@ -1,3 +1,17 @@
+export type ValidationResult = {
+    /**
+     * - Whether the instance is valid
+     */
+    isValid: boolean;
+    /**
+     * - Error message if invalid
+     */
+    error?: string | undefined;
+    /**
+     * - HTTP status code if invalid
+     */
+    statusCode?: number | undefined;
+};
 /**
  * @typedef {Object} ValidationResult
  * @property {boolean} isValid - Whether the instance is valid
@@ -45,18 +59,4 @@ export function getFigmaInstanceCredentials(instanceId: string): Promise<Object 
  * @returns {Promise<void>}
  */
 export function updateFigmaUsageTracking(instanceId: string, userId: string): Promise<void>;
-export type ValidationResult = {
-    /**
-     * - Whether the instance is valid
-     */
-    isValid: boolean;
-    /**
-     * - Error message if invalid
-     */
-    error?: string | undefined;
-    /**
-     * - HTTP status code if invalid
-     */
-    statusCode?: number | undefined;
-};
 //# sourceMappingURL=instanceUtils.d.ts.map

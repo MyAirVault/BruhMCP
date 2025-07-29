@@ -4,7 +4,7 @@
 
 /// <reference path="./types.js" />
 
-import { createTokenAuditLog } from '../../../db/queries/mcpInstances/audit.js';
+const { createTokenAuditLog  } = require('../../../db/queries/mcpInstances/audit');
 
 /**
  * Logs successful token refresh
@@ -12,7 +12,7 @@ import { createTokenAuditLog } from '../../../db/queries/mcpInstances/audit.js';
  * @param {string} userId - User ID
  * @returns {Promise<void>}
  */
-export async function logSuccessfulTokenRefresh(instanceId, userId) {
+async function logSuccessfulTokenRefresh(instanceId, userId) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -38,7 +38,7 @@ export async function logSuccessfulTokenRefresh(instanceId, userId) {
  * @param {string} error - Error message
  * @returns {Promise<void>}
  */
-export async function logFailedTokenRefresh(instanceId, userId, error) {
+async function logFailedTokenRefresh(instanceId, userId, error) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -63,7 +63,7 @@ export async function logFailedTokenRefresh(instanceId, userId, error) {
  * @param {string} userId - User ID
  * @returns {Promise<void>}
  */
-export async function logReauthenticationRequired(instanceId, userId) {
+async function logReauthenticationRequired(instanceId, userId) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -87,7 +87,7 @@ export async function logReauthenticationRequired(instanceId, userId) {
  * @param {string} userId - User ID
  * @returns {Promise<void>}
  */
-export async function logOAuthInitiation(instanceId, userId) {
+async function logOAuthInitiation(instanceId, userId) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -112,7 +112,7 @@ export async function logOAuthInitiation(instanceId, userId) {
  * @param {boolean} success - Whether callback was successful
  * @returns {Promise<void>}
  */
-export async function logOAuthCallback(instanceId, userId, success) {
+async function logOAuthCallback(instanceId, userId, success) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -136,7 +136,7 @@ export async function logOAuthCallback(instanceId, userId, success) {
  * @param {string} userId - User ID
  * @returns {Promise<void>}
  */
-export async function logInstanceRevocation(instanceId, userId) {
+async function logInstanceRevocation(instanceId, userId) {
   try {
     await createTokenAuditLog({
       instanceId,
@@ -160,7 +160,7 @@ export async function logInstanceRevocation(instanceId, userId) {
  * @param {string} errorMessage - Error message
  * @returns {void}
  */
-export function recordUsageTrackingFailure(instanceId, errorMessage) {
+function recordUsageTrackingFailure(instanceId, errorMessage) {
   console.error(`📊 Usage tracking failure for ${instanceId}: ${errorMessage}`);
   // In production, this would send metrics to a monitoring system
 }
@@ -172,7 +172,15 @@ export function recordUsageTrackingFailure(instanceId, errorMessage) {
  * @param {string} errorMessage - Error message
  * @returns {void}
  */
-export function recordAuditLogFailure(instanceId, operation, errorMessage) {
+function recordAuditLogFailure(instanceId, operation, errorMessage) {
   console.error(`📋 Audit log failure for ${instanceId} (${operation}): ${errorMessage}`);
   // In production, this would send metrics to a monitoring system
 }
+module.exports = {
+  logSuccessfulTokenRefresh,
+  logFailedTokenRefresh,
+  logReauthenticationRequired,
+  logOAuthInitiation,
+  logOAuthCallback,
+  logInstanceRevocation
+};

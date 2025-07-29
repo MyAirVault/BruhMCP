@@ -1,3 +1,60 @@
+export type Point = {
+    x: number;
+    y: number;
+};
+export type BoundingBox = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+export type FigmaNode = {
+    layoutMode?: string | undefined;
+    primaryAxisAlignItems?: string | undefined;
+    counterAxisAlignItems?: string | undefined;
+    layoutAlign?: string | undefined;
+    layoutWrap?: string | undefined;
+    itemSpacing?: number | undefined;
+    paddingTop?: number | undefined;
+    paddingBottom?: number | undefined;
+    paddingLeft?: number | undefined;
+    paddingRight?: number | undefined;
+    overflowDirection?: string[] | undefined;
+    layoutPositioning?: string | undefined;
+    layoutSizingHorizontal?: string | undefined;
+    layoutSizingVertical?: string | undefined;
+    layoutGrow?: boolean | undefined;
+    absoluteBoundingBox?: BoundingBox | undefined;
+    preserveRatio?: boolean | undefined;
+    clipsContent?: boolean | undefined;
+    children?: FigmaNode[] | undefined;
+};
+export type SimplifiedLayout = {
+    mode: "none" | "row" | "column";
+    justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch" | undefined;
+    alignItems?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch" | undefined;
+    alignSelf?: "flex-start" | "flex-end" | "center" | "stretch" | undefined;
+    wrap?: boolean | undefined;
+    gap?: string | undefined;
+    locationRelativeToParent?: Point | undefined;
+    dimensions?: {
+        width?: number | undefined;
+        height?: number | undefined;
+        aspectRatio?: number | undefined;
+    } | undefined;
+    padding?: string | undefined;
+    sizing?: {
+        horizontal?: "fill" | "fixed" | "hug" | undefined;
+        vertical?: "fill" | "fixed" | "hug" | undefined;
+    } | undefined;
+    overflowScroll?: ("y" | "x")[] | undefined;
+    position?: "absolute" | undefined;
+};
+export type StretchInfo = {
+    children: FigmaNode[];
+    mode: "none" | "row" | "column";
+    axis: "primary" | "counter";
+};
 /**
  * @typedef {Object} Point
  * @property {number} x
@@ -54,61 +111,4 @@
  * @returns {SimplifiedLayout}
  */
 export function buildSimplifiedLayout(n: FigmaNode, parent?: FigmaNode | undefined): SimplifiedLayout;
-export type Point = {
-    x: number;
-    y: number;
-};
-export type BoundingBox = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
-export type FigmaNode = {
-    layoutMode?: string | undefined;
-    primaryAxisAlignItems?: string | undefined;
-    counterAxisAlignItems?: string | undefined;
-    layoutAlign?: string | undefined;
-    layoutWrap?: string | undefined;
-    itemSpacing?: number | undefined;
-    paddingTop?: number | undefined;
-    paddingBottom?: number | undefined;
-    paddingLeft?: number | undefined;
-    paddingRight?: number | undefined;
-    overflowDirection?: string[] | undefined;
-    layoutPositioning?: string | undefined;
-    layoutSizingHorizontal?: string | undefined;
-    layoutSizingVertical?: string | undefined;
-    layoutGrow?: boolean | undefined;
-    absoluteBoundingBox?: BoundingBox | undefined;
-    preserveRatio?: boolean | undefined;
-    clipsContent?: boolean | undefined;
-    children?: FigmaNode[] | undefined;
-};
-export type SimplifiedLayout = {
-    mode: "none" | "row" | "column";
-    justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch" | undefined;
-    alignItems?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch" | undefined;
-    alignSelf?: "flex-start" | "flex-end" | "center" | "stretch" | undefined;
-    wrap?: boolean | undefined;
-    gap?: string | undefined;
-    locationRelativeToParent?: Point | undefined;
-    dimensions?: {
-        width?: number;
-        height?: number;
-        aspectRatio?: number;
-    } | undefined;
-    padding?: string | undefined;
-    sizing?: {
-        horizontal?: "fixed" | "fill" | "hug";
-        vertical?: "fixed" | "fill" | "hug";
-    } | undefined;
-    overflowScroll?: ("y" | "x")[] | undefined;
-    position?: "absolute" | undefined;
-};
-export type StretchInfo = {
-    children: FigmaNode[];
-    mode: "none" | "row" | "column";
-    axis: "primary" | "counter";
-};
 //# sourceMappingURL=layout.d.ts.map

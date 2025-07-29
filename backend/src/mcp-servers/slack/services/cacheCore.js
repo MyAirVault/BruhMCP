@@ -26,7 +26,7 @@ const slackCredentialCache = new Map();
  * Initialize the credential cache system
  * Called on service startup
  */
-export function initializeCredentialCache() {
+function initializeCredentialCache() {
 	console.log('🚀 Initializing Slack OAuth credential cache system');
 	slackCredentialCache.clear();
 	console.log('✅ Slack OAuth credential cache initialized');
@@ -37,23 +37,23 @@ export function initializeCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
-export function getCachedCredential(instanceId) {
+function getCachedCredential(instanceId) {
 	const cached = slackCredentialCache.get(instanceId);
-	
+
 	if (!cached) {
 		return null;
 	}
-	
+
 	// Check if Bearer token has expired
 	if (cached.expiresAt && cached.expiresAt < Date.now()) {
 		console.log(`🗑️ Removing expired Slack Bearer token from cache: ${instanceId}`);
 		slackCredentialCache.delete(instanceId);
 		return null;
 	}
-	
+
 	// Update last used timestamp
 	cached.last_used = new Date().toISOString();
-	
+
 	console.log(`✅ Slack cache hit for instance: ${instanceId}`);
 	return cached;
 }
@@ -68,7 +68,7 @@ export function getCachedCredential(instanceId) {
  * @param {string} tokenData.user_id - User ID who owns this instance
  * @param {string} tokenData.team_id - Slack team ID
  */
-export function setCachedCredential(instanceId, tokenData) {
+function setCachedCredential(instanceId, tokenData) {
 	const cacheEntry = {
 		bearerToken: tokenData.bearerToken,
 		refreshToken: tokenData.refreshToken,
@@ -77,9 +77,9 @@ export function setCachedCredential(instanceId, tokenData) {
 		team_id: tokenData.team_id,
 		last_used: new Date().toISOString(),
 		refresh_attempts: 0,
-		cached_at: new Date().toISOString()
+		cached_at: new Date().toISOString(),
 	};
-	
+
 	slackCredentialCache.set(instanceId, cacheEntry);
 	const expiresInMinutes = Math.floor((tokenData.expiresAt - Date.now()) / 60000);
 	console.log(`💾 Cached Slack OAuth tokens for instance: ${instanceId} (expires in ${expiresInMinutes} minutes)`);
@@ -89,7 +89,7 @@ export function setCachedCredential(instanceId, tokenData) {
  * Remove credential from cache
  * @param {string} instanceId - UUID of the service instance
  */
-export function removeCachedCredential(instanceId) {
+function removeCachedCredential(instanceId) {
 	const removed = slackCredentialCache.delete(instanceId);
 	if (removed) {
 		console.log(`🗑️ Removed Slack credential from cache: ${instanceId}`);
@@ -101,26 +101,26 @@ export function removeCachedCredential(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if instance is cached and not expired
  */
-export function isInstanceCached(instanceId) {
+function isInstanceCached(instanceId) {
 	const cached = slackCredentialCache.get(instanceId);
-	
+
 	if (!cached) {
 		return false;
 	}
-	
+
 	// Check if Bearer token has expired
 	if (cached.expiresAt && cached.expiresAt < Date.now()) {
 		slackCredentialCache.delete(instanceId);
 		return false;
 	}
-	
+
 	return true;
 }
 
 /**
  * Clear all cached credentials
  */
-export function clearCredentialCache() {
+function clearCredentialCache() {
 	const count = slackCredentialCache.size;
 	slackCredentialCache.clear();
 	console.log(`🧹 Cleared ${count} Slack credential cache entries`);
@@ -131,18 +131,18 @@ export function clearCredentialCache() {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Object|null} Cached credential data or null if not found/expired
  */
-export function peekCachedCredential(instanceId) {
+function peekCachedCredential(instanceId) {
 	const cached = slackCredentialCache.get(instanceId);
-	
+
 	if (!cached) {
 		return null;
 	}
-	
+
 	// Check if Bearer token has expired
 	if (cached.expiresAt && cached.expiresAt < Date.now()) {
 		return null;
 	}
-	
+
 	return cached;
 }
 
@@ -150,6 +150,17 @@ export function peekCachedCredential(instanceId) {
  * Get access to the internal cache Map (for advanced operations)
  * @returns {Map<string, CacheEntry>} The internal cache Map
  */
-export function getCacheMap() {
+function getCacheMap() {
 	return slackCredentialCache;
 }
+
+module.exports = {
+	initializeCredentialCache,
+	setCachedCredential,
+	getCachedCredential,
+	removeCachedCredential,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential,
+	getCacheMap,
+};

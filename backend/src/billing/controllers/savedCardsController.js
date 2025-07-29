@@ -3,8 +3,8 @@
  * @fileoverview Manages retrieval of customer's saved cards from Razorpay
  */
 
-import { getUserPlan } from '../../db/queries/userPlansQueries.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
+const { getUserPlan } = require('../../db/queries/userPlansQueries.js');
+const { ErrorResponses } = require('../../utils/errorResponse.js');
 
 /**
  * Get saved cards for the authenticated user from Razorpay
@@ -12,7 +12,7 @@ import { ErrorResponses } from '../../utils/errorResponse.js';
  * @param {import('express').Response} res
  * @returns {Promise<void>}
  */
-export async function getSavedCards(req, res) {
+async function getSavedCards(req, res) {
 	try {
 		// Check authentication
 		if (!req.user) {
@@ -45,7 +45,7 @@ export async function getSavedCards(req, res) {
 		try {
 			// Import razorpay dynamically
 			/** @type {any} */
-			const { razorpay } = await import('../services/paymentGateway.js');
+			const { razorpay } = require('../services/paymentGateway.js');
 			
 			// Razorpay API to fetch customer's saved tokens
 			/** @type {any} */
@@ -101,3 +101,5 @@ export async function getSavedCards(req, res) {
 		return;
 	}
 }
+
+module.exports = { getSavedCards };

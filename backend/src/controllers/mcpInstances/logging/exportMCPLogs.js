@@ -1,10 +1,7 @@
 // @ts-check
-import { z } from 'zod';
-import { readFile, stat } from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const { z } = require('zod');
+const { readFile, stat } = require('fs/promises');
+const path = require('path');
 
 // Zod validation schema for log export request
 const logExportSchema = z.object({
@@ -19,7 +16,7 @@ const logExportSchema = z.object({
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function exportMCPLogs(req, res) {
+async function exportMCPLogs(req, res) {
 	try {
 		const { id } = req.params;
 
@@ -181,3 +178,5 @@ export async function exportMCPLogs(req, res) {
 		return;
 	}
 }
+
+module.exports = { exportMCPLogs };

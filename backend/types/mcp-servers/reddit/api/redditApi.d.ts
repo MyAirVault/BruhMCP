@@ -1,150 +1,3 @@
-/**
- * Make authenticated Reddit API request
- * @param {string} endpoint - API endpoint path
- * @param {string} bearerToken - OAuth bearer token
- * @param {RequestOptions} [options] - Request options
- * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse|[RedditListingResponse, RedditListingResponse]>} API response
- */
-export function makeRedditRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<RedditApiResponse | RedditListingResponse | RedditSubmissionResponse | RedditCommentResponse | RedditMessageResponse | [RedditListingResponse, RedditListingResponse]>;
-/**
- * Get current user information
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<RedditUser>} User information
- */
-export function getCurrentUser(bearerToken: string): Promise<RedditUser>;
-/**
- * Get subreddit information
- * @param {GetSubredditInfoArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted subreddit info
- */
-export function getSubredditInfo(args: GetSubredditInfoArgs, bearerToken: string): Promise<string>;
-/**
- * Get posts from a subreddit
- * @param {GetSubredditPostsArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted posts data
- */
-export function getSubredditPosts(args: GetSubredditPostsArgs, bearerToken: string): Promise<string>;
-/**
- * Get post by ID
- * @param {GetPostByIdArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted post data
- */
-export function getPostById(args: GetPostByIdArgs, bearerToken: string): Promise<string>;
-/**
- * Get post comments
- * @param {GetPostCommentsArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted comments data
- */
-export function getPostComments(args: GetPostCommentsArgs, bearerToken: string): Promise<string>;
-/**
- * Submit a new post
- * @param {SubmitPostArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted submission response
- */
-export function submitPost(args: SubmitPostArgs, bearerToken: string): Promise<string>;
-/**
- * Submit a comment
- * @param {SubmitCommentArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted comment response
- */
-export function submitComment(args: SubmitCommentArgs, bearerToken: string): Promise<string>;
-/**
- * Vote on a post
- * @param {VoteArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted vote response
- */
-export function voteOnPost(args: VoteArgs, bearerToken: string): Promise<string>;
-/**
- * Vote on a comment
- * @param {VoteArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted vote response
- */
-export function voteOnComment(args: VoteArgs, bearerToken: string): Promise<string>;
-/**
- * Get user information
- * @param {GetUserInfoArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted user info
- */
-export function getUserInfo(args: GetUserInfoArgs, bearerToken: string): Promise<string>;
-/**
- * Get user's posts
- * @param {GetUserPostsArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted user posts
- */
-export function getUserPosts(args: GetUserPostsArgs, bearerToken: string): Promise<string>;
-/**
- * Get user's comments
- * @param {GetUserCommentsArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted user comments
- */
-export function getUserComments(args: GetUserCommentsArgs, bearerToken: string): Promise<string>;
-/**
- * Search posts
- * @param {SearchPostsArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted search results
- */
-export function searchPosts(args: SearchPostsArgs, bearerToken: string): Promise<string>;
-/**
- * Search subreddits
- * @param {SearchSubredditsArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted search results
- */
-export function searchSubreddits(args: SearchSubredditsArgs, bearerToken: string): Promise<string>;
-/**
- * Get user's inbox messages
- * @param {GetInboxMessagesArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted inbox messages
- */
-export function getInboxMessages(args: GetInboxMessagesArgs, bearerToken: string): Promise<string>;
-/**
- * Send a private message
- * @param {SendMessageArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted message response
- */
-export function sendMessage(args: SendMessageArgs, bearerToken: string): Promise<string>;
-/**
- * Mark messages as read
- * @param {MarkAsReadArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted response
- */
-export function markAsRead(args: MarkAsReadArgs, bearerToken: string): Promise<string>;
-/**
- * Get user's subscribed subreddits
- * @param {GetSubscriptionsArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted subscriptions
- */
-export function getSubscriptions(args: GetSubscriptionsArgs, bearerToken: string): Promise<string>;
-/**
- * Subscribe to a subreddit
- * @param {SubscribeArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted subscription response
- */
-export function subscribeToSubreddit(args: SubscribeArgs, bearerToken: string): Promise<string>;
-/**
- * Unsubscribe from a subreddit
- * @param {SubscribeArgs} args - Arguments object
- * @param {string} bearerToken - OAuth bearer token
- * @returns {Promise<string>} Formatted unsubscription response
- */
-export function unsubscribeFromSubreddit(args: SubscribeArgs, bearerToken: string): Promise<string>;
 export type RequestOptions = {
     /**
      * - HTTP method
@@ -633,4 +486,151 @@ export type RedditMessage = {
      */
     parent_id?: string | undefined;
 };
+/**
+ * Make authenticated Reddit API request
+ * @param {string} endpoint - API endpoint path
+ * @param {string} bearerToken - OAuth bearer token
+ * @param {RequestOptions} [options] - Request options
+ * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse|[RedditListingResponse, RedditListingResponse]>} API response
+ */
+export function makeRedditRequest(endpoint: string, bearerToken: string, options?: RequestOptions | undefined): Promise<RedditApiResponse | RedditListingResponse | RedditSubmissionResponse | RedditCommentResponse | RedditMessageResponse | [RedditListingResponse, RedditListingResponse]>;
+/**
+ * Get current user information
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<RedditUser>} User information
+ */
+export function getCurrentUser(bearerToken: string): Promise<RedditUser>;
+/**
+ * Get subreddit information
+ * @param {GetSubredditInfoArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted subreddit info
+ */
+export function getSubredditInfo(args: GetSubredditInfoArgs, bearerToken: string): Promise<string>;
+/**
+ * Get posts from a subreddit
+ * @param {GetSubredditPostsArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted posts data
+ */
+export function getSubredditPosts(args: GetSubredditPostsArgs, bearerToken: string): Promise<string>;
+/**
+ * Get post by ID
+ * @param {GetPostByIdArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted post data
+ */
+export function getPostById(args: GetPostByIdArgs, bearerToken: string): Promise<string>;
+/**
+ * Get post comments
+ * @param {GetPostCommentsArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted comments data
+ */
+export function getPostComments(args: GetPostCommentsArgs, bearerToken: string): Promise<string>;
+/**
+ * Submit a new post
+ * @param {SubmitPostArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted submission response
+ */
+export function submitPost(args: SubmitPostArgs, bearerToken: string): Promise<string>;
+/**
+ * Submit a comment
+ * @param {SubmitCommentArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted comment response
+ */
+export function submitComment(args: SubmitCommentArgs, bearerToken: string): Promise<string>;
+/**
+ * Vote on a post
+ * @param {VoteArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted vote response
+ */
+export function voteOnPost(args: VoteArgs, bearerToken: string): Promise<string>;
+/**
+ * Vote on a comment
+ * @param {VoteArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted vote response
+ */
+export function voteOnComment(args: VoteArgs, bearerToken: string): Promise<string>;
+/**
+ * Get user information
+ * @param {GetUserInfoArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted user info
+ */
+export function getUserInfo(args: GetUserInfoArgs, bearerToken: string): Promise<string>;
+/**
+ * Get user's posts
+ * @param {GetUserPostsArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted user posts
+ */
+export function getUserPosts(args: GetUserPostsArgs, bearerToken: string): Promise<string>;
+/**
+ * Get user's comments
+ * @param {GetUserCommentsArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted user comments
+ */
+export function getUserComments(args: GetUserCommentsArgs, bearerToken: string): Promise<string>;
+/**
+ * Search posts
+ * @param {SearchPostsArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted search results
+ */
+export function searchPosts(args: SearchPostsArgs, bearerToken: string): Promise<string>;
+/**
+ * Search subreddits
+ * @param {SearchSubredditsArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted search results
+ */
+export function searchSubreddits(args: SearchSubredditsArgs, bearerToken: string): Promise<string>;
+/**
+ * Get user's inbox messages
+ * @param {GetInboxMessagesArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted inbox messages
+ */
+export function getInboxMessages(args: GetInboxMessagesArgs, bearerToken: string): Promise<string>;
+/**
+ * Send a private message
+ * @param {SendMessageArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted message response
+ */
+export function sendMessage(args: SendMessageArgs, bearerToken: string): Promise<string>;
+/**
+ * Mark messages as read
+ * @param {MarkAsReadArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted response
+ */
+export function markAsRead(args: MarkAsReadArgs, bearerToken: string): Promise<string>;
+/**
+ * Get user's subscribed subreddits
+ * @param {GetSubscriptionsArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted subscriptions
+ */
+export function getSubscriptions(args: GetSubscriptionsArgs, bearerToken: string): Promise<string>;
+/**
+ * Subscribe to a subreddit
+ * @param {SubscribeArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted subscription response
+ */
+export function subscribeToSubreddit(args: SubscribeArgs, bearerToken: string): Promise<string>;
+/**
+ * Unsubscribe from a subreddit
+ * @param {SubscribeArgs} args - Arguments object
+ * @param {string} bearerToken - OAuth bearer token
+ * @returns {Promise<string>} Formatted unsubscription response
+ */
+export function unsubscribeFromSubreddit(args: SubscribeArgs, bearerToken: string): Promise<string>;
 //# sourceMappingURL=redditApi.d.ts.map

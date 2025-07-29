@@ -3,8 +3,8 @@
  * Standardized function for handling Google Sheets OAuth callbacks
  */
 
-import SheetsOAuthHandler from '../oauth/oauthHandler.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
+const SheetsOAuthHandler = require('../oauth/oauthHandler');
+const { updateOAuthStatus  } = require('../../../db/queries/mcpInstances/oauth');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -126,4 +126,5 @@ async function oauthCallback(code, state) {
 }
 
 
-export { oauthCallback };
+
+module.exports = { oauthCallback  };

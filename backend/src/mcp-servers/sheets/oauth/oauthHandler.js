@@ -3,7 +3,7 @@
  * Implements OAuth flow for Google Sheets MCP service
  */
 
-import { google } from 'googleapis';
+const { google  } = require('googleapis');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
@@ -170,4 +170,4 @@ class SheetsOAuthHandler {
 	}
 }
 
-export default SheetsOAuthHandler;
+module.exports = SheetsOAuthHandler;

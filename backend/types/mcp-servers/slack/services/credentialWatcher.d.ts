@@ -1,28 +1,4 @@
 /**
- * Start the credential watcher service
- */
-export function startCredentialWatcher(): void;
-/**
- * Stop the credential watcher service
- */
-export function stopCredentialWatcher(): void;
-/**
- * Get watcher status and statistics
- * @returns {WatcherStatusInfo} Watcher status information
- */
-export function getWatcherStatus(): WatcherStatusInfo;
-/**
- * Force refresh a specific instance token
- * @param {string} instanceId - Instance ID to refresh
- * @returns {Promise<boolean>} True if refresh was successful
- */
-export function forceRefreshInstanceToken(instanceId: string): Promise<boolean>;
-/**
- * Manual cleanup of invalid cache entries
- * @returns {number} Number of entries removed
- */
-export function manualCleanup(): number;
-/**
  * Cached credential entry from cache
  */
 export type CachedCredential = {
@@ -122,4 +98,28 @@ export type WatcherStatusInfo = {
      */
     statistics: Object;
 };
+/**
+ * Start the credential watcher service
+ */
+export function startCredentialWatcher(): void;
+/**
+ * Stop the credential watcher service
+ */
+export function stopCredentialWatcher(): void;
+/**
+ * Get watcher status and statistics
+ * @returns {WatcherStatusInfo} Watcher status information
+ */
+export function getWatcherStatus(): WatcherStatusInfo;
+/**
+ * Force refresh a specific instance token
+ * @param {string} instanceId - Instance ID to refresh
+ * @returns {Promise<boolean>} True if refresh was successful
+ */
+export function forceRefreshInstanceToken(instanceId: string): Promise<boolean>;
+/**
+ * Manual cleanup of invalid cache entries
+ * @returns {number} Number of entries removed
+ */
+export function manualCleanup(): number;
 //# sourceMappingURL=credentialWatcher.d.ts.map

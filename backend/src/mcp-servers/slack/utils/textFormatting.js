@@ -8,7 +8,7 @@
  * @param {string} ts - Slack timestamp
  * @returns {string|null} Human readable timestamp
  */
-export function formatSlackTimestamp(ts) {
+function formatSlackTimestamp(ts) {
 	if (!ts) return null;
 	
 	const date = new Date(parseFloat(ts) * 1000);
@@ -16,7 +16,7 @@ export function formatSlackTimestamp(ts) {
 }
 
 /**
- * @typedef {Object} SlackUser
+ * @typedef {Object} SlackUserFormatting
  * @property {string} id - User ID
  * @property {string} name - User name
  */
@@ -24,10 +24,10 @@ export function formatSlackTimestamp(ts) {
 /**
  * Format Slack message text with user mentions
  * @param {string} text - Raw message text
- * @param {SlackUser[]} users - Array of user objects for mention resolution
+ * @param {SlackUserFormatting[]} users - Array of user objects for mention resolution
  * @returns {string} Formatted text with resolved mentions
  */
-export function formatSlackText(text, users = []) {
+function formatSlackText(text, users = []) {
 	if (!text) return text;
 
 	let formattedText = text;
@@ -85,7 +85,7 @@ export function formatSlackText(text, users = []) {
  * @param {string} content - Content to sanitize
  * @returns {string} Sanitized content
  */
-export function sanitizeContent(content) {
+function sanitizeContent(content) {
 	if (!content || typeof content !== 'string') return content;
 	
 	// Remove potentially harmful characters and scripts
@@ -103,8 +103,15 @@ export function sanitizeContent(content) {
  * @param {number} maxLength - Maximum length
  * @returns {string} Truncated text
  */
-export function truncateText(text, maxLength = 100) {
+function truncateText(text, maxLength = 100) {
 	if (!text || text.length <= maxLength) return text;
 	
 	return text.substring(0, maxLength - 3) + '...';
 }
+
+module.exports = {
+	formatSlackTimestamp,
+	formatSlackText,
+	sanitizeContent,
+	truncateText
+};

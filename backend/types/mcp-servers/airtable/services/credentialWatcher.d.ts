@@ -1,36 +1,3 @@
-/**
- * Start the credential watcher background process
- * Runs every 30 seconds to maintain cache health
- */
-export function startCredentialWatcher(): void;
-/**
- * Stop the credential watcher background process
- */
-export function stopCredentialWatcher(): void;
-/**
- * Check if credential watcher is running
- * @returns {boolean} True if watcher is active
- */
-export function isCredentialWatcherRunning(): boolean;
-/**
- * Force immediate cache maintenance check (for testing/manual triggers)
- * @returns {Promise<void>}
- */
-export function forceMaintenanceCheck(): Promise<void>;
-/**
- * @typedef {Object} WatcherStatus
- * @property {boolean} is_running - Whether watcher is running
- * @property {number} interval_ms - Check interval in milliseconds
- * @property {number} expiration_tolerance_ms - Expiration tolerance
- * @property {number} stale_threshold_hours - Stale threshold in hours
- * @property {number} max_cache_size - Maximum cache size
- * @property {number} uptime_seconds - Uptime in seconds
- */
-/**
- * Get watcher status and configuration
- * @returns {WatcherStatus} Watcher status information
- */
-export function getWatcherStatus(): WatcherStatus;
 export type WatcherStatus = {
     /**
      * - Whether watcher is running
@@ -105,4 +72,37 @@ export type CacheStatistics = {
      */
     memory_usage_mb: string;
 };
+/**
+ * Start the credential watcher background process
+ * Runs every 30 seconds to maintain cache health
+ */
+export function startCredentialWatcher(): void;
+/**
+ * Stop the credential watcher background process
+ */
+export function stopCredentialWatcher(): void;
+/**
+ * Check if credential watcher is running
+ * @returns {boolean} True if watcher is active
+ */
+export function isCredentialWatcherRunning(): boolean;
+/**
+ * Force immediate cache maintenance check (for testing/manual triggers)
+ * @returns {Promise<void>}
+ */
+export function forceMaintenanceCheck(): Promise<void>;
+/**
+ * @typedef {Object} WatcherStatus
+ * @property {boolean} is_running - Whether watcher is running
+ * @property {number} interval_ms - Check interval in milliseconds
+ * @property {number} expiration_tolerance_ms - Expiration tolerance
+ * @property {number} stale_threshold_hours - Stale threshold in hours
+ * @property {number} max_cache_size - Maximum cache size
+ * @property {number} uptime_seconds - Uptime in seconds
+ */
+/**
+ * Get watcher status and configuration
+ * @returns {WatcherStatus} Watcher status information
+ */
+export function getWatcherStatus(): WatcherStatus;
 //# sourceMappingURL=credentialWatcher.d.ts.map

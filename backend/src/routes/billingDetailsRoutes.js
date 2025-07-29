@@ -7,16 +7,16 @@
  * @typedef {Request & {user: {id: number}}} AuthenticatedRequest
  */
 
-import express from 'express';
-import { authenticate } from '../middleware/authMiddleware.js';
-import {
+const express = require('express');
+const { authenticate } = require('../middleware/authMiddleware.js');
+const {
 	getBillingDetailsByUserId,
 	upsertBillingDetails,
 	addCardToBillingDetails,
 	removeCardFromBillingDetails,
 	setDefaultCard,
 	deleteBillingDetails,
-} from '../db/queries/billingDetailsQueries.js';
+} = require('../db/queries/billingDetailsQueries.js');
 
 const router = express.Router();
 
@@ -290,4 +290,4 @@ router.delete('/', authenticate, async (req, res) => {
 	}
 });
 
-export default router;
+module.exports = router;

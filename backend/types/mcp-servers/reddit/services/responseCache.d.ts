@@ -1,59 +1,3 @@
-/**
- * Initialize response cache
- */
-export function initializeResponseCache(): void;
-/**
- * Get cached response
- * @param {string} type - Cache type
- * @param {string} instanceId - Instance ID
- * @param {Record<string, *>} params - Request parameters
- * @returns {*|null} Cached response or null if not found/expired
- */
-export function getCachedResponse(type: string, instanceId: string, params?: Record<string, any>): any | null;
-/**
- * Set cached response
- * @param {string} type - Cache type
- * @param {string} instanceId - Instance ID
- * @param {Record<string, *>} params - Request parameters
- * @param {*} data - Response data to cache
- * @param {number|undefined} [customTtl] - Custom TTL in milliseconds
- */
-export function setCachedResponse(type: string, instanceId: string, params: Record<string, any> | undefined, data: any, customTtl?: number | undefined): void;
-/**
- * Delete cached response
- * @param {string} type - Cache type
- * @param {string} instanceId - Instance ID
- * @param {Record<string, *>} params - Request parameters
- */
-export function deleteCachedResponse(type: string, instanceId: string, params?: Record<string, any>): boolean;
-/**
- * Clear all cached responses for an instance
- * @param {string} instanceId - Instance ID
- */
-export function clearInstanceCache(instanceId: string): number;
-/**
- * Clear all cached responses
- */
-export function clearAllCache(): number;
-/**
- * Get cache statistics
- * @returns {CacheStatistics} Cache statistics
- */
-export function getCacheStatistics(): CacheStatistics;
-/**
- * Stop cleanup interval
- */
-export function stopCleanupInterval(): void;
-/**
- * Update cache configuration
- * @param {Partial<CacheConfig>} newConfig - New cache configuration
- */
-export function updateCacheConfig(newConfig: Partial<CacheConfig>): void;
-/**
- * Get cache configuration
- * @returns {CacheConfig} Current cache configuration
- */
-export function getCacheConfig(): CacheConfig;
 export type CacheEntry = {
     /**
      * - The cached data
@@ -157,4 +101,67 @@ export type CacheStatistics = {
         mb: string;
     };
 };
+/**
+ * Initialize response cache
+ */
+export function initializeResponseCache(): void;
+/**
+ * Generate cache key
+ * @param {string} type - Cache type (subreddit_info, user_posts, etc.)
+ * @param {string} instanceId - Instance ID
+ * @param {Record<string, *>} params - Request parameters
+ * @returns {string} Cache key
+ */
+export function generateCacheKey(type: string, instanceId: string, params: Record<string, any>): string;
+/**
+ * Get cached response
+ * @param {string} type - Cache type
+ * @param {string} instanceId - Instance ID
+ * @param {Record<string, *>} params - Request parameters
+ * @returns {*|null} Cached response or null if not found/expired
+ */
+export function getCachedResponse(type: string, instanceId: string, params?: Record<string, any>): any | null;
+/**
+ * Set cached response
+ * @param {string} type - Cache type
+ * @param {string} instanceId - Instance ID
+ * @param {Record<string, *>} params - Request parameters
+ * @param {*} data - Response data to cache
+ * @param {number|undefined} [customTtl] - Custom TTL in milliseconds
+ */
+export function setCachedResponse(type: string, instanceId: string, params: Record<string, any> | undefined, data: any, customTtl?: number | undefined): void;
+/**
+ * Delete cached response
+ * @param {string} type - Cache type
+ * @param {string} instanceId - Instance ID
+ * @param {Record<string, *>} params - Request parameters
+ */
+export function deleteCachedResponse(type: string, instanceId: string, params?: Record<string, any>): boolean;
+/**
+ * Clear all cached responses for an instance
+ * @param {string} instanceId - Instance ID
+ */
+export function clearInstanceCache(instanceId: string): number;
+/**
+ * Clear all cached responses
+ */
+export function clearAllCache(): number;
+/**
+ * Get cache statistics
+ * @returns {CacheStatistics} Cache statistics
+ */
+export function getCacheStatistics(): CacheStatistics;
+/**
+ * Start cleanup interval
+ */
+export function startCleanupInterval(): void;
+/**
+ * Stop cleanup interval
+ */
+export function stopCleanupInterval(): void;
+/**
+ * Get cache configuration
+ * @returns {CacheConfig} Current cache configuration
+ */
+export function getCacheConfig(): CacheConfig;
 //# sourceMappingURL=responseCache.d.ts.map

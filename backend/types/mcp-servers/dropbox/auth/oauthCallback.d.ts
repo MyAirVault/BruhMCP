@@ -1,6 +1,6 @@
-export type ValidationResult = import("../../../services/mcp-auth-registry/types/serviceTypes.js").ValidationResult;
-export type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
-export type OAuthStatusUpdate = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthStatusUpdate;
+export type ValidationResult = import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult;
+export type OAuthCallbackResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult;
+export type OAuthStatusUpdate = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthStatusUpdate;
 export type StateData = {
     /**
      * - MCP instance ID

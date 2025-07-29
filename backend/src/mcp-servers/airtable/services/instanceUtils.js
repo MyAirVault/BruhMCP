@@ -3,7 +3,7 @@
  * Contains service-agnostic logic moved from database.js
  */
 
-import { pool } from '../../../db/config.js';
+const { pool } = require('../../../db/config.js');
 
 /**
  * @typedef {Object} ValidationResult
@@ -17,7 +17,7 @@ import { pool } from '../../../db/config.js';
  * @param {{ service_active?: boolean, status?: string, oauth_status?: string, expires_at?: string, auth_type?: string, api_key?: string, client_id?: string, client_secret?: string, access_token?: string, refresh_token?: string, token_expires_at?: string }|null} instance - Instance data from database
  * @returns {ValidationResult} Validation result with isValid boolean and error message
  */
-export function validateInstanceAccess(instance) {
+function validateInstanceAccess(instance) {
 	if (!instance) {
 		return {
 			isValid: false,
@@ -83,7 +83,7 @@ export function validateInstanceAccess(instance) {
  * @param {{ auth_type?: string, api_key?: string }} instance - Instance data from database
  * @returns {string|undefined} API key or undefined if not available
  */
-export function getApiKeyForInstance(instance) {
+function getApiKeyForInstance(instance) {
 	if (instance.auth_type === 'api_key') {
 		return instance.api_key;
 	}
@@ -98,7 +98,7 @@ export function getApiKeyForInstance(instance) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {Promise<Object|null>} Instance data with credentials or null if not found
  */
-export async function getAirtableInstanceCredentials(instanceId) {
+async function getAirtableInstanceCredentials(instanceId) {
 	const query = `
 		SELECT 
 			ms.instance_id,
@@ -142,7 +142,7 @@ export async function getAirtableInstanceCredentials(instanceId) {
  * @param {string} userId - User ID for authorization
  * @returns {Promise<void>}
  */
-export async function updateAirtableUsageTracking(instanceId, userId) {
+async function updateAirtableUsageTracking(instanceId, userId) {
 	const query = `
 		UPDATE mcp_service_table 
 		SET 
@@ -159,3 +159,10 @@ export async function updateAirtableUsageTracking(instanceId, userId) {
 		// Don't throw error - usage tracking shouldn't break the request
 	}
 }
+
+module.exports = {
+	validateInstanceAccess,
+	getApiKeyForInstance,
+	getAirtableInstanceCredentials,
+	updateAirtableUsageTracking
+};

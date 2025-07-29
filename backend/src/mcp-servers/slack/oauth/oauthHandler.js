@@ -340,4 +340,4 @@ class SlackOAuthHandler {
 	}
 }
 
-export default SlackOAuthHandler;
+module.exports = SlackOAuthHandler;

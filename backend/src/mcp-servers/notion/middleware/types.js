@@ -116,4 +116,5 @@
  * @property {string} [redirectUrl] - OAuth redirect URL if re-auth needed
  */
 
-export {};
+// TypeScript declarations - no exports needed
+module.exports = {};

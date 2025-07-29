@@ -1,7 +1,4 @@
-export default DropboxOAuthHandler;
-export type AuthCredentials = import("../../../services/mcp-auth-registry/types/authTypes.js").AuthCredentials;
-export type OAuthFlowResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthFlowResult;
-export type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
+export = DropboxOAuthHandler;
 /**
  * @fileoverview Dropbox OAuth Handler
  * Implements OAuth flow for Dropbox MCP service
@@ -45,4 +42,10 @@ declare class DropboxOAuthHandler {
         expires_in: number;
     }>;
 }
+declare namespace DropboxOAuthHandler {
+    export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult };
+}
+type AuthCredentials = import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials;
+type OAuthFlowResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult;
+type OAuthCallbackResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult;
 //# sourceMappingURL=oauthHandler.d.ts.map

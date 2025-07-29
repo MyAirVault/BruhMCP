@@ -1,3 +1,58 @@
+export type SessionStatistics = {
+    /**
+     * - Total number of active sessions
+     */
+    total_sessions: number;
+    /**
+     * - Array of session information
+     */
+    sessions: Array<SessionInfo>;
+};
+export type SessionInfo = {
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - ISO timestamp when session was created
+     */
+    created_at: string;
+    /**
+     * - ISO timestamp of last access
+     */
+    last_accessed: string;
+    /**
+     * - Age of session in minutes
+     */
+    age_minutes: number;
+    /**
+     * - Minutes since last access
+     */
+    idle_minutes: number;
+    /**
+     * - Whether handler is initialized
+     */
+    is_initialized: boolean;
+};
+export type ServiceConfig = import('../endpoints/mcpHandler.js').ServiceConfig;
+export type HandlerSession = {
+    /**
+     * - The MCP handler instance
+     */
+    handler: FigmaMCPHandler;
+    /**
+     * - Timestamp of last access
+     */
+    lastAccessed: number;
+    /**
+     * - Instance ID
+     */
+    instanceId: string;
+    /**
+     * - Timestamp when session was created
+     */
+    createdAt: number;
+};
 /**
  * Get or create a persistent handler for the given instance
  * @param {string} instanceId - UUID of the service instance
@@ -47,60 +102,5 @@ export function stopSessionCleanup(): void;
  * @param {string} instanceId - UUID of the service instance
  */
 export function invalidateHandlerSession(instanceId: string): void;
-export type SessionStatistics = {
-    /**
-     * - Total number of active sessions
-     */
-    total_sessions: number;
-    /**
-     * - Array of session information
-     */
-    sessions: Array<SessionInfo>;
-};
-export type SessionInfo = {
-    /**
-     * - Instance ID
-     */
-    instanceId: string;
-    /**
-     * - ISO timestamp when session was created
-     */
-    created_at: string;
-    /**
-     * - ISO timestamp of last access
-     */
-    last_accessed: string;
-    /**
-     * - Age of session in minutes
-     */
-    age_minutes: number;
-    /**
-     * - Minutes since last access
-     */
-    idle_minutes: number;
-    /**
-     * - Whether handler is initialized
-     */
-    is_initialized: boolean;
-};
-export type ServiceConfig = import("../endpoints/mcpHandler.js").ServiceConfig;
-export type HandlerSession = {
-    /**
-     * - The MCP handler instance
-     */
-    handler: FigmaMCPHandler;
-    /**
-     * - Timestamp of last access
-     */
-    lastAccessed: number;
-    /**
-     * - Instance ID
-     */
-    instanceId: string;
-    /**
-     * - Timestamp when session was created
-     */
-    createdAt: number;
-};
-import { FigmaMCPHandler } from '../endpoints/mcpHandler.js';
+import { FigmaMCPHandler } from "../endpoints/mcpHandler.js";
 //# sourceMappingURL=handlerSessions.d.ts.map

@@ -57,7 +57,7 @@ export function logOAuthFlowInitiation(instanceId: string, userId: string, scope
  * @param {string} [errorMessage] - Error message if callback failed
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export function logOAuthCallbackCompletion(instanceId: string, userId: string, success: boolean, errorMessage?: string): Promise<void>;
+export function logOAuthCallbackCompletion(instanceId: string, userId: string, success: boolean, errorMessage?: string | undefined): Promise<void>;
 /**
  * Create general audit log entry
  * @param {string} instanceId - The instance ID
@@ -69,14 +69,4 @@ export function logOAuthCallbackCompletion(instanceId: string, userId: string, s
  * @returns {Promise<void>} Promise that resolves when log is created
  */
 export function createAuditLogEntry(instanceId: string, userId: string, operation: string, method: string, success: boolean, metadata?: Object): Promise<void>;
-declare namespace _default {
-    export { logSuccessfulTokenRefresh };
-    export { logFailedTokenRefresh };
-    export { logReauthenticationRequired };
-    export { logTokenValidationSuccess };
-    export { logOAuthFlowInitiation };
-    export { logOAuthCallbackCompletion };
-    export { createAuditLogEntry };
-}
-export default _default;
 //# sourceMappingURL=auditLogger.d.ts.map

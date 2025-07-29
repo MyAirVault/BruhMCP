@@ -3,9 +3,9 @@
  * Provides structured logging for MCP server instances to their specific log directories
  */
 
-import fs from 'fs';
-import path from 'path';
-import { getMCPLogDirectoryPath } from './logDirectoryManager.js';
+const fs = require('fs');
+const path = require('path');
+const { getMCPLogDirectoryPath } = require('./logDirectoryManager.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -323,4 +323,4 @@ class MCPInstanceLogger {
 // Create and export singleton instance
 const mcpInstanceLogger = new MCPInstanceLogger();
 
-export default mcpInstanceLogger;
+module.exports = mcpInstanceLogger;

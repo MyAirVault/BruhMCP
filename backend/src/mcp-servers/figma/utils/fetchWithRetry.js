@@ -2,10 +2,10 @@
  * Fetch with Retry * Provides robust fetching with curl fallback for corporate networks
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
-import fetch from 'node-fetch';
-import { Logger } from './logger.js';
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const { axios } = require('../../../utils/axiosUtils.js');
+const { Logger } = require('./logger.js');
 
 const execAsync = promisify(exec);
 
@@ -15,14 +15,21 @@ const execAsync = promisify(exec);
  * @param {{ headers?: Record<string, string>, [key: string]: any }} options - Request options
  * @returns {Promise<any>} Response data
  */
-export async function fetchWithRetry(url, options = {}) {
+async function fetchWithRetry(url, options = {}) {
 	try {
-		const response = await fetch(url, options);
+		const response = await axios({
+			method: options.method || 'GET',
+			url: url,
+			headers: options.headers,
+			data: options.body,
+			timeout: options.timeout || 30000,
+			...options
+		});
 
-		if (!response.ok) {
+		if (response.status >= 400) {
 			throw new Error(`Fetch failed with status ${response.status}: ${response.statusText}`);
 		}
-		return await response.json();
+		return response.data;
 	} catch (fetchError) {
 		const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
 		Logger.log(
@@ -82,3 +89,6 @@ function formatHeadersForCurl(headers) {
 
 	return Object.entries(headers).map(([key, value]) => `-H "${key}: ${value}"`);
 }
+module.exports = {
+	fetchWithRetry
+};

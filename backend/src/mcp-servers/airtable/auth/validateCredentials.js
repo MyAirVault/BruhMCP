@@ -3,7 +3,7 @@
  * Standardized function for validating Airtable API key credentials
  */
 
-import createAirtableValidator from '../validation/credentialValidator.js';
+const createAirtableValidator = require('../validation/credentialValidator.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -93,4 +93,4 @@ async function validateCredentials(credentials, userId) {
 }
 
 
-export { validateCredentials };
+module.exports = { validateCredentials };

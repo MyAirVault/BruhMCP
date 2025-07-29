@@ -1,17 +1,3 @@
-/**
- * Share a file with specific users or make it public
- * @param {ShareFileArgs} args - Sharing arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<ShareFileResult>} Sharing result
- */
-export function shareFile(args: ShareFileArgs, bearerToken: string): Promise<ShareFileResult>;
-/**
- * Get permissions for a file
- * @param {GetFilePermissionsArgs} args - Arguments
- * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<FilePermissionsResult>} File permissions
- */
-export function getFilePermissions(args: GetFilePermissionsArgs, bearerToken: string): Promise<FilePermissionsResult>;
 export type RequestOptions = {
     /**
      * - HTTP method
@@ -198,4 +184,18 @@ export type FilePermissionsResult = {
      */
     count: number;
 };
+/**
+ * Share a file with specific users or make it public
+ * @param {ShareFileArgs} args - Sharing arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<ShareFileResult>} Sharing result
+ */
+export function shareFile(args: ShareFileArgs, bearerToken: string): Promise<ShareFileResult>;
+/**
+ * Get permissions for a file
+ * @param {GetFilePermissionsArgs} args - Arguments
+ * @param {string} bearerToken - OAuth Bearer token
+ * @returns {Promise<FilePermissionsResult>} File permissions
+ */
+export function getFilePermissions(args: GetFilePermissionsArgs, bearerToken: string): Promise<FilePermissionsResult>;
 //# sourceMappingURL=permissionOperations.d.ts.map

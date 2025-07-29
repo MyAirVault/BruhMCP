@@ -3,8 +3,7 @@
  * Handles direct API calls and tool execution
  */
 
-import { 
-	searchNotion,
+const { searchNotion,
 	getPage,
 	getPageBlocks,
 	createPage,
@@ -18,9 +17,9 @@ import {
 	getCurrentUser,
 	listUsers,
 	makeRawApiCall
-} from '../api/notionApi.js';
-import { handleNotionError } from '../utils/oauthErrorHandler.js';
-import { Logger } from '../utils/validation.js';
+ } = require('../api/notionApi');
+const { handleNotionError  } = require('../utils/oauthErrorHandler');
+const { Logger  } = require('../utils/validation');
 
 /**
  * @typedef {import('../middleware/types.js').ExpressRequest} ExpressRequest
@@ -181,7 +180,7 @@ async function executeToolCall(toolName, args, bearerToken) {
  * @param {ExpressResponse} res - Express response object
  * @returns {Promise<void>}
  */
-export async function handleCallEndpoint(req, res) {
+async function handleCallEndpoint(req, res) {
 	try {
 		const { bearerToken, instanceId, userId } = req;
 
@@ -242,3 +241,7 @@ export async function handleCallEndpoint(req, res) {
 	}
 }
 
+
+module.exports = {
+  handleCallEndpoint
+};

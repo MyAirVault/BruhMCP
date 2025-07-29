@@ -5,7 +5,7 @@
  * Executes Gmail API operations using OAuth Bearer tokens
  */
 
-import { 
+const { 
   sendEmail, 
   fetchEmails, 
   fetchMessageById, 
@@ -19,15 +19,15 @@ import {
   getThread,
   markAsRead,
   markAsUnread
-} from '../api/gmailApi.js';
+} = require('../api/gmailApi.js');
 
-import { 
+const { 
   listLabels, 
   createLabel, 
   modifyLabels 
-} from '../api/labelOperations.js';
+} = require('../api/labelOperations.js');
 
-import { validateToolArguments } from '../utils/validation.js';
+const { validateToolArguments } = require('../utils/validation.js');
 
 /**
  * @typedef {import('../api/modules/messageOperations.js').SendEmailArgs} SendEmailArgs
@@ -69,7 +69,7 @@ import { validateToolArguments } from '../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token for Gmail API
  * @returns {Promise<Object>} Tool execution result
  */
-export async function executeToolCall(toolName, args, bearerToken) {
+async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Gmail tool: ${toolName}`);
   console.log(`📋 Arguments:`, JSON.stringify(args, null, 2));
 
@@ -184,3 +184,7 @@ export async function executeToolCall(toolName, args, bearerToken) {
     throw enhancedError;
   }
 }
+
+module.exports = {
+	executeToolCall
+};

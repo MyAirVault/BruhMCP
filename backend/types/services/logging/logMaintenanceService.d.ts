@@ -1,71 +1,8 @@
-export default logMaintenanceService;
-export type CleanupStats = {
-    /**
-     * - Last maintenance run timestamp
-     */
-    lastRun: string | null;
-    /**
-     * - Number of files removed
-     */
-    filesRemoved: number;
-    /**
-     * - Space freed in bytes
-     */
-    spaceFreed: number;
-    /**
-     * - Array of error messages
-     */
-    errors: string[];
-};
-export type ValidationResult = {
-    /**
-     * - Number of validated files
-     */
-    validated: number;
-    /**
-     * - Number of corrupted files
-     */
-    corrupted: number;
-};
-export type DirectoryStats = {
-    /**
-     * - Total size in bytes
-     */
-    size: number;
-    /**
-     * - Number of files
-     */
-    fileCount: number;
-};
-export type UserLogsStats = {
-    /**
-     * - Total size in bytes
-     */
-    size: number;
-    /**
-     * - Number of files
-     */
-    fileCount: number;
-    /**
-     * - Number of users
-     */
-    userCount: number;
-    /**
-     * - Number of instances
-     */
-    instanceCount: number;
-};
-export type CleanupResult = {
-    /**
-     * - Number of files removed
-     */
-    removed: number;
-    /**
-     * - Space saved in bytes
-     */
-    spaceSaved: number;
-};
+export = logMaintenanceService;
 declare const logMaintenanceService: LogMaintenanceService;
+declare namespace logMaintenanceService {
+    export { CleanupStats, ValidationResult, DirectoryStats, UserLogsStats, CleanupResult };
+}
 /**
  * @typedef {Object} CleanupStats
  * @property {string|null} lastRun - Last maintenance run timestamp
@@ -196,4 +133,70 @@ declare class LogMaintenanceService {
      */
     forceMaintenanceRun(): Promise<void>;
 }
+type CleanupStats = {
+    /**
+     * - Last maintenance run timestamp
+     */
+    lastRun: string | null;
+    /**
+     * - Number of files removed
+     */
+    filesRemoved: number;
+    /**
+     * - Space freed in bytes
+     */
+    spaceFreed: number;
+    /**
+     * - Array of error messages
+     */
+    errors: string[];
+};
+type ValidationResult = {
+    /**
+     * - Number of validated files
+     */
+    validated: number;
+    /**
+     * - Number of corrupted files
+     */
+    corrupted: number;
+};
+type DirectoryStats = {
+    /**
+     * - Total size in bytes
+     */
+    size: number;
+    /**
+     * - Number of files
+     */
+    fileCount: number;
+};
+type UserLogsStats = {
+    /**
+     * - Total size in bytes
+     */
+    size: number;
+    /**
+     * - Number of files
+     */
+    fileCount: number;
+    /**
+     * - Number of users
+     */
+    userCount: number;
+    /**
+     * - Number of instances
+     */
+    instanceCount: number;
+};
+type CleanupResult = {
+    /**
+     * - Number of files removed
+     */
+    removed: number;
+    /**
+     * - Space saved in bytes
+     */
+    spaceSaved: number;
+};
 //# sourceMappingURL=logMaintenanceService.d.ts.map

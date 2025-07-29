@@ -3,7 +3,7 @@
  * @fileoverview Handles Razorpay payment processing for Pro plan upgrades
  */
 
-import Razorpay from 'razorpay';
+const Razorpay = require('razorpay');
 
 /**
  * @typedef {Object} RazorpayConfig
@@ -70,7 +70,7 @@ const PRO_PLAN_CONFIG = {
  * Validate Razorpay configuration
  * @returns {RazorpayConfig} Validation result
  */
-export function validateRazorpayConfig() {
+function validateRazorpayConfig() {
 	const requiredVars = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'];
 	const missing = requiredVars.filter(varName => !process.env[varName]);
 	
@@ -103,7 +103,7 @@ export function validateRazorpayConfig() {
  * @param {string} cancelUrl - URL to redirect if user cancels
  * @returns {Promise<CheckoutSession>} Subscription and payment link details
  */
-export async function createProSubscriptionCheckout(userId, email, successUrl, cancelUrl) {
+async function createProSubscriptionCheckout(userId, email, successUrl, cancelUrl) {
 	try {
 		const config = validateRazorpayConfig();
 		if (!config.valid) {
@@ -218,7 +218,7 @@ export async function createProSubscriptionCheckout(userId, email, successUrl, c
  * @param {string} subscriptionId - Razorpay subscription ID
  * @returns {Promise<CancellationResult>} Cancellation result
  */
-export async function cancelSubscription(subscriptionId) {
+async function cancelSubscription(subscriptionId) {
 	try {
 		const config = validateRazorpayConfig();
 		if (!config.valid) {
@@ -249,7 +249,7 @@ export async function cancelSubscription(subscriptionId) {
  * @param {string} subscriptionId - Razorpay subscription ID
  * @returns {Promise<SubscriptionDetails>} Subscription details
  */
-export async function getSubscriptionDetails(subscriptionId) {
+async function getSubscriptionDetails(subscriptionId) {
 	try {
 		const config = validateRazorpayConfig();
 		if (!config.valid) {
@@ -280,7 +280,7 @@ export async function getSubscriptionDetails(subscriptionId) {
  * @param {string} signature - Razorpay signature header
  * @returns {boolean} Signature verification result
  */
-export function verifyWebhookSignature(payload, signature) {
+function verifyWebhookSignature(payload, signature) {
 	try {
 		const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
 		if (!webhookSecret) {
@@ -320,7 +320,7 @@ export function verifyWebhookSignature(payload, signature) {
  * @param {string} signature - Webhook signature
  * @returns {Object} Parsed webhook event
  */
-export function parseWebhookEvent(payload, signature) {
+function parseWebhookEvent(payload, signature) {
 	// Verify signature first
 	if (!verifyWebhookSignature(payload, signature)) {
 		throw new Error('Invalid webhook signature');
@@ -345,7 +345,7 @@ export function parseWebhookEvent(payload, signature) {
  * @param {string} email - Customer email
  * @returns {Promise<Object|null>} Customer details or null
  */
-export async function getCustomerByEmail(email) {
+async function getCustomerByEmail(email) {
 	try {
 		const config = validateRazorpayConfig();
 		if (!config.valid) {
@@ -368,4 +368,13 @@ export async function getCustomerByEmail(email) {
 /**
  * Export Razorpay instance for advanced operations
  */
-export { razorpay };
+module.exports = {
+	razorpay,
+	validateRazorpayConfig,
+	createProSubscriptionCheckout,
+	cancelSubscription,
+	getSubscriptionDetails,
+	verifyWebhookSignature,
+	parseWebhookEvent,
+	getCustomerByEmail
+};

@@ -3,8 +3,8 @@
  * Operations for managing Notion blocks (content elements)
  */
 
-import { makeNotionRequest } from './requestHandler.js';
-import { formatNotionResponse } from '../../utils/notionFormatting.js';
+const { makeNotionRequest  } = require('./requestHandler');
+const { formatNotionResponse  } = require('../../utils/notionFormatting');
 
 /**
  * Append blocks to a page
@@ -12,7 +12,7 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Response
  */
-export async function appendBlocks(args, bearerToken) {
+async function appendBlocks(args, bearerToken) {
 	const { pageId, children } = args;
 
 	const result = await makeNotionRequest(`/blocks/${pageId}/children`, bearerToken, {
@@ -33,7 +33,7 @@ export async function appendBlocks(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} Response
  */
-export async function deleteBlock(args, bearerToken) {
+async function deleteBlock(args, bearerToken) {
 	const { blockId } = args;
 
 	const result = await makeNotionRequest(`/blocks/${blockId}`, bearerToken, {
@@ -46,3 +46,7 @@ export async function deleteBlock(args, bearerToken) {
 		deleted: /** @type {boolean} */ (result.archived || false),
 	});
 }
+module.exports = {
+  appendBlocks,
+  deleteBlock
+};

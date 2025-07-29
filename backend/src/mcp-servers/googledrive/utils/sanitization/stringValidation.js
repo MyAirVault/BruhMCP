@@ -8,11 +8,13 @@
  * @param {Object} options - Sanitization options
  * @returns {string} Sanitized string
  */
-export function sanitizeString(input, options = {}) {
+function sanitizeString(input, options = {}) {
   if (typeof input !== 'string') {
     throw new Error('Input must be a string');
   }
 
+  /** @type {any} */
+  const opts = options;
   const {
     maxLength = 1000,
     allowHtml = false,
@@ -20,7 +22,7 @@ export function sanitizeString(input, options = {}) {
     trimWhitespace = true,
     removeNullBytes = true,
     preventInjection = true
-  } = options;
+  } = opts;
 
   let sanitized = input;
 
@@ -72,7 +74,7 @@ export function sanitizeString(input, options = {}) {
  * @param {string} fileName - File name to sanitize
  * @returns {string} Sanitized file name
  */
-export function sanitizeFileName(fileName) {
+function sanitizeFileName(fileName) {
   if (!fileName || typeof fileName !== 'string') {
     throw new Error('File name must be a non-empty string');
   }
@@ -114,7 +116,7 @@ export function sanitizeFileName(fileName) {
  * @param {string} query - Search query to sanitize
  * @returns {string} Sanitized query
  */
-export function sanitizeSearchQuery(query) {
+function sanitizeSearchQuery(query) {
   if (!query || typeof query !== 'string') {
     return '';
   }
@@ -146,3 +148,9 @@ export function sanitizeSearchQuery(query) {
   
   return sanitized;
 }
+
+module.exports = {
+  sanitizeString,
+  sanitizeFileName,
+  sanitizeSearchQuery
+};

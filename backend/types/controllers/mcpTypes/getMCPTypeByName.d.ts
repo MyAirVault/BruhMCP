@@ -1,3 +1,36 @@
+export type MCPConfigTemplate = {
+    api_version: string;
+    base_url: string;
+    scopes?: string[] | undefined;
+};
+export type MCPResourceLimits = {
+    max_memory_mb: number;
+    max_cpu_percent: number;
+    max_requests_per_minute: number;
+};
+export type MCPCredentialField = {
+    name: string;
+    type: string;
+    description: string;
+    required: boolean;
+};
+export type MCPType = {
+    id: string;
+    name: string;
+    display_name: string;
+    description: string;
+    icon_url: string;
+    icon_url_path: string;
+    mcp_service_id: string;
+    mcp_service_name: string;
+    port: number;
+    type: string;
+    active_instances_count: number;
+    config_template: MCPConfigTemplate;
+    resource_limits: MCPResourceLimits;
+    is_active: boolean;
+    required_credentials: Array<string | MCPCredentialField>;
+};
 /**
  * @typedef {Object} MCPConfigTemplate
  * @property {string} api_version
@@ -40,38 +73,5 @@
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export function getMCPTypeByNameHandler(req: import("express").Request, res: import("express").Response): Promise<void>;
-export type MCPConfigTemplate = {
-    api_version: string;
-    base_url: string;
-    scopes?: string[] | undefined;
-};
-export type MCPResourceLimits = {
-    max_memory_mb: number;
-    max_cpu_percent: number;
-    max_requests_per_minute: number;
-};
-export type MCPCredentialField = {
-    name: string;
-    type: string;
-    description: string;
-    required: boolean;
-};
-export type MCPType = {
-    id: string;
-    name: string;
-    display_name: string;
-    description: string;
-    icon_url: string;
-    icon_url_path: string;
-    mcp_service_id: string;
-    mcp_service_name: string;
-    port: number;
-    type: string;
-    active_instances_count: number;
-    config_template: MCPConfigTemplate;
-    resource_limits: MCPResourceLimits;
-    is_active: boolean;
-    required_credentials: Array<string | MCPCredentialField>;
-};
+export function getMCPTypeByNameHandler(req: import('express').Request, res: import('express').Response): Promise<void>;
 //# sourceMappingURL=getMCPTypeByName.d.ts.map

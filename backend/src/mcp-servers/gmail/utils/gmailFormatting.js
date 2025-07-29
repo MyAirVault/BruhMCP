@@ -60,7 +60,7 @@
  * @param {EmailData} data - Email data to format
  * @returns {string} Formatted email response
  */
-export function formatEmailResponse(data) {
+function formatEmailResponse(data) {
   const timestamp = data.timestamp || new Date().toISOString();
   
   switch (data.action) {
@@ -246,7 +246,7 @@ The email and all attachments have been delivered.`;
  * @param {GmailMessage} message - Gmail message object
  * @returns {FormattedMessage} Formatted message data
  */
-export function formatMessageResponse(message) {
+function formatMessageResponse(message) {
   const headers = message.payload?.headers || [];
   
   // Extract important headers
@@ -414,7 +414,7 @@ function extractMessageBody(payload) {
  * @param {DraftData} data - Draft data to format
  * @returns {string} Formatted draft response
  */
-export function formatDraftResponse(data) {
+function formatDraftResponse(data) {
   const timestamp = data.timestamp || new Date().toISOString();
   
   switch (data.action) {
@@ -459,7 +459,7 @@ ${draftList}`;
  * @param {string} query - Search query used
  * @returns {string} Formatted search results
  */
-export function formatSearchResults(messages, query) {
+function formatSearchResults(messages, query) {
   if (messages.length === 0) {
     return `🔍 No emails found matching "${query}"
 
@@ -496,7 +496,7 @@ ${resultList}`;
  * @param {Error} error - Error object
  * @returns {string} Formatted error message
  */
-export function formatErrorMessage(operation, error) {
+function formatErrorMessage(operation, error) {
   const timestamp = new Date().toISOString();
   
   let errorType = 'Unknown error';
@@ -540,3 +540,11 @@ function formatFileSize(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
+
+module.exports = {
+	formatEmailResponse,
+	formatMessageResponse,
+	formatDraftResponse,
+	formatSearchResults,
+	formatErrorMessage
+};

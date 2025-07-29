@@ -5,12 +5,12 @@
  * Runs every 30 seconds to monitor cached credentials and perform cleanup
  */
 
-import {
+const {
 	getCachedInstanceIds,
 	peekCachedCredential,
 	removeCachedCredential,
 	getCacheStatistics,
-} from './credentialCache.js';
+} = require('./credentialCache');
 
 /**
  * @typedef {Object} RawCacheEntry
@@ -84,7 +84,7 @@ let isWatcherRunning = false;
  * Runs every 30 seconds to maintain cache health
  * @returns {void}
  */
-export function startCredentialWatcher() {
+function startCredentialWatcher() {
 	if (isWatcherRunning) {
 		console.log('⚠️ Credential watcher is already running');
 		return;
@@ -108,7 +108,7 @@ export function startCredentialWatcher() {
  * Stop the credential watcher background process
  * @returns {void}
  */
-export function stopCredentialWatcher() {
+function stopCredentialWatcher() {
 	if (!isWatcherRunning) {
 		console.log('⚠️ Credential watcher is not running');
 		return;
@@ -127,7 +127,7 @@ export function stopCredentialWatcher() {
  * Check if credential watcher is running
  * @returns {boolean} True if watcher is active
  */
-export function isCredentialWatcherRunning() {
+function isCredentialWatcherRunning() {
 	return isWatcherRunning;
 }
 
@@ -208,7 +208,10 @@ function performCacheMaintenanceCheck() {
 					const cached = /** @type {RawCacheEntry|null} */ (peekCachedCredential(id));
 					return cached ? { instanceId: id, cached } : null;
 				})
-				.filter((entry) => entry !== null);
+				.filter(
+					/** @param {CacheEntryWithUsage|null} entry */ /** @returns {entry is CacheEntryWithUsage} */ entry =>
+						entry !== null
+				);
 
 			// Sort by last_used (oldest first)
 			entriesWithUsage.sort((a, b) => {
@@ -269,7 +272,7 @@ function logCacheStatistics() {
  * Force immediate cache maintenance check (for testing/manual triggers)
  * @returns {Promise<void>}
  */
-export async function forceMaintenanceCheck() {
+async function forceMaintenanceCheck() {
 	console.log('🔧 Manual cache maintenance check triggered');
 	performCacheMaintenanceCheck();
 }
@@ -278,7 +281,7 @@ export async function forceMaintenanceCheck() {
  * Get watcher status and configuration
  * @returns {WatcherStatus} Watcher status information
  */
-export function getWatcherStatus() {
+function getWatcherStatus() {
 	/** @type {WatcherStatus} */
 	const status = {
 		is_running: isWatcherRunning,
@@ -290,3 +293,10 @@ export function getWatcherStatus() {
 	};
 	return status;
 }
+
+module.exports = {
+	startCredentialWatcher,
+	stopCredentialWatcher,
+	getWatcherStatus,
+	forceMaintenanceCheck,
+};

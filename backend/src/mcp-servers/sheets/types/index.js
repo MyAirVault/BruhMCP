@@ -161,4 +161,8 @@
  * @property {number} [alpha] - Alpha component (0-1)
  */
 
-export const Types = {};
+const Types = {};
+
+module.exports = {
+	Types
+};

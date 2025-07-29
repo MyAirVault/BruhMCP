@@ -1,3 +1,17 @@
+export type ValidationResult = {
+    /**
+     * - Whether the instance is valid
+     */
+    isValid: boolean;
+    /**
+     * - Error message if invalid
+     */
+    error?: string | undefined;
+    /**
+     * - HTTP status code if invalid
+     */
+    statusCode?: number | undefined;
+};
 /**
  * @typedef {Object} ValidationResult
  * @property {boolean} isValid - Whether the instance is valid
@@ -45,18 +59,4 @@ export function getAirtableInstanceCredentials(instanceId: string): Promise<Obje
  * @returns {Promise<void>}
  */
 export function updateAirtableUsageTracking(instanceId: string, userId: string): Promise<void>;
-export type ValidationResult = {
-    /**
-     * - Whether the instance is valid
-     */
-    isValid: boolean;
-    /**
-     * - Error message if invalid
-     */
-    error?: string | undefined;
-    /**
-     * - HTTP status code if invalid
-     */
-    statusCode?: number | undefined;
-};
 //# sourceMappingURL=instanceUtils.d.ts.map

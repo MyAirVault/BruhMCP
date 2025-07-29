@@ -5,8 +5,8 @@
  * Draft management functionality for Gmail API
  */
 
-import { makeGmailRequest } from './requestHandler.js';
-import { formatEmailResponse, formatDraftResponse } from '../../utils/gmailFormatting.js';
+const { makeGmailRequest } = require('./requestHandler.js');
+const { formatEmailResponse, formatDraftResponse } = require('../../utils/gmailFormatting.js');
 
 /**
  * @typedef {Object} GmailDraftResponse
@@ -67,7 +67,7 @@ import { formatEmailResponse, formatDraftResponse } from '../../utils/gmailForma
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Draft creation result
  */
-export async function createDraft(args, bearerToken) {
+async function createDraft(args, bearerToken) {
 	const { to, subject, body, cc = '', bcc = '', format = 'text' } = args;
 
 	// Create email message in RFC 2822 format
@@ -122,7 +122,7 @@ export async function createDraft(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Send result
  */
-export async function sendDraft(args, bearerToken) {
+async function sendDraft(args, bearerToken) {
 	const { draftId } = args;
 
 	const result = await makeGmailRequest(`/users/me/drafts/${draftId}/send`, bearerToken, {
@@ -145,7 +145,7 @@ export async function sendDraft(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<string>} Drafts list
  */
-export async function listDrafts(args, bearerToken) {
+async function listDrafts(args, bearerToken) {
 	const { maxResults = 100, query = '' } = args;
 
 	let queryParams = new URLSearchParams({
@@ -179,3 +179,9 @@ export async function listDrafts(args, bearerToken) {
 		drafts,
 	});
 }
+
+module.exports = {
+	createDraft,
+	sendDraft,
+	listDrafts
+};

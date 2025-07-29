@@ -3,8 +3,8 @@
  * Handles file/folder creation, deletion, copying, and moving
  */
 
-import { formatFileResponse } from '../../utils/googledriveFormatting.js';
-import { validateFileId, validateFileName } from '../../utils/validation.js';
+const { formatFileResponse  } = require('../../utils/googledriveFormatting');
+const { validateFileId, validateFileName  } = require('../../utils/validation');
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
@@ -135,7 +135,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Created folder info
  */
-export async function createFolder(args, bearerToken) {
+async function createFolder(args, bearerToken) {
 	const { folderName, parentFolderId } = args;
 
 	if (!folderName) {
@@ -184,7 +184,7 @@ export async function createFolder(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<FileOperationResult>} Deletion result
  */
-export async function deleteFile(args, bearerToken) {
+async function deleteFile(args, bearerToken) {
 	const { fileId, permanent = false } = args;
 
 	if (!fileId) {
@@ -228,7 +228,7 @@ export async function deleteFile(args, bearerToken) {
 			fileId,
 			message: 'File moved to trash',
 			action: 'trashed',
-			file: formatFileResponse(data),
+			file: formatFileResponse(data) || undefined,
 		};
 	}
 }
@@ -239,7 +239,7 @@ export async function deleteFile(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Copied file info
  */
-export async function copyFile(args, bearerToken) {
+async function copyFile(args, bearerToken) {
 	const { fileId, newName, destinationFolderId } = args;
 
 	if (!fileId) {
@@ -295,7 +295,7 @@ export async function copyFile(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<import('../../utils/googledriveFormatting.js').FormattedFile|null>} Moved file info
  */
-export async function moveFile(args, bearerToken) {
+async function moveFile(args, bearerToken) {
 	const { fileId, destinationFolderId } = args;
 
 	if (!fileId) {
@@ -342,3 +342,9 @@ export async function moveFile(args, bearerToken) {
 
 	return formatFileResponse(data);
 }
+module.exports = {
+  createFolder,
+  deleteFile,
+  copyFile,
+  moveFile
+};

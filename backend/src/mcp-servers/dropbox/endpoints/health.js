@@ -34,7 +34,7 @@
  * @param {ServiceConfig} config - Service configuration
  * @returns {HealthCheckResponse} Health status object
  */
-export function healthCheck(config) {
+function healthCheck(config) {
   return {
     service: config.name,
     displayName: config.displayName,
@@ -58,3 +58,5 @@ export function healthCheck(config) {
     timestamp: new Date().toISOString()
   };
 }
+
+module.exports = { healthCheck };

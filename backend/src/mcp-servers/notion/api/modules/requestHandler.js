@@ -13,7 +13,7 @@ const NOTION_API_VERSION = '2022-06-28';
  * @param {{method?: string, headers?: Record<string, string>, body?: unknown}} options - Request options
  * @returns {Promise<Record<string, unknown>>} API response
  */
-export async function makeNotionRequest(endpoint, bearerToken, options = {}) {
+async function makeNotionRequest(endpoint, bearerToken, options = {}) {
 	const url = `${NOTION_BASE_URL}${endpoint}`;
 
 	const requestOptions = {
@@ -72,3 +72,6 @@ export async function makeNotionRequest(endpoint, bearerToken, options = {}) {
 
 	return data;
 }
+module.exports = {
+  makeNotionRequest
+};

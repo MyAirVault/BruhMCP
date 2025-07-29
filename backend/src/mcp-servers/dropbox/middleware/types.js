@@ -142,4 +142,4 @@
  * @property {string} lastCleanup - Last cleanup timestamp
  */
 
-export {}; // Make this a module
+module.exports = {}; // Make this a module

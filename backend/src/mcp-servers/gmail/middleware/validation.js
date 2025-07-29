@@ -3,15 +3,15 @@
  * Handles instance ID format validation and instance status checks
  */
 
-import './types.js';
-import { ErrorResponses } from '../../../utils/errorResponse.js';
+require('./types.js');
+const { ErrorResponses } = require('../../../utils/errorResponse.js');
 
 /**
  * Validate instance ID format using UUID v4 regex
  * @param {string} instanceId - The instance ID to validate
  * @returns {boolean} True if valid UUID v4 format
  */
-export function isValidInstanceId(instanceId) {
+function isValidInstanceId(instanceId) {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(instanceId);
 }
@@ -22,7 +22,7 @@ export function isValidInstanceId(instanceId) {
  * @param {string} instanceId - The invalid instance ID
  * @returns {void} Express response
  */
-export function createInstanceIdValidationError(res, instanceId) {
+function createInstanceIdValidationError(res, instanceId) {
   return ErrorResponses.invalidInput(res, 'Invalid instance ID format', {
     instanceId,
     metadata: {
@@ -38,7 +38,7 @@ export function createInstanceIdValidationError(res, instanceId) {
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstanceExists(instance, res, instanceId) {
+function validateInstanceExists(instance, res, instanceId) {
   if (!instance) {
     return {
       isValid: false,
@@ -58,7 +58,7 @@ export function validateInstanceExists(instance, res, instanceId) {
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateServiceActive(instance, res, instanceId) {
+function validateServiceActive(instance, res, instanceId) {
   if (!instance.service_active) {
     return {
       isValid: false,
@@ -78,7 +78,7 @@ export function validateServiceActive(instance, res, instanceId) {
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstanceStatus(instance, res, instanceId) {
+function validateInstanceStatus(instance, res, instanceId) {
   if (instance.status === 'inactive') {
     return {
       isValid: false,
@@ -107,7 +107,7 @@ export function validateInstanceStatus(instance, res, instanceId) {
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstanceNotExpired(instance, res, instanceId) {
+function validateInstanceNotExpired(instance, res, instanceId) {
   if (instance.expires_at && new Date(instance.expires_at) < new Date()) {
     return {
       isValid: false,
@@ -128,7 +128,7 @@ export function validateInstanceNotExpired(instance, res, instanceId) {
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateOAuthCredentials(instance, res, instanceId) {
+function validateOAuthCredentials(instance, res, instanceId) {
   if (instance.auth_type !== 'oauth' || !instance.client_id || !instance.client_secret) {
     return {
       isValid: false,
@@ -149,7 +149,7 @@ export function validateOAuthCredentials(instance, res, instanceId) {
  * @param {boolean} [requireOAuth] - Whether to validate OAuth credentials
  * @returns {import('./types.js').InstanceValidationResult} Validation result
  */
-export function validateInstance(instance, res, instanceId, requireOAuth = true) {
+function validateInstance(instance, res, instanceId, requireOAuth = true) {
   // Check if instance exists
   const existsValidation = validateInstanceExists(instance, res, instanceId);
   if (!existsValidation.isValid) {
@@ -187,3 +187,14 @@ export function validateInstance(instance, res, instanceId, requireOAuth = true)
 
   return { isValid: true, errorResponse: undefined };
 }
+
+module.exports = {
+	isValidInstanceId,
+	createInstanceIdValidationError,
+	validateInstanceExists,
+	validateServiceActive,
+	validateInstanceStatus,
+	validateInstanceNotExpired,
+	validateOAuthCredentials,
+	validateInstance
+};

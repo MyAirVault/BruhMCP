@@ -3,7 +3,7 @@
  * Handles all Reddit API interactions with proper error handling and rate limiting
  */
 
-import { formatRedditResponse, formatRedditErrorMessage } from '../utils/redditFormatting.js';
+const { formatRedditResponse, formatRedditErrorMessage  } = require('../utils/redditFormatting');
 
 /**
  * @typedef {Object} RequestOptions
@@ -245,7 +245,7 @@ const USER_AGENT = 'MCP-Reddit-Service/1.0';
  * @param {RequestOptions} [options] - Request options
  * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse|[RedditListingResponse, RedditListingResponse]>} API response
  */
-export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
+async function makeRedditRequest(endpoint, bearerToken, options = {}) {
   const url = `${REDDIT_API_BASE_URL}${endpoint}`;
   
   const requestOptions = {
@@ -284,7 +284,7 @@ export async function makeRedditRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<RedditUser>} User information
  */
-export async function getCurrentUser(bearerToken) {
+async function getCurrentUser(bearerToken) {
   const response = await makeRedditRequest('/api/v1/me', bearerToken);
   return /** @type {RedditUser} */ (/** @type {RedditApiResponse} */ (response).data);
 }
@@ -295,7 +295,7 @@ export async function getCurrentUser(bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subreddit info
  */
-export async function getSubredditInfo(args, bearerToken) {
+async function getSubredditInfo(args, bearerToken) {
   try {
     const response = /** @type {RedditApiResponse} */ (await makeRedditRequest(`/r/${args.subreddit}/about`, bearerToken));
     const subredditData = response.data;
@@ -316,7 +316,7 @@ export async function getSubredditInfo(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted posts data
  */
-export async function getSubredditPosts(args, bearerToken) {
+async function getSubredditPosts(args, bearerToken) {
   try {
     const { subreddit, sort = 'hot', limit = 25, time = 'day' } = args;
     const params = new URLSearchParams();
@@ -348,7 +348,7 @@ export async function getSubredditPosts(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted post data
  */
-export async function getPostById(args, bearerToken) {
+async function getPostById(args, bearerToken) {
   try {
     const { postId } = args;
     const response = /** @type {RedditListingResponse} */ (await makeRedditRequest(`/by_id/t3_${postId}`, bearerToken));
@@ -374,7 +374,7 @@ export async function getPostById(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted comments data
  */
-export async function getPostComments(args, bearerToken) {
+async function getPostComments(args, bearerToken) {
   try {
     const { postId, sort = 'confidence', limit = 50 } = args;
     const params = new URLSearchParams();
@@ -404,7 +404,7 @@ export async function getPostComments(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted submission response
  */
-export async function submitPost(args, bearerToken) {
+async function submitPost(args, bearerToken) {
   try {
     const { subreddit, title, text, url, kind = 'self', nsfw = false, spoiler = false } = args;
     const formData = new URLSearchParams();
@@ -460,7 +460,7 @@ export async function submitPost(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted comment response
  */
-export async function submitComment(args, bearerToken) {
+async function submitComment(args, bearerToken) {
   try {
     const { parent, text } = args;
     const formData = new URLSearchParams();
@@ -499,7 +499,7 @@ export async function submitComment(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted vote response
  */
-export async function voteOnPost(args, bearerToken) {
+async function voteOnPost(args, bearerToken) {
   try {
     const { postId, direction } = args;
     const formData = new URLSearchParams();
@@ -529,7 +529,7 @@ export async function voteOnPost(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted vote response
  */
-export async function voteOnComment(args, bearerToken) {
+async function voteOnComment(args, bearerToken) {
   try {
     const { commentId, direction } = args;
     const formData = new URLSearchParams();
@@ -559,7 +559,7 @@ export async function voteOnComment(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user info
  */
-export async function getUserInfo(args, bearerToken) {
+async function getUserInfo(args, bearerToken) {
   try {
     const { username } = args;
     const response = /** @type {RedditApiResponse} */ (await makeRedditRequest(`/user/${username}/about`, bearerToken));
@@ -580,7 +580,7 @@ export async function getUserInfo(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user posts
  */
-export async function getUserPosts(args, bearerToken) {
+async function getUserPosts(args, bearerToken) {
   try {
     const { username, sort = 'new', limit = 25, time = 'all' } = args;
     const params = new URLSearchParams();
@@ -612,7 +612,7 @@ export async function getUserPosts(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted user comments
  */
-export async function getUserComments(args, bearerToken) {
+async function getUserComments(args, bearerToken) {
   try {
     const { username, sort = 'new', limit = 25, time = 'all' } = args;
     const params = new URLSearchParams();
@@ -644,7 +644,7 @@ export async function getUserComments(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted search results
  */
-export async function searchPosts(args, bearerToken) {
+async function searchPosts(args, bearerToken) {
   try {
     const { query, subreddit, sort = 'relevance', limit = 25, time = 'all' } = args;
     const params = new URLSearchParams();
@@ -681,7 +681,7 @@ export async function searchPosts(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted search results
  */
-export async function searchSubreddits(args, bearerToken) {
+async function searchSubreddits(args, bearerToken) {
   try {
     const { query, limit = 25 } = args;
     const params = new URLSearchParams();
@@ -709,7 +709,7 @@ export async function searchSubreddits(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted inbox messages
  */
-export async function getInboxMessages(args, bearerToken) {
+async function getInboxMessages(args, bearerToken) {
   try {
     const { limit = 25 } = args;
     const params = new URLSearchParams();
@@ -735,7 +735,7 @@ export async function getInboxMessages(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted message response
  */
-export async function sendMessage(args, bearerToken) {
+async function sendMessage(args, bearerToken) {
   try {
     const { to, subject, text } = args;
     const formData = new URLSearchParams();
@@ -773,7 +773,7 @@ export async function sendMessage(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted response
  */
-export async function markAsRead(args, bearerToken) {
+async function markAsRead(args, bearerToken) {
   try {
     const { messageIds } = args;
     const formData = new URLSearchParams();
@@ -809,7 +809,7 @@ export async function markAsRead(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subscriptions
  */
-export async function getSubscriptions(args, bearerToken) {
+async function getSubscriptions(args, bearerToken) {
   try {
     const { limit = 100 } = args;
     const params = new URLSearchParams();
@@ -835,7 +835,7 @@ export async function getSubscriptions(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted subscription response
  */
-export async function subscribeToSubreddit(args, bearerToken) {
+async function subscribeToSubreddit(args, bearerToken) {
   try {
     const { subreddit } = args;
     const formData = new URLSearchParams();
@@ -862,7 +862,7 @@ export async function subscribeToSubreddit(args, bearerToken) {
  * @param {string} bearerToken - OAuth bearer token
  * @returns {Promise<string>} Formatted unsubscription response
  */
-export async function unsubscribeFromSubreddit(args, bearerToken) {
+async function unsubscribeFromSubreddit(args, bearerToken) {
   try {
     const { subreddit } = args;
     const formData = new URLSearchParams();
@@ -882,3 +882,26 @@ export async function unsubscribeFromSubreddit(args, bearerToken) {
     throw new Error(formatRedditErrorMessage('unsubscribe_from_subreddit', /** @type {Error} */ (error)));
   }
 }
+module.exports = {
+  makeRedditRequest,
+  getCurrentUser,
+  getSubredditInfo,
+  getSubredditPosts,
+  getPostById,
+  getPostComments,
+  submitPost,
+  submitComment,
+  voteOnPost,
+  voteOnComment,
+  getUserInfo,
+  getUserPosts,
+  getUserComments,
+  searchPosts,
+  searchSubreddits,
+  getInboxMessages,
+  sendMessage,
+  markAsRead,
+  getSubscriptions,
+  subscribeToSubreddit,
+  unsubscribeFromSubreddit
+};

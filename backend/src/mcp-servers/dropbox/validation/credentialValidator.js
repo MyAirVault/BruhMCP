@@ -1,5 +1,5 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
+const { BaseValidator, createValidationResult } = require('../../../services/validation/baseValidator.js');
 
 /**
  * Dropbox OAuth credential validator
@@ -153,4 +153,4 @@ function createDropboxValidator(credentials) {
   }
 }
 
-export default createDropboxValidator;
+module.exports = createDropboxValidator;

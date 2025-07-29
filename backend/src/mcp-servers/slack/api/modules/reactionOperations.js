@@ -3,7 +3,7 @@
  * Handles adding, removing, and getting reactions
  */
 
-import { makeSlackRequest } from './requestHandler.js';
+const { makeSlackRequest  } = require('./requestHandler');
 
 /**
  * @typedef {Object} ReactionArgs
@@ -37,7 +37,7 @@ import { makeSlackRequest } from './requestHandler.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ReactionResult>} Add reaction result
  */
-export async function addReaction(args, bearerToken) {
+async function addReaction(args, bearerToken) {
 	const { channel, timestamp, name } = args;
 
 	const response = await makeSlackRequest('/reactions.add', bearerToken, {
@@ -61,7 +61,7 @@ export async function addReaction(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ReactionResult>} Remove reaction result
  */
-export async function removeReaction(args, bearerToken) {
+async function removeReaction(args, bearerToken) {
 	const { channel, timestamp, name } = args;
 
 	const response = await makeSlackRequest('/reactions.remove', bearerToken, {
@@ -85,7 +85,7 @@ export async function removeReaction(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ReactionResult>} Reactions result
  */
-export async function getReactions(args, bearerToken) {
+async function getReactions(args, bearerToken) {
 	const { channel, timestamp } = args;
 
 	const params = new URLSearchParams({
@@ -100,3 +100,8 @@ export async function getReactions(args, bearerToken) {
 		summary: `Retrieved reactions for message in ${channel}`,
 	};
 }
+module.exports = {
+  addReaction,
+  removeReaction,
+  getReactions
+};

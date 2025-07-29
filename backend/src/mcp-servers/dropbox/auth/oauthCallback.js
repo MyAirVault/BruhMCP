@@ -3,8 +3,8 @@
  * Standardized function for handling Dropbox OAuth callbacks
  */
 
-import DropboxOAuthHandler from '../oauth/oauthHandler.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
+const DropboxOAuthHandler = require('../oauth/oauthHandler.js');
+const { updateOAuthStatus } = require('../../../db/queries/mcpInstances/oauth.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -124,4 +124,4 @@ async function oauthCallback(code, state) {
 	}
 }
 
-export { oauthCallback };
+module.exports = { oauthCallback };

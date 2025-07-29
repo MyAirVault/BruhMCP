@@ -8,7 +8,7 @@
  * @param {Function} [typeGuard] - Optional type guard function
  * @returns {boolean} True if object has the key with valid value
  */
-export function hasValue(key, obj, typeGuard) {
+function hasValue(key, obj, typeGuard) {
 	const isObject = typeof obj === "object" && obj !== null;
 	if (!isObject || !(key in obj)) return false;
 	const val = obj[key];
@@ -19,7 +19,7 @@ export function hasValue(key, obj, typeGuard) {
  * Check if value is a frame * @param {any} val - Value to check
  * @returns {boolean} True if value is a frame
  */
-export function isFrame(val) {
+function isFrame(val) {
 	return (
 		typeof val === "object" &&
 		!!val &&
@@ -32,7 +32,7 @@ export function isFrame(val) {
  * Check if value has layout properties * @param {any} val - Value to check
  * @returns {boolean} True if value has layout properties
  */
-export function isLayout(val) {
+function isLayout(val) {
 	return (
 		typeof val === "object" &&
 		!!val &&
@@ -51,7 +51,7 @@ export function isLayout(val) {
  * @param {any} parent - The parent node
  * @returns {boolean} True if the node is a child of an auto layout frame
  */
-export function isInAutoLayoutFlow(node, parent) {
+function isInAutoLayoutFlow(node, parent) {
 	const autoLayoutModes = ["HORIZONTAL", "VERTICAL"];
 	return (
 		isFrame(parent) &&
@@ -65,7 +65,7 @@ export function isInAutoLayoutFlow(node, parent) {
  * Check if value is stroke weights object * @param {any} val - Value to check
  * @returns {boolean} True if value is stroke weights
  */
-export function isStrokeWeights(val) {
+function isStrokeWeights(val) {
 	return (
 		typeof val === "object" &&
 		val !== null &&
@@ -81,7 +81,7 @@ export function isStrokeWeights(val) {
  * @param {any} obj - Object to check
  * @returns {boolean} True if object has rectangle at key
  */
-export function isRectangle(key, obj) {
+function isRectangle(key, obj) {
 	const recordObj = obj;
 	return (
 		typeof obj === "object" &&
@@ -100,7 +100,7 @@ export function isRectangle(key, obj) {
  * Check if value is rectangle corner radii array * @param {any} val - Value to check
  * @returns {boolean} True if value is corner radii array
  */
-export function isRectangleCornerRadii(val) {
+function isRectangleCornerRadii(val) {
 	return Array.isArray(val) && val.length === 4 && val.every((v) => typeof v === "number");
 }
 
@@ -108,7 +108,7 @@ export function isRectangleCornerRadii(val) {
  * Check if value is CSS color value * @param {any} val - Value to check
  * @returns {boolean} True if value is CSS color
  */
-export function isCSSColorValue(val) {
+function isCSSColorValue(val) {
 	return typeof val === "string" && (val.startsWith("#") || val.startsWith("rgba"));
 }
 
@@ -117,6 +117,17 @@ export function isCSSColorValue(val) {
  * @param {any} val - Value to check
  * @returns {boolean} True if value is truthy
  */
-export function isTruthy(val) {
+function isTruthy(val) {
 	return !!val;
 }
+module.exports = {
+	hasValue,
+	isFrame,
+	isLayout,
+	isInAutoLayoutFlow,
+	isStrokeWeights,
+	isRectangle,
+	isRectangleCornerRadii,
+	isCSSColorValue,
+	isTruthy
+};

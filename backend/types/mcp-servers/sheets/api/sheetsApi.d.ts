@@ -74,6 +74,6 @@ export class SheetsApi {
      * @param {number} [_index] - Position to insert the sheet (unused)
      * @returns {Promise<Object>} Add sheet result
      */
-    addSheet(spreadsheetId: string, sheetName: string, _index?: number): Promise<Object>;
+    addSheet(spreadsheetId: string, sheetName: string, _index?: number | undefined): Promise<Object>;
 }
 //# sourceMappingURL=sheetsApi.d.ts.map

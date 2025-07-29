@@ -3,8 +3,8 @@
  * General utility operations for Notion API
  */
 
-import { makeNotionRequest } from './requestHandler.js';
-import { formatNotionResponse } from '../../utils/notionFormatting.js';
+const { makeNotionRequest  } = require('./requestHandler');
+const { formatNotionResponse  } = require('../../utils/notionFormatting');
 
 /**
  * Make raw API call to Notion
@@ -12,7 +12,7 @@ import { formatNotionResponse } from '../../utils/notionFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, unknown>>} API response
  */
-export async function makeRawApiCall(args, bearerToken) {
+async function makeRawApiCall(args, bearerToken) {
 	const { endpoint, method = 'GET', body = {} } = args;
 
 	const options = /** @type {{method: string, body?: Record<string, unknown>}} */ ({
@@ -41,3 +41,6 @@ export async function makeRawApiCall(args, bearerToken) {
 		result,
 	});
 }
+module.exports = {
+  makeRawApiCall
+};

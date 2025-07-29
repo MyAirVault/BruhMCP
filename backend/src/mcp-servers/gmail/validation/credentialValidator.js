@@ -1,5 +1,5 @@
 // @ts-check
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
+const { BaseValidator, createValidationResult } = require('../../../services/validation/baseValidator.js');
 
 /**
  * Gmail OAuth credential validator
@@ -143,4 +143,7 @@ function createGmailValidator(credentials) {
 	}
 }
 
-export default createGmailValidator;
+
+
+
+module.exports = createGmailValidator;

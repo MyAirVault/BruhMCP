@@ -7,7 +7,7 @@
  * Get all available tools for Google Drive MCP
  * @returns {{ tools: { name: string, description: string, inputSchema: { type: string, properties?: Record<string, { type?: string, description?: string, enum?: string[], pattern?: string, minLength?: number, maxLength?: number, minimum?: number, maximum?: number, multipleOf?: number, minItems?: number, maxItems?: number, items?: Record<string, string | number | boolean> }>, required?: string[] } }[] }} Tools definition object
  */
-export function getTools() {
+function getTools() {
 	return {
 		tools: [
 			{
@@ -19,20 +19,17 @@ export function getTools() {
 						query: {
 							type: "string",
 							description: "Search query using Google Drive search syntax",
-							default: ""
 						},
 						maxResults: {
 							type: "number",
 							description: "Maximum number of files to return",
 							minimum: 1,
 							maximum: 1000,
-							default: 10
 						},
 						orderBy: {
 							type: "string",
 							enum: ["createdTime", "folder", "modifiedByMeTime", "modifiedTime", "name", "quotaBytesUsed", "recency", "sharedWithMeTime", "starred", "viewedByMeTime"],
 							description: "Field to sort by",
-							default: "modifiedTime"
 						},
 						folderId: {
 							type: "string",
@@ -41,7 +38,6 @@ export function getTools() {
 						includeItemsFromAllDrives: {
 							type: "boolean",
 							description: "Include items from all drives/shared drives",
-							default: false
 						}
 					}
 				}
@@ -59,7 +55,6 @@ export function getTools() {
 						fields: {
 							type: "string",
 							description: "Comma-separated list of fields to include",
-							default: "id,name,mimeType,parents,createdTime,modifiedTime,size,webViewLink,webContentLink,permissions,shared,starred,trashed"
 						}
 					},
 					required: ["fileId"]
@@ -223,7 +218,6 @@ export function getTools() {
 						sendNotificationEmail: {
 							type: "boolean",
 							description: "Whether to send notification email",
-							default: true
 						}
 					},
 					required: ["fileId", "type", "role"]
@@ -244,13 +238,11 @@ export function getTools() {
 							description: "Maximum number of results to return",
 							minimum: 1,
 							maximum: 1000,
-							default: 10
 						},
 						orderBy: {
 							type: "string",
 							enum: ["createdTime", "folder", "modifiedByMeTime", "modifiedTime", "name", "quotaBytesUsed", "recency", "sharedWithMeTime", "starred", "viewedByMeTime"],
 							description: "Field to sort by",
-							default: "modifiedTime"
 						}
 					},
 					required: ["query"]
@@ -287,7 +279,7 @@ export function getTools() {
  * @param {string} toolName - Name of the tool
  * @returns {Object|null} Tool definition or null if not found
  */
-export function getToolByName(toolName) {
+function getToolByName(toolName) {
 	const toolsData = getTools();
 	return toolsData.tools.find(tool => tool.name === toolName) || null;
 }
@@ -296,9 +288,9 @@ export function getToolByName(toolName) {
  * Get all tool names
  * @returns {string[]} Array of tool names
  */
-export function getToolNames() {
+function getToolNames() {
 	const toolsData = getTools();
-	return toolsData.tools.map(tool => tool.name);
+	return /** @type {any} */ (toolsData).tools.map((/** @type {any} */ tool) => tool.name);
 }
 
 /**
@@ -306,7 +298,13 @@ export function getToolNames() {
  * @param {string} toolName - Name of the tool to validate
  * @returns {boolean} True if tool exists
  */
-export function isValidTool(toolName) {
+function isValidTool(toolName) {
 	const toolNames = getToolNames();
 	return toolNames.includes(toolName);
 }
+
+module.exports = {
+	getTools,
+	getToolNames,
+	isValidTool
+};

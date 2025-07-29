@@ -3,8 +3,7 @@
  * Executes Slack API operations using OAuth Bearer tokens
  */
 
-import { 
-  sendMessage, 
+const { sendMessage, 
   getMessages, 
   getThreadMessages,
   deleteMessage,
@@ -23,9 +22,9 @@ import {
   createReminder,
   getTeamInfo,
   testAuth
-} from '../api/slackApi.js';
+ } = require('../api/slackApi');
 
-import { validateToolArguments } from '../utils/validation.js';
+const { validateToolArguments  } = require('../utils/validation');
 
 /**
  * @typedef {import('../api/modules/messageOperations.js').SendMessageArgs} SendMessageArgs
@@ -63,7 +62,7 @@ import { validateToolArguments } from '../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token for Slack API
  * @returns {Promise<ToolExecutionResult>} Tool execution result
  */
-export async function executeToolCall(toolName, args, bearerToken) {
+async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Slack tool: ${toolName}`);
   console.log(`📋 Arguments:`, JSON.stringify(args, null, 2));
 
@@ -191,3 +190,6 @@ export async function executeToolCall(toolName, args, bearerToken) {
     throw enhancedError;
   }
 }
+module.exports = {
+  executeToolCall
+};

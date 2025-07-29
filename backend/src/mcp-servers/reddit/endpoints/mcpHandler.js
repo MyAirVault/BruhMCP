@@ -3,14 +3,14 @@
  * OAuth 2.0 Implementation following Multi-Tenant Architecture
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
+const { McpServer  } = require('@modelcontextprotocol/sdk/server/mcp');
+const { StreamableHTTPServerTransport  } = require('@modelcontextprotocol/sdk/server/streamableHttp');
+const { isInitializeRequest  } = require('@modelcontextprotocol/sdk/types');
+const { randomUUID  } = require('node:crypto');
+const { z  } = require('zod');
 
-import { executeToolCall } from './call.js';
-import { getTools } from './tools.js';
+const { executeToolCall  } = require('./call');
+const { getTools  } = require('./tools');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -20,7 +20,7 @@ import { getTools } from './tools.js';
  * @property {string[]} scopes
  */
 
-export class RedditMCPHandler {
+class RedditMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} bearerToken
@@ -264,3 +264,7 @@ export class RedditMCPHandler {
 		console.log(`✅ ${this.serviceConfig.name} MCP handler cleanup completed`);
 	}
 }
+
+module.exports = {
+	RedditMCPHandler
+};

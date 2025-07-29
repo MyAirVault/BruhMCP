@@ -3,7 +3,7 @@
  * Validates OAuth credentials and token formats
  */
 
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
+const { BaseValidator, createValidationResult  } = require('../../../services/validation/baseValidator');
 
 /**
  * OAuth credentials interface
@@ -35,7 +35,7 @@ import { BaseValidator, createValidationResult } from '../../../services/validat
  * @param {OAuthCredentials} credentials - OAuth credentials to validate
  * @returns {Promise<ValidationResult>} Validation result
  */
-export async function validateCredentials(credentials) {
+async function validateCredentials(credentials) {
   const { clientId, clientSecret, refreshToken, accessToken } = credentials;
   
   // Validate required fields
@@ -115,7 +115,7 @@ export async function validateCredentials(credentials) {
  * @param {string} accessToken - Access token to validate
  * @returns {TokenValidationResult} Validation result
  */
-export function validateAccessToken(accessToken) {
+function validateAccessToken(accessToken) {
   if (!accessToken) {
     return {
       valid: false,
@@ -160,7 +160,7 @@ export function validateAccessToken(accessToken) {
  * @param {string} refreshToken - Refresh token to validate
  * @returns {TokenValidationResult} Validation result
  */
-export function validateRefreshToken(refreshToken) {
+function validateRefreshToken(refreshToken) {
   if (!refreshToken) {
     return {
       valid: false,
@@ -205,7 +205,7 @@ export function validateRefreshToken(refreshToken) {
  * @param {string[]} scopes - Array of OAuth scopes
  * @returns {ValidationResult} Validation result
  */
-export function validateScopes(scopes) {
+function validateScopes(scopes) {
   if (!Array.isArray(scopes)) {
     return {
       valid: false,
@@ -282,7 +282,7 @@ export function validateScopes(scopes) {
  * @param {InstanceConfig} config - Instance configuration
  * @returns {ValidationResult} Validation result
  */
-export function validateInstanceConfig(config) {
+function validateInstanceConfig(config) {
   const { instanceId, userId, serviceName, credentials } = config;
   
   const errors = [];
@@ -465,4 +465,4 @@ function createGoogleDriveValidator(credentials) {
   }
 }
 
-export default createGoogleDriveValidator;
+module.exports = createGoogleDriveValidator;

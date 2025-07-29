@@ -1,19 +1,21 @@
-/**
- * @typedef {Object} ValidationResult
- * @property {boolean} valid - Whether credentials are valid
- * @property {string|null} error - Error message if validation failed
- * @property {string|null} field - Field that caused validation failure
- * @property {Object|null} service_info - Service information if validation succeeded
- */
-/**
- * Create a validation result object
- * @param {boolean} valid - Whether validation passed
- * @param {string|null} error - Error message if validation failed
- * @param {string|null} field - Field that caused validation failure
- * @param {Object|null} service_info - Service information if validation succeeded
- * @returns {ValidationResult} Validation result
- */
-export function createValidationResult(valid: boolean, error?: string | null, field?: string | null, service_info?: Object | null): ValidationResult;
+export type ValidationResult = {
+    /**
+     * - Whether credentials are valid
+     */
+    valid: boolean;
+    /**
+     * - Error message if validation failed
+     */
+    error: string | null;
+    /**
+     * - Field that caused validation failure
+     */
+    field: string | null;
+    /**
+     * - Service information if validation succeeded
+     */
+    service_info: Object | null;
+};
 /**
  * Base validation interface that all service validators should implement
  */
@@ -44,22 +46,20 @@ export class BaseValidator {
      */
     getServiceInfo(_credentials: Object): Object;
 }
-export type ValidationResult = {
-    /**
-     * - Whether credentials are valid
-     */
-    valid: boolean;
-    /**
-     * - Error message if validation failed
-     */
-    error: string | null;
-    /**
-     * - Field that caused validation failure
-     */
-    field: string | null;
-    /**
-     * - Service information if validation succeeded
-     */
-    service_info: Object | null;
-};
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether credentials are valid
+ * @property {string|null} error - Error message if validation failed
+ * @property {string|null} field - Field that caused validation failure
+ * @property {Object|null} service_info - Service information if validation succeeded
+ */
+/**
+ * Create a validation result object
+ * @param {boolean} valid - Whether validation passed
+ * @param {string|null} error - Error message if validation failed
+ * @param {string|null} field - Field that caused validation failure
+ * @param {Object|null} service_info - Service information if validation succeeded
+ * @returns {ValidationResult} Validation result
+ */
+export function createValidationResult(valid: boolean, error?: string | null, field?: string | null, service_info?: Object | null): ValidationResult;
 //# sourceMappingURL=baseValidator.d.ts.map

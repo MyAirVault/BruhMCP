@@ -3,7 +3,7 @@
  * @fileoverview Contains basic create, read, update, delete operations for MCP instances
  */
 
-import { pool } from '../../config.js';
+const { pool } = require('../../config.js');
 
 /**
  * @typedef {import('./types.js').MCPInstanceFilters} MCPInstanceFilters
@@ -18,7 +18,7 @@ import { pool } from '../../config.js';
  * @returns {Promise<MCPInstanceRecord[]>} Array of MCP instance records
  * @throws {Error} When database query fails
  */
-export async function getAllMCPInstances(userId, filters = {}) {
+async function getAllMCPInstances(userId, filters = {}) {
 	let query = `
 		SELECT 
 			ms.instance_id,
@@ -80,7 +80,7 @@ export async function getAllMCPInstances(userId, filters = {}) {
  * @returns {Promise<MCPInstanceRecord|null>} MCP instance record or null if not found
  * @throws {Error} When database query fails
  */
-export async function getMCPInstanceById(instanceId, userId) {
+async function getMCPInstanceById(instanceId, userId) {
 	const query = `
 		SELECT 
 			ms.instance_id,
@@ -125,7 +125,7 @@ export async function getMCPInstanceById(instanceId, userId) {
  * @returns {Promise<MCPInstanceRecord|null>} Updated instance record or null if not found
  * @throws {Error} When no update data provided or database query fails
  */
-export async function updateMCPInstance(instanceId, userId, updateData) {
+async function updateMCPInstance(instanceId, userId, updateData) {
 	/** @type {string[]} */
 	const setClauses = [];
 	/** @type {(string|Date|null)[]} */
@@ -201,7 +201,7 @@ export async function updateMCPInstance(instanceId, userId, updateData) {
  * @returns {Promise<boolean>} True if instance was deleted, false if not found
  * @throws {Error} When database query fails
  */
-export async function deleteMCPInstance(instanceId, userId) {
+async function deleteMCPInstance(instanceId, userId) {
 	const query = `
 		DELETE FROM mcp_service_table 
 		WHERE instance_id = $1 AND user_id = $2
@@ -211,3 +211,10 @@ export async function deleteMCPInstance(instanceId, userId) {
 	const result = await pool.query(query, [instanceId, userId]);
 	return (result.rowCount ?? 0) > 0;
 }
+
+module.exports = {
+	getAllMCPInstances,
+	getMCPInstanceById,
+	updateMCPInstance,
+	deleteMCPInstance
+};

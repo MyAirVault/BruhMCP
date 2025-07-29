@@ -1,3 +1,23 @@
+export type MCPType = {
+    mcp_service_id: string;
+    mcp_service_name: string;
+    display_name: string;
+    description: string;
+    icon_url_path: string;
+    port: number;
+    type: string;
+    is_active: boolean;
+    active_instances_count: number;
+    created_at: Date;
+    updated_at: Date;
+};
+export type RequiredField = {
+    name: string;
+    type: string;
+    description: string;
+    required: boolean;
+    placeholder: string;
+};
 /**
  * @typedef {Object} MCPType
  * @property {string} mcp_service_id
@@ -25,25 +45,5 @@
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export function getMCPTypes(req: import("express").Request, res: import("express").Response): Promise<void>;
-export type MCPType = {
-    mcp_service_id: string;
-    mcp_service_name: string;
-    display_name: string;
-    description: string;
-    icon_url_path: string;
-    port: number;
-    type: string;
-    is_active: boolean;
-    active_instances_count: number;
-    created_at: Date;
-    updated_at: Date;
-};
-export type RequiredField = {
-    name: string;
-    type: string;
-    description: string;
-    required: boolean;
-    placeholder: string;
-};
+export function getMCPTypes(req: import('express').Request, res: import('express').Response): Promise<void>;
 //# sourceMappingURL=getMCPTypes.d.ts.map

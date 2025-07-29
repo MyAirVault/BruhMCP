@@ -1,6 +1,6 @@
 // @ts-check
-import nodemailer from 'nodemailer';
-import { magicLinkEmailTemplate } from '../templates/magicLinkEmail.js';
+const nodemailer = require('nodemailer');
+const { magicLinkEmailTemplate } = require('../templates/magicLinkEmail.js');
 
 /**
  * @typedef {Object} EmailResult
@@ -108,4 +108,5 @@ class EmailService {
 }
 
 // Export singleton instance
-export const emailService = new EmailService();
+const emailService = new EmailService();
+module.exports = { emailService };

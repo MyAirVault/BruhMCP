@@ -3,16 +3,15 @@
  * Multi-tenant OAuth implementation with credential caching
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
-import { NotionService } from '../api/notionApi.js';
-import {
-	searchPagesSchema,
+const { McpServer  } = require('@modelcontextprotocol/sdk/server/mcp');
+const { StreamableHTTPServerTransport  } = require('@modelcontextprotocol/sdk/server/streamableHttp');
+const { isInitializeRequest  } = require('@modelcontextprotocol/sdk/types');
+const { randomUUID  } = require('node:crypto');
+const { z  } = require('zod');
+const { NotionService  } = require('../api/notionApi');
+const { searchPagesSchema,
 	getPageSchema
-} from './schemas.js';
+ } = require('./schemas');
 
 // Import types from notionFormatting.js
 /**
@@ -132,7 +131,7 @@ import {
  * @property {boolean} [isError] - Whether this is an error response
  */
 
-export class NotionMCPHandler {
+class NotionMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} bearerToken
@@ -621,3 +620,7 @@ export class NotionMCPHandler {
 		}
 	}
 }
+
+module.exports = {
+	NotionMCPHandler
+};

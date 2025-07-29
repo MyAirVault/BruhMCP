@@ -314,4 +314,4 @@
  * @property {AuditLogMetadata} metadata - Additional metadata
  */
 
-export {};
+module.exports = {};

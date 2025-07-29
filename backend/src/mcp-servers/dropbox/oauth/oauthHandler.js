@@ -88,8 +88,7 @@ class DropboxOAuthHandler {
 			}
 
 			// Get stored credentials for this instance
-			const mcpCrud = await import('../../../db/queries/mcpInstances/crud.js');
-			const { getMCPInstanceById } = mcpCrud;
+			const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/crud.js');
 			// Get stored credentials for this instance with proper user authorization
 			const instance = await getMCPInstanceById(instanceId, userId);
 
@@ -192,4 +191,4 @@ class DropboxOAuthHandler {
 	}
 }
 
-export default DropboxOAuthHandler;
+module.exports = DropboxOAuthHandler;

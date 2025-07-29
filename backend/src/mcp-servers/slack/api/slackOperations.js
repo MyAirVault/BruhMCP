@@ -3,8 +3,8 @@
  * Specialized operations that extend the core Slack API functionality
  */
 
-import { logApiRequest, logApiResponse, createTimer } from '../utils/logger.js';
-import { formatMessageResponse, formatChannelResponse, formatUserResponse } from '../utils/slackFormatting.js';
+const { logApiRequest, logApiResponse, createTimer  } = require('../utils/logger');
+const { formatMessageResponse, formatChannelResponse, formatUserResponse  } = require('../utils/slackFormatting');
 
 const SLACK_API_BASE = 'https://slack.com/api';
 
@@ -145,7 +145,7 @@ async function makeSlackRequest(endpoint, bearerToken, instanceId, options = {})
 /**
  * Bulk message operations
  */
-export class MessageOperations {
+class MessageOperations {
 	/**
 	 * @param {string} bearerToken - OAuth Bearer token
 	 * @param {string} instanceId - Instance ID for logging
@@ -250,7 +250,7 @@ export class MessageOperations {
 /**
  * Channel management operations
  */
-export class ChannelOperations {
+class ChannelOperations {
 	/**
 	 * @param {string} bearerToken - OAuth Bearer token
 	 * @param {string} instanceId - Instance ID for logging
@@ -360,7 +360,7 @@ export class ChannelOperations {
 /**
  * User management operations
  */
-export class UserOperations {
+class UserOperations {
 	/**
 	 * @param {string} bearerToken - OAuth Bearer token
 	 * @param {string} instanceId - Instance ID for logging
@@ -451,7 +451,7 @@ export class UserOperations {
 /**
  * File operations
  */
-export class FileOperations {
+class FileOperations {
 	/**
 	 * @param {string} bearerToken - OAuth Bearer token
 	 * @param {string} instanceId - Instance ID for logging
@@ -538,7 +538,7 @@ export class FileOperations {
 /**
  * Workspace operations
  */
-export class WorkspaceOperations {
+class WorkspaceOperations {
 	/**
 	 * @param {string} bearerToken - OAuth Bearer token
 	 * @param {string} instanceId - Instance ID for logging
@@ -638,7 +638,7 @@ export class WorkspaceOperations {
  * @param {string} instanceId - Instance ID for logging
  * @returns {SlackOperations} Collection of operation instances
  */
-export function createSlackOperations(bearerToken, instanceId) {
+function createSlackOperations(bearerToken, instanceId) {
 	return {
 		messages: new MessageOperations(bearerToken, instanceId),
 		channels: new ChannelOperations(bearerToken, instanceId),

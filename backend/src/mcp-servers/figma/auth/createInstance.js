@@ -3,9 +3,9 @@
  * Standardized function for creating Figma service instances
  */
 
-import createFigmaValidator from '../validation/credentialValidator.js';
-import { createMCPInstance } from '../../../db/queries/mcpInstances/creation.js';
-import { getMCPTypeByName } from '../../../db/queries/mcpTypesQueries.js';
+const createFigmaValidator = require('../validation/credentialValidator.js');
+const { createMCPInstance } = require('../../../db/queries/mcpInstances/creation.js');
+const { getMCPTypeByName } = require('../../../db/queries/mcpTypesQueries.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').InstanceResult} InstanceResult
@@ -95,4 +95,6 @@ async function createInstance(instanceData, userId) {
 }
 
 
-export { createInstance };
+module.exports = {
+	createInstance
+};

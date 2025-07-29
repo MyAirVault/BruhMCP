@@ -4,7 +4,7 @@
  * Validates OAuth credentials format for Google Sheets service
  */
 
-import { BaseValidator, createValidationResult } from '../../../services/validation/baseValidator.js';
+const { BaseValidator, createValidationResult  } = require('../../../services/validation/baseValidator');
 
 /**
  * Google Sheets OAuth validator
@@ -105,4 +105,4 @@ function createSheetsValidator(credentials) {
 	}
 }
 
-export default createSheetsValidator;
+module.exports = createSheetsValidator;

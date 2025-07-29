@@ -3,8 +3,7 @@
  * Dynamically imports and manages service functions
  */
 
-import { resolve } from 'path';
-import { pathToFileURL } from 'url';
+const { resolve } = require('path');
 
 /**
  * @typedef {import('../types/serviceTypes.js').ServiceType} ServiceType
@@ -22,13 +21,16 @@ import { pathToFileURL } from 'url';
  */
 async function importServiceFunction(servicePath, functionName) {
 	try {
-		// Resolve to absolute path and convert to file URL for import
+		// Resolve to absolute path for require
 		const functionPath = resolve(servicePath, 'auth', `${functionName}.js`);
-		const fileUrl = pathToFileURL(functionPath).href;
-		const module = await import(fileUrl);
+		
+		// Clear the require cache to ensure we get the latest version
+		delete require.cache[require.resolve(functionPath)];
+		
+		const module = require(functionPath);
 		
 		// Look for named export matching function name or default export
-		const exportedFunction = module[functionName] || module.default;
+		const exportedFunction = module[functionName] || module.default || module;
 		
 		if (typeof exportedFunction !== 'function') {
 			console.error(`❌ ${functionName} is not a function in ${functionPath}`);
@@ -203,7 +205,7 @@ async function safeCallFunction(func, serviceName, functionName, ...args) {
 }
 
 
-export {
+module.exports = {
 	importServiceFunction,
 	loadServiceFunctions,
 	loadSpecificFunction,

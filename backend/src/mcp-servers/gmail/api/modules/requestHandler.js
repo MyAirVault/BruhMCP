@@ -23,7 +23,7 @@ const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
  * @returns {Promise<Record<string, any>>} API response
  * @throws {Error} When API request fails
  */
-export async function makeGmailRequest(endpoint, bearerToken, options = {}) {
+async function makeGmailRequest(endpoint, bearerToken, options = {}) {
 	const url = `${GMAIL_API_BASE}${endpoint}`;
 
 	/** @type {RequestInit} */
@@ -70,3 +70,7 @@ export async function makeGmailRequest(endpoint, bearerToken, options = {}) {
 
 	return data;
 }
+
+module.exports = {
+	makeGmailRequest
+};

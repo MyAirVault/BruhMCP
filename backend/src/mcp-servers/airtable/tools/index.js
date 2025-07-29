@@ -3,16 +3,16 @@
  * Consolidated tool setup functions
  */
 
-import { setupListBasesTool } from './list-bases.js';
-import { setupGetBaseSchemaTool } from './get-base-schema.js';
-import { setupListRecordsTool } from './listRecords.js';
-import { setupGetRecordTool } from './getRecord.js';
-import { setupCreateRecordTool } from './createRecord.js';
-import { setupUpdateRecordTool } from './updateRecord.js';
-import { setupDeleteRecordTool } from './deleteRecord.js';
-import { setupCreateMultipleRecordsTool } from './createMultipleRecords.js';
-import { setupSearchRecordsTool } from './searchRecords.js';
-import { setupGetServiceStatsTool } from './getServiceStats.js';
+const { setupListBasesTool } = require('./list-bases.js');
+const setupGetBaseSchemaTool = require('./get-base-schema.js');
+const setupListRecordsTool = require('./listRecords.js');
+const setupGetRecordTool = require('./getRecord.js');
+const setupCreateRecordTool = require('./createRecord.js');
+const setupUpdateRecordTool = require('./updateRecord.js');
+const setupDeleteRecordTool = require('./deleteRecord.js');
+const setupCreateMultipleRecordsTool = require('./createMultipleRecords.js');
+const setupSearchRecordsTool = require('./searchRecords.js');
+const setupGetServiceStatsTool = require('./getServiceStats.js');
 
 /**
  * @typedef {Object} MCPServer
@@ -33,7 +33,7 @@ import { setupGetServiceStatsTool } from './getServiceStats.js';
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-export function setupAllTools(server, airtableService, measurePerformance, serviceConfig) {
+function setupAllTools(server, airtableService, measurePerformance, serviceConfig) {
 	// Base operations
 	setupListBasesTool(server, airtableService, measurePerformance, serviceConfig);
 	setupGetBaseSchemaTool(server, airtableService, measurePerformance, serviceConfig);
@@ -50,3 +50,5 @@ export function setupAllTools(server, airtableService, measurePerformance, servi
 	setupSearchRecordsTool(server, airtableService, measurePerformance, serviceConfig);
 	setupGetServiceStatsTool(server, airtableService, measurePerformance, serviceConfig);
 }
+
+module.exports = { setupAllTools };

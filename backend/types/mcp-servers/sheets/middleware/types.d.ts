@@ -1,6 +1,6 @@
-export type ExpressRequest = import("express").Request;
-export type ExpressResponse = import("express").Response;
-export type ExpressNext = import("express").NextFunction;
+export type ExpressRequest = import('express').Request;
+export type ExpressResponse = import('express').Response;
+export type ExpressNext = import('express').NextFunction;
 export type DatabaseInstance = {
     /**
      * - Instance UUID

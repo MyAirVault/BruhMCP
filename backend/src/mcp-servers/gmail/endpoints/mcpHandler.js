@@ -3,12 +3,12 @@
  * Multi-tenant OAuth implementation with credential caching
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
-import { 
+const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
+const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
+const { isInitializeRequest } = require('@modelcontextprotocol/sdk/types.js');
+const { randomUUID } = require('node:crypto');
+const { z } = require('zod');
+const { 
   sendEmail, 
   fetchEmails, 
   fetchMessageById, 
@@ -25,14 +25,14 @@ import {
   downloadAttachment,
   listAttachments,
   sendEmailWithAttachments
-} from '../api/gmailApi.js';
+} = require('../api/gmailApi.js');
 
-import { 
+const { 
   listLabels, 
   createLabel, 
   modifyLabels,
   deleteLabel 
-} from '../api/labelOperations.js';
+} = require('../api/labelOperations.js');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -42,7 +42,7 @@ import {
  * @property {string[]} scopes
  */
 
-export class GmailMCPHandler {
+class GmailMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} bearerToken
@@ -660,3 +660,5 @@ export class GmailMCPHandler {
 		}
 	}
 }
+
+module.exports = GmailMCPHandler;

@@ -1,1 +1,1 @@
-{"version":3,"file":"revokeInstance.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/airtable/auth/revokeInstance.js"],"names":[],"mappings":"2BAQa,OAAO,2DAA2D,EAAE,YAAY;AAD7F;;GAEG;AAEH;;;;;GAKG;AACH,2CAJW,MAAM,UACN,MAAM,GACJ,OAAO,CAAC,YAAY,CAAC,CAoDjC"}
+{"version":3,"file":"revokeInstance.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/airtable/auth/revokeInstance.js"],"names":[],"mappings":"2BAQa,OAAO,2DAA2D,EAAE,YAAY;AAD7F;;GAEG;AAEH;;;;;GAKG;AACH,2CAJW,MAAM,UACN,MAAM,GACJ,QAAQ,YAAY,CAAC,CAoDjC"}

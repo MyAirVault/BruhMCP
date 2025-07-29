@@ -5,17 +5,17 @@
 
 /// <reference path="./types.js" />
 
-import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauthValidation.js';
-import { updateOAuthStatus, updateOAuthStatusWithLocking } from '../../../db/queries/mcpInstances/index.js';
-import { recordTokenRefreshMetrics } from '../utils/tokenMetrics.js';
-import { cacheNewTokens, setupRequestWithNewTokens } from './credentialManagement.js';
+const { refreshBearerToken, refreshBearerTokenDirect } = require('../utils/oauthValidation.js');
+const { updateOAuthStatus, updateOAuthStatusWithLocking } = require('../../../db/queries/mcpInstances/index.js');
+const { recordTokenRefreshMetrics } = require('../utils/tokenMetrics.js');
+const { cacheNewTokens, setupRequestWithNewTokens } = require('./credentialManagement.js');
 
 /**
  * Attempt to refresh token using OAuth service with fallback to direct Dropbox OAuth
  * @param {import('./types.js').TokenRefreshOptions} options - Token refresh options
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Token refresh result
  */
-export async function attemptTokenRefresh(options) {
+async function attemptTokenRefresh(options) {
   const { refreshToken, clientId, clientSecret } = options;
   let usedMethod = 'oauth_service';
   
@@ -93,7 +93,7 @@ export async function attemptTokenRefresh(options) {
  * @param {number} endTime - Refresh end timestamp
  * @returns {void}
  */
-export function recordSuccessfulRefreshMetrics(instanceId, method, startTime, endTime) {
+function recordSuccessfulRefreshMetrics(instanceId, method, startTime, endTime) {
   recordTokenRefreshMetrics(
     instanceId, 
     /** @type {'oauth_service'|'direct_oauth'} */ (method), 
@@ -114,7 +114,7 @@ export function recordSuccessfulRefreshMetrics(instanceId, method, startTime, en
  * @param {number} endTime - Refresh end timestamp
  * @returns {void}
  */
-export function recordFailedRefreshMetrics(instanceId, method, error, startTime, endTime) {
+function recordFailedRefreshMetrics(instanceId, method, error, startTime, endTime) {
   recordTokenRefreshMetrics(
     instanceId, 
     /** @type {'oauth_service'|'direct_oauth'} */ (method), 
@@ -135,7 +135,7 @@ export function recordFailedRefreshMetrics(instanceId, method, error, startTime,
  * @param {string} [scope] - Token scope
  * @returns {Promise<void>} Promise that resolves when database is updated
  */
-export async function updateDatabaseWithNewTokens(instanceId, accessToken, refreshToken, expiresAt, scope) {
+async function updateDatabaseWithNewTokens(instanceId, accessToken, refreshToken, expiresAt, scope) {
   try {
     await updateOAuthStatusWithLocking(instanceId, {
       status: 'completed',
@@ -165,7 +165,7 @@ export async function updateDatabaseWithNewTokens(instanceId, accessToken, refre
  * @param {import('./types.js').ExpressRequest} req - Express request object
  * @returns {Promise<import('./types.js').TokenRefreshMetadata>} Processing result with metadata
  */
-export async function processSuccessfulRefresh(instanceId, refreshResult, instance, req) {
+async function processSuccessfulRefresh(instanceId, refreshResult, instance, req) {
   if (!refreshResult.accessToken || !refreshResult.refreshToken || !refreshResult.expiresIn) {
     throw new Error('Invalid refresh result: missing required token data');
   }
@@ -202,7 +202,7 @@ export async function processSuccessfulRefresh(instanceId, refreshResult, instan
  * @param {string} userId - The user ID
  * @returns {import('./types.js').TokenRefreshErrorInfo} Processing result with error information
  */
-export function processFailedRefresh(instanceId, refreshResult, userId) {
+function processFailedRefresh(instanceId, refreshResult, userId) {
   if (!refreshResult.error) {
     throw new Error('Invalid refresh result: missing error information');
   }
@@ -231,7 +231,7 @@ export function processFailedRefresh(instanceId, refreshResult, userId) {
  * @param {import('./types.js').ExpressRequest} req - Express request object
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Refresh operation result
  */
-export async function performTokenRefresh(instanceId, refreshToken, instance, req) {
+async function performTokenRefresh(instanceId, refreshToken, instance, req) {
   console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
   
   const refreshOptions = {
@@ -270,3 +270,13 @@ export async function performTokenRefresh(instanceId, refreshToken, instance, re
     };
   }
 }
+
+module.exports = {
+  attemptTokenRefresh,
+  recordSuccessfulRefreshMetrics,
+  recordFailedRefreshMetrics,
+  updateDatabaseWithNewTokens,
+  processSuccessfulRefresh,
+  processFailedRefresh,
+  performTokenRefresh
+};

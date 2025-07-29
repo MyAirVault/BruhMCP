@@ -1,7 +1,7 @@
-import winston from 'winston';
-import path from 'path';
-import fs from 'fs';
-import DailyRotateFile from 'winston-daily-rotate-file';
+const winston = require('winston');
+const path = require('path');
+const fs = require('fs');
+const DailyRotateFile = require('winston-daily-rotate-file');
 
 /**
  * @typedef {Object} SecurityContext
@@ -592,4 +592,4 @@ systemLogger.startup({
 	logDirectory: LOGS_DIR
 });
 
-export default systemLogger;
+module.exports = systemLogger;

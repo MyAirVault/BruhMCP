@@ -46,7 +46,7 @@
  * @param {ServiceConfig} serviceConfig - Service configuration object
  * @returns {HealthStatus} Health status information
  */
-export function healthCheck(serviceConfig) {
+function healthCheck(serviceConfig) {
   const startTime = process.hrtime();
   const uptime = process.uptime();
   
@@ -100,3 +100,7 @@ export function healthCheck(serviceConfig) {
 
   return healthStatus;
 }
+
+module.exports = {
+	healthCheck
+};

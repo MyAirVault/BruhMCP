@@ -6,24 +6,24 @@
  * @typedef {import('express').NextFunction} NextFunction
  */
 
-import { Router } from 'express';
-import { createMCP } from '../controllers/mcpInstances/crud/createMCP.js';
-import { getMCPInstances } from '../controllers/mcpInstances/crud/getMCPInstances.js';
-import { getMCPInstance } from '../controllers/mcpInstances/crud/getMCPInstance.js';
-import { deleteMCP } from '../controllers/mcpInstances/crud/deleteMCP.js';
-import { getMCPLogs } from '../controllers/mcpInstances/logging/getMCPLogs.js';
-import { exportMCPLogs } from '../controllers/mcpInstances/logging/exportMCPLogs.js';
+const { Router } = require('express');
+const { createMCP } = require('../controllers/mcpInstances/crud/createMCP.js');
+const { getMCPInstances } = require('../controllers/mcpInstances/crud/getMCPInstances.js');
+const { getMCPInstance } = require('../controllers/mcpInstances/crud/getMCPInstance.js');
+const { deleteMCP } = require('../controllers/mcpInstances/crud/deleteMCP.js');
+const { getMCPLogs } = require('../controllers/mcpInstances/logging/getMCPLogs.js');
+const { exportMCPLogs } = require('../controllers/mcpInstances/logging/exportMCPLogs.js');
 // Lifecycle management
-import { toggleInstanceStatus } from '../controllers/mcpInstances/lifecycle/toggleInstanceStatus.js';
-import { renewInstance } from '../controllers/mcpInstances/lifecycle/renewInstance.js';
+const { toggleInstanceStatus } = require('../controllers/mcpInstances/lifecycle/toggleInstanceStatus.js');
+const { renewInstance } = require('../controllers/mcpInstances/lifecycle/renewInstance.js');
 // Instance editing
-import { updateInstanceName } from '../controllers/mcpInstances/editing/updateInstanceName.js';
-import {
+const { updateInstanceName } = require('../controllers/mcpInstances/editing/updateInstanceName.js');
+const {
 	updateInstanceCredentials,
 	validateInstanceCredentialsOnly,
-} from '../controllers/mcpInstances/editing/updateInstanceCredentials.js';
-import { updateInstance } from '../controllers/mcpInstances/editing/updateInstance.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
+} = require('../controllers/mcpInstances/editing/updateInstanceCredentials.js');
+const { updateInstance } = require('../controllers/mcpInstances/editing/updateInstance.js');
+const { requireAuth } = require('../middleware/authMiddleware.js');
 
 const router = Router();
 
@@ -71,4 +71,4 @@ router.post('/:id/credentials/validate', validateInstanceCredentialsOnly);
 // PATCH /api/v1/mcps/:id - Combined update (name and/or credentials)
 router.patch('/:id', updateInstance);
 
-export default router;
+module.exports = router;

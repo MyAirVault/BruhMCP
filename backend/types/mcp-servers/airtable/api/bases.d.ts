@@ -1,3 +1,23 @@
+export type BasesListResponse = {
+    /**
+     * - List of bases
+     */
+    bases: import('./common.js').AirtableBase[];
+    /**
+     * - Response metadata
+     */
+    _meta: import('./common.js').ApiResponseMeta;
+};
+export type BaseSchemaResponse = {
+    /**
+     * - List of tables
+     */
+    tables: import('./common.js').AirtableTable[];
+    /**
+     * - Response metadata
+     */
+    _meta: import('./common.js').ApiResponseMeta;
+};
 /**
  * @typedef {Object} BasesListResponse
  * @property {import('./common.js').AirtableBase[]} bases - List of bases
@@ -21,24 +41,4 @@ export function listBases(apiKey: string): Promise<BasesListResponse>;
  * @returns {Promise<BaseSchemaResponse>} Base schema
  */
 export function getBaseSchema(baseId: string, apiKey: string): Promise<BaseSchemaResponse>;
-export type BasesListResponse = {
-    /**
-     * - List of bases
-     */
-    bases: import("./common.js").AirtableBase[];
-    /**
-     * - Response metadata
-     */
-    _meta: import("./common.js").ApiResponseMeta;
-};
-export type BaseSchemaResponse = {
-    /**
-     * - List of tables
-     */
-    tables: import("./common.js").AirtableTable[];
-    /**
-     * - Response metadata
-     */
-    _meta: import("./common.js").ApiResponseMeta;
-};
 //# sourceMappingURL=bases.d.ts.map

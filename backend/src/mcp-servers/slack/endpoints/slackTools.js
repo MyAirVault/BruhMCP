@@ -3,9 +3,8 @@
  * All tool configurations and handlers for Slack MCP server
  */
 
-import { z } from 'zod';
-import {
-	sendMessage,
+const { z  } = require('zod');
+const { sendMessage,
 	getMessages,
 	getThreadMessages,
 	deleteMessage,
@@ -24,7 +23,7 @@ import {
 	createReminder,
 	getTeamInfo,
 	testAuth
-} from '../api/slackApi.js';
+ } = require('../api/slackApi');
 
 /**
  * Create a standardized MCP response
@@ -61,7 +60,7 @@ function createMCPErrorResponse(error, operation) {
  * @param {string} bearerToken - OAuth bearer token
  * @param {string} serviceName - Service name for logging
  */
-export function registerSlackTools(server, bearerToken, serviceName) {
+function registerSlackTools(server, bearerToken, serviceName) {
 	// Message operations
 	server.tool(
 		"send_message",
@@ -492,3 +491,7 @@ export function registerSlackTools(server, bearerToken, serviceName) {
 		}
 	);
 }
+
+module.exports = {
+	registerSlackTools
+};

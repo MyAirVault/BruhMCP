@@ -34,7 +34,7 @@ export type DatabaseInstance = {
     /**
      * - Instance status
      */
-    status: "active" | "inactive" | "expired";
+    status: 'active' | 'inactive' | 'expired';
     /**
      * - Instance expiration timestamp
      */
@@ -42,7 +42,7 @@ export type DatabaseInstance = {
     /**
      * - Authentication type
      */
-    auth_type: "oauth";
+    auth_type: 'oauth';
     /**
      * - OAuth client ID
      */
@@ -645,7 +645,7 @@ export type AuditLogMetadata = {
 /**
  * Extended Express Request object with custom properties
  */
-export type ExpressRequest = import("express").Request & {
+export type ExpressRequest = import('express').Request & {
     bearerToken?: string;
     instanceId?: string;
     userId?: string;
@@ -653,7 +653,7 @@ export type ExpressRequest = import("express").Request & {
 /**
  * Express Response object
  */
-export type ExpressResponse = import("express").Response;
+export type ExpressResponse = import('express').Response;
 /**
  * Express Next function
  */

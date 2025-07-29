@@ -2,13 +2,13 @@
  * Figma MCP JSON-RPC protocol handler using official SDK
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
-import { FigmaService } from '../services/figmaService.js';
-import yaml from 'js-yaml';
+const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
+const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
+const { isInitializeRequest } = require('@modelcontextprotocol/sdk/types.js');
+const { randomUUID } = require('node:crypto');
+const { z } = require('zod');
+const { FigmaService } = require('../services/figmaService.js');
+const yaml = require('js-yaml');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -17,7 +17,7 @@ import yaml from 'js-yaml';
  * @property {string} version
  */
 
-export class FigmaMCPHandler {
+class FigmaMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} apiKey
@@ -277,4 +277,6 @@ export class FigmaMCPHandler {
 		}
 	}
 }
+
+module.exports = { FigmaMCPHandler };
 

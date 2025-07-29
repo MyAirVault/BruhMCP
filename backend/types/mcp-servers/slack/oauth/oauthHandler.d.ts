@@ -1,8 +1,41 @@
-export default SlackOAuthHandler;
-export type AuthCredentials = import("../../../services/mcp-auth-registry/types/authTypes.js").AuthCredentials;
-export type OAuthFlowResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthFlowResult;
-export type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
-export type SlackOAuthResponse = {
+export = SlackOAuthHandler;
+/**
+ * Slack OAuth Handler Class
+ * Implements OAuth 2.0 flow for Slack service
+ */
+declare class SlackOAuthHandler {
+    redirectUri: string;
+    scopes: string[];
+    /**
+     * Initiates OAuth flow for Slack
+     * @param {string} instanceId - MCP instance ID
+     * @param {string} userId - User ID for authentication
+     * @param {AuthCredentials} credentials - OAuth credentials (client_id, client_secret)
+     * @returns {Promise<OAuthFlowResult>} OAuth flow result with auth URL
+     */
+    initiateFlow(instanceId: string, userId: string, credentials: AuthCredentials): Promise<OAuthFlowResult>;
+    /**
+     * Handles OAuth callback and exchanges code for tokens
+     * @param {string} code - OAuth authorization code
+     * @param {string} state - OAuth state parameter
+     * @returns {Promise<SlackOAuthCallbackResult>} Callback processing result
+     */
+    handleCallback(code: string, state: string): Promise<SlackOAuthCallbackResult>;
+    /**
+     * Refreshes OAuth tokens
+     * @param {string} refreshToken - Refresh token
+     * @param {AuthCredentials} credentials - OAuth credentials
+     * @returns {Promise<SlackTokenData>} New tokens
+     */
+    refreshToken(refreshToken: string, credentials: AuthCredentials): Promise<SlackTokenData>;
+}
+declare namespace SlackOAuthHandler {
+    export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult, SlackOAuthResponse, SlackTokenData, SlackOAuthTokens, SlackOAuthCallbackResult, StateData, MCPInstance };
+}
+type AuthCredentials = import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials;
+type OAuthFlowResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult;
+type OAuthCallbackResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult;
+type SlackOAuthResponse = {
     /**
      * - Whether the request was successful
      */
@@ -37,7 +70,7 @@ export type SlackOAuthResponse = {
      */
     error?: string | undefined;
 };
-export type SlackTokenData = {
+type SlackTokenData = {
     /**
      * - OAuth access token
      */
@@ -55,7 +88,7 @@ export type SlackTokenData = {
      */
     team_id: string;
 };
-export type SlackOAuthTokens = {
+type SlackOAuthTokens = {
     /**
      * - Access token
      */
@@ -77,7 +110,7 @@ export type SlackOAuthTokens = {
      */
     team_id?: string | undefined;
 };
-export type SlackOAuthCallbackResult = {
+type SlackOAuthCallbackResult = {
     /**
      * - Whether callback was successful
      */
@@ -91,7 +124,7 @@ export type SlackOAuthCallbackResult = {
      */
     tokens?: SlackOAuthTokens | undefined;
 };
-export type StateData = {
+type StateData = {
     /**
      * - MCP instance ID
      */
@@ -109,7 +142,7 @@ export type StateData = {
      */
     service: string;
 };
-export type MCPInstance = {
+type MCPInstance = {
     /**
      * - OAuth client ID
      */
@@ -119,34 +152,4 @@ export type MCPInstance = {
      */
     client_secret?: string | undefined;
 };
-/**
- * Slack OAuth Handler Class
- * Implements OAuth 2.0 flow for Slack service
- */
-declare class SlackOAuthHandler {
-    redirectUri: string;
-    scopes: string[];
-    /**
-     * Initiates OAuth flow for Slack
-     * @param {string} instanceId - MCP instance ID
-     * @param {string} userId - User ID for authentication
-     * @param {AuthCredentials} credentials - OAuth credentials (client_id, client_secret)
-     * @returns {Promise<OAuthFlowResult>} OAuth flow result with auth URL
-     */
-    initiateFlow(instanceId: string, userId: string, credentials: AuthCredentials): Promise<OAuthFlowResult>;
-    /**
-     * Handles OAuth callback and exchanges code for tokens
-     * @param {string} code - OAuth authorization code
-     * @param {string} state - OAuth state parameter
-     * @returns {Promise<SlackOAuthCallbackResult>} Callback processing result
-     */
-    handleCallback(code: string, state: string): Promise<SlackOAuthCallbackResult>;
-    /**
-     * Refreshes OAuth tokens
-     * @param {string} refreshToken - Refresh token
-     * @param {AuthCredentials} credentials - OAuth credentials
-     * @returns {Promise<SlackTokenData>} New tokens
-     */
-    refreshToken(refreshToken: string, credentials: AuthCredentials): Promise<SlackTokenData>;
-}
 //# sourceMappingURL=oauthHandler.d.ts.map

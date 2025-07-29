@@ -3,10 +3,10 @@
  * @fileoverview Processes subscription events and updates user plans accordingly
  */
 
-import { parseWebhookEvent } from '../services/paymentGateway.js';
-import { updateUserPlanBilling, getUserPlanBySubscriptionId, atomicActivateProSubscription } from '../../db/queries/userPlansQueries.js';
-import { handlePlanCancellation } from '../../utils/planLimits.js';
-import { pool } from '../../db/config.js';
+const { parseWebhookEvent } = require('../services/paymentGateway.js');
+const { updateUserPlanBilling, getUserPlanBySubscriptionId, atomicActivateProSubscription } = require('../../db/queries/userPlansQueries.js');
+const { handlePlanCancellation } = require('../../utils/planLimits.js');
+const { pool } = require('../../db/config.js');
 
 /**
  * Store webhook event for deduplication and tracking
@@ -210,7 +210,7 @@ async function processPaymentAuthorized(payment) {
  * @param {import('express').Response} res
  * @returns {Promise<void>}
  */
-export async function handleRazorpayWebhook(req, res) {
+async function handleRazorpayWebhook(req, res) {
 	try {
 		// Check both lowercase and uppercase headers
 		const signatureHeader = req.headers['x-razorpay-signature'] || req.headers['X-Razorpay-Signature'];
@@ -346,7 +346,7 @@ export async function handleRazorpayWebhook(req, res) {
  * @param {import('express').Response} res
  * @returns {Promise<void>}
  */
-export async function getWebhookEvents(req, res) {
+async function getWebhookEvents(req, res) {
 	try {
 		const queryParams = req.query;
 		const limit = typeof queryParams.limit === 'string' ? queryParams.limit : '50';
@@ -403,3 +403,8 @@ export async function getWebhookEvents(req, res) {
 		});
 	}
 }
+
+module.exports = {
+	handleRazorpayWebhook,
+	getWebhookEvents
+};

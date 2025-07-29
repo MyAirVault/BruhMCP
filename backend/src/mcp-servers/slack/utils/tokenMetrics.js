@@ -385,7 +385,7 @@ const tokenMetrics = new TokenMetrics();
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
  */
-export function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
+function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
   // Record the attempt
   tokenMetrics.recordRefreshAttempt(instanceId, method, startTime);
 
@@ -400,7 +400,7 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
 /**
  * Get metrics summary
  */
-export function getTokenMetricsSummary() {
+function getTokenMetricsSummary() {
   return tokenMetrics.getMetricsSummary();
 }
 
@@ -408,7 +408,7 @@ export function getTokenMetricsSummary() {
  * Get instance-specific metrics
  * @param {string} instanceId - Instance ID
  */
-export function getInstanceTokenMetrics(instanceId) {
+function getInstanceTokenMetrics(instanceId) {
   return tokenMetrics.getInstanceMetrics(instanceId);
 }
 
@@ -416,28 +416,28 @@ export function getInstanceTokenMetrics(instanceId) {
  * Get daily statistics
  * @param {number} days - Number of days
  */
-export function getDailyTokenStats(days) {
+function getDailyTokenStats(days) {
   return tokenMetrics.getDailyStats(days);
 }
 
 /**
  * Export all metrics
  */
-export function exportTokenMetrics() {
+function exportTokenMetrics() {
   return tokenMetrics.exportMetrics();
 }
 
 /**
  * Get health assessment
  */
-export function getTokenSystemHealth() {
+function getTokenSystemHealth() {
   return tokenMetrics.getHealthAssessment();
 }
 
 /**
  * Reset metrics (for testing)
  */
-export function resetTokenMetrics() {
+function resetTokenMetrics() {
   tokenMetrics.reset();
 }
 
@@ -445,8 +445,17 @@ export function resetTokenMetrics() {
  * Get aggregated token metrics (alias for exportTokenMetrics)
  * @returns {Object} Aggregated metrics data
  */
-export function getAggregatedTokenMetrics() {
+function getAggregatedTokenMetrics() {
   return tokenMetrics.exportMetrics();
 }
 
-export default tokenMetrics;
+module.exports = {
+	recordTokenRefreshMetrics,
+	getTokenMetricsSummary,
+	getInstanceTokenMetrics,
+	getDailyTokenStats,
+	exportTokenMetrics,
+	getTokenSystemHealth,
+	resetTokenMetrics,
+	getAggregatedTokenMetrics
+};

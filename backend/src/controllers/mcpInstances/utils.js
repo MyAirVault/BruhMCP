@@ -3,7 +3,7 @@
  * @param {string} option - Expiration option
  * @returns {Date|null} Expiration date or null for 'never'
  */
-export function calculateExpirationDate(option) {
+function calculateExpirationDate(option) {
 	if (option === 'never') return null;
 
 	const now = new Date();
@@ -28,7 +28,12 @@ export function calculateExpirationDate(option) {
  * @param {string} mcpTypeName - The MCP type name
  * @returns {string} The formatted access URL in format <domain>/<mcp>/uuid
  */
-export function generateAccessUrl(instanceId, mcpTypeName) {
+function generateAccessUrl(instanceId, mcpTypeName) {
 	const publicDomain = process.env.PUBLIC_DOMAIN || 'http://localhost:5000';
 	return `${publicDomain}/${mcpTypeName}/${instanceId}`;
 }
+
+module.exports = {
+	calculateExpirationDate,
+	generateAccessUrl
+};

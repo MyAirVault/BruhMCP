@@ -1,3 +1,17 @@
+export type PageBlocksResult = {
+    /**
+     * - Array of blocks
+     */
+    results: import('../../utils/notionFormatting.js').NotionBlock[];
+    /**
+     * - Whether there are more blocks
+     */
+    has_more: boolean;
+    /**
+     * - Cursor for next page
+     */
+    next_cursor?: string | undefined;
+};
 /**
  * @typedef {Object} PageBlocksResult
  * @property {import('../../utils/notionFormatting.js').NotionBlock[]} results - Array of blocks
@@ -21,8 +35,8 @@ export function getPage(args: {
  */
 export function getPageBlocks(args: {
     pageId: string;
-    start_cursor?: string;
-    page_size?: number;
+    start_cursor?: string | undefined;
+    page_size?: number | undefined;
 }, bearerToken: string): Promise<Record<string, unknown>>;
 /**
  * Create a new page
@@ -31,9 +45,9 @@ export function getPageBlocks(args: {
  * @returns {Promise<Record<string, unknown>>} Created page
  */
 export function createPage(args: {
-    parent: import("../../utils/notionFormatting.js").NotionParent;
-    properties: Record<string, import("../../utils/notionFormatting.js").NotionProperty>;
-    children?: import("../../utils/notionFormatting.js").NotionBlock[];
+    parent: import('../../utils/notionFormatting.js').NotionParent;
+    properties: Record<string, import('../../utils/notionFormatting.js').NotionProperty>;
+    children?: import("../../utils/notionFormatting").NotionBlock[] | undefined;
 }, bearerToken: string): Promise<Record<string, unknown>>;
 /**
  * Update page properties
@@ -43,21 +57,7 @@ export function createPage(args: {
  */
 export function updatePage(args: {
     pageId: string;
-    properties?: Record<string, import("../../utils/notionFormatting.js").NotionProperty>;
-    archived?: boolean;
+    properties?: Record<string, import("../../utils/notionFormatting").NotionProperty> | undefined;
+    archived?: boolean | undefined;
 }, bearerToken: string): Promise<Record<string, unknown>>;
-export type PageBlocksResult = {
-    /**
-     * - Array of blocks
-     */
-    results: import("../../utils/notionFormatting.js").NotionBlock[];
-    /**
-     * - Whether there are more blocks
-     */
-    has_more: boolean;
-    /**
-     * - Cursor for next page
-     */
-    next_cursor?: string | undefined;
-};
 //# sourceMappingURL=pageOperations.d.ts.map

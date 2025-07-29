@@ -3,8 +3,8 @@
  * Handles file listing, searching, and drive information
  */
 
-import { formatFileListResponse, formatDriveInfoResponse } from '../../utils/googledriveFormatting.js';
-import { validateFileId, validateMimeType } from '../../utils/validation.js';
+const { formatFileListResponse, formatDriveInfoResponse  } = require('../../utils/googledriveFormatting');
+const { validateFileId, validateMimeType  } = require('../../utils/validation');
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
@@ -13,7 +13,7 @@ const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
  * @param {string} endpoint - API endpoint
  * @param {string} bearerToken - OAuth Bearer token
  * @param {import('../../api/types.js').RequestOptions} [options] - Request options
- * @returns {Promise<Object>} API response
+ * @returns {Promise<Object|null>} API response
  */
 async function makeDriveRequest(endpoint, bearerToken, options = {}) {
 	const url = `${DRIVE_API_BASE}${endpoint}`;
@@ -82,7 +82,7 @@ async function makeDriveRequest(endpoint, bearerToken, options = {}) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} List result
  */
-export async function listFiles(args, bearerToken) {
+async function listFiles(args, bearerToken) {
 	const { parentFolderId, pageSize = 100, pageToken, showTrashed = false, orderBy = 'modifiedTime desc' } = args;
 
 	// Build query
@@ -140,7 +140,7 @@ export async function listFiles(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Search result
  */
-export async function searchFiles(args, bearerToken) {
+async function searchFiles(args, bearerToken) {
 	const {
 		query,
 		name,
@@ -223,11 +223,16 @@ export async function searchFiles(args, bearerToken) {
  * Get Google Drive storage information
  * @param {Object} _args - Arguments (unused but kept for consistency)
  * @param {string} bearerToken - OAuth Bearer token
- * @returns {Promise<Object>} Drive info
+ * @returns {Promise<Object|null>} Drive info
  */
-export async function getDriveInfo(_args, bearerToken) {
+async function getDriveInfo(_args, bearerToken) {
 	const endpoint = '/about?fields=storageQuota,user';
 	const data = await makeDriveRequest(endpoint, bearerToken);
 
-	return formatDriveInfoResponse(data);
+	return formatDriveInfoResponse(/** @type {any} */ (data || {}));
 }
+module.exports = {
+  listFiles,
+  searchFiles,
+  getDriveInfo
+};

@@ -3,8 +3,8 @@
  * Provides abstraction for Dropbox API operations
  */
 
-import { fetchWithRetry } from '../utils/fetchWithRetry.js';
-import { logOAuthError } from '../utils/oauthErrorHandler.js';
+const { fetchWithRetry } = require('../utils/fetchWithRetry.js');
+const { logOAuthError } = require('../utils/oauthErrorHandler.js');
 
 /**
  * @typedef {import('../../../types/dropbox.d.ts').DropboxApiArgs} DropboxApiArgs
@@ -23,7 +23,7 @@ import { logOAuthError } from '../utils/oauthErrorHandler.js';
  * Base Dropbox API class
  * @class
  */
-export class DropboxAPI {
+class DropboxAPI {
   /**
    * Create a new Dropbox API instance
    * @param {string} bearerToken - OAuth Bearer token for authentication
@@ -318,7 +318,7 @@ export class DropboxAPI {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, entries: (DropboxFileMetadata | DropboxFolder)[], has_more: boolean, cursor: string}>}
  */
-export async function listFiles(args, bearerToken) {
+async function listFiles(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path = '', recursive = false, limit = 100 } = args;
   
@@ -350,7 +350,7 @@ export async function listFiles(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
-export async function getFileMetadata(args, bearerToken) {
+async function getFileMetadata(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path } = args;
   
@@ -372,7 +372,7 @@ export async function getFileMetadata(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
-export async function createFolder(args, bearerToken) {
+async function createFolder(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path, autorename = false } = args;
   
@@ -394,7 +394,7 @@ export async function createFolder(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
-export async function deleteFile(args, bearerToken) {
+async function deleteFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path } = args;
   
@@ -416,7 +416,7 @@ export async function deleteFile(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
-export async function moveFile(args, bearerToken) {
+async function moveFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { fromPath, toPath, autorename = false } = args;
   
@@ -438,7 +438,7 @@ export async function moveFile(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, metadata: DropboxFileMetadata}>}
  */
-export async function copyFile(args, bearerToken) {
+async function copyFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { fromPath, toPath, autorename = false } = args;
   
@@ -460,7 +460,7 @@ export async function copyFile(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, matches: DropboxSearchMatch[], has_more: boolean}>}
  */
-export async function searchFiles(args, bearerToken) {
+async function searchFiles(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { query, path = '', maxResults = 100, fileStatus = 'active' } = args;
   
@@ -483,7 +483,7 @@ export async function searchFiles(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, links: DropboxSharedLink[]}>}
  */
-export async function getSharedLinks(args, bearerToken) {
+async function getSharedLinks(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path } = args;
   
@@ -505,7 +505,7 @@ export async function getSharedLinks(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, url: string, link: DropboxSharedLink}>}
  */
-export async function createSharedLink(args, bearerToken) {
+async function createSharedLink(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path, shortUrl = false } = args;
   
@@ -527,7 +527,7 @@ export async function createSharedLink(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, used: number, allocated: number, usage_percent: string}>}
  */
-export async function getSpaceUsage(bearerToken) {
+async function getSpaceUsage(bearerToken) {
   const api = new DropboxAPI(bearerToken);
   
   const result = await api.getSpaceUsage();
@@ -552,7 +552,7 @@ export async function getSpaceUsage(bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, size: number, metadata: DropboxFileMetadata}>}
  */
-export async function downloadFile(args, bearerToken) {
+async function downloadFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { path, localPath } = args;
   
@@ -576,7 +576,7 @@ export async function downloadFile(args, bearerToken) {
  * @param {string} bearerToken - Bearer token for authentication
  * @returns {Promise<{message: string, size: number, metadata: DropboxFileMetadata}>}
  */
-export async function uploadFile(args, bearerToken) {
+async function uploadFile(args, bearerToken) {
   const api = new DropboxAPI(bearerToken);
   const { localPath, dropboxPath, overwrite = false } = args;
   
@@ -595,3 +595,19 @@ export async function uploadFile(args, bearerToken) {
     metadata: result
   };
 }
+
+module.exports = {
+  DropboxAPI,
+  listFiles,
+  getFileMetadata,
+  createFolder,
+  deleteFile,
+  moveFile,
+  copyFile,
+  searchFiles,
+  getSharedLinks,
+  createSharedLink,
+  getSpaceUsage,
+  downloadFile,
+  uploadFile
+};

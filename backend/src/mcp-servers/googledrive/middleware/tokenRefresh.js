@@ -4,10 +4,10 @@
 
 /// <reference path="./types.js" />
 
-import GoogleDriveOAuthHandler from '../oauth/oauthHandler.js';
-import { setCachedCredential } from '../services/cache/index.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
-import { recordTokenRefreshMetrics } from '../utils/tokenMetrics.js';
+const GoogleDriveOAuthHandler = require('../oauth/oauthHandler');
+const { setCachedCredential  } = require('../services/cache/index');
+const { updateOAuthStatus  } = require('../../../db/queries/mcpInstances/oauth');
+const { recordTokenRefreshMetrics  } = require('../utils/tokenMetrics');
 
 /**
  * Attempts to refresh OAuth token using multiple strategies
@@ -91,7 +91,7 @@ async function processSuccessfulRefresh(instanceId, userId, tokens, existingCach
   });
   
   // Record metrics
-  recordTokenRefreshMetrics(instanceId, true, Date.now());
+  recordTokenRefreshMetrics(instanceId, 'direct_oauth', true, '', '', Date.now(), Date.now());
   
   console.log(`✅ OAuth token refreshed successfully for instance: ${instanceId}`);
 }
@@ -105,7 +105,7 @@ async function processSuccessfulRefresh(instanceId, userId, tokens, existingCach
  */
 function processFailedRefresh(instanceId, error, requiresReauth) {
   // Record metrics
-  recordTokenRefreshMetrics(instanceId, false, Date.now());
+  recordTokenRefreshMetrics(instanceId, 'direct_oauth', false, 'refresh_failed', error, Date.now(), Date.now());
   
   if (requiresReauth) {
     console.error(`🔐 Re-authentication required for instance ${instanceId}: ${error}`);
@@ -122,7 +122,7 @@ function processFailedRefresh(instanceId, error, requiresReauth) {
  * @param {import('./types.js').ExpressRequest} req - Express request
  * @returns {Promise<import('./types.js').TokenRefreshResult>} Refresh result
  */
-export async function performTokenRefresh(instanceId, refreshToken, instance, req) {
+async function performTokenRefresh(instanceId, refreshToken, instance, req) {
   const existingCache = getCachedCredential(instanceId);
   
   try {
@@ -155,4 +155,7 @@ export async function performTokenRefresh(instanceId, refreshToken, instance, re
 }
 
 // Import getCachedCredential here to avoid circular dependency
-import { getCachedCredential } from '../services/cache/index.js';
+const { getCachedCredential  } = require('../services/cache/index');
+module.exports = {
+  performTokenRefresh
+};

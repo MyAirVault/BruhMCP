@@ -473,7 +473,7 @@ const tokenMetrics = new TokenMetrics();
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
  */
-export function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
+function recordTokenRefreshMetrics(instanceId, method, success, errorType, errorMessage, startTime, endTime) {
   // Record the attempt
   tokenMetrics.recordRefreshAttempt(instanceId, method, startTime);
 
@@ -489,7 +489,7 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
  * Get metrics summary
  * @returns {MetricsSummary} Current metrics summary
  */
-export function getTokenMetricsSummary() {
+function getTokenMetricsSummary() {
   return tokenMetrics.getMetricsSummary();
 }
 
@@ -498,7 +498,7 @@ export function getTokenMetricsSummary() {
  * @param {string} instanceId - Instance ID to get metrics for
  * @returns {InstanceMetricsResult} Instance-specific metrics
  */
-export function getInstanceTokenMetrics(instanceId) {
+function getInstanceTokenMetrics(instanceId) {
   return tokenMetrics.getInstanceMetrics(instanceId);
 }
 
@@ -507,7 +507,7 @@ export function getInstanceTokenMetrics(instanceId) {
  * @param {number} [days] - Number of days to include (default: 7)
  * @returns {Record<string, DailyStats>} Daily statistics
  */
-export function getDailyTokenStats(days) {
+function getDailyTokenStats(days) {
   return tokenMetrics.getDailyStats(days);
 }
 
@@ -515,7 +515,7 @@ export function getDailyTokenStats(days) {
  * Export all metrics
  * @returns {ExportedMetrics} All metrics data for export
  */
-export function exportTokenMetrics() {
+function exportTokenMetrics() {
   return tokenMetrics.exportMetrics();
 }
 
@@ -523,7 +523,7 @@ export function exportTokenMetrics() {
  * Get health assessment
  * @returns {HealthAssessment} System health assessment
  */
-export function getTokenSystemHealth() {
+function getTokenSystemHealth() {
   return tokenMetrics.getHealthAssessment();
 }
 
@@ -531,8 +531,17 @@ export function getTokenSystemHealth() {
  * Reset metrics (for testing)
  * @returns {void}
  */
-export function resetTokenMetrics() {
+function resetTokenMetrics() {
   tokenMetrics.reset();
 }
 
-export default tokenMetrics;
+module.exports = {
+  recordTokenRefreshMetrics,
+  getTokenMetricsSummary,
+  getInstanceTokenMetrics,
+  getDailyTokenStats,
+  exportTokenMetrics,
+  getTokenSystemHealth,
+  resetTokenMetrics,
+  tokenMetrics
+};

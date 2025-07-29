@@ -4,42 +4,64 @@
  */
 
 // Core request handling
-export { makeNotionRequest } from './requestHandler.js';
+const { makeNotionRequest  } = require('./requestHandler');
+
+module.exports = { makeNotionRequest  };
 
 // Page operations
-export {
-	getPage,
+const { getPage,
 	getPageBlocks,
 	createPage,
 	updatePage
-} from './pageOperations.js';
+ } = require('./pageOperations');
+
+module.exports = { getPage,
+	getPageBlocks,
+	createPage,
+	updatePage
+ };
 
 // Database operations
-export {
-	getDatabase,
+const { getDatabase,
 	queryDatabase,
 	createDatabase,
 	updateDatabase
-} from './databaseOperations.js';
+ } = require('./databaseOperations');
+
+module.exports = { getDatabase,
+	queryDatabase,
+	createDatabase,
+	updateDatabase
+ };
 
 // Block operations
-export {
-	appendBlocks,
+const { appendBlocks,
 	deleteBlock
-} from './blockOperations.js';
+ } = require('./blockOperations');
+
+module.exports = { appendBlocks,
+	deleteBlock
+ };
 
 // User operations
-export {
-	getCurrentUser,
+const { getCurrentUser,
 	listUsers
-} from './userOperations.js';
+ } = require('./userOperations');
+
+module.exports = { getCurrentUser,
+	listUsers
+ };
 
 // Search operations
-export {
-	searchNotion
-} from './searchOperations.js';
+const { searchNotion
+ } = require('./searchOperations');
+
+module.exports = { searchNotion
+ };
 
 // Utility operations
-export {
-	makeRawApiCall
-} from './utilityOperations.js';
+const { makeRawApiCall
+ } = require('./utilityOperations');
+
+module.exports = { makeRawApiCall
+ };

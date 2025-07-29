@@ -1,20 +1,25 @@
 /**
+ * Core credential cache functionality for Google Drive MCP
+ * Manages in-memory storage of OAuth tokens
+ */
+export const googleDriveCredentialCache: Map<any, any>;
+/**
  * Initialize the credential cache system
  * Called on service startup
  */
 export function initializeCredentialCache(): void;
 /**
- * Get cached credential for an instance
- * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cached credential data or null if not found/expired
- */
-export function getCachedCredential(instanceId: string): Object | null;
-/**
  * Set cached credential for an instance
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} tokenData - Token data to cache
+ * @param {any} tokenData - Token data to cache
  */
-export function setCachedCredential(instanceId: string, tokenData: Object): void;
+export function setCachedCredential(instanceId: string, tokenData: any): void;
+/**
+ * Get cached credential for an instance
+ * @param {string} instanceId - UUID of the service instance
+ * @returns {any} Cached credential data or null if not found/expired
+ */
+export function getCachedCredential(instanceId: string): any;
 /**
  * Remove cached credential for an instance
  * @param {string} instanceId - UUID of the service instance
@@ -41,12 +46,7 @@ export function clearCredentialCache(): number;
  * Peek at cached credential without updating last accessed time
  * Useful for monitoring and debugging
  * @param {string} instanceId - UUID of the service instance
- * @returns {Object|null} Cached credential data or null
+ * @returns {any} Cached credential data or null
  */
-export function peekCachedCredential(instanceId: string): Object | null;
-/**
- * Core credential cache functionality for Google Drive MCP
- * Manages in-memory storage of OAuth tokens
- */
-export const googleDriveCredentialCache: Map<any, any>;
+export function peekCachedCredential(instanceId: string): any;
 //# sourceMappingURL=cacheCore.d.ts.map

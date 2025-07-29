@@ -18,5 +18,5 @@ export const storeAPIKeySchema: z.ZodObject<{
     credentials: Record<string, string>;
     mcp_type_id: string;
 }>;
-import { z } from 'zod';
+import { z } from "zod";
 //# sourceMappingURL=schemas.d.ts.map

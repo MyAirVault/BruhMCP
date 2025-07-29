@@ -4,4 +4,4 @@
  */
 
 // Re-export all functions from modules
-export * from './modules/index.js';
+module.exports = require('./modules/index.js');

@@ -1,3 +1,9 @@
+export type ServiceConfig = {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+};
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -47,11 +53,5 @@ export function invalidateHandlerSession(instanceId: string): void;
  * @param {string} newBearerToken - New bearer token
  */
 export function updateSessionBearerToken(instanceId: string, newBearerToken: string): boolean;
-export type ServiceConfig = {
-    name: string;
-    displayName: string;
-    version: string;
-    scopes: string[];
-};
-import { DropboxMCPHandler } from '../endpoints/mcpHandler.js';
+import { DropboxMCPHandler } from "../endpoints/mcpHandler.js";
 //# sourceMappingURL=handlerSessions.d.ts.map

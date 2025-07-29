@@ -6,7 +6,7 @@
  * Health check handler
  * @param {{ name: string, displayName: string, port: number, version: string, authType: string }} config - Service configuration
  */
-export function healthCheck(config) {
+function healthCheck(config) {
 	return {
 		service: config.name,
 		displayName: config.displayName,
@@ -18,3 +18,7 @@ export function healthCheck(config) {
 		authType: config.authType,
 	};
 }
+
+module.exports = {
+	healthCheck
+};

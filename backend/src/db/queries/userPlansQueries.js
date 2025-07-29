@@ -3,7 +3,7 @@
  * @fileoverview Contains all database query functions for user plan management
  */
 
-import { pool } from '../config.js';
+const { pool } = require('../config.js');
 
 /**
  * @typedef {Object} UserPlan
@@ -43,7 +43,7 @@ import { pool } from '../config.js';
  * @param {string} userId - User ID
  * @returns {Promise<UserPlan|null>} User plan object or null if not found
  */
-export async function getUserPlan(userId) {
+async function getUserPlan(userId) {
 	try {
 		const query = `
 			SELECT 
@@ -77,7 +77,7 @@ export async function getUserPlan(userId) {
  * @param {PlanOptions} [options] - Additional options
  * @returns {Promise<UserPlan>} Updated plan object
  */
-export async function updateUserPlan(userId, planType, options = {}) {
+async function updateUserPlan(userId, planType, options = {}) {
 	try {
 		const { expiresAt = null, features = {} } = options;
 		
@@ -117,7 +117,7 @@ export async function updateUserPlan(userId, planType, options = {}) {
  * @param {PlanOptions} [options] - Additional options
  * @returns {Promise<UserPlan>} Created plan object
  */
-export async function createUserPlan(userId, planType = 'free', options = {}) {
+async function createUserPlan(userId, planType = 'free', options = {}) {
 	try {
 		const { expiresAt = null, features = {} } = options;
 		
@@ -151,7 +151,7 @@ export async function createUserPlan(userId, planType = 'free', options = {}) {
  * @param {string} userId - User ID
  * @returns {Promise<boolean>} True if plan is active
  */
-export async function isUserPlanActive(userId) {
+async function isUserPlanActive(userId) {
 	try {
 		const query = `
 			SELECT expires_at
@@ -186,7 +186,7 @@ export async function isUserPlanActive(userId) {
  * @param {QueryOptions} [options] - Query options
  * @returns {Promise<UserPlan[]>} Array of users with the specified plan
  */
-export async function getUsersByPlanType(planType, options = {}) {
+async function getUsersByPlanType(planType, options = {}) {
 	try {
 		const { limit = 100, offset = 0 } = options;
 		
@@ -221,7 +221,7 @@ export async function getUsersByPlanType(planType, options = {}) {
  * Get plan statistics
  * @returns {Promise<PlanStatistics>} Plan statistics
  */
-export async function getPlanStatistics() {
+async function getPlanStatistics() {
 	try {
 		const query = `
 			SELECT 
@@ -266,7 +266,7 @@ export async function getPlanStatistics() {
  * @param {string} billingData.paymentStatus - Payment status
  * @returns {Promise<UserPlan>} Updated plan object
  */
-export async function updateUserPlanBilling(userId, billingData) {
+async function updateUserPlanBilling(userId, billingData) {
 	try {
 		const { subscriptionId, customerId, paymentStatus } = billingData;
 		
@@ -300,7 +300,7 @@ export async function updateUserPlanBilling(userId, billingData) {
  * @param {string} subscriptionId - Subscription ID
  * @returns {Promise<UserPlan|null>} User plan object or null if not found
  */
-export async function getUserPlanBySubscriptionId(subscriptionId) {
+async function getUserPlanBySubscriptionId(subscriptionId) {
 	try {
 		const query = `
 			SELECT 
@@ -332,7 +332,7 @@ export async function getUserPlanBySubscriptionId(subscriptionId) {
  * @param {string} userId - User ID
  * @returns {Promise<number>} Number of instances deactivated
  */
-export async function deactivateAllUserInstances(userId) {
+async function deactivateAllUserInstances(userId) {
 	try {
 		const query = `
 			UPDATE mcp_service_table
@@ -369,7 +369,7 @@ export async function deactivateAllUserInstances(userId) {
  * @param {string|null} [customerId] - Razorpay customer ID
  * @returns {Promise<Object>} Result object with status and plan data
  */
-export async function atomicActivateProSubscription(userId, subscriptionId, expiresAt, customerId = null) {
+async function atomicActivateProSubscription(userId, subscriptionId, expiresAt, customerId = null) {
 	const client = await pool.connect();
 	try {
 		await client.query('BEGIN');
@@ -442,3 +442,15 @@ export async function atomicActivateProSubscription(userId, subscriptionId, expi
 	}
 }
 
+module.exports = {
+	getUserPlan,
+	updateUserPlan,
+	createUserPlan,
+	isUserPlanActive,
+	getUsersByPlanType,
+	getPlanStatistics,
+	updateUserPlanBilling,
+	getUserPlanBySubscriptionId,
+	deactivateAllUserInstances,
+	atomicActivateProSubscription
+};

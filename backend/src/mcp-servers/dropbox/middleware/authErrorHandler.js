@@ -5,9 +5,9 @@
 
 /// <reference path="./types.js" />
 
-import { ErrorResponses } from '../../../utils/errorResponse.js';
-import { logOAuthError } from '../utils/oauthErrorHandler.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/index.js';
+const { ErrorResponses } = require('../../../utils/errorResponse.js');
+const { logOAuthError } = require('../utils/oauthErrorHandler.js');
+const { updateOAuthStatus } = require('../../../db/queries/mcpInstances/index.js');
 
 /**
  * Create system error response for authentication middleware
@@ -16,7 +16,7 @@ import { updateOAuthStatus } from '../../../db/queries/mcpInstances/index.js';
  * @param {Error} error - The error that occurred
  * @returns {void} Express response
  */
-export function createSystemErrorResponse(res, instanceId, error) {
+function createSystemErrorResponse(res, instanceId, error) {
   console.error('Credential authentication middleware error:', error);
   const errorMessage = error instanceof Error ? error.message : String(error);
   
@@ -33,7 +33,7 @@ export function createSystemErrorResponse(res, instanceId, error) {
  * @param {Error} error - The error that occurred
  * @returns {void} Express response
  */
-export function createLightweightSystemErrorResponse(res, instanceId, error) {
+function createLightweightSystemErrorResponse(res, instanceId, error) {
   console.error('Lightweight authentication middleware error:', error);
   const errorMessage = error instanceof Error ? error.message : String(error);
   
@@ -49,7 +49,7 @@ export function createLightweightSystemErrorResponse(res, instanceId, error) {
  * @param {import('./types.js').TokenRefreshError} refreshError - The token refresh error
  * @returns {Promise<import('./types.js').AuthErrorResult>} Error handling result
  */
-export async function handleRefreshFailure(instanceId, refreshError) {
+async function handleRefreshFailure(instanceId, refreshError) {
   // Log the OAuth error
   logOAuthError(refreshError, 'token_refresh', instanceId);
   
@@ -106,7 +106,7 @@ export async function handleRefreshFailure(instanceId, refreshError) {
  * @param {import('./types.js').AuthErrorResult} errorResult - Error handling result
  * @returns {void} Express response
  */
-export function createAuthErrorResponse(res, instanceId, errorResult) {
+function createAuthErrorResponse(res, instanceId, errorResult) {
   const { requiresReauth, errorType, message, statusCode } = errorResult;
   
   if (requiresReauth) {
@@ -149,3 +149,10 @@ export function createAuthErrorResponse(res, instanceId, errorResult) {
       });
   }
 }
+
+module.exports = {
+  createSystemErrorResponse,
+  createLightweightSystemErrorResponse,
+  handleRefreshFailure,
+  createAuthErrorResponse
+};

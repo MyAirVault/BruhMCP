@@ -5,48 +5,39 @@
 
 /// <reference path="./types.js" />
 
-import { lookupInstanceCredentials } from '../services/database.js';
-import { 
-  isValidInstanceId, 
+const { lookupInstanceCredentials  } = require('../services/database');
+const { isValidInstanceId, 
   createInstanceIdValidationError, 
   validateInstance 
-} from './validation.js';
-import { 
-  checkCachedCredentials, 
+ } = require('./validation');
+const { checkCachedCredentials, 
   hasCachedBearerToken, 
   setupRequestWithCachedToken, 
   getTokenInfo, 
   isAccessTokenValid, 
   cacheAndSetupToken, 
   setupLightweightRequest 
-} from './credentialManagement.js';
-import { performTokenRefresh } from './tokenRefresh.js';
-import { 
-  createSystemErrorResponse, 
+ } = require('./credentialManagement');
+const { performTokenRefresh  } = require('./tokenRefresh');
+const { createSystemErrorResponse, 
   createLightweightSystemErrorResponse, 
   handleRefreshFailure, 
   createRefreshFailureResponse, 
   createReauthenticationResponse, 
   logRefreshFallback,
   createNoValidTokenResponse
-} from './authErrorHandler.js';
-import { 
-  logSuccessfulTokenRefresh, 
+ } = require('./authErrorHandler');
+const { logSuccessfulTokenRefresh, 
   logFailedTokenRefresh, 
   logReauthenticationRequired 
-} from './auditLogger.js';
+ } = require('./auditLogger');
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCredentialAuthMiddleware() {
-  /**
-   * @param {import('./types.js').ExpressRequest} req - Express request object
-   * @param {import('./types.js').ExpressResponse} res - Express response object
-   * @param {import('./types.js').ExpressNext} next - Express next function
-   */
-  return async (req, res, next) => {
+function createCredentialAuthMiddleware() {
+  return /** @type {import('express').RequestHandler} */ (async (/** @type {any} */ req, /** @type {any} */ res, /** @type {any} */ next) => {
     const { instanceId } = req.params;
     
     // Validate instance ID format
@@ -59,7 +50,7 @@ export function createCredentialAuthMiddleware() {
       const cachedCredential = checkCachedCredentials(instanceId);
       
       if (hasCachedBearerToken(cachedCredential)) {
-        await setupRequestWithCachedToken(req, cachedCredential, instanceId);
+        await setupRequestWithCachedToken(req, /** @type {import('./types.js').CachedCredential} */ (cachedCredential), instanceId);
         return next();
       }
 
@@ -127,20 +118,15 @@ export function createCredentialAuthMiddleware() {
     } catch (error) {
       return createSystemErrorResponse(res, instanceId, error);
     }
-  };
+  });
 }
 
 /**
  * Create lightweight authentication middleware (no OAuth token required)
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createLightweightAuthMiddleware() {
-  /**
-   * @param {import('./types.js').ExpressRequest} req - Express request object
-   * @param {import('./types.js').ExpressResponse} res - Express response object
-   * @param {import('./types.js').ExpressNext} next - Express next function
-   */
-  return async (req, res, next) => {
+function createLightweightAuthMiddleware() {
+  return /** @type {import('express').RequestHandler} */ (async (/** @type {any} */ req, /** @type {any} */ res, /** @type {any} */ next) => {
     const { instanceId } = req.params;
     
     // Validate instance ID format
@@ -169,20 +155,15 @@ export function createLightweightAuthMiddleware() {
     } catch (error) {
       return createLightweightSystemErrorResponse(res, instanceId, error);
     }
-  };
+  });
 }
 
 /**
  * Create cache performance monitoring middleware
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCachePerformanceMiddleware() {
-  /**
-   * @param {import('./types.js').ExpressRequest} req - Express request object
-   * @param {import('./types.js').ExpressResponse} res - Express response object
-   * @param {import('./types.js').ExpressNext} next - Express next function
-   */
-  return (req, res, next) => {
+function createCachePerformanceMiddleware() {
+  return /** @type {import('express').RequestHandler} */ ((/** @type {any} */ req, /** @type {any} */ res, /** @type {any} */ next) => {
     const start = Date.now();
     
     res.on('finish', () => {
@@ -192,5 +173,11 @@ export function createCachePerformanceMiddleware() {
     });
     
     next();
-  };
+  });
 }
+
+module.exports = {
+  createCredentialAuthMiddleware,
+  createLightweightAuthMiddleware,
+  createCachePerformanceMiddleware
+};

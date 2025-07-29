@@ -87,19 +87,19 @@
  * @property {string} instanceId - Instance ID
  */
 
-import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
-import { lookupInstanceCredentials, updateInstanceUsage } from '../services/database.js';
-import { refreshBearerToken, refreshBearerTokenDirect } from '../utils/oauthValidation.js';
-import { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } from '../../../db/queries/mcpInstances/index.js';
-import { ErrorResponses } from '../../../utils/errorResponse.js';
-import { handleTokenRefreshFailure, logOAuthError } from '../utils/oauthErrorHandler.js';
-import { recordTokenRefreshMetrics } from '../utils/tokenMetrics.js';
+const { getCachedCredential, setCachedCredential } = require('../services/credentialCache.js');
+const { lookupInstanceCredentials, updateInstanceUsage } = require('../services/database.js');
+const { refreshBearerToken, refreshBearerTokenDirect } = require('../utils/oauthValidation.js');
+const { updateOAuthStatus, updateOAuthStatusWithLocking, createTokenAuditLog } = require('../../../db/queries/mcpInstances/index.js');
+const { ErrorResponses } = require('../../../utils/errorResponse.js');
+const { handleTokenRefreshFailure, logOAuthError } = require('../utils/oauthErrorHandler.js');
+const { recordTokenRefreshMetrics } = require('../utils/tokenMetrics.js');
 
 /**
  * Create credential authentication middleware for OAuth Bearer tokens
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCredentialAuthMiddleware() {
+function createCredentialAuthMiddleware() {
   /**
    * @param {import('express').Request} req - Express request object
    * @param {import('express').Response} res - Express response object
@@ -444,7 +444,7 @@ export function createCredentialAuthMiddleware() {
  * Create lightweight authentication middleware for non-critical endpoints
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createLightweightAuthMiddleware() {
+function createLightweightAuthMiddleware() {
   /**
    * @param {import('express').Request} req - Express request object
    * @param {import('express').Response} res - Express response object
@@ -501,7 +501,7 @@ export function createLightweightAuthMiddleware() {
  * Create cache performance monitoring middleware for development
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createCachePerformanceMiddleware() {
+function createCachePerformanceMiddleware() {
   /**
    * @param {import('express').Request} req - Express request object
    * @param {import('express').Response} res - Express response object
@@ -533,3 +533,9 @@ export function createCachePerformanceMiddleware() {
     next();
   };
 }
+
+module.exports = {
+  createCredentialAuthMiddleware,
+  createLightweightAuthMiddleware,
+  createCachePerformanceMiddleware
+};

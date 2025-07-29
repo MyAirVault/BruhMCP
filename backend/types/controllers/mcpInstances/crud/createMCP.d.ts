@@ -1,3 +1,43 @@
+export type Request = import('express').Request;
+export type Response = import('express').Response;
+export type MCPService = {
+    mcp_service_id: string;
+    mcp_service_name: string;
+    display_name: string;
+    type: 'api_key' | 'oauth';
+    is_active: boolean;
+    port: number;
+};
+export type CreationResult = {
+    success: boolean;
+    reason?: string | undefined;
+    message?: string | undefined;
+    currentCount?: number | undefined;
+    maxInstances?: number | undefined;
+    instance?: MCPInstance | undefined;
+};
+export type MCPInstance = {
+    instance_id: string;
+    custom_name: string;
+    status: string;
+    oauth_status?: string | undefined;
+    expires_at: Date;
+    expiration_option: string;
+    usage_count: number;
+    created_at: Date;
+    updated_at: Date;
+};
+export type OAuthResult = {
+    success: boolean;
+    authorization_url?: string | undefined;
+    provider?: string | undefined;
+    instance_id?: string | undefined;
+    message?: string | undefined;
+    error?: string | undefined;
+};
+export type Logger = {
+    app: (arg0: string, arg1: string, arg2: Object) => void;
+};
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /**
@@ -49,44 +89,4 @@
  * @param {Response} res - Express response object
  */
 export function createMCP(req: Request, res: Response): Promise<void>;
-export type Request = import("express").Request;
-export type Response = import("express").Response;
-export type MCPService = {
-    mcp_service_id: string;
-    mcp_service_name: string;
-    display_name: string;
-    type: "api_key" | "oauth";
-    is_active: boolean;
-    port: number;
-};
-export type CreationResult = {
-    success: boolean;
-    reason?: string | undefined;
-    message?: string | undefined;
-    currentCount?: number | undefined;
-    maxInstances?: number | undefined;
-    instance?: MCPInstance | undefined;
-};
-export type MCPInstance = {
-    instance_id: string;
-    custom_name: string;
-    status: string;
-    oauth_status?: string | undefined;
-    expires_at: Date;
-    expiration_option: string;
-    usage_count: number;
-    created_at: Date;
-    updated_at: Date;
-};
-export type OAuthResult = {
-    success: boolean;
-    authorization_url?: string | undefined;
-    provider?: string | undefined;
-    instance_id?: string | undefined;
-    message?: string | undefined;
-    error?: string | undefined;
-};
-export type Logger = {
-    app: (arg0: string, arg1: string, arg2: Object) => void;
-};
 //# sourceMappingURL=createMCP.d.ts.map

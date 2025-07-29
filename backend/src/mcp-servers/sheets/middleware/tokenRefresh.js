@@ -5,11 +5,11 @@
 
 /// <reference path="./types.js" />
 
-import { setCachedCredential } from '../services/credentialCache.js';
-import { updateInstanceUsage } from '../services/database.js';
-import { updateOAuthStatus } from '../../../db/queries/mcpInstances/oauth.js';
-import { recordTokenRefreshMetrics } from '../utils/tokenMetrics.js';
-import SheetsOAuthHandler from '../oauth/oauthHandler.js';
+const { setCachedCredential  } = require('../services/credentialCache');
+const { updateInstanceUsage  } = require('../services/database');
+const { updateOAuthStatus  } = require('../../../db/queries/mcpInstances/oauth');
+const { recordTokenRefreshMetrics  } = require('../utils/tokenMetrics');
+const SheetsOAuthHandler = require('../oauth/oauthHandler');
 
 /**
  * Attempt to refresh OAuth token
@@ -120,7 +120,7 @@ async function processFailedRefresh(instanceId, error, method, startTime) {
  * @param {import('./types.js').ExpressRequest} req - Express request
  * @returns {Promise<import('./types.js').RefreshResult>} Refresh result
  */
-export async function performTokenRefresh(instanceId, refreshToken, instance, req) {
+async function performTokenRefresh(instanceId, refreshToken, instance, req) {
 	console.log(`🔄 Refreshing expired Bearer token for instance: ${instanceId}`);
 	
 	const startTime = Date.now();
@@ -159,3 +159,6 @@ export async function performTokenRefresh(instanceId, refreshToken, instance, re
 		return { success: false, error: refreshError };
 	}
 }
+module.exports = {
+  performTokenRefresh
+};

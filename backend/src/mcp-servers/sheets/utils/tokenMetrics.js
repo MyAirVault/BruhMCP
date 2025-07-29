@@ -16,7 +16,7 @@ const tokenRefreshMetrics = new Map();
  * @param {number} startTime - Operation start time
  * @param {number} endTime - Operation end time
  */
-export function recordTokenRefreshMetrics(
+function recordTokenRefreshMetrics(
 	instanceId, 
 	method, 
 	success, 
@@ -79,7 +79,7 @@ export function recordTokenRefreshMetrics(
  * @param {string} instanceId - Instance ID
  * @returns {Object|null} Metrics or null if not found
  */
-export function getTokenRefreshMetrics(instanceId) {
+function getTokenRefreshMetrics(instanceId) {
 	return tokenRefreshMetrics.get(instanceId) || null;
 }
 
@@ -87,7 +87,7 @@ export function getTokenRefreshMetrics(instanceId) {
  * Get all token refresh metrics
  * @returns {Object} All metrics by instance
  */
-export function getAllTokenRefreshMetrics() {
+function getAllTokenRefreshMetrics() {
 	/** @type {Record<string, any>} */
 	const metrics = {};
 	
@@ -103,7 +103,7 @@ export function getAllTokenRefreshMetrics() {
  * @param {string} instanceId - Instance ID
  * @returns {boolean} Whether metrics were cleared
  */
-export function clearTokenRefreshMetrics(instanceId) {
+function clearTokenRefreshMetrics(instanceId) {
 	return tokenRefreshMetrics.delete(instanceId);
 }
 
@@ -111,7 +111,7 @@ export function clearTokenRefreshMetrics(instanceId) {
  * Get aggregated metrics summary
  * @returns {Object} Aggregated metrics
  */
-export function getMetricsSummary() {
+function getMetricsSummary() {
 	let totalAttempts = 0;
 	let totalSuccess = 0;
 	let totalFailure = 0;
@@ -141,3 +141,11 @@ export function getMetricsSummary() {
 		errorTypes: allErrorTypes
 	};
 }
+
+module.exports = {
+	recordTokenRefreshMetrics,
+	getTokenRefreshMetrics,
+	getAllTokenRefreshMetrics,
+	clearTokenRefreshMetrics,
+	getMetricsSummary
+};

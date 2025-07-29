@@ -28,7 +28,7 @@ const tokenMetrics = {
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
  */
-export function recordTokenRefreshMetrics(instanceId, method, success, errorType, _errorMessage, startTime, endTime) {
+function recordTokenRefreshMetrics(instanceId, method, success, errorType, _errorMessage, startTime, endTime) {
   const duration = endTime - startTime;
   
   // Update overall metrics
@@ -71,7 +71,7 @@ export function recordTokenRefreshMetrics(instanceId, method, success, errorType
  * Get current token metrics
  * @returns {Object} Current metrics
  */
-export function getTokenMetrics() {
+function getTokenMetrics() {
   const totalAttempts = tokenMetrics.refreshAttempts;
   const successRate = totalAttempts > 0 ? (tokenMetrics.refreshSuccesses / totalAttempts * 100).toFixed(2) : 0;
   
@@ -100,7 +100,7 @@ export function getTokenMetrics() {
 /**
  * Reset token metrics
  */
-export function resetTokenMetrics() {
+function resetTokenMetrics() {
   tokenMetrics.refreshAttempts = 0;
   tokenMetrics.refreshSuccesses = 0;
   tokenMetrics.refreshFailures = 0;
@@ -119,7 +119,7 @@ export function resetTokenMetrics() {
  * Get metrics summary for monitoring
  * @returns {Object} Metrics summary
  */
-export function getMetricsSummary() {
+function getMetricsSummary() {
   const metrics = /** @type {any} */ (getTokenMetrics());
   
   return {
@@ -140,7 +140,7 @@ export function getMetricsSummary() {
  * Check if metrics indicate healthy token refresh performance
  * @returns {boolean} True if performance is healthy
  */
-export function isTokenRefreshHealthy() {
+function isTokenRefreshHealthy() {
   const metrics = /** @type {any} */ (getTokenMetrics());
   
   // Consider healthy if:
@@ -159,7 +159,7 @@ export function isTokenRefreshHealthy() {
 /**
  * Log periodic metrics summary
  */
-export function logMetricsSummary() {
+function logMetricsSummary() {
   const metrics = /** @type {any} */ (getTokenMetrics());
   
   if (metrics.totalAttempts === 0) {
@@ -182,7 +182,7 @@ export function logMetricsSummary() {
  * @param {number} intervalMinutes - Interval in minutes
  * @returns {Object} Controller with stop method
  */
-export function startMetricsLogging(intervalMinutes = 30) {
+function startMetricsLogging(intervalMinutes = 30) {
   const interval = setInterval(logMetricsSummary, intervalMinutes * 60 * 1000);
   
   console.log(`📊 Started Reddit token metrics logging (interval: ${intervalMinutes} minutes)`);
@@ -194,3 +194,13 @@ export function startMetricsLogging(intervalMinutes = 30) {
     }
   };
 }
+
+module.exports = {
+  recordTokenRefreshMetrics,
+  getTokenMetrics,
+  resetTokenMetrics,
+  getMetricsSummary,
+  isTokenRefreshHealthy,
+  logMetricsSummary,
+  startMetricsLogging
+};

@@ -3,15 +3,15 @@
  * Handles metadata updates and refresh attempt tracking
  */
 
-import { googleDriveCredentialCache } from './cacheCore.js';
+const { googleDriveCredentialCache  } = require('./cacheCore');
 
 /**
  * Update cached credential metadata
  * @param {string} instanceId - UUID of the service instance
- * @param {Object} updates - Metadata updates to apply
+ * @param {any} updates - Metadata updates to apply
  * @returns {boolean} True if updated, false if not found
  */
-export function updateCachedCredentialMetadata(instanceId, updates) {
+function updateCachedCredentialMetadata(instanceId, updates) {
 	const cached = googleDriveCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -51,7 +51,7 @@ export function updateCachedCredentialMetadata(instanceId, updates) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {number} New refresh attempt count, or -1 if not found
  */
-export function incrementRefreshAttempts(instanceId) {
+function incrementRefreshAttempts(instanceId) {
 	const cached = googleDriveCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -69,7 +69,7 @@ export function incrementRefreshAttempts(instanceId) {
  * @param {string} instanceId - UUID of the service instance
  * @returns {boolean} True if reset, false if not found
  */
-export function resetRefreshAttempts(instanceId) {
+function resetRefreshAttempts(instanceId) {
 	const cached = googleDriveCredentialCache.get(instanceId);
 	
 	if (!cached) {
@@ -81,3 +81,9 @@ export function resetRefreshAttempts(instanceId) {
 	
 	return true;
 }
+
+module.exports = {
+	updateCachedCredentialMetadata,
+	incrementRefreshAttempts,
+	resetRefreshAttempts
+};

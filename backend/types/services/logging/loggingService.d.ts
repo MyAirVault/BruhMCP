@@ -1,451 +1,8 @@
-export default loggingService;
-export type ServerInfo = {
-    /**
-     * - Server port
-     */
-    port: string;
-    /**
-     * - Environment name
-     */
-    environment: string;
-    /**
-     * - Node.js version
-     */
-    nodeVersion?: string | undefined;
-    /**
-     * - Platform name
-     */
-    platform?: string | undefined;
-    /**
-     * - Application version
-     */
-    version?: string | undefined;
-    /**
-     * - Event type
-     */
-    event?: string | undefined;
-    /**
-     * - Event timestamp
-     */
-    timestamp?: string | undefined;
-};
-export type ShutdownInfo = {
-    /**
-     * - Shutdown reason
-     */
-    reason: string;
-    /**
-     * - Whether shutdown was graceful
-     */
-    graceful?: boolean | undefined;
-    /**
-     * - Server uptime
-     */
-    uptime?: number | undefined;
-    /**
-     * - Whether shutdown was graceful
-     */
-    gracefulShutdown?: number | undefined;
-    /**
-     * - Event type
-     */
-    event?: string | undefined;
-    /**
-     * - Event timestamp
-     */
-    timestamp?: string | undefined;
-};
-export type AuthContext = {
-    /**
-     * - Client IP address
-     */
-    ip?: string | undefined;
-    /**
-     * - User agent string
-     */
-    userAgent?: string | undefined;
-    /**
-     * - Authentication method
-     */
-    method?: string | undefined;
-    /**
-     * - User email
-     */
-    email?: string | undefined;
-    /**
-     * - Session duration in milliseconds
-     */
-    sessionDuration?: number | undefined;
-    /**
-     * - API endpoint
-     */
-    endpoint?: string | undefined;
-};
-export type ValidationResult = {
-    /**
-     * - Whether validation was successful
-     */
-    success: boolean;
-    /**
-     * - Error message if validation failed
-     */
-    error?: string | undefined;
-};
-export type ValidationContext = {
-    /**
-     * - User ID
-     */
-    userId?: string | number | undefined;
-    /**
-     * - Service name
-     */
-    service?: string | undefined;
-    /**
-     * - Client IP address
-     */
-    ip?: string | undefined;
-};
-export type SuspiciousActivityContext = {
-    /**
-     * - User ID
-     */
-    userId?: string | number | undefined;
-    /**
-     * - Client IP address
-     */
-    ip?: string | undefined;
-    /**
-     * - User agent string
-     */
-    userAgent?: string | undefined;
-    /**
-     * - Activity severity level
-     */
-    severity?: string | undefined;
-};
-export type DatabaseContext = {
-    /**
-     * - Database query
-     */
-    query?: string | undefined;
-    /**
-     * - Query duration in milliseconds
-     */
-    duration?: number | undefined;
-    /**
-     * - Number of affected rows
-     */
-    affectedRows?: number | undefined;
-    /**
-     * - Error object or message
-     */
-    error?: string | Error | undefined;
-    /**
-     * - Connection pool info
-     */
-    connectionPool?: string | undefined;
-};
-export type SecurityContextExt = {
-    /**
-     * - Client IP address
-     */
-    ip?: string | undefined;
-    /**
-     * - User agent string
-     */
-    userAgent?: string | undefined;
-    /**
-     * - User identifier
-     */
-    userId?: string | undefined;
-    /**
-     * - Security action performed
-     */
-    action?: string | undefined;
-    /**
-     * - User email address
-     */
-    email?: string | undefined;
-    /**
-     * - Failure reason
-     */
-    reason?: string | undefined;
-    /**
-     * - Suspicious activity description
-     */
-    activity?: string | undefined;
-};
-export type CacheContext = {
-    /**
-     * - Service name
-     */
-    service?: string | undefined;
-    /**
-     * - Instance ID
-     */
-    instanceId?: string | undefined;
-    /**
-     * - Cache hit
-     */
-    hit?: boolean | undefined;
-    /**
-     * - Cache miss
-     */
-    miss?: boolean | undefined;
-    /**
-     * - Cache entry size
-     */
-    size?: number | undefined;
-    /**
-     * - Operation duration
-     */
-    duration?: number | undefined;
-    /**
-     * - Operation timestamp
-     */
-    timestamp?: string | undefined;
-};
-export type InstanceData = {
-    /**
-     * - Instance ID
-     */
-    instance_id: string;
-    /**
-     * - Service type
-     */
-    service_type: string;
-};
-export type InstanceContext = {
-    /**
-     * - Service name
-     */
-    service?: string | undefined;
-    /**
-     * - Whether cache was invalidated
-     */
-    cacheInvalidated?: boolean | undefined;
-    /**
-     * - Operation success status
-     */
-    success?: boolean | undefined;
-    /**
-     * - Validation result
-     */
-    validationResult?: Object | undefined;
-};
-export type RenewalData = {
-    /**
-     * - Old expiration date
-     */
-    oldExpiration: string | Date;
-    /**
-     * - New expiration date
-     */
-    newExpiration: string | Date;
-};
-export type ErrorContext = {
-    /**
-     * - User ID
-     */
-    userId?: string | number | undefined;
-    /**
-     * - Instance ID
-     */
-    instanceId?: string | undefined;
-    /**
-     * - Operation name
-     */
-    operation?: string | undefined;
-    /**
-     * - HTTP method
-     */
-    method?: string | undefined;
-    /**
-     * - Client IP address
-     */
-    ip?: string | undefined;
-    /**
-     * - Whether error is critical
-     */
-    critical?: boolean | undefined;
-    /**
-     * - API endpoint
-     */
-    endpoint?: string | undefined;
-    /**
-     * - Additional data
-     */
-    data?: Object | undefined;
-    /**
-     * - Additional error details
-     */
-    details?: Object | undefined;
-    /**
-     * - Error type
-     */
-    type?: string | undefined;
-    /**
-     * - Promise object for unhandled rejections
-     */
-    promise?: Object | undefined;
-    /**
-     * - User email address
-     */
-    email?: string | undefined;
-};
-export type HealthData = {
-    /**
-     * - Memory usage statistics
-     */
-    memoryUsage?: {
-        used?: number;
-    } | undefined;
-    /**
-     * - CPU usage percentage
-     */
-    cpuUsage?: number | undefined;
-    /**
-     * - Disk usage statistics
-     */
-    diskUsage?: Object | undefined;
-    /**
-     * - Database health status
-     */
-    databaseHealth?: Object | undefined;
-    /**
-     * - Cache health status
-     */
-    cacheHealth?: Object | undefined;
-    /**
-     * - Number of active connections
-     */
-    activeConnections?: number | undefined;
-};
-export type DeploymentInfo = {
-    /**
-     * - Deployment version
-     */
-    version: string;
-    /**
-     * - Target environment
-     */
-    environment: string;
-    /**
-     * - Person/system deploying
-     */
-    deployer: string;
-    /**
-     * - List of changes
-     */
-    changes: Array<string>;
-};
-export type PerformanceData = {
-    /**
-     * - HTTP method
-     */
-    method: string;
-    /**
-     * - Request URL
-     */
-    url: string;
-    /**
-     * - HTTP status code
-     */
-    statusCode: number;
-    /**
-     * - Response time in milliseconds
-     */
-    responseTime: number;
-    /**
-     * - User ID
-     */
-    userId?: string | number | undefined;
-    /**
-     * - Client IP
-     */
-    ip?: string | undefined;
-    /**
-     * - User agent
-     */
-    userAgent?: string | undefined;
-    /**
-     * - ISO timestamp
-     */
-    timestamp: string;
-};
-export type ErrorData = {
-    /**
-     * - Error message
-     */
-    message: string;
-    /**
-     * - Error stack trace
-     */
-    stack?: string | undefined;
-    /**
-     * - Error name
-     */
-    name: string;
-    /**
-     * - Error code
-     */
-    code?: string | number | undefined;
-    /**
-     * - User ID
-     */
-    userId?: string | number | undefined;
-    /**
-     * - Instance ID
-     */
-    instanceId?: string | undefined;
-    /**
-     * - Operation name
-     */
-    operation?: string | undefined;
-    /**
-     * - Client IP
-     */
-    ip?: string | undefined;
-    /**
-     * - ISO timestamp
-     */
-    timestamp: string;
-    /**
-     * - Whether error is critical
-     */
-    critical?: boolean | undefined;
-};
-export type ExpressRequest = {
-    /**
-     * - HTTP method
-     */
-    method: string;
-    /**
-     * - Original URL
-     */
-    originalUrl: string;
-    /**
-     * - Client IP
-     */
-    ip: string | undefined;
-    /**
-     * - User object (can be null)
-     */
-    user?: {
-        id?: string | number;
-    } | null | undefined;
-    /**
-     * - Get header function
-     */
-    get: Function;
-};
-export type ExpressResponse = {
-    /**
-     * - HTTP status code
-     */
-    statusCode: number;
-};
+export = loggingService;
 declare const loggingService: LoggingService;
+declare namespace loggingService {
+    export { ServerInfo, ShutdownInfo, AuthContext, ValidationResult, ValidationContext, SuspiciousActivityContext, DatabaseContext, SecurityContextExt, CacheContext, InstanceData, InstanceContext, RenewalData, ErrorContext, HealthData, DeploymentInfo, PerformanceData, ErrorData, ExpressRequest, ExpressResponse };
+}
 /**
  * Centralized logging service that routes logs to appropriate destinations
  * Integrates system-wide logging with existing user instance logging
@@ -611,22 +168,22 @@ declare const loggingService: LoggingService;
 declare class LoggingService {
     systemLogger: {
         application(level: string, message: string, metadata?: Object): void;
-        security(level: string, message: string, securityContext?: SecurityContext): void;
-        performance(message: string, performanceData?: import("./systemLogger.js").PerformanceData): void;
-        audit(action: string, auditContext?: AuditContext): void;
-        database(operation: string, dbContext?: import("./systemLogger.js").DatabaseContext): void;
-        cache(operation: string, cacheContext?: import("./systemLogger.js").CacheContext): void;
+        security(level: string, message: string, securityContext?: systemLogger.SecurityContext): void;
+        performance(message: string, performanceData?: systemLogger.PerformanceData): void;
+        audit(action: string, auditContext?: systemLogger.AuditContext): void;
+        database(operation: string, dbContext?: systemLogger.DatabaseContext): void;
+        cache(operation: string, cacheContext?: systemLogger.CacheContext): void;
         info(message: string, metadata?: Object): void;
         warn(message: string, metadata?: Object): void;
         error(message: string, metadata?: Object): void;
         debug(message: string, metadata?: Object): void;
-        startup(startupInfo?: StartupInfo): void;
-        shutdown(shutdownInfo?: import("./systemLogger.js").ShutdownInfo): void;
-        sanitizeSecurityData(data: SecurityContext): SecurityContext;
+        startup(startupInfo?: systemLogger.StartupInfo): void;
+        shutdown(shutdownInfo?: systemLogger.ShutdownInfo): void;
+        sanitizeSecurityData(data: systemLogger.SecurityContext): systemLogger.SecurityContext;
         sanitizeQuery(query: string): string;
         maskEmail(email: string): string;
-        getLoggerHealth(): LoggerHealth;
-        getLogDirectorySize(): DirectorySize;
+        getLoggerHealth(): systemLogger.LoggerHealth;
+        getLogDirectorySize(): systemLogger.DirectorySize;
         rotateAllLogs(): void;
         cleanupOldLogs(retentionDays?: number): number;
     };
@@ -787,7 +344,7 @@ declare class LoggingService {
      * @param {'responseTime'|'statusCode'} field - Field to calculate average for
      * @returns {number} Average value
      */
-    calculateAverage(data: PerformanceData[], field: "responseTime" | "statusCode"): number;
+    calculateAverage(data: PerformanceData[], field: 'responseTime' | 'statusCode'): number;
     /**
      * @param {PerformanceData[]} data - Performance data array
      * @param {number} limit - Number of top endpoints to return
@@ -822,7 +379,7 @@ declare class LoggingService {
      * Get logging system health
      */
     getLoggingHealth(): {
-        systemLogger: import("./systemLogger.js").LoggerHealth;
+        systemLogger: systemLogger.LoggerHealth;
         buffers: {
             performance: number;
             errors: number;
@@ -831,4 +388,451 @@ declare class LoggingService {
         lastMaintenance: string;
     };
 }
+type ServerInfo = {
+    /**
+     * - Server port
+     */
+    port: string;
+    /**
+     * - Environment name
+     */
+    environment: string;
+    /**
+     * - Node.js version
+     */
+    nodeVersion?: string | undefined;
+    /**
+     * - Platform name
+     */
+    platform?: string | undefined;
+    /**
+     * - Application version
+     */
+    version?: string | undefined;
+    /**
+     * - Event type
+     */
+    event?: string | undefined;
+    /**
+     * - Event timestamp
+     */
+    timestamp?: string | undefined;
+};
+type ShutdownInfo = {
+    /**
+     * - Shutdown reason
+     */
+    reason: string;
+    /**
+     * - Whether shutdown was graceful
+     */
+    graceful?: boolean | undefined;
+    /**
+     * - Server uptime
+     */
+    uptime?: number | undefined;
+    /**
+     * - Whether shutdown was graceful
+     */
+    gracefulShutdown?: number | undefined;
+    /**
+     * - Event type
+     */
+    event?: string | undefined;
+    /**
+     * - Event timestamp
+     */
+    timestamp?: string | undefined;
+};
+type AuthContext = {
+    /**
+     * - Client IP address
+     */
+    ip?: string | undefined;
+    /**
+     * - User agent string
+     */
+    userAgent?: string | undefined;
+    /**
+     * - Authentication method
+     */
+    method?: string | undefined;
+    /**
+     * - User email
+     */
+    email?: string | undefined;
+    /**
+     * - Session duration in milliseconds
+     */
+    sessionDuration?: number | undefined;
+    /**
+     * - API endpoint
+     */
+    endpoint?: string | undefined;
+};
+type ValidationResult = {
+    /**
+     * - Whether validation was successful
+     */
+    success: boolean;
+    /**
+     * - Error message if validation failed
+     */
+    error?: string | undefined;
+};
+type ValidationContext = {
+    /**
+     * - User ID
+     */
+    userId?: string | number | undefined;
+    /**
+     * - Service name
+     */
+    service?: string | undefined;
+    /**
+     * - Client IP address
+     */
+    ip?: string | undefined;
+};
+type SuspiciousActivityContext = {
+    /**
+     * - User ID
+     */
+    userId?: string | number | undefined;
+    /**
+     * - Client IP address
+     */
+    ip?: string | undefined;
+    /**
+     * - User agent string
+     */
+    userAgent?: string | undefined;
+    /**
+     * - Activity severity level
+     */
+    severity?: string | undefined;
+};
+type DatabaseContext = {
+    /**
+     * - Database query
+     */
+    query?: string | undefined;
+    /**
+     * - Query duration in milliseconds
+     */
+    duration?: number | undefined;
+    /**
+     * - Number of affected rows
+     */
+    affectedRows?: number | undefined;
+    /**
+     * - Error object or message
+     */
+    error?: string | Error | undefined;
+    /**
+     * - Connection pool info
+     */
+    connectionPool?: string | undefined;
+};
+type SecurityContextExt = {
+    /**
+     * - Client IP address
+     */
+    ip?: string | undefined;
+    /**
+     * - User agent string
+     */
+    userAgent?: string | undefined;
+    /**
+     * - User identifier
+     */
+    userId?: string | undefined;
+    /**
+     * - Security action performed
+     */
+    action?: string | undefined;
+    /**
+     * - User email address
+     */
+    email?: string | undefined;
+    /**
+     * - Failure reason
+     */
+    reason?: string | undefined;
+    /**
+     * - Suspicious activity description
+     */
+    activity?: string | undefined;
+};
+type CacheContext = {
+    /**
+     * - Service name
+     */
+    service?: string | undefined;
+    /**
+     * - Instance ID
+     */
+    instanceId?: string | undefined;
+    /**
+     * - Cache hit
+     */
+    hit?: boolean | undefined;
+    /**
+     * - Cache miss
+     */
+    miss?: boolean | undefined;
+    /**
+     * - Cache entry size
+     */
+    size?: number | undefined;
+    /**
+     * - Operation duration
+     */
+    duration?: number | undefined;
+    /**
+     * - Operation timestamp
+     */
+    timestamp?: string | undefined;
+};
+type InstanceData = {
+    /**
+     * - Instance ID
+     */
+    instance_id: string;
+    /**
+     * - Service type
+     */
+    service_type: string;
+};
+type InstanceContext = {
+    /**
+     * - Service name
+     */
+    service?: string | undefined;
+    /**
+     * - Whether cache was invalidated
+     */
+    cacheInvalidated?: boolean | undefined;
+    /**
+     * - Operation success status
+     */
+    success?: boolean | undefined;
+    /**
+     * - Validation result
+     */
+    validationResult?: Object | undefined;
+};
+type RenewalData = {
+    /**
+     * - Old expiration date
+     */
+    oldExpiration: string | Date;
+    /**
+     * - New expiration date
+     */
+    newExpiration: string | Date;
+};
+type ErrorContext = {
+    /**
+     * - User ID
+     */
+    userId?: string | number | undefined;
+    /**
+     * - Instance ID
+     */
+    instanceId?: string | undefined;
+    /**
+     * - Operation name
+     */
+    operation?: string | undefined;
+    /**
+     * - HTTP method
+     */
+    method?: string | undefined;
+    /**
+     * - Client IP address
+     */
+    ip?: string | undefined;
+    /**
+     * - Whether error is critical
+     */
+    critical?: boolean | undefined;
+    /**
+     * - API endpoint
+     */
+    endpoint?: string | undefined;
+    /**
+     * - Additional data
+     */
+    data?: Object | undefined;
+    /**
+     * - Additional error details
+     */
+    details?: Object | undefined;
+    /**
+     * - Error type
+     */
+    type?: string | undefined;
+    /**
+     * - Promise object for unhandled rejections
+     */
+    promise?: Object | undefined;
+    /**
+     * - User email address
+     */
+    email?: string | undefined;
+};
+type HealthData = {
+    /**
+     * - Memory usage statistics
+     */
+    memoryUsage?: {
+        used?: number | undefined;
+    } | undefined;
+    /**
+     * - CPU usage percentage
+     */
+    cpuUsage?: number | undefined;
+    /**
+     * - Disk usage statistics
+     */
+    diskUsage?: Object | undefined;
+    /**
+     * - Database health status
+     */
+    databaseHealth?: Object | undefined;
+    /**
+     * - Cache health status
+     */
+    cacheHealth?: Object | undefined;
+    /**
+     * - Number of active connections
+     */
+    activeConnections?: number | undefined;
+};
+type DeploymentInfo = {
+    /**
+     * - Deployment version
+     */
+    version: string;
+    /**
+     * - Target environment
+     */
+    environment: string;
+    /**
+     * - Person/system deploying
+     */
+    deployer: string;
+    /**
+     * - List of changes
+     */
+    changes: Array<string>;
+};
+type PerformanceData = {
+    /**
+     * - HTTP method
+     */
+    method: string;
+    /**
+     * - Request URL
+     */
+    url: string;
+    /**
+     * - HTTP status code
+     */
+    statusCode: number;
+    /**
+     * - Response time in milliseconds
+     */
+    responseTime: number;
+    /**
+     * - User ID
+     */
+    userId?: string | number | undefined;
+    /**
+     * - Client IP
+     */
+    ip?: string | undefined;
+    /**
+     * - User agent
+     */
+    userAgent?: string | undefined;
+    /**
+     * - ISO timestamp
+     */
+    timestamp: string;
+};
+type ErrorData = {
+    /**
+     * - Error message
+     */
+    message: string;
+    /**
+     * - Error stack trace
+     */
+    stack?: string | undefined;
+    /**
+     * - Error name
+     */
+    name: string;
+    /**
+     * - Error code
+     */
+    code?: string | number | undefined;
+    /**
+     * - User ID
+     */
+    userId?: string | number | undefined;
+    /**
+     * - Instance ID
+     */
+    instanceId?: string | undefined;
+    /**
+     * - Operation name
+     */
+    operation?: string | undefined;
+    /**
+     * - Client IP
+     */
+    ip?: string | undefined;
+    /**
+     * - ISO timestamp
+     */
+    timestamp: string;
+    /**
+     * - Whether error is critical
+     */
+    critical?: boolean | undefined;
+};
+type ExpressRequest = {
+    /**
+     * - HTTP method
+     */
+    method: string;
+    /**
+     * - Original URL
+     */
+    originalUrl: string;
+    /**
+     * - Client IP
+     */
+    ip: string | undefined;
+    /**
+     * - User object (can be null)
+     */
+    user?: {
+        id?: string | number | undefined;
+    } | null | undefined;
+    /**
+     * - Get header function
+     */
+    get: Function;
+};
+type ExpressResponse = {
+    /**
+     * - HTTP status code
+     */
+    statusCode: number;
+};
+import systemLogger = require("./systemLogger.js");
 //# sourceMappingURL=loggingService.d.ts.map

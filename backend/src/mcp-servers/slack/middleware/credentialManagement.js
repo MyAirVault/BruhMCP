@@ -4,15 +4,15 @@
  */
 
 /// <reference path="./types.js" />
-import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
-import { updateInstanceUsage } from '../services/database.js';
+const { getCachedCredential, setCachedCredential  } = require('../services/credentialCache');
+const { updateInstanceUsage  } = require('../services/database');
 
 /**
  * Check cached credentials for an instance
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').CachedCredential|undefined} Cached credential object or undefined if not found
  */
-export function checkCachedCredentials(instanceId) {
+function checkCachedCredentials(instanceId) {
   const credential = getCachedCredential(instanceId);
   return /** @type {import('./types.js').CachedCredential | undefined} */ (credential || undefined);
 }
@@ -22,7 +22,7 @@ export function checkCachedCredentials(instanceId) {
  * @param {import('./types.js').CachedCredential} [cachedCredential] - The cached credential object
  * @returns {cachedCredential is import('./types.js').CachedCredential} True if cached credential has valid bearer token
  */
-export function hasCachedBearerToken(cachedCredential) {
+function hasCachedBearerToken(cachedCredential) {
   return !!(cachedCredential && cachedCredential.bearerToken);
 }
 
@@ -33,7 +33,7 @@ export function hasCachedBearerToken(cachedCredential) {
  * @param {string} instanceId - The instance ID
  * @returns {Promise<void>} Promise that resolves when setup is complete
  */
-export async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
+async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
   console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`);
   
   req.bearerToken = cachedCredential.bearerToken;
@@ -53,7 +53,7 @@ export async function setupRequestWithCachedToken(req, cachedCredential, instanc
  * @param {import('./types.js').CachedCredential} [cachedCredential] - The cached credential object
  * @returns {import('./types.js').TokenInfo} Object containing token information
  */
-export function getTokenInfo(instance, cachedCredential) {
+function getTokenInfo(instance, cachedCredential) {
   const refreshToken = cachedCredential?.refreshToken || instance.refresh_token;
   const accessToken = cachedCredential?.bearerToken || instance.access_token;
   const tokenExpiresAt = cachedCredential?.expiresAt || 
@@ -74,7 +74,7 @@ export function getTokenInfo(instance, cachedCredential) {
  * @param {number} [tokenExpiresAt] - Token expiration timestamp
  * @returns {boolean} True if token is valid and not expired
  */
-export function isAccessTokenValid(accessToken, tokenExpiresAt) {
+function isAccessTokenValid(accessToken, tokenExpiresAt) {
   return !!(accessToken && tokenExpiresAt && tokenExpiresAt > Date.now());
 }
 
@@ -90,7 +90,7 @@ export function isAccessTokenValid(accessToken, tokenExpiresAt) {
  * @param {string} [teamId] - Slack team ID
  * @returns {Promise<void>} Promise that resolves when caching and setup is complete
  */
-export async function cacheAndSetupToken(
+async function cacheAndSetupToken(
   instanceId, 
   accessToken, 
   tokenExpiresAt, 
@@ -134,7 +134,7 @@ export async function cacheAndSetupToken(
  * @param {string} [teamId] - Slack team ID
  * @returns {void}
  */
-export function cacheNewTokens(instanceId, accessToken, refreshToken, expiresAt, userId, teamId) {
+function cacheNewTokens(instanceId, accessToken, refreshToken, expiresAt, userId, teamId) {
   setCachedCredential(instanceId, {
     bearerToken: accessToken,
     refreshToken: refreshToken,
@@ -153,7 +153,7 @@ export function cacheNewTokens(instanceId, accessToken, refreshToken, expiresAt,
  * @param {string} [teamId] - Slack team ID
  * @returns {Promise<void>} Promise that resolves when setup is complete
  */
-export async function setupRequestWithNewTokens(req, accessToken, instanceId, userId, teamId) {
+async function setupRequestWithNewTokens(req, accessToken, instanceId, userId, teamId) {
   req.bearerToken = accessToken;
   req.instanceId = instanceId;
   req.userId = userId;
@@ -173,8 +173,17 @@ export async function setupRequestWithNewTokens(req, accessToken, instanceId, us
  * @param {string} [teamId] - Slack team ID
  * @returns {void}
  */
-export function setupLightweightRequest(req, instanceId, userId, teamId) {
+function setupLightweightRequest(req, instanceId, userId, teamId) {
   req.instanceId = instanceId;
   req.userId = userId;
   req.teamId = teamId;
 }
+module.exports = {
+  checkCachedCredentials,
+  hasCachedBearerToken,
+  setupRequestWithCachedToken,
+  cacheNewTokens,
+  cacheAndSetupToken,
+  setupRequestWithNewTokens,
+  setupLightweightRequest
+};

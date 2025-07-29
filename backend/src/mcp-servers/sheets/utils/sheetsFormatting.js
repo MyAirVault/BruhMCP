@@ -103,7 +103,7 @@
 /**
  * Format Google Sheets API responses
  */
-export const formatSheetsResponse = {
+const formatSheetsResponse = {
 	/**
 	 * Format spreadsheet response
 	 * @param {SpreadsheetResponse} response - Spreadsheet response
@@ -251,4 +251,8 @@ export const formatSheetsResponse = {
 			}))
 		};
 	}
+};
+
+module.exports = {
+	formatSheetsResponse
 };

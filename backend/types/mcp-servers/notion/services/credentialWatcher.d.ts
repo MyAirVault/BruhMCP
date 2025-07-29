@@ -1,29 +1,3 @@
-/**
- * Start the credential watcher background process
- * Runs every 30 seconds to maintain cache health
- * @returns {void}
- */
-export function startCredentialWatcher(): void;
-/**
- * Stop the credential watcher background process
- * @returns {void}
- */
-export function stopCredentialWatcher(): void;
-/**
- * Check if credential watcher is running
- * @returns {boolean} True if watcher is active
- */
-export function isCredentialWatcherRunning(): boolean;
-/**
- * Force immediate cache maintenance check (for testing/manual triggers)
- * @returns {Promise<void>}
- */
-export function forceMaintenanceCheck(): Promise<void>;
-/**
- * Get watcher status and configuration
- * @returns {WatcherStatus} Watcher status information
- */
-export function getWatcherStatus(): WatcherStatus;
 export type RawCacheEntry = {
     /**
      * - OAuth Bearer token
@@ -164,4 +138,25 @@ export type CacheEntryWithUsage = {
      */
     cached: CacheEntry;
 };
+/**
+ * Start the credential watcher background process
+ * Runs every 30 seconds to maintain cache health
+ * @returns {void}
+ */
+export function startCredentialWatcher(): void;
+/**
+ * Stop the credential watcher background process
+ * @returns {void}
+ */
+export function stopCredentialWatcher(): void;
+/**
+ * Get watcher status and configuration
+ * @returns {WatcherStatus} Watcher status information
+ */
+export function getWatcherStatus(): WatcherStatus;
+/**
+ * Force immediate cache maintenance check (for testing/manual triggers)
+ * @returns {Promise<void>}
+ */
+export function forceMaintenanceCheck(): Promise<void>;
 //# sourceMappingURL=credentialWatcher.d.ts.map

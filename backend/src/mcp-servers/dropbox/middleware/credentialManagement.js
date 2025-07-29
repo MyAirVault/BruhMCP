@@ -4,15 +4,15 @@
  */
 
 /// <reference path="./types.js" />
-import { getCachedCredential, setCachedCredential } from '../services/credentialCache.js';
-import { updateInstanceUsage } from '../services/database.js';
+const { getCachedCredential, setCachedCredential } = require('../services/credentialCache.js');
+const { updateInstanceUsage } = require('../services/database.js');
 
 /**
  * Check cached credentials for an instance
  * @param {string} instanceId - The instance ID
  * @returns {import('./types.js').CachedCredential|undefined} Cached credential object or undefined if not found
  */
-export function checkCachedCredentials(instanceId) {
+function checkCachedCredentials(instanceId) {
   const credential = getCachedCredential(instanceId);
   return /** @type {import('./types.js').CachedCredential | undefined} */ (credential || undefined);
 }
@@ -22,7 +22,7 @@ export function checkCachedCredentials(instanceId) {
  * @param {import('./types.js').CachedCredential} [cachedCredential] - The cached credential object
  * @returns {cachedCredential is import('./types.js').CachedCredential} True if cached credential has valid bearer token
  */
-export function hasCachedBearerToken(cachedCredential) {
+function hasCachedBearerToken(cachedCredential) {
   return !!(cachedCredential && cachedCredential.bearerToken);
 }
 
@@ -33,7 +33,7 @@ export function hasCachedBearerToken(cachedCredential) {
  * @param {string} instanceId - The instance ID
  * @returns {Promise<void>} Promise that resolves when setup is complete
  */
-export async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
+async function setupRequestWithCachedToken(req, cachedCredential, instanceId) {
   console.log(`✅ OAuth Bearer token cache hit for instance: ${instanceId}`);
   
   req.bearerToken = cachedCredential.bearerToken;
@@ -52,7 +52,7 @@ export async function setupRequestWithCachedToken(req, cachedCredential, instanc
  * @param {import('./types.js').DatabaseInstance} [instance] - Database instance record
  * @returns {{refreshToken: string, expiresAt: number} | undefined} Token information or undefined if not available
  */
-export function getTokenInfo(cachedCredential, instance) {
+function getTokenInfo(cachedCredential, instance) {
   if (cachedCredential && cachedCredential.refreshToken && cachedCredential.expiresAt) {
     return {
       refreshToken: cachedCredential.refreshToken,
@@ -79,7 +79,7 @@ export function getTokenInfo(cachedCredential, instance) {
  * @param {string} userId - User ID
  * @returns {void}
  */
-export function cacheNewTokens(instanceId, accessToken, refreshToken, expiresAt, userId) {
+function cacheNewTokens(instanceId, accessToken, refreshToken, expiresAt, userId) {
   setCachedCredential(instanceId, /** @type {import('../../../types/dropbox.d.ts').CachedCredentials} */ ({
     bearerToken: accessToken,
     refreshToken: refreshToken,
@@ -103,7 +103,7 @@ export function cacheNewTokens(instanceId, accessToken, refreshToken, expiresAt,
  * @param {string} userId - User ID
  * @returns {Promise<void>} Promise that resolves when setup is complete
  */
-export async function setupRequestWithNewTokens(req, accessToken, instanceId, userId) {
+async function setupRequestWithNewTokens(req, accessToken, instanceId, userId) {
   req.bearerToken = accessToken;
   req.instanceId = instanceId;
   req.userId = userId;
@@ -122,7 +122,7 @@ export async function setupRequestWithNewTokens(req, accessToken, instanceId, us
  * @param {number} [bufferMinutes=10] - Minutes before expiry to consider token as expired
  * @returns {boolean} True if token is expired or will expire soon
  */
-export function isTokenExpired(expiresAt, bufferMinutes = 10) {
+function isTokenExpired(expiresAt, bufferMinutes = 10) {
   const now = Date.now();
   const bufferMs = bufferMinutes * 60 * 1000;
   const expiresSoon = expiresAt - now < bufferMs;
@@ -141,7 +141,7 @@ export function isTokenExpired(expiresAt, bufferMinutes = 10) {
  * @param {string} expectedUserId - Expected user ID
  * @returns {boolean} True if instance exists and belongs to the user
  */
-export function validateInstanceOwnership(instance, expectedUserId) {
+function validateInstanceOwnership(instance, expectedUserId) {
   if (!instance) {
     console.log(`❌ Instance not found in database`);
     return false;
@@ -154,3 +154,14 @@ export function validateInstanceOwnership(instance, expectedUserId) {
   
   return true;
 }
+
+module.exports = {
+  checkCachedCredentials,
+  hasCachedBearerToken,
+  setupRequestWithCachedToken,
+  getTokenInfo,
+  cacheNewTokens,
+  setupRequestWithNewTokens,
+  isTokenExpired,
+  validateInstanceOwnership
+};

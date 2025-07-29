@@ -3,11 +3,11 @@
  * Multi-tenant OAuth implementation with credential caching
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'node:crypto';
-import { setupSheetsTools } from './tools.js';
+const { McpServer  } = require('@modelcontextprotocol/sdk/server/mcp');
+const { StreamableHTTPServerTransport  } = require('@modelcontextprotocol/sdk/server/streamableHttp');
+const { isInitializeRequest  } = require('@modelcontextprotocol/sdk/types');
+const { randomUUID  } = require('node:crypto');
+const { setupSheetsTools  } = require('./tools');
 
 /**
  * @typedef {Object} ServiceConfig
@@ -17,7 +17,7 @@ import { setupSheetsTools } from './tools.js';
  * @property {string[]} scopes
  */
 
-export class SheetsMCPHandler {
+class SheetsMCPHandler {
 	/**
 	 * @param {ServiceConfig} serviceConfig
 	 * @param {string} bearerToken
@@ -97,3 +97,7 @@ export class SheetsMCPHandler {
 		}
 	}
 }
+
+module.exports = {
+	SheetsMCPHandler
+};

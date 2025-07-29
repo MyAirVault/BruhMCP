@@ -3,7 +3,7 @@
  * Standardized function for validating Reddit OAuth credentials format
  */
 
-import createRedditValidator from '../validation/credentialValidator.js';
+const createRedditValidator = require('../validation/credentialValidator');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -80,4 +80,5 @@ async function validateCredentials(credentials, userId) {
 	}
 }
 
-export { validateCredentials };
+
+module.exports = { validateCredentials  };

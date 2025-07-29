@@ -5,7 +5,7 @@
  * Runs every 30 seconds to monitor cached credentials and perform cleanup
  */
 
-import { getCachedInstanceIds, peekCachedCredential, removeCachedCredential, getCacheStatistics } from './credentialCache.js';
+const { getCachedInstanceIds, peekCachedCredential, removeCachedCredential, getCacheStatistics } = require('./credentialCache.js');
 
 // Watcher configuration
 const WATCHER_INTERVAL_MS = 30000; // 30 seconds
@@ -41,7 +41,7 @@ let watcherStartTime = 0;
  * Start the credential watcher background process
  * Runs every 30 seconds to maintain cache health
  */
-export function startCredentialWatcher() {
+function startCredentialWatcher() {
 	if (isWatcherRunning) {
 		console.log('⚠️ Credential watcher is already running');
 		return;
@@ -66,7 +66,7 @@ export function startCredentialWatcher() {
 /**
  * Stop the credential watcher background process
  */
-export function stopCredentialWatcher() {
+function stopCredentialWatcher() {
 	if (!isWatcherRunning) {
 		console.log('⚠️ Credential watcher is not running');
 		return;
@@ -86,7 +86,7 @@ export function stopCredentialWatcher() {
  * Check if credential watcher is running
  * @returns {boolean} True if watcher is active
  */
-export function isCredentialWatcherRunning() {
+function isCredentialWatcherRunning() {
 	return isWatcherRunning;
 }
 
@@ -221,7 +221,7 @@ function logCacheStatistics() {
  * Force immediate cache maintenance check (for testing/manual triggers)
  * @returns {Promise<void>}
  */
-export async function forceMaintenanceCheck() {
+async function forceMaintenanceCheck() {
 	console.log('🔧 Manual cache maintenance check triggered');
 	performCacheMaintenanceCheck();
 }
@@ -240,7 +240,7 @@ export async function forceMaintenanceCheck() {
  * Get watcher status and configuration
  * @returns {WatcherStatus} Watcher status information
  */
-export function getWatcherStatus() {
+function getWatcherStatus() {
 	return {
 		is_running: isWatcherRunning,
 		interval_ms: WATCHER_INTERVAL_MS,
@@ -250,3 +250,11 @@ export function getWatcherStatus() {
 		uptime_seconds: isWatcherRunning ? Math.floor((Date.now() - watcherStartTime) / 1000) : 0
 	};
 }
+
+module.exports = {
+	startCredentialWatcher,
+	stopCredentialWatcher,
+	isCredentialWatcherRunning,
+	forceMaintenanceCheck,
+	getWatcherStatus
+};

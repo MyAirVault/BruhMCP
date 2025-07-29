@@ -1,5 +1,5 @@
-import { getAllMCPTypes } from '../../db/queries/mcpTypesQueries.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
+const { getAllMCPTypes } = require('../../db/queries/mcpTypesQueries.js');
+const { ErrorResponses } = require('../../utils/errorResponse.js');
 
 /**
  * @typedef {Object} MCPType
@@ -30,7 +30,7 @@ import { ErrorResponses } from '../../utils/errorResponse.js';
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function getMCPTypes(req, res) {
+async function getMCPTypes(req, res) {
 	try {
 		const { active } = req.query;
 		const activeOnly = active === 'true';
@@ -118,3 +118,5 @@ export async function getMCPTypes(req, res) {
 		return ErrorResponses.internal(res, 'Failed to fetch MCP types');
 	}
 }
+
+module.exports = { getMCPTypes };

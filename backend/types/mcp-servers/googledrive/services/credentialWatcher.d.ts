@@ -1,37 +1,4 @@
 /**
- * Start the credential watcher service
- */
-export function startCredentialWatcher(): void;
-/**
- * Stop the credential watcher service
- */
-export function stopCredentialWatcher(): void;
-/**
- * Watcher status information
- * @typedef {Object} WatcherStatus
- * @property {boolean} isRunning - Whether the watcher is running
- * @property {number} intervalMinutes - Watcher interval in minutes
- * @property {number} refreshThresholdMinutes - Token refresh threshold in minutes
- * @property {number} maxRefreshAttempts - Maximum refresh attempts
- * @property {WatcherStatistics & {nextRunIn: string}} statistics - Watcher statistics with next run info
- */
-/**
- * Get watcher status and statistics
- * @returns {WatcherStatus} Watcher status information
- */
-export function getWatcherStatus(): WatcherStatus;
-/**
- * Force refresh a specific instance token
- * @param {string} instanceId - Instance ID to refresh
- * @returns {Promise<boolean>} True if refresh was successful
- */
-export function forceRefreshInstanceToken(instanceId: string): Promise<boolean>;
-/**
- * Manual cleanup of invalid cache entries
- * @returns {number} Number of entries removed
- */
-export function manualCleanup(): number;
-/**
  * Watcher status information
  */
 export type WatcherStatus = {
@@ -108,4 +75,32 @@ export type CachedCredential = {
      */
     refresh_attempts?: number | undefined;
 };
+/**
+ * Start the credential watcher service
+ */
+export function startCredentialWatcher(): void;
+/**
+ * Stop the credential watcher service
+ */
+export function stopCredentialWatcher(): void;
+/**
+ * Watcher status information
+ * @typedef {Object} WatcherStatus
+ * @property {boolean} isRunning - Whether the watcher is running
+ * @property {number} intervalMinutes - Watcher interval in minutes
+ * @property {number} refreshThresholdMinutes - Token refresh threshold in minutes
+ * @property {number} maxRefreshAttempts - Maximum refresh attempts
+ * @property {WatcherStatistics & {nextRunIn: string}} statistics - Watcher statistics with next run info
+ */
+/**
+ * Get watcher status and statistics
+ * @returns {WatcherStatus} Watcher status information
+ */
+export function getWatcherStatus(): WatcherStatus;
+/**
+ * Force refresh a specific instance token
+ * @param {string} instanceId - Instance ID to refresh
+ * @returns {Promise<boolean>} True if refresh was successful
+ */
+export function forceRefreshInstanceToken(instanceId: string): Promise<boolean>;
 //# sourceMappingURL=credentialWatcher.d.ts.map

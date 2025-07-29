@@ -1,3 +1,8 @@
+export type ServiceConfig = {
+    name: string;
+    displayName: string;
+    version: string;
+};
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -30,12 +35,7 @@ export class FigmaMCPHandler {
      */
     handleMCPRequest(req: any, res: any, message: any): Promise<void>;
 }
-export type ServiceConfig = {
-    name: string;
-    displayName: string;
-    version: string;
-};
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { FigmaService } from '../services/figmaService.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { FigmaService } from "../services/figmaService.js";
 //# sourceMappingURL=mcpHandler.d.ts.map

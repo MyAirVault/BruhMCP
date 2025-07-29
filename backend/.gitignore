@@ -13,3 +13,5 @@ coverage/
 # Test files
 test-validator-registry.js
 test-modal-validation.js
+
+.claude/

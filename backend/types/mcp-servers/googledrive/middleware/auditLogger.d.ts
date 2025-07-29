@@ -42,19 +42,4 @@ export function logOAuthCallback(instanceId: string, userId: string, success: bo
  * @returns {Promise<void>}
  */
 export function logInstanceRevocation(instanceId: string, userId: string): Promise<void>;
-/**
- * Records usage tracking failure for monitoring
- * @param {string} instanceId - Instance ID
- * @param {string} errorMessage - Error message
- * @returns {void}
- */
-export function recordUsageTrackingFailure(instanceId: string, errorMessage: string): void;
-/**
- * Records audit log failure for monitoring
- * @param {string} instanceId - Instance ID
- * @param {string} operation - Operation type
- * @param {string} errorMessage - Error message
- * @returns {void}
- */
-export function recordAuditLogFailure(instanceId: string, operation: string, errorMessage: string): void;
 //# sourceMappingURL=auditLogger.d.ts.map

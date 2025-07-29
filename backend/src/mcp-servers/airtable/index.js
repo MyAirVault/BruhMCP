@@ -5,25 +5,22 @@
 
 /// <reference path="../../types/airtable.d.ts" />
 
-import * as dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+const dotenv = require('dotenv');
+const { join } = require('path');
 
 // Load .env from backend root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const backendRoot = join(__dirname, '../../..');
 dotenv.config({ path: join(backendRoot, '.env') });
 
-import express from 'express';
-import cors from 'cors';
-import { healthCheck } from './endpoints/health.js';
-import { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } from './middleware/credentialAuth.js';
-import { initializeCredentialCache, getCacheStatistics } from './services/credentialCache.js';
-import { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } from './services/credentialWatcher.js';
-import { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } from './services/handlerSessions.js';
-import { ErrorResponses } from '../../utils/errorResponse.js';
-import { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } from '../../middleware/mcpLoggingMiddleware.js';
+const express = require('express');
+const cors = require('cors');
+const { healthCheck } = require('./endpoints/health.js');
+const { createCredentialAuthMiddleware, createLightweightAuthMiddleware, createCachePerformanceMiddleware } = require('./middleware/credentialAuth.js');
+const { initializeCredentialCache, getCacheStatistics } = require('./services/credentialCache.js');
+const { startCredentialWatcher, stopCredentialWatcher, getWatcherStatus } = require('./services/credentialWatcher.js');
+const { getOrCreateHandler, startSessionCleanup, stopSessionCleanup, getSessionStatistics } = require('./services/handlerSessions.js');
+const { ErrorResponses } = require('../../utils/errorResponse.js');
+const { createMCPLoggingMiddleware, createMCPErrorMiddleware, createMCPOperationMiddleware, createMCPServiceLogger } = require('../../middleware/mcpLoggingMiddleware.js');
 
 // Service configuration (from mcp-ports/airtable/config.json)
 const SERVICE_CONFIG = {
@@ -271,4 +268,4 @@ process.on('SIGINT', () => {
   });
 });
 
-export default app;
+module.exports = app;

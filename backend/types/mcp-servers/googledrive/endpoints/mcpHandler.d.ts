@@ -1,3 +1,25 @@
+export type JSONRPCRequest = import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest;
+export type JSONRPCMessage = import('@modelcontextprotocol/sdk/types.js').JSONRPCMessage;
+export type ExpressRequest = import('express').Request;
+export type ExpressResponse = import('express').Response;
+export type ServiceConfig = {
+    name: string;
+    displayName: string;
+    version: string;
+    scopes: string[];
+};
+export type MCPToolResult = {
+    isError?: boolean | undefined;
+    content: Array<{
+        type: string;
+        text: string;
+    }>;
+};
+export type MCPMessage = {
+    method: string;
+    id?: string | number | undefined;
+    params?: Object | undefined;
+};
 /**
  * @typedef {Object} ServiceConfig
  * @property {string} name
@@ -41,28 +63,6 @@ export class GoogleDriveMCPHandler {
      */
     handleMCPRequest(req: ExpressRequest, res: ExpressResponse, message: JSONRPCRequest): Promise<void>;
 }
-export type JSONRPCRequest = import("@modelcontextprotocol/sdk/types.js").JSONRPCRequest;
-export type JSONRPCMessage = import("@modelcontextprotocol/sdk/types.js").JSONRPCMessage;
-export type ExpressRequest = import("express").Request;
-export type ExpressResponse = import("express").Response;
-export type ServiceConfig = {
-    name: string;
-    displayName: string;
-    version: string;
-    scopes: string[];
-};
-export type MCPToolResult = {
-    isError?: boolean | undefined;
-    content: Array<{
-        type: string;
-        text: string;
-    }>;
-};
-export type MCPMessage = {
-    method: string;
-    id?: string | number | undefined;
-    params?: Object | undefined;
-};
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
 //# sourceMappingURL=mcpHandler.d.ts.map

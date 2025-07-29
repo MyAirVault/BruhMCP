@@ -5,7 +5,7 @@
  * @param {Error} error - Error object
  * @returns {any} Error response
  */
-export function createSystemErrorResponse(res: import("./types.js").ExpressResponse, instanceId: string, error: Error): any;
+export function createSystemErrorResponse(res: import('./types.js').ExpressResponse, instanceId: string, error: Error): any;
 /**
  * Create lightweight system error response
  * @param {import('./types.js').ExpressResponse} res - Express response
@@ -13,7 +13,7 @@ export function createSystemErrorResponse(res: import("./types.js").ExpressRespo
  * @param {Error} error - Error object
  * @returns {any} Error response
  */
-export function createLightweightSystemErrorResponse(res: import("./types.js").ExpressResponse, instanceId: string, error: Error): any;
+export function createLightweightSystemErrorResponse(res: import('./types.js').ExpressResponse, instanceId: string, error: Error): any;
 /**
  * Handle token refresh failure
  * @param {string} instanceId - Instance ID
@@ -27,7 +27,7 @@ export function handleRefreshFailure(instanceId: string, error: Error): Object;
  * @param {{error: string, errorCode: string, requiresReauth: boolean, instanceId: string}} errorDetails - Error details
  * @returns {any} Error response
  */
-export function createRefreshFailureResponse(res: import("./types.js").ExpressResponse, errorDetails: {
+export function createRefreshFailureResponse(res: import('./types.js').ExpressResponse, errorDetails: {
     error: string;
     errorCode: string;
     requiresReauth: boolean;
@@ -39,7 +39,7 @@ export function createRefreshFailureResponse(res: import("./types.js").ExpressRe
  * @param {string} instanceId - Instance ID
  * @returns {any} Error response
  */
-export function createReauthenticationResponse(res: import("./types.js").ExpressResponse, instanceId: string): any;
+export function createReauthenticationResponse(res: import('./types.js').ExpressResponse, instanceId: string): any;
 /**
  * Log refresh fallback attempt
  * @param {Error} error - Original error

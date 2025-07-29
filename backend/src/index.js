@@ -1,41 +1,41 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
-import 'dotenv/config';
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+require('dotenv/config');
 
 // Import routes
-import authRoutes from './routes/authRoutes.js';
-import mcpTypesRoutes from './routes/mcpTypesRoutes.js';
-import apiKeysRoutes from './routes/apiKeysRoutes.js';
-import mcpInstancesRoutes from './routes/mcpInstancesRoutes.js';
-import billingRoutes from './billing/routes/billingRoutes.js';
-import billingDetailsRoutes from './routes/billingDetailsRoutes.js';
+const authRoutes = require('./routes/authRoutes.js');
+const mcpTypesRoutes = require('./routes/mcpTypesRoutes.js');
+const apiKeysRoutes = require('./routes/apiKeysRoutes.js');
+const mcpInstancesRoutes = require('./routes/mcpInstancesRoutes.js');
+const billingRoutes = require('./billing/routes/billingRoutes.js');
+const billingDetailsRoutes = require('./routes/billingDetailsRoutes.js');
 
 // Import billing validation
-import { validateBillingConfig } from './billing/middleware/webhookValidation.js';
+const { validateBillingConfig } = require('./billing/middleware/webhookValidation.js');
 
 // Import middleware
-import { apiRateLimiter } from './utils/rateLimiter.js';
-import { errorHandler } from './utils/errorResponse.js';
+const { apiRateLimiter } = require('./utils/rateLimiter.js');
+const { errorHandler } = require('./utils/errorResponse.js');
 
 // Import database
-import { initializeDatabase } from './db/config.js';
+const { initializeDatabase } = require('./db/config.js');
 
 // Import MCP Auth Registry
-import { authRegistry } from './services/mcp-auth-registry/index.js';
+const { authRegistry } = require('./services/mcp-auth-registry/index.js');
 
 // Port validation removed - no longer using dynamic port allocation
 
 // Import expiration monitor
-import expirationMonitor from './services/expirationMonitor.js';
+const expirationMonitor = require('./services/expirationMonitor.js');
 
 // OAuth service removed - now handled per service
 
 // Import logging services
-import loggingService from './services/logging/loggingService.js';
-import { ErrorResponses } from './utils/errorResponse.js';
-import logMaintenanceService from './services/logging/logMaintenanceService.js';
+const loggingService = require('./services/logging/loggingService.js');
+const { ErrorResponses } = require('./utils/errorResponse.js');
+const logMaintenanceService = require('./services/logging/logMaintenanceService.js');
 
 
 const app = express();
@@ -45,7 +45,7 @@ const port = process.env.PORT || 5000;
 app.set('trust proxy', true);
 
 // Security middleware
-app.use(helmet({
+app.use(helmet.default({
 	contentSecurityPolicy: {
 		directives: {
 			defaultSrc: ["'self'"],

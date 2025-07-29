@@ -3,8 +3,7 @@
  * Executes Reddit API operations using OAuth Bearer tokens
  */
 
-import { 
-  getSubredditInfo,
+const { getSubredditInfo,
   getSubredditPosts,
   getPostById,
   getPostComments,
@@ -23,9 +22,9 @@ import {
   getSubscriptions,
   subscribeToSubreddit,
   unsubscribeFromSubreddit
-} from '../api/redditApi.js';
+ } = require('../api/redditApi');
 
-import { validateToolArguments } from '../utils/validation.js';
+const { validateToolArguments  } = require('../utils/validation');
 
 /**
  * Execute a Reddit tool call
@@ -34,7 +33,7 @@ import { validateToolArguments } from '../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token for Reddit API
  * @returns {Promise<{content: Array<{type: string, text: string}>}>} Tool execution result
  */
-export async function executeToolCall(toolName, args, bearerToken) {
+async function executeToolCall(toolName, args, bearerToken) {
   console.log(`🔧 Executing Reddit tool: ${toolName}`);
   console.log(`📋 Arguments:`, JSON.stringify(args, null, 2));
 
@@ -161,3 +160,6 @@ export async function executeToolCall(toolName, args, bearerToken) {
     throw enhancedError;
   }
 }
+module.exports = {
+  executeToolCall
+};

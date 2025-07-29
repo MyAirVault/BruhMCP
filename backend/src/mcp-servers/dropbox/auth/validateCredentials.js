@@ -3,7 +3,7 @@
  * Standardized function for validating Dropbox OAuth credentials format
  */
 
-import createDropboxValidator from '../validation/credentialValidator.js';
+const createDropboxValidator = require('../validation/credentialValidator.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').ValidationResult} ValidationResult
@@ -79,4 +79,4 @@ async function validateCredentials(credentials, userId) {
 	}
 }
 
-export { validateCredentials };
+module.exports = { validateCredentials };

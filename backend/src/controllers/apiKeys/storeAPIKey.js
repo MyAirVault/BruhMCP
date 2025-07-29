@@ -1,6 +1,6 @@
-import { storeAPIKey } from '../../db/queries/apiKeysQueries.js';
-import { getMCPTypeById } from '../../db/queries/mcpTypesQueries.js';
-import { storeAPIKeySchema } from './schemas.js';
+const { storeAPIKey } = require('../../db/queries/apiKeysQueries.js');
+const { getMCPTypeById } = require('../../db/queries/mcpTypesQueries.js');
+const { storeAPIKeySchema } = require('./schemas.js');
 
 /**
  * Store API key for the authenticated user
@@ -8,7 +8,7 @@ import { storeAPIKeySchema } from './schemas.js';
  * @param {import('express').Response} res - Express response object
  * @returns {Promise<void>}
  */
-export async function storeAPIKeyHandler(req, res) {
+async function storeAPIKeyHandler(req, res) {
 	try {
 		const userId = req.user?.id || '';
 
@@ -115,3 +115,5 @@ export async function storeAPIKeyHandler(req, res) {
 		return;
 	}
 }
+
+module.exports = { storeAPIKeyHandler };

@@ -3,7 +3,7 @@
  * Handles variable-related requests to Figma API
  */
 
-import { makeAuthenticatedRequest } from './common.js';
+const { makeAuthenticatedRequest } = require('./common.js');
 
 /**
  * Handle Variables API specific errors
@@ -31,7 +31,7 @@ async function handleVariablesApiError(response, context) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaLocalVariables(fileKey, apiKey) {
+async function getFigmaLocalVariables(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -53,7 +53,7 @@ export async function getFigmaLocalVariables(fileKey, apiKey) {
  * @param {string} apiKey - User's Figma API key
  * @returns {Promise<any>}
  */
-export async function getFigmaPublishedVariables(fileKey, apiKey) {
+async function getFigmaPublishedVariables(fileKey, apiKey) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -76,7 +76,7 @@ export async function getFigmaPublishedVariables(fileKey, apiKey) {
  * @param {any} variableData - Variable data to create
  * @returns {Promise<any>}
  */
-export async function postFigmaVariables(fileKey, apiKey, variableData) {
+async function postFigmaVariables(fileKey, apiKey, variableData) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -107,7 +107,7 @@ export async function postFigmaVariables(fileKey, apiKey, variableData) {
  * @param {any} variableData - Variable data to update
  * @returns {Promise<any>}
  */
-export async function putFigmaVariables(fileKey, apiKey, variableData) {
+async function putFigmaVariables(fileKey, apiKey, variableData) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -138,7 +138,7 @@ export async function putFigmaVariables(fileKey, apiKey, variableData) {
  * @param {any} variableData - Variable data specifying what to delete
  * @returns {Promise<any>}
  */
-export async function deleteFigmaVariables(fileKey, apiKey, variableData) {
+async function deleteFigmaVariables(fileKey, apiKey, variableData) {
 	if (!fileKey) {
 		throw new Error('File key is required');
 	}
@@ -161,3 +161,10 @@ export async function deleteFigmaVariables(fileKey, apiKey, variableData) {
 	const data = await response.json();
 	return data;
 }
+module.exports = {
+	getFigmaLocalVariables,
+	getFigmaPublishedVariables,
+	postFigmaVariables,
+	putFigmaVariables,
+	deleteFigmaVariables
+};

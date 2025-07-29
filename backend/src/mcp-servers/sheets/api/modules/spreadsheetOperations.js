@@ -4,9 +4,9 @@
  */
 
 // @ts-check
-import { makeSheetsRequest, makeDriveRequest } from './requestHandler.js';
-import { formatSheetsResponse } from '../../utils/sheetsFormatting.js';
-import { validateSheetsInput } from '../../utils/validation.js';
+const { makeSheetsRequest, makeDriveRequest  } = require('./requestHandler');
+const { formatSheetsResponse  } = require('../../utils/sheetsFormatting');
+const { validateSheetsInput  } = require('../../utils/validation');
 
 /**
  * Create a new Google Sheets spreadsheet
@@ -16,7 +16,7 @@ import { validateSheetsInput } from '../../utils/validation.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<import('../../types/index.js').CreateSpreadsheetResponse>} Created spreadsheet details
  */
-export async function createSpreadsheet(params, bearerToken) {
+async function createSpreadsheet(params, bearerToken) {
 	const validation = validateSheetsInput.createSpreadsheet(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -92,7 +92,7 @@ export async function createSpreadsheet(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Spreadsheet details
  */
-export async function getSpreadsheet(params, bearerToken) {
+async function getSpreadsheet(params, bearerToken) {
 	const validation = validateSheetsInput.getSpreadsheet(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -134,7 +134,7 @@ export async function getSpreadsheet(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{files: Array<Record<string, any>>, nextPageToken?: string}>} List of spreadsheets
  */
-export async function listSpreadsheets(params, bearerToken) {
+async function listSpreadsheets(params, bearerToken) {
 	const validation = validateSheetsInput.listSpreadsheets(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -173,7 +173,7 @@ export async function listSpreadsheets(params, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Record<string, any>>} Spreadsheet metadata
  */
-export async function getSheetMetadata(params, bearerToken) {
+async function getSheetMetadata(params, bearerToken) {
 	const validation = validateSheetsInput.getSheetMetadata(params);
 	if (!validation.valid) {
 		throw new Error(validation.error);
@@ -204,3 +204,9 @@ export async function getSheetMetadata(params, bearerToken) {
 
 	return formatSheetsResponse.metadata(spreadsheetResponse);
 }
+module.exports = {
+  createSpreadsheet,
+  getSpreadsheet,
+  listSpreadsheets,
+  getSheetMetadata
+};

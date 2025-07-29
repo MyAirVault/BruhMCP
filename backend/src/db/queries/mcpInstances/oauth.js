@@ -3,7 +3,7 @@
  * @fileoverview Contains functions for managing OAuth status and tokens
  */
 
-import { pool } from '../../config.js';
+const { pool } = require('../../config.js');
 
 /**
  * @typedef {import('./types.js').OAuthUpdateData} OAuthUpdateData
@@ -16,7 +16,7 @@ import { pool } from '../../config.js';
  * @param {OAuthUpdateData} oauthData - OAuth data
  * @returns {Promise<MCPInstanceRecord>} Updated instance record
  */
-export async function updateOAuthStatus(instanceId, oauthData) {
+async function updateOAuthStatus(instanceId, oauthData) {
 	const { status, accessToken, refreshToken, tokenExpiresAt, scope } = oauthData;
 
 	const client = await pool.connect();
@@ -83,7 +83,7 @@ export async function updateOAuthStatus(instanceId, oauthData) {
  * @param {number} [maxRetries=3] - Maximum retry attempts (default: 3)
  * @returns {Promise<MCPInstanceRecord>} Updated instance record
  */
-export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRetries = 3) {
+async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRetries = 3) {
 	const { status, accessToken, refreshToken, tokenExpiresAt, scope, expectedVersion } = oauthData;
 
 	for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -195,3 +195,8 @@ export async function updateOAuthStatusWithLocking(instanceId, oauthData, maxRet
 	// This should never be reached due to error throwing above
 	throw new Error(`Failed to update OAuth status after ${maxRetries} attempts`);
 }
+
+module.exports = {
+	updateOAuthStatus,
+	updateOAuthStatusWithLocking
+};

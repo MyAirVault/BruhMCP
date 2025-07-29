@@ -3,14 +3,14 @@
  * Comprehensive error handling for Airtable API operations
  */
 
-import { createLogger } from './logger.js';
+const { createLogger } = require('./logger.js');
 
 const logger = createLogger('ErrorHandler');
 
 /**
  * Custom error classes
  */
-export class AirtableError extends Error {
+class AirtableError extends Error {
 	/**
 	 * @param {string} message - Error message
 	 * @param {string} code - Error code
@@ -31,7 +31,7 @@ export class AirtableError extends Error {
 	}
 }
 
-export class ValidationError extends AirtableError {
+class ValidationError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -42,7 +42,7 @@ export class ValidationError extends AirtableError {
 	}
 }
 
-export class AuthenticationError extends AirtableError {
+class AuthenticationError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -53,7 +53,7 @@ export class AuthenticationError extends AirtableError {
 	}
 }
 
-export class AuthorizationError extends AirtableError {
+class AuthorizationError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -64,7 +64,7 @@ export class AuthorizationError extends AirtableError {
 	}
 }
 
-export class NotFoundError extends AirtableError {
+class NotFoundError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -75,7 +75,7 @@ export class NotFoundError extends AirtableError {
 	}
 }
 
-export class RateLimitError extends AirtableError {
+class RateLimitError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {number} retryAfter - Retry after seconds
@@ -89,7 +89,7 @@ export class RateLimitError extends AirtableError {
 	}
 }
 
-export class UnprocessableEntityError extends AirtableError {
+class UnprocessableEntityError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -100,7 +100,7 @@ export class UnprocessableEntityError extends AirtableError {
 	}
 }
 
-export class InternalServerError extends AirtableError {
+class InternalServerError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -111,7 +111,7 @@ export class InternalServerError extends AirtableError {
 	}
 }
 
-export class ServiceUnavailableError extends AirtableError {
+class ServiceUnavailableError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -122,7 +122,7 @@ export class ServiceUnavailableError extends AirtableError {
 	}
 }
 
-export class NetworkError extends AirtableError {
+class NetworkError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -133,7 +133,7 @@ export class NetworkError extends AirtableError {
 	}
 }
 
-export class TimeoutError extends AirtableError {
+class TimeoutError extends AirtableError {
 	/**
 	 * @param {string} message - Error message
 	 * @param {Record<string, string | number | boolean | Object>} details - Error details
@@ -147,7 +147,7 @@ export class TimeoutError extends AirtableError {
 /**
  * Error handler class
  */
-export class AirtableErrorHandler {
+class AirtableErrorHandler {
 	/**
 	 * Create error from HTTP response
 	 * @param {Response} response - HTTP response
@@ -448,7 +448,7 @@ export class AirtableErrorHandler {
  * @param {import('express').Response} res - Response object
  * @param {import('express').NextFunction} _next - Next middleware
  */
-export function errorMiddleware(err, req, res, _next) {
+function errorMiddleware(err, req, res, _next) {
 	const error = AirtableErrorHandler.handle(err, {
 		method: req.method,
 		url: req.url,
@@ -466,7 +466,7 @@ export function errorMiddleware(err, req, res, _next) {
  * @param {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} fn - Async function to wrap
  * @returns {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => void}
  */
-export function asyncErrorHandler(fn) {
+function asyncErrorHandler(fn) {
 	return (req, res, next) => {
 		Promise.resolve(fn(req, res, next)).catch(next);
 	};
@@ -479,7 +479,7 @@ export function asyncErrorHandler(fn) {
  * @param {{maxRetries?: number, retryDelay?: number, context?: Record<string, string | number | boolean>}} options - Recovery options
  * @returns {Promise<T>}
  */
-export async function withErrorRecovery(operation, options = {}) {
+async function withErrorRecovery(operation, options = {}) {
 	const { maxRetries = 3, context = {} } = options;
 	
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -508,7 +508,20 @@ export async function withErrorRecovery(operation, options = {}) {
 	throw new Error('Unexpected end of retry loop');
 }
 
-/**
- * Default export
- */
-export default AirtableErrorHandler;
+module.exports = {
+	AirtableError,
+	ValidationError,
+	AuthenticationError,
+	AuthorizationError,
+	NotFoundError,
+	RateLimitError,
+	UnprocessableEntityError,
+	InternalServerError,
+	ServiceUnavailableError,
+	NetworkError,
+	TimeoutError,
+	AirtableErrorHandler,
+	errorMiddleware,
+	asyncErrorHandler,
+	withErrorRecovery
+};

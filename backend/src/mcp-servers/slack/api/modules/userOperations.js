@@ -3,8 +3,8 @@
  * Handles user info and listing operations
  */
 
-import { makeSlackRequest } from './requestHandler.js';
-import { formatUserResponse } from '../../utils/slackFormatting.js';
+const { makeSlackRequest  } = require('./requestHandler');
+const { formatUserResponse  } = require('../../utils/slackFormatting');
 
 /**
  * @typedef {Object} UserInfoArgs
@@ -59,7 +59,7 @@ import { formatUserResponse } from '../../utils/slackFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<UserInfoResult>} User info result
  */
-export async function getUserInfo(args, bearerToken) {
+async function getUserInfo(args, bearerToken) {
 	const { user } = args;
 
 	const params = new URLSearchParams({ user });
@@ -87,7 +87,7 @@ export async function getUserInfo(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<UsersListResult>} Users list result
  */
-export async function listUsers(args, bearerToken) {
+async function listUsers(args, bearerToken) {
 	const { limit = 100, cursor } = args;
 
 	const params = new URLSearchParams({
@@ -105,3 +105,7 @@ export async function listUsers(args, bearerToken) {
 		summary: `Retrieved ${response.members?.length || 0} users`,
 	};
 }
+module.exports = {
+  getUserInfo,
+  listUsers
+};

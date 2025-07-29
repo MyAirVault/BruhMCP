@@ -3,8 +3,8 @@
  * Handles channel listing, info, joining, and leaving
  */
 
-import { makeSlackRequest } from './requestHandler.js';
-import { formatChannelResponse } from '../../utils/slackFormatting.js';
+const { makeSlackRequest  } = require('./requestHandler');
+const { formatChannelResponse  } = require('../../utils/slackFormatting');
 
 /**
  * @typedef {Object} ListChannelsArgs
@@ -75,7 +75,7 @@ import { formatChannelResponse } from '../../utils/slackFormatting.js';
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ChannelsListResult>} Channels list result
  */
-export async function listChannels(args, bearerToken) {
+async function listChannels(args, bearerToken) {
 	const { types = 'public_channel,private_channel', limit = 100, cursor } = args;
 
 	const params = new URLSearchParams({
@@ -109,7 +109,7 @@ export async function listChannels(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ChannelInfoResult>} Channel info result
  */
-export async function getChannelInfo(args, bearerToken) {
+async function getChannelInfo(args, bearerToken) {
 	const { channel } = args;
 
 	const params = new URLSearchParams({ channel });
@@ -129,7 +129,7 @@ export async function getChannelInfo(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<ChannelInfoResult>} Join result
  */
-export async function joinChannel(args, bearerToken) {
+async function joinChannel(args, bearerToken) {
 	const { channel } = args;
 
 	/** @type {SlackChannelResponse} */
@@ -158,7 +158,7 @@ export async function joinChannel(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<LeaveChannelResult>} Leave result
  */
-export async function leaveChannel(args, bearerToken) {
+async function leaveChannel(args, bearerToken) {
 	const { channel } = args;
 
 	/** @type {SlackChannelResponse} */
@@ -172,3 +172,9 @@ export async function leaveChannel(args, bearerToken) {
 		summary: `Left channel: ${channel}`,
 	};
 }
+module.exports = {
+  listChannels,
+  getChannelInfo,
+  joinChannel,
+  leaveChannel
+};

@@ -1,259 +1,4 @@
 /**
- * Record token refresh metrics
- * @param {string} instanceId - Instance ID
- * @param {'oauth_service'|'direct_oauth'} method - Method used
- * @param {boolean} success - Whether refresh was successful
- * @param {number} startTime - Start timestamp
- * @param {number} endTime - End timestamp
- * @param {string} [errorType=''] - Error type if failed
- * @param {string} [errorMessage=''] - Error message if failed
- */
-export function recordTokenRefreshMetrics(instanceId: string, method: "oauth_service" | "direct_oauth", success: boolean, startTime: number, endTime: number, errorType?: string, errorMessage?: string): void;
-/**
- * Get metrics summary
- */
-export function getTokenMetricsSummary(): {
-    /**
-     * - Overview stats
-     */
-    overview: {
-        totalAttempts: number;
-        totalSuccesses: number;
-        totalFailures: number;
-        successRate: string;
-        directFallbackRate: string;
-    };
-    /**
-     * - Performance stats
-     */
-    performance: {
-        averageLatency: string;
-        maxLatency: string;
-        minLatency: string;
-    };
-    /**
-     * - Error stats
-     */
-    errors: {
-        invalidTokenErrors: number;
-        serviceUnavailableErrors: number;
-        networkErrors: number;
-        errorsByType: {
-            [x: string]: number;
-        };
-    };
-    /**
-     * - Uptime stats
-     */
-    uptime: {
-        metricsStarted: string;
-        uptimeHours: string;
-    };
-};
-/**
- * Get instance-specific metrics
- * @param {string} instanceId - Instance ID
- * @returns {InstanceMetrics|null} Instance metrics
- */
-export function getInstanceTokenMetrics(instanceId: string): {
-    /**
-     * - Instance ID
-     */
-    instanceId: string;
-    /**
-     * - Total attempts
-     */
-    totalAttempts: number;
-    /**
-     * - Total successes
-     */
-    totalSuccesses: number;
-    /**
-     * - Total failures
-     */
-    totalFailures: number;
-    /**
-     * - Success rate percentage
-     */
-    successRate: string;
-    /**
-     * - Average latency
-     */
-    averageLatency: string;
-    /**
-     * - Last attempt info
-     */
-    lastAttempt: {
-        timestamp: number;
-        method: string;
-    } | null;
-} | null;
-/**
- * Get daily statistics
- * @param {number} [days=7] - Number of days to include
- * @returns {Record<string, DailyStats>} Daily statistics
- */
-export function getDailyTokenStats(days?: number): Record<string, DailyStats>;
-/**
- * Export all metrics
- */
-export function exportTokenMetrics(): {
-    /**
-     * - Export timestamp
-     */
-    timestamp: number;
-    /**
-     * - Metrics summary
-     */
-    summary: {
-        /**
-         * - Overview stats
-         */
-        overview: {
-            totalAttempts: number;
-            totalSuccesses: number;
-            totalFailures: number;
-            successRate: string;
-            directFallbackRate: string;
-        };
-        /**
-         * - Performance stats
-         */
-        performance: {
-            averageLatency: string;
-            maxLatency: string;
-            minLatency: string;
-        };
-        /**
-         * - Error stats
-         */
-        errors: {
-            invalidTokenErrors: number;
-            serviceUnavailableErrors: number;
-            networkErrors: number;
-            errorsByType: {
-                [x: string]: number;
-            };
-        };
-        /**
-         * - Uptime stats
-         */
-        uptime: {
-            metricsStarted: string;
-            uptimeHours: string;
-        };
-    };
-    /**
-     * - Daily statistics
-     */
-    dailyStats: {
-        [x: string]: DailyStats;
-    };
-    /**
-     * - All instance metrics
-     */
-    allInstanceMetrics: Array<{
-        /**
-         * - Instance ID
-         */
-        instanceId: string;
-        /**
-         * - Total attempts
-         */
-        totalAttempts: number;
-        /**
-         * - Total successes
-         */
-        totalSuccesses: number;
-        /**
-         * - Total failures
-         */
-        totalFailures: number;
-        /**
-         * - Success rate percentage
-         */
-        successRate: string;
-        /**
-         * - Average latency
-         */
-        averageLatency: string;
-        /**
-         * - Last attempt info
-         */
-        lastAttempt: {
-            timestamp: number;
-            method: string;
-        } | null;
-    }>;
-    /**
-     * - Raw metrics data
-     */
-    rawMetrics: MetricsData;
-};
-/**
- * Get health assessment
- */
-export function getTokenSystemHealth(): {
-    /**
-     * - Overall health status
-     */
-    status: "healthy" | "degraded" | "unhealthy";
-    /**
-     * - Critical issues
-     */
-    issues: Array<string>;
-    /**
-     * - Warning messages
-     */
-    warnings: Array<string>;
-    /**
-     * - Metrics summary
-     */
-    summary: {
-        /**
-         * - Overview stats
-         */
-        overview: {
-            totalAttempts: number;
-            totalSuccesses: number;
-            totalFailures: number;
-            successRate: string;
-            directFallbackRate: string;
-        };
-        /**
-         * - Performance stats
-         */
-        performance: {
-            averageLatency: string;
-            maxLatency: string;
-            minLatency: string;
-        };
-        /**
-         * - Error stats
-         */
-        errors: {
-            invalidTokenErrors: number;
-            serviceUnavailableErrors: number;
-            networkErrors: number;
-            errorsByType: {
-                [x: string]: number;
-            };
-        };
-        /**
-         * - Uptime stats
-         */
-        uptime: {
-            metricsStarted: string;
-            uptimeHours: string;
-        };
-    };
-};
-/**
- * Reset metrics (for testing)
- */
-export function resetTokenMetrics(): void;
-export default tokenMetrics;
-/**
  * Token metrics data structure
  */
 export type MetricsData = {
@@ -363,104 +108,114 @@ export type InstanceMetric = {
      */
     averageLatency: number;
 };
-declare const tokenMetrics: TokenMetrics;
 /**
- * Token Refresh Metrics System
- * Tracks performance and reliability metrics for OAuth token operations
+ * Record token refresh metrics
+ * @param {string} instanceId - Instance ID
+ * @param {'oauth_service'|'direct_oauth'} method - Method used
+ * @param {boolean} success - Whether refresh was successful
+ * @param {number} startTime - Start timestamp
+ * @param {number} endTime - End timestamp
+ * @param {string} [errorType=''] - Error type if failed
+ * @param {string} [errorMessage=''] - Error message if failed
  */
+export function recordTokenRefreshMetrics(instanceId: string, method: 'oauth_service' | 'direct_oauth', success: boolean, startTime: number, endTime: number, errorType?: string | undefined, errorMessage?: string | undefined): void;
 /**
- * Token metrics data structure
- * @typedef {Object} MetricsData
- * @property {number} refreshAttempts - Total refresh attempts
- * @property {number} refreshSuccesses - Successful refreshes
- * @property {number} refreshFailures - Failed refreshes
- * @property {number} directOAuthFallbacks - Direct OAuth fallbacks
- * @property {number} serviceUnavailableErrors - Service unavailable errors
- * @property {number} invalidTokenErrors - Invalid token errors
- * @property {number} networkErrors - Network errors
- * @property {number} totalLatency - Total latency sum
- * @property {number} maxLatency - Maximum latency
- * @property {number} minLatency - Minimum latency
- * @property {number} lastReset - Last reset timestamp
- * @property {Record<string, number>} errorsByType - Errors by type
- * @property {Record<string, DailyStats>} dailyStats - Daily statistics
- * @property {Record<string, InstanceMetric>} instanceMetrics - Instance metrics
+ * Get metrics summary
  */
-/**
- * Daily statistics
- * @typedef {Object} DailyStats
- * @property {number} attempts - Attempts count
- * @property {number} successes - Success count
- * @property {number} failures - Failure count
- * @property {number} directFallbacks - Direct fallback count
- */
-/**
- * Instance metric data
- * @typedef {Object} InstanceMetric
- * @property {number} attempts - Attempts count
- * @property {number} successes - Success count
- * @property {number} failures - Failure count
- * @property {{timestamp: number, method: string}|null} lastAttempt - Last attempt info
- * @property {number} averageLatency - Average latency
- */
-/**
- * Metrics storage and management
- */
-declare class TokenMetrics {
-    metrics: {
-        refreshAttempts: number;
-        refreshSuccesses: number;
-        refreshFailures: number;
-        directOAuthFallbacks: number;
-        serviceUnavailableErrors: number;
-        invalidTokenErrors: number;
-        networkErrors: number;
-        totalLatency: number;
-        maxLatency: number;
-        minLatency: number;
-        lastReset: number;
-        errorsByType: Record<string, number>;
-        dailyStats: Record<string, DailyStats>;
-        instanceMetrics: Record<string, InstanceMetric>;
+export function getTokenMetricsSummary(): {
+    /**
+     * - Overview stats
+     */
+    overview: {
+        totalAttempts: number;
+        totalSuccesses: number;
+        totalFailures: number;
+        successRate: string;
+        directFallbackRate: string;
     };
     /**
-     * Record a token refresh attempt
-     * @param {string} instanceId - Instance ID
-     * @param {'oauth_service'|'direct_oauth'} method - Method used
-     * @param {number} startTime - Start timestamp
+     * - Performance stats
      */
-    recordRefreshAttempt(instanceId: string, method: "oauth_service" | "direct_oauth", startTime: number): void;
+    performance: {
+        averageLatency: string;
+        maxLatency: string;
+        minLatency: string;
+    };
     /**
-     * Record a successful token refresh
-     * @param {string} instanceId - Instance ID
-     * @param {'oauth_service'|'direct_oauth'} method - Method used
-     * @param {number} startTime - Start timestamp
-     * @param {number} endTime - End timestamp
+     * - Error stats
      */
-    recordRefreshSuccess(instanceId: string, method: "oauth_service" | "direct_oauth", startTime: number, endTime: number): void;
+    errors: {
+        invalidTokenErrors: number;
+        serviceUnavailableErrors: number;
+        networkErrors: number;
+        errorsByType: {
+            [x: string]: number;
+        };
+    };
     /**
-     * Record a failed token refresh
-     * @param {string} instanceId - Instance ID
-     * @param {'oauth_service'|'direct_oauth'} method - Method used
-     * @param {string} errorType - Type of error
-     * @param {string} errorMessage - Error message
-     * @param {number} startTime - Start timestamp
-     * @param {number} endTime - End timestamp
+     * - Uptime stats
      */
-    recordRefreshFailure(instanceId: string, method: "oauth_service" | "direct_oauth", errorType: string, errorMessage: string, startTime: number, endTime: number): void;
+    uptime: {
+        metricsStarted: string;
+        uptimeHours: string;
+    };
+};
+/**
+ * Get instance-specific metrics
+ * @param {string} instanceId - Instance ID
+ * @returns {InstanceMetrics|null} Instance metrics
+ */
+export function getInstanceTokenMetrics(instanceId: string): {
     /**
-     * Metrics summary structure
-     * @typedef {Object} MetricsSummary
-     * @property {{totalAttempts: number, totalSuccesses: number, totalFailures: number, successRate: string, directFallbackRate: string}} overview - Overview stats
-     * @property {{averageLatency: string, maxLatency: string, minLatency: string}} performance - Performance stats
-     * @property {{invalidTokenErrors: number, serviceUnavailableErrors: number, networkErrors: number, errorsByType: Object<string, number>}} errors - Error stats
-     * @property {{metricsStarted: string, uptimeHours: string}} uptime - Uptime stats
+     * - Instance ID
      */
+    instanceId: string;
     /**
-     * Get current metrics summary
-     * @returns {MetricsSummary} Metrics summary
+     * - Total attempts
      */
-    getMetricsSummary(): {
+    totalAttempts: number;
+    /**
+     * - Total successes
+     */
+    totalSuccesses: number;
+    /**
+     * - Total failures
+     */
+    totalFailures: number;
+    /**
+     * - Success rate percentage
+     */
+    successRate: string;
+    /**
+     * - Average latency
+     */
+    averageLatency: string;
+    /**
+     * - Last attempt info
+     */
+    lastAttempt: {
+        timestamp: number;
+        method: string;
+    } | null;
+} | null;
+/**
+ * Get daily statistics
+ * @param {number} [days=7] - Number of days to include
+ * @returns {Record<string, DailyStats>} Daily statistics
+ */
+export function getDailyTokenStats(days?: number | undefined): Record<string, DailyStats>;
+/**
+ * Export all metrics
+ */
+export function exportTokenMetrics(): {
+    /**
+     * - Export timestamp
+     */
+    timestamp: number;
+    /**
+     * - Metrics summary
+     */
+    summary: {
         /**
          * - Overview stats
          */
@@ -499,22 +254,15 @@ declare class TokenMetrics {
         };
     };
     /**
-     * Instance metrics structure
-     * @typedef {Object} InstanceMetrics
-     * @property {string} instanceId - Instance ID
-     * @property {number} totalAttempts - Total attempts
-     * @property {number} totalSuccesses - Total successes
-     * @property {number} totalFailures - Total failures
-     * @property {string} successRate - Success rate percentage
-     * @property {string} averageLatency - Average latency
-     * @property {{timestamp: number, method: string}|null} lastAttempt - Last attempt info
+     * - Daily statistics
      */
+    dailyStats: {
+        [x: string]: DailyStats;
+    };
     /**
-     * Get metrics for a specific instance
-     * @param {string} instanceId - Instance ID
-     * @returns {InstanceMetrics|null} Instance-specific metrics
+     * - All instance metrics
      */
-    getInstanceMetrics(instanceId: string): {
+    allInstanceMetrics: {
         /**
          * - Instance ID
          */
@@ -546,191 +294,88 @@ declare class TokenMetrics {
             timestamp: number;
             method: string;
         } | null;
-    } | null;
+    }[];
     /**
-     * Get daily statistics
-     * @param {number} [days=7] - Number of days to include
-     * @returns {Object<string, DailyStats>} Daily statistics
+     * - Raw metrics data
      */
-    getDailyStats(days?: number): {
-        [x: string]: DailyStats;
-    };
+    rawMetrics: MetricsData;
+};
+/**
+ * Get health assessment
+ */
+export function getTokenSystemHealth(): {
     /**
-     * Reset metrics (for testing or periodic reset)
+     * - Overall health status
      */
-    reset(): void;
+    status: 'healthy' | 'degraded' | 'unhealthy';
     /**
-     * Exportable metrics structure
-     * @typedef {Object} ExportableMetrics
-     * @property {number} timestamp - Export timestamp
-     * @property {MetricsSummary} summary - Metrics summary
-     * @property {Object<string, DailyStats>} dailyStats - Daily statistics
-     * @property {Array<InstanceMetrics>} allInstanceMetrics - All instance metrics
-     * @property {MetricsData} rawMetrics - Raw metrics data
+     * - Critical issues
      */
+    issues: Array<string>;
     /**
-     * Export metrics for external monitoring systems
-     * @returns {ExportableMetrics} Exportable metrics
+     * - Warning messages
      */
-    exportMetrics(): {
+    warnings: Array<string>;
+    /**
+     * - Metrics summary
+     */
+    summary: {
         /**
-         * - Export timestamp
+         * - Overview stats
          */
-        timestamp: number;
-        /**
-         * - Metrics summary
-         */
-        summary: {
-            /**
-             * - Overview stats
-             */
-            overview: {
-                totalAttempts: number;
-                totalSuccesses: number;
-                totalFailures: number;
-                successRate: string;
-                directFallbackRate: string;
-            };
-            /**
-             * - Performance stats
-             */
-            performance: {
-                averageLatency: string;
-                maxLatency: string;
-                minLatency: string;
-            };
-            /**
-             * - Error stats
-             */
-            errors: {
-                invalidTokenErrors: number;
-                serviceUnavailableErrors: number;
-                networkErrors: number;
-                errorsByType: {
-                    [x: string]: number;
-                };
-            };
-            /**
-             * - Uptime stats
-             */
-            uptime: {
-                metricsStarted: string;
-                uptimeHours: string;
-            };
-        };
-        /**
-         * - Daily statistics
-         */
-        dailyStats: {
-            [x: string]: DailyStats;
-        };
-        /**
-         * - All instance metrics
-         */
-        allInstanceMetrics: Array<{
-            /**
-             * - Instance ID
-             */
-            instanceId: string;
-            /**
-             * - Total attempts
-             */
+        overview: {
             totalAttempts: number;
-            /**
-             * - Total successes
-             */
             totalSuccesses: number;
-            /**
-             * - Total failures
-             */
             totalFailures: number;
-            /**
-             * - Success rate percentage
-             */
             successRate: string;
-            /**
-             * - Average latency
-             */
+            directFallbackRate: string;
+        };
+        /**
+         * - Performance stats
+         */
+        performance: {
             averageLatency: string;
-            /**
-             * - Last attempt info
-             */
-            lastAttempt: {
-                timestamp: number;
-                method: string;
-            } | null;
-        }>;
+            maxLatency: string;
+            minLatency: string;
+        };
         /**
-         * - Raw metrics data
+         * - Error stats
          */
-        rawMetrics: MetricsData;
-    };
-    /**
-     * Health assessment structure
-     * @typedef {Object} HealthAssessment
-     * @property {'healthy'|'degraded'|'unhealthy'} status - Overall health status
-     * @property {Array<string>} issues - Critical issues
-     * @property {Array<string>} warnings - Warning messages
-     * @property {MetricsSummary} summary - Metrics summary
-     */
-    /**
-     * Check if metrics indicate system health issues
-     * @returns {HealthAssessment} Health assessment
-     */
-    getHealthAssessment(): {
-        /**
-         * - Overall health status
-         */
-        status: "healthy" | "degraded" | "unhealthy";
-        /**
-         * - Critical issues
-         */
-        issues: Array<string>;
-        /**
-         * - Warning messages
-         */
-        warnings: Array<string>;
-        /**
-         * - Metrics summary
-         */
-        summary: {
-            /**
-             * - Overview stats
-             */
-            overview: {
-                totalAttempts: number;
-                totalSuccesses: number;
-                totalFailures: number;
-                successRate: string;
-                directFallbackRate: string;
-            };
-            /**
-             * - Performance stats
-             */
-            performance: {
-                averageLatency: string;
-                maxLatency: string;
-                minLatency: string;
-            };
-            /**
-             * - Error stats
-             */
-            errors: {
-                invalidTokenErrors: number;
-                serviceUnavailableErrors: number;
-                networkErrors: number;
-                errorsByType: {
-                    [x: string]: number;
-                };
-            };
-            /**
-             * - Uptime stats
-             */
-            uptime: {
-                metricsStarted: string;
-                uptimeHours: string;
+        errors: {
+            invalidTokenErrors: number;
+            serviceUnavailableErrors: number;
+            networkErrors: number;
+            errorsByType: {
+                [x: string]: number;
             };
         };
+        /**
+         * - Uptime stats
+         */
+        uptime: {
+            metricsStarted: string;
+            uptimeHours: string;
+        };
     };
+};
+/**
+ * Reset metrics (for testing)
+ */
+export function resetTokenMetrics(): void;
+export declare namespace metrics {
+    let refreshAttempts: number;
+    let refreshSuccesses: number;
+    let refreshFailures: number;
+    let directOAuthFallbacks: number;
+    let serviceUnavailableErrors: number;
+    let invalidTokenErrors: number;
+    let networkErrors: number;
+    let totalLatency: number;
+    let maxLatency: number;
+    let minLatency: number;
+    let lastReset: number;
+    let errorsByType: Record<string, number>;
+    let dailyStats: Record<string, DailyStats>;
+    let instanceMetrics: Record<string, InstanceMetric>;
 }
 //# sourceMappingURL=tokenMetrics.d.ts.map

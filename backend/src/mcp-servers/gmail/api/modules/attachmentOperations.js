@@ -3,8 +3,8 @@
  * Attachment handling functionality for Gmail API
  */
 
-import { makeGmailRequest } from './requestHandler.js';
-import { formatEmailResponse, formatMessageResponse } from '../../utils/gmailFormatting.js';
+const { makeGmailRequest } = require('./requestHandler.js');
+const { formatEmailResponse, formatMessageResponse } = require('../../utils/gmailFormatting.js');
 
 /**
  * @typedef {Object} GmailAttachment
@@ -85,7 +85,7 @@ function formatFileSize(bytes) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Attachment data
  */
-export async function downloadAttachment(args, bearerToken) {
+async function downloadAttachment(args, bearerToken) {
 	const { messageId, attachmentId, returnDataUrl = false } = args;
 
 	// First get fresh attachment metadata to handle Gmail's unstable attachment IDs
@@ -202,7 +202,7 @@ export async function downloadAttachment(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Attachments list
  */
-export async function listAttachments(args, bearerToken) {
+async function listAttachments(args, bearerToken) {
 	const { messageId } = args;
 
 	const result = await makeGmailRequest(`/users/me/messages/${messageId}`, bearerToken);
@@ -231,7 +231,7 @@ export async function listAttachments(args, bearerToken) {
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<Object>} Send result
  */
-export async function sendEmailWithAttachments(args, bearerToken) {
+async function sendEmailWithAttachments(args, bearerToken) {
 	const { to, subject, body, cc = '', bcc = '', format = 'text', attachments = [] } = args;
 
 	// Create multipart message boundary
@@ -299,3 +299,9 @@ export async function sendEmailWithAttachments(args, bearerToken) {
 		timestamp: new Date().toISOString(),
 	});
 }
+
+module.exports = {
+	downloadAttachment,
+	listAttachments,
+	sendEmailWithAttachments
+};

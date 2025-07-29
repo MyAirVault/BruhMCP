@@ -4,35 +4,56 @@
  */
 
 // Core request handling
-export { makeSheetsRequest, makeDriveRequest } from './requestHandler.js';
+const { makeSheetsRequest, makeDriveRequest  } = require('./requestHandler');
+
+module.exports = { makeSheetsRequest, makeDriveRequest  };
 
 // Spreadsheet operations
-export {
-	createSpreadsheet,
+const { createSpreadsheet,
 	getSpreadsheet,
 	listSpreadsheets,
 	getSheetMetadata
-} from './spreadsheetOperations.js';
+ } = require('./spreadsheetOperations');
+
+module.exports = { createSpreadsheet,
+	getSpreadsheet,
+	listSpreadsheets,
+	getSheetMetadata
+ };
 
 // Cell operations
-export {
-	getCells,
+const { getCells,
 	updateCells,
 	appendValues,
 	clearCells
-} from './cellOperations.js';
+ } = require('./cellOperations');
+
+module.exports = { getCells,
+	updateCells,
+	appendValues,
+	clearCells
+ };
 
 // Worksheet operations
-export {
-	addWorksheet,
+const { addWorksheet,
 	deleteWorksheet,
 	copySheet,
 	insertRows,
 	deleteRows
-} from './worksheetOperations.js';
+ } = require('./worksheetOperations');
+
+module.exports = { addWorksheet,
+	deleteWorksheet,
+	copySheet,
+	insertRows,
+	deleteRows
+ };
 
 // Formatting operations
-export {
-	formatCells,
+const { formatCells,
 	batchUpdate
-} from './formattingOperations.js';
+ } = require('./formattingOperations');
+
+module.exports = { formatCells,
+	batchUpdate
+ };

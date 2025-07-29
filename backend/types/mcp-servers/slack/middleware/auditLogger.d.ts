@@ -6,7 +6,7 @@
  * @param {import('./types.js').TokenRefreshMetadata} metadata - Additional metadata
  * @returns {Promise<void>} Promise that resolves when audit log is created
  */
-export function logSuccessfulTokenRefresh(instanceId: string, method: string, userId: string, metadata: import("./types.js").TokenRefreshMetadata): Promise<void>;
+export function logSuccessfulTokenRefresh(instanceId: string, method: string, userId: string, metadata: import('./types.js').TokenRefreshMetadata): Promise<void>;
 /**
  * Create audit log for failed token refresh
  * @param {string} instanceId - The instance ID
@@ -17,7 +17,7 @@ export function logSuccessfulTokenRefresh(instanceId: string, method: string, us
  * @param {import('./types.js').TokenRefreshErrorInfo} metadata - Additional metadata
  * @returns {Promise<void>} Promise that resolves when audit log is created
  */
-export function logFailedTokenRefresh(instanceId: string, method: string, userId: string, errorType: string, errorMessage: string, metadata: import("./types.js").TokenRefreshErrorInfo): Promise<void>;
+export function logFailedTokenRefresh(instanceId: string, method: string, userId: string, errorType: string, errorMessage: string, metadata: import('./types.js').TokenRefreshErrorInfo): Promise<void>;
 /**
  * Create audit log for re-authentication requirement
  * @param {string} instanceId - The instance ID
@@ -33,7 +33,7 @@ export function logReauthenticationRequired(instanceId: string, userId: string, 
  * @param {import('./types.js').TokenAuditLogEntry} logEntry - The audit log entry object
  * @returns {Promise<void>} Promise that resolves when audit log is created
  */
-export function createAuditLogEntry(logEntry: import("./types.js").TokenAuditLogEntry): Promise<void>;
+export function createAuditLogEntry(logEntry: import('./types.js').TokenAuditLogEntry): Promise<void>;
 /**
  * Create audit log for token validation success
  * @param {string} instanceId - The instance ID

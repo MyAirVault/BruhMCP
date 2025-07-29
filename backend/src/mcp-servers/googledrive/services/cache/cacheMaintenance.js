@@ -3,14 +3,14 @@
  * Handles cache cleanup and expiry management
  */
 
-import { googleDriveCredentialCache, removeCachedCredential } from './cacheCore.js';
+const { googleDriveCredentialCache, removeCachedCredential  } = require('./cacheCore');
 
 /**
  * Clean up invalid or expired cache entries
  * @param {string} [reason] - Reason for cleanup (for logging)
  * @returns {{total_checked: number, expired_removed: number, invalid_removed: number, stale_removed: number}} Cleanup statistics
  */
-export function cleanupInvalidCacheEntries(reason = 'cleanup') {
+function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	const stats = {
 		total_checked: 0,
 		expired_removed: 0,
@@ -59,3 +59,7 @@ export function cleanupInvalidCacheEntries(reason = 'cleanup') {
 	
 	return stats;
 }
+
+module.exports = {
+	cleanupInvalidCacheEntries
+};

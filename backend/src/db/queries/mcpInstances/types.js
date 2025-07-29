@@ -145,5 +145,5 @@
  * @property {Object<string, {total: number, success: number, failure: number}>} dailyBreakdown - Daily statistics
  */
 
-// Export empty object to make this a module (types are available via import)
-export {};
+// Export empty object to make this a module (types are available via require)
+module.exports = {};
