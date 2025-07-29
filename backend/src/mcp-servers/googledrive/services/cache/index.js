@@ -14,44 +14,43 @@ const { initializeCredentialCache,
 	peekCachedCredential
  } = require('./cacheCore');
 
-module.exports = { initializeCredentialCache,
-	getCachedCredential,
-	setCachedCredential,
-	removeCachedCredential,
-	getCachedInstanceIds,
-	isInstanceCached,
-	clearCredentialCache,
-	peekCachedCredential
- };
-
 // Metadata management
 const { updateCachedCredentialMetadata,
 	incrementRefreshAttempts,
 	resetRefreshAttempts
  } = require('./cacheMetadata');
 
-module.exports = { updateCachedCredentialMetadata,
-	incrementRefreshAttempts,
-	resetRefreshAttempts
- };
-
 // Statistics and monitoring
 const { getCacheStatistics
  } = require('./cacheStatistics');
-
-module.exports = { getCacheStatistics
- };
 
 // Maintenance and cleanup
 const { cleanupInvalidCacheEntries
  } = require('./cacheMaintenance');
 
-module.exports = { cleanupInvalidCacheEntries
- };
-
 // Background synchronization
 const { startBackgroundCacheSync
  } = require('./cacheSync');
 
-module.exports = { startBackgroundCacheSync
- };
+// Export all functions
+module.exports = {
+	// Core cache functionality
+	initializeCredentialCache,
+	getCachedCredential,
+	setCachedCredential,
+	removeCachedCredential,
+	getCachedInstanceIds,
+	isInstanceCached,
+	clearCredentialCache,
+	peekCachedCredential,
+	// Metadata management
+	updateCachedCredentialMetadata,
+	incrementRefreshAttempts,
+	resetRefreshAttempts,
+	// Statistics and monitoring
+	getCacheStatistics,
+	// Maintenance and cleanup
+	cleanupInvalidCacheEntries,
+	// Background synchronization
+	startBackgroundCacheSync
+};

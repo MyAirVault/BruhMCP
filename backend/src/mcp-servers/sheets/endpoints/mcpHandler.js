@@ -3,9 +3,9 @@
  * Multi-tenant OAuth implementation with credential caching
  */
 
-const { McpServer  } = require('@modelcontextprotocol/sdk/server/mcp');
-const { StreamableHTTPServerTransport  } = require('@modelcontextprotocol/sdk/server/streamableHttp');
-const { isInitializeRequest  } = require('@modelcontextprotocol/sdk/types');
+const { McpServer  } = require('@modelcontextprotocol/sdk/server/mcp.js');
+const { StreamableHTTPServerTransport  } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
+const { isInitializeRequest  } = require('@modelcontextprotocol/sdk/types.js');
 const { randomUUID  } = require('node:crypto');
 const { setupSheetsTools  } = require('./tools');
 

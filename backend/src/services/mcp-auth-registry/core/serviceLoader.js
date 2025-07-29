@@ -25,7 +25,13 @@ async function importServiceFunction(servicePath, functionName) {
 		const functionPath = resolve(servicePath, 'auth', `${functionName}.js`);
 		
 		// Clear the require cache to ensure we get the latest version
-		delete require.cache[require.resolve(functionPath)];
+		try {
+			const resolvedPath = require.resolve(functionPath);
+			delete require.cache[resolvedPath];
+		} catch (cacheError) {
+			// If we can't resolve for cache clearing, continue anyway
+			// This can happen with complex dependency chains
+		}
 		
 		const module = require(functionPath);
 		
