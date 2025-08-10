@@ -106,6 +106,9 @@ app.get('/.well-known/oauth-authorization-server/*', (_req, res) => {
 // Static files
 app.use(express.static('public'));
 
+// Serve MCP logos directly from static-assets
+app.use('/mcp-logos', express.static('static-assets/mcp-logos'));
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
 	res.status(200).json({

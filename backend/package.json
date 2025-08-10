@@ -7,7 +7,7 @@
 		"dev": "lsof -ti:5000 | xargs -r kill && nodemon src/index.js",
 		"dev:all-services": "./scripts/start-all-services.sh && npm run dev",
 		"build": "tsc",
-		"build:frontend": "cd ../frontend && npm run build && rm -rf ../backend/public && mkdir -p ../backend/public && cp -r dist/* ../backend/public/ && cp -r ../backend/static-assets/* ../backend/public/",
+		"build:frontend": "cd ../frontend && npm run build && rm -rf ../backend/public && mkdir -p ../backend/public && cp -r dist/* ../backend/public/",
 		"start": "npm run build:frontend && node src/index.js",
 		"start:with-services": "./scripts/start-all-services.sh && npm run start",
 		"start:production": "npm run build && npm run build:frontend && node dist/index.js",
