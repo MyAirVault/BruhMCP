@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import CustomDropdown from '../components/ui/CustomDropdown';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { logsService } from '../services/logsService';
 import type { MCPLog } from '../types';
 import { Download, Filter, Search, RefreshCw, ArrowLeft, FileText, Activity, AlertCircle, Info, Bug, Server, Database, Globe } from 'lucide-react';

@@ -1,13 +1,14 @@
 // Authentication Integration Test Utility
 // This file provides testing functions to verify auth integration
 
-import { 
-  requestMagicLink, 
-  verifyToken, 
-  getCurrentUser, 
-  checkAuthStatus, 
-  logout 
-} from '../services/authService';
+// Auth service integration removed - now handled by AuthContext
+// import { 
+//   requestMagicLink, 
+//   verifyToken, 
+//   getCurrentUser, 
+//   checkAuthStatus, 
+//   logout 
+// } from '../services/authService';
 
 export interface AuthTestResult {
   step: string;
@@ -16,6 +17,8 @@ export interface AuthTestResult {
   data?: Record<string, unknown>;
 }
 
+// Auth test class commented out - now handled by AuthContext
+/*
 export class AuthIntegrationTest {
   private results: AuthTestResult[] = [];
 
@@ -217,3 +220,4 @@ export const quickAuthTest = async (email: string = 'test@example.com') => {
   tester.printResults();
   return tester;
 };
+*/

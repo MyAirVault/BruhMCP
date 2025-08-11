@@ -21,7 +21,7 @@ import {
 import CountryDropdown from '../components/ui/CountryDropdown';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import type { BillingDetails, BillingDetailsInput, CardInfo } from '../types/billing';
 import {
   getBillingDetails,

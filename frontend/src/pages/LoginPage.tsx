@@ -1,139 +1,213 @@
+/**
+ * Login page component
+ * Handles the complete login flow including OTP verification
+ */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MagicLinkPopup from '../components/modals/MagicLinkPopup';
-import { requestMagicLink, checkAuthStatus } from '../services/authService';
+import { useState, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { AuthLayout } from '../components/layout';
+import { LoginForm, OTPForm } from '../components/forms';
+import { useAuth } from '../contexts/AuthContext';
+import { type LoginFormData } from '../lib/validations';
 
-const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showMagicLink, setShowMagicLink] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-
-  // Check if user is already authenticated on page load
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const isAuthenticated = await checkAuthStatus();
-        if (isAuthenticated) {
-          // User is already authenticated, redirect to dashboard
-          navigate('/dashboard');
-        }
-      } catch {
-        // User is not authenticated, stay on login page
-        console.log('Not authenticated, staying on login page');
-      }
-    };
-
-    // Add a small delay to allow logout to complete properly
-    const timeoutId = setTimeout(checkAuth, 100);
-    return () => clearTimeout(timeoutId);
-  }, [navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
+/**
+ * Login page with multi-step authentication flow
+ * @returns LoginPage JSX element
+ */
+export function LoginPage() {
     try {
-      await requestMagicLink(email);
-      setShowMagicLink(true);
+        // Use AuthContext state instead of local state to prevent remounting issues
+        const [resendCooldown, setResendCooldown] = useState(0);
+        
+        // Use ref to prevent unnecessary re-renders from auth state changes
+        const isProcessingOTP = useRef(false);
+        
+        
+        const navigate = useNavigate();
+        const location = useLocation();
+        const { login, sendOTP, verifyOTP, isLoading, loginStep, loginEmail, setLoginStep, setLoginEmail, clearLoginState } = useAuth();
+
+        // Get redirect path from location state
+        const from = (location.state as any)?.from || '/dashboard';
+
+        const handlePasswordLogin = async (data: LoginFormData) => {
+            try {
+                const result = await login(data.email, data.password);
+                
+                // Check if verification is required
+                if (result?.requiresVerification && result?.redirectToOTP) {
+                    // AuthContext automatically sets loginStep to 'otp_verification' and loginEmail
+                    // Send OTP for verification
+                    try {
+                        await sendOTP(result.email || data.email);
+                        startResendCooldown();
+                    } catch (otpError) {
+                        console.error('Auto OTP send error:', otpError);
+                        // Don't throw here - user is already on OTP step and can manually request OTP
+                    }
+                } else {
+                    // Normal login success - navigate to dashboard
+                    navigate(from, { replace: true });
+                }
+            } catch (error) {
+                console.error('Password login error:', error);
+            }
+        };
+
+        const handleOTPRequest = useCallback(async (email: string) => {
+            try {
+                
+                // Set processing flag to prevent state conflicts
+                isProcessingOTP.current = true;
+                
+                // Send OTP first
+                await sendOTP(email);
+                
+                // After successful OTP send, set AuthContext state to transition to OTP step
+                setLoginEmail(email);
+                setLoginStep('otp_verification');
+                
+                startResendCooldown();
+                
+                // Clear processing flag
+                isProcessingOTP.current = false;
+            } catch (error) {
+                console.error('LoginPage: OTP request error:', error);
+                // Reset state on error
+                isProcessingOTP.current = false;
+                clearLoginState(); // Reset to login step
+                throw error;
+            }
+        }, [sendOTP, setLoginEmail, setLoginStep, clearLoginState]);
+
+        const handleOTPVerify = async ({ email, otp }: { email: string; otp: string }) => {
+            try {
+                await verifyOTP(email, otp);
+                navigate(from, { replace: true });
+            } catch (error) {
+                console.error('OTP verify error:', error);
+                throw error;
+            }
+        };
+
+        const handleResendOTP = async () => {
+            try {
+                await sendOTP(loginEmail);
+                startResendCooldown();
+            } catch (error) {
+                console.error('Resend OTP error:', error);
+                throw error;
+            }
+        };
+
+        const handleBackToLogin = () => {
+            try {
+                clearLoginState(); // Reset to login step and clear email
+                setResendCooldown(0);
+                isProcessingOTP.current = false;
+            } catch (error) {
+                console.error('Back to login error:', error);
+            }
+        };
+
+        const handleSwitchToSignup = () => {
+            try {
+                navigate('/signup', { 
+                    state: { from } 
+                });
+            } catch (error) {
+                console.error('Switch to signup error:', error);
+            }
+        };
+
+        const handleForgotPassword = () => {
+            try {
+                navigate('/forgot-password');
+            } catch (error) {
+                console.error('Switch to forgot password error:', error);
+            }
+        };
+
+        const startResendCooldown = () => {
+            try {
+                setResendCooldown(60); // 60 seconds cooldown
+                
+                const interval = setInterval(() => {
+                    setResendCooldown(prev => {
+                        if (prev <= 1) {
+                            clearInterval(interval);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            } catch (error) {
+                console.error('Resend cooldown error:', error);
+            }
+        };
+
+
+        // Login step
+        if (loginStep === 'login') {
+            return (
+                <AuthLayout
+                    title="Welcome back"
+                    subtitle="Sign in to your account to continue"
+                >
+                    <LoginForm
+                        onPasswordLogin={handlePasswordLogin}
+                        onOTPRequest={handleOTPRequest}
+                        onSwitchToSignup={handleSwitchToSignup}
+                        onForgotPassword={handleForgotPassword}
+                        loading={isLoading}
+                    />
+                </AuthLayout>
+            );
+        }
+
+        // OTP verification step
+        if (loginStep === 'otp_verification') {
+            return (
+                <AuthLayout
+                    title="Verify your identity"
+                    subtitle="Enter the code we sent to your email"
+                    showBackButton
+                    onBack={handleBackToLogin}
+                >
+                    <OTPForm
+                        email={loginEmail}
+                        onVerifyOTP={handleOTPVerify}
+                        onResendOTP={handleResendOTP}
+                        onBack={handleBackToLogin}
+                        loading={isLoading}
+                        resendDisabled={resendCooldown > 0}
+                        timeLeft={resendCooldown}
+                    />
+                </AuthLayout>
+            );
+        }
+
+        return null;
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send magic link');
-    } finally {
-      setIsLoading(false);
+        console.error('LoginPage render error:', error);
+        
+        return (
+            <AuthLayout
+                title="Sign in"
+                subtitle="Welcome back"
+            >
+                <div className="text-center space-y-4">
+                    <p className="text-sm text-error-600">
+                        Something went wrong. Please refresh the page and try again.
+                    </p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                    >
+                        Refresh page
+                    </button>
+                </div>
+            </AuthLayout>
+        );
     }
-  };
-
-  return (
-    <div className="min-h-screen bg-white flex flex-col relative">
-      {/* Header with logo */}
-      <div className="p-4 sm:p-6 lg:p-8">
-        <img
-          src="/logo.svg"
-          alt="Logo"
-          className="h-8 sm:h-10 w-auto"
-        />
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1 flex items-start justify-center px-4 sm:px-6 lg:px-8 pt-12">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-2">
-              Log in
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600">
-              Continue to your workspace
-            </p>
-          </div>
-
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-black focus:z-10 sm:text-sm"
-                placeholder="Enter your work email"
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-600 text-sm text-center">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? 'Sending...' : 'Continue with email'}
-              </button>
-            </div>
-
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                We'll email you a magic link for a password-free sign in.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                By clicking "Continue", you agree to our Terms of Service and Privacy Policy.
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Background overlay when popup is shown */}
-      {showMagicLink && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setShowMagicLink(false)}
-        />
-      )}
-
-      {/* Magic Link Popup */}
-      {showMagicLink && (
-        <div className="fixed inset-0 flex items-center justify-center px-4 z-50">
-          <MagicLinkPopup email={email} onClose={() => setShowMagicLink(false)} />
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default LoginPage;
+}

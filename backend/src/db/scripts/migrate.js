@@ -3,7 +3,9 @@ const { readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
 
 const migrations = [
-	'002_separate_credentials_table.sql',
+	'000_cleanup_old_tables.sql',
+	'001_microsaas_auth.sql',
+	'002_mcp_tables.sql',
 	'003_token_audit_log.sql',
 	'004_add_optimistic_locking.sql',
 	'005_add_user_plans_with_active_limits.sql',

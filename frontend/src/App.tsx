@@ -1,29 +1,80 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
-import VerifyPage from './pages/VerifyPage';
-import LoginPage from './pages/LoginPage';
+import { AuthProvider } from './contexts/AuthContext';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { SettingsPage } from './pages/SettingsPage';
 import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
 import { BillingPage } from './pages/Billing';
 import { CheckoutPage } from './pages/Checkout';
 import PaymentSuccess from './pages/PaymentSuccess';
-// import Profile from './pages/Profile'; // Commented out as profile section is not implemented yet
+import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/verify" element={<VerifyPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/logs" element={<Logs />} />
-        <Route path="/billing" element={<BillingPage />} />
-        <Route path="/billing/checkout" element={<CheckoutPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        {/* <Route path="/profile" element={<Profile />} /> */} {/* Commented out as profile section is not implemented yet */}
-        <Route path="/" element={<Dashboard />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          {/* Public routes - redirect to dashboard if already logged in */}
+          <Route path="/login" element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          } />
+          <Route path="/signup" element={
+            <PublicRoute>
+              <SignupPage />
+            </PublicRoute>
+          } />
+          <Route path="/forgot-password" element={
+            <PublicRoute>
+              <ForgotPasswordPage />
+            </PublicRoute>
+          } />
+          
+          {/* Protected routes - require authentication */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/logs" element={
+            <ProtectedRoute>
+              <Logs />
+            </ProtectedRoute>
+          } />
+          <Route path="/billing" element={
+            <ProtectedRoute>
+              <BillingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/billing/checkout" element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/checkout" element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment-success" element={
+            <ProtectedRoute>
+              <PaymentSuccess />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          } />
+          
+          {/* Default route */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }

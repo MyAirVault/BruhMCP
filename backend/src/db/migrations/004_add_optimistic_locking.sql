@@ -63,7 +63,7 @@ BEGIN
     END IF;
     
     -- Create test users table entry if needed
-    INSERT INTO users (id, email, name) VALUES (test_user_id, 'test@example.com', 'Test User');
+    INSERT INTO users (id, email, first_name, last_name) VALUES (test_user_id, 'test@example.com', 'Test', 'User');
     
     -- Create test instance
     INSERT INTO mcp_service_table (

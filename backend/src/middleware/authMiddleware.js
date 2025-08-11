@@ -1,167 +1,28 @@
-// @ts-check
-const { verifyJWT } = require('../utils/jwt.js');
-const { findUserByEmail } = require('../db/queries/userQueries.js');
-const loggingService = require('../services/logging/loggingService.js');
-const { ErrorResponses } = require('../utils/errorResponse.js');
-
 /**
- * @typedef {Object} AuthenticatedUser
- * @property {string|number} id - User ID
- * @property {string|number} userId - User ID (duplicate for compatibility)
- * @property {string} email - User email address
- * @property {Date} sessionCreatedAt - Session creation timestamp
- * @property {Date} sessionExpiresAt - Session expiration timestamp
+ * Authentication middleware compatibility layer
+ * Maps old auth middleware to new auth system
  */
 
-/**
- * @typedef {import('express').Request & {user?: AuthenticatedUser | null}} AuthenticatedRequest
- */
+const { authenticateToken } = require('./auth.js');
 
 /**
- * Authentication middleware that validates JWT tokens from cookies
- * @param {AuthenticatedRequest} req
+ * Legacy requireAuth middleware for backward compatibility
+ * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-async function authenticate(req, res, next) {
-	const token = req.cookies.authToken;
-
-	if (!token) {
-		loggingService.logAuthFailure('missing_token', {
-			ip: req.ip,
-			userAgent: req.get('User-Agent'),
-			endpoint: req.originalUrl
-		});
-
-		return ErrorResponses.missingToken(res);
-	}
-
-	const payload = verifyJWT(token);
-
-	if (!payload) {
-		loggingService.logAuthFailure('invalid_token', {
-			ip: req.ip,
-			userAgent: req.get('User-Agent'),
-			endpoint: req.originalUrl
-		});
-
-		return ErrorResponses.invalidToken(res);
-	}
-
-	try {
-		// Get user from database
-		const user = await findUserByEmail(payload.email);
-
-		if (!user) {
-			loggingService.logAuthFailure('user_not_found', {
-				email: payload.email,
-				ip: req.ip,
-				userAgent: req.get('User-Agent'),
-				endpoint: req.originalUrl
-			});
-
-			return ErrorResponses.unauthorized(res, 'User not found');
-		}
-
-		// Add user info to request object
-		req.user = {
-			id: user.id,
-			userId: user.id,
-			email: user.email,
-			sessionCreatedAt: new Date(),
-			sessionExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
-		};
-
-		// Log successful authentication
-		loggingService.logAuthSuccess(user.id, {
-			ip: req.ip,
-			userAgent: req.get('User-Agent'),
-			endpoint: req.originalUrl,
-			method: 'jwt'
-		});
-
-		next();
-	} catch (error) {
-		const errorObj = error instanceof Error ? error : new Error(String(error));
-		loggingService.logError(errorObj, {
-			operation: 'authentication',
-			email: payload?.email,
-			ip: req.ip,
-			critical: false
-		});
-
-		return ErrorResponses.internal(res, 'Authentication failed');
-	}
-}
+const requireAuth = authenticateToken;
 
 /**
- * Optional authentication middleware - doesn't fail if no token
- * @param {AuthenticatedRequest} req
- * @param {import('express').Response} _res
+ * Legacy authenticate middleware for backward compatibility
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-async function optionalAuthenticate(req, _res, next) {
-	const token = req.cookies.authToken;
-
-	if (!token) {
-		req.user = null;
-		return next();
-	}
-
-	const payload = verifyJWT(token);
-
-	if (!payload) {
-		req.user = null;
-		return next();
-	}
-
-	try {
-		const user = await findUserByEmail(payload.email);
-
-		if (user) {
-			req.user = {
-				id: user.id,
-				userId: user.id,
-				email: user.email,
-				sessionCreatedAt: new Date(),
-				sessionExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
-			};
-		} else {
-			req.user = null;
-		}
-	} catch (error) {
-		console.error('Optional auth error:', error);
-		req.user = null;
-	}
-
-	next();
-}
-
-/**
- * Get current user from request
- * @param {AuthenticatedRequest} req
- */
-function getCurrentUser(req) {
-	return req.user || null;
-}
-
-/**
- * Check if user is authenticated
- * @param {AuthenticatedRequest} req
- */
-function isAuthenticated(req) {
-	return req.user !== null && req.user !== undefined;
-}
-
-/**
- * Require authentication middleware - alias for authenticate
- */
-const requireAuth = authenticate;
+const authenticate = authenticateToken;
 
 module.exports = {
-	authenticate,
-	optionalAuthenticate,
-	getCurrentUser,
-	isAuthenticated,
-	requireAuth
+    requireAuth,
+    authenticate,
+    authenticateToken
 };

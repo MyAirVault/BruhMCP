@@ -12,7 +12,7 @@ import DashboardContent, { type DashboardContentRef } from '../components/dashbo
 import { useDashboardState } from '../components/dashboard/useDashboardState';
 import { useDashboardActions } from '../components/dashboard/useDashboardActions';
 import { useDashboardKeyboardShortcuts } from '../components/dashboard/useDashboardKeyboardShortcuts';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { useDropdown } from '../hooks/useDropdown';
 
 const Dashboard: React.FC = () => {

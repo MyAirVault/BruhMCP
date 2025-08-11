@@ -6,6 +6,7 @@ require('dotenv/config');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes.js');
+const settingsRoutes = require('./routes/settingsRoutes.js');
 const mcpTypesRoutes = require('./routes/mcpTypesRoutes.js');
 const apiKeysRoutes = require('./routes/apiKeysRoutes.js');
 const mcpInstancesRoutes = require('./routes/mcpInstancesRoutes.js');
@@ -119,10 +120,8 @@ app.get('/health', (_req, res) => {
 });
 
 // API routes
-app.use('/auth', authRoutes);
-
-// API v1 routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/settings', settingsRoutes);
 app.get('/api/v1/health', (_req, res) => {
 	res.status(200).json({
 		status: 'ok',

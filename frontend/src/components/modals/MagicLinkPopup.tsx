@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkAuthStatus } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface MagicLinkPopupProps {
   email: string;
@@ -10,22 +10,23 @@ interface MagicLinkPopupProps {
 const MagicLinkPopup: React.FC<MagicLinkPopupProps> = ({ email, onClose }) => {
   const [isVerifying, setIsVerifying] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  // Poll for authentication status
+  // Check for authentication status
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsVerifying(true);
+      // User is now authenticated, redirect to dashboard
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Legacy polling code (now replaced by auth context)
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const isAuthenticated = await checkAuthStatus();
-        if (isAuthenticated) {
-          setIsVerifying(true);
-          // User is now authenticated, redirect to dashboard
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 1000);
-        }
-      } catch {
-        // Still not authenticated, continue waiting
-      }
+      // This is now handled by the auth context above
     };
 
     // Start polling every 2 seconds

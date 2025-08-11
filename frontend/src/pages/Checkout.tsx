@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import type { BillingDetails, BillingDetailsInput } from '../types/billing';
 import { getBillingDetails, saveBillingDetails } from '../services/billingDetailsService';
 import { apiService } from '../services/apiService';

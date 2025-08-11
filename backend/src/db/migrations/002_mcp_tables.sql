@@ -1,16 +1,15 @@
--- Complete Database Setup with Separated Credentials Table
--- Creates all tables including new credentials table and OAuth status tracking
+-- MCP Service Tables Migration
+-- Creates MCP-specific tables that work with the existing auth system from 001_microsaas_auth.sql
+-- This migration assumes the users table already exists from 001
 
 BEGIN;
 
--- Drop all existing tables (order matters due to foreign keys)
+-- Drop MCP tables if they exist (clean slate for MCP tables only)
 DROP TABLE IF EXISTS mcp_credentials CASCADE;
 DROP TABLE IF EXISTS mcp_service_table CASCADE;
-DROP TABLE IF EXISTS api_keys CASCADE;
 DROP TABLE IF EXISTS mcp_table CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
 
--- Create or replace the timestamp trigger function
+-- Create or replace the timestamp trigger function (if not exists from 001)
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -18,19 +17,6 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
-
--- Create Users table (magic link authentication, no password)
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    name VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create trigger to update updated_at timestamp for users
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Create MCP Table (Service Registry)
 CREATE TABLE mcp_table (
@@ -134,7 +120,6 @@ CREATE TRIGGER update_mcp_credentials_updated_at BEFORE UPDATE ON mcp_credential
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Create indexes for performance
-CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_mcp_table_service_name ON mcp_table(mcp_service_name);
 CREATE INDEX idx_mcp_table_port ON mcp_table(port);
 CREATE INDEX idx_mcp_table_is_active ON mcp_table(is_active);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDropdown } from '../../hooks/useDropdown';
-import { logout } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import { CreditCard, Settings, LogOut } from 'lucide-react';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
   const { userDropdownOpen, handleUserDropdownToggle, setUserDropdownOpen } = useDropdown();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
