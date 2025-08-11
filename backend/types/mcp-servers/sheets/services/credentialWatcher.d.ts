@@ -62,7 +62,7 @@ export type WatcherStatistics = {
      */
     isRunning: boolean;
 };
-export type DatabaseInstance = import('./database.js').InstanceCredentials;
+export type DatabaseInstance = import("./database.js").InstanceCredentials;
 export type TokenRefreshResult = {
     /**
      * - New access token

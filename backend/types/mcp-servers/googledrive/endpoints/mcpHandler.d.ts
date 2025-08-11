@@ -1,7 +1,7 @@
-export type JSONRPCRequest = import('@modelcontextprotocol/sdk/types.js').JSONRPCRequest;
-export type JSONRPCMessage = import('@modelcontextprotocol/sdk/types.js').JSONRPCMessage;
-export type ExpressRequest = import('express').Request;
-export type ExpressResponse = import('express').Response;
+export type JSONRPCRequest = import("@modelcontextprotocol/sdk/types.js").JSONRPCRequest;
+export type JSONRPCMessage = import("@modelcontextprotocol/sdk/types.js").JSONRPCMessage;
+export type ExpressRequest = import("express").Request;
+export type ExpressResponse = import("express").Response;
 export type ServiceConfig = {
     name: string;
     displayName: string;
@@ -63,6 +63,6 @@ export class GoogleDriveMCPHandler {
      */
     handleMCPRequest(req: ExpressRequest, res: ExpressResponse, message: JSONRPCRequest): Promise<void>;
 }
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 //# sourceMappingURL=mcpHandler.d.ts.map

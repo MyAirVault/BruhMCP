@@ -21,7 +21,7 @@ export = setupCreateMultipleRecordsTool;
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-declare function setupCreateMultipleRecordsTool(server: MCPServer, airtableService: import('../services/airtableService.js').AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
+declare function setupCreateMultipleRecordsTool(server: MCPServer, airtableService: import("../services/airtableService.js").AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
 declare namespace setupCreateMultipleRecordsTool {
     export { MCPServer, ServiceConfig, CreateMultipleRecordsParams };
 }

@@ -73,5 +73,5 @@ export type MCPType = {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export function getMCPTypeByNameHandler(req: import('express').Request, res: import('express').Response): Promise<void>;
+export function getMCPTypeByNameHandler(req: import("express").Request, res: import("express").Response): Promise<void>;
 //# sourceMappingURL=getMCPTypeByName.d.ts.map

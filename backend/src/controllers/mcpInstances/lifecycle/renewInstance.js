@@ -140,16 +140,11 @@ async function renewInstance(req, res) {
 			return;
 		}
 
-		// Check plan limits before allowing renewal
+		// Check subscription limits before allowing renewal
 		// For free users: renewal activates the instance, so check total active instances limit
-		// TODO: Implement checkInstanceLimit function - commented out unused import
-		/** @type {PlanLimitCheck} */
-		const limitCheck = {
-			canCreate: true,
-			reason: 'OK',
-			message: 'Limit check passed',
-			details: { plan: 'free', activeInstances: 0, maxInstances: 1 },
-		};
+		const { checkInstanceLimit } = require('../../../utils/subscriptionLimits.js');
+		// Check instance limits
+		const limitCheck = await checkInstanceLimit(userId);
 
 		// Check if renewal would violate plan limits
 		// Renewal always makes the instance active, so we need to ensure the user can have another active instance

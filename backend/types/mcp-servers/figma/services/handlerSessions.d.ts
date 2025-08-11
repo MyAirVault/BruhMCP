@@ -34,7 +34,7 @@ export type SessionInfo = {
      */
     is_initialized: boolean;
 };
-export type ServiceConfig = import('../endpoints/mcpHandler.js').ServiceConfig;
+export type ServiceConfig = import("../endpoints/mcpHandler.js").ServiceConfig;
 export type HandlerSession = {
     /**
      * - The MCP handler instance

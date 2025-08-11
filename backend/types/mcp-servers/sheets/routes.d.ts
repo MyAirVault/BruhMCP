@@ -103,5 +103,5 @@ export type HealthStatus = {
  * @param {import('express').RequestHandler} credentialAuthMiddleware - Credential auth middleware
  * @param {import('express').RequestHandler} lightweightAuthMiddleware - Lightweight auth middleware
  */
-export function setupRoutes(app: import('express').Application, SERVICE_CONFIG: ServiceConfig, credentialAuthMiddleware: import('express').RequestHandler, lightweightAuthMiddleware: import('express').RequestHandler): void;
+export function setupRoutes(app: import("express").Application, SERVICE_CONFIG: ServiceConfig, credentialAuthMiddleware: import("express").RequestHandler, lightweightAuthMiddleware: import("express").RequestHandler): void;
 //# sourceMappingURL=routes.d.ts.map

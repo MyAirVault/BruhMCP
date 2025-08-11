@@ -2,7 +2,7 @@ export type HandlerSession = {
     /**
      * - The MCP handler instance
      */
-    handler: import('../endpoints/mcpHandler.js').SlackMCPHandler;
+    handler: import("../endpoints/mcpHandler.js").SlackMCPHandler;
     /**
      * - Last access timestamp
      */
@@ -23,7 +23,7 @@ export type HandlerSession = {
  * @param {string} bearerToken - OAuth Bearer token for this instance
  * @returns {import('../endpoints/mcpHandler.js').SlackMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: import('../endpoints/mcpHandler.js').ServiceConfig, bearerToken: string): import('../endpoints/mcpHandler.js').SlackMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: import("../endpoints/mcpHandler.js").ServiceConfig, bearerToken: string): import("../endpoints/mcpHandler.js").SlackMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance

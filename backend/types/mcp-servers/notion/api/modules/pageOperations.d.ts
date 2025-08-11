@@ -2,7 +2,7 @@ export type PageBlocksResult = {
     /**
      * - Array of blocks
      */
-    results: import('../../utils/notionFormatting.js').NotionBlock[];
+    results: import("../../utils/notionFormatting.js").NotionBlock[];
     /**
      * - Whether there are more blocks
      */
@@ -35,8 +35,8 @@ export function getPage(args: {
  */
 export function getPageBlocks(args: {
     pageId: string;
-    start_cursor?: string | undefined;
-    page_size?: number | undefined;
+    start_cursor?: string;
+    page_size?: number;
 }, bearerToken: string): Promise<Record<string, unknown>>;
 /**
  * Create a new page
@@ -45,9 +45,9 @@ export function getPageBlocks(args: {
  * @returns {Promise<Record<string, unknown>>} Created page
  */
 export function createPage(args: {
-    parent: import('../../utils/notionFormatting.js').NotionParent;
-    properties: Record<string, import('../../utils/notionFormatting.js').NotionProperty>;
-    children?: import("../../utils/notionFormatting").NotionBlock[] | undefined;
+    parent: import("../../utils/notionFormatting.js").NotionParent;
+    properties: Record<string, import("../../utils/notionFormatting.js").NotionProperty>;
+    children?: import("../../utils/notionFormatting.js").NotionBlock[];
 }, bearerToken: string): Promise<Record<string, unknown>>;
 /**
  * Update page properties
@@ -57,7 +57,7 @@ export function createPage(args: {
  */
 export function updatePage(args: {
     pageId: string;
-    properties?: Record<string, import("../../utils/notionFormatting").NotionProperty> | undefined;
-    archived?: boolean | undefined;
+    properties?: Record<string, import("../../utils/notionFormatting.js").NotionProperty>;
+    archived?: boolean;
 }, bearerToken: string): Promise<Record<string, unknown>>;
 //# sourceMappingURL=pageOperations.d.ts.map

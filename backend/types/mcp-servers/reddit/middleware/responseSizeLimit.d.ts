@@ -85,7 +85,7 @@ export type RequestParams = {
  * @param {Partial<SizeLimitsConfig>} options - Size limit options
  * @returns {import('express').RequestHandler} Express middleware function
  */
-export function createResponseSizeLimitMiddleware(options?: Partial<SizeLimitsConfig>): import('express').RequestHandler;
+export function createResponseSizeLimitMiddleware(options?: Partial<SizeLimitsConfig>): import("express").RequestHandler;
 /**
  * Get current size limits configuration
  * @returns {SizeLimitsConfig} Current size limits

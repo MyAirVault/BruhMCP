@@ -214,13 +214,13 @@ export namespace formatSheetsResponse {
         spreadsheetId: string;
         spreadsheetUrl: string;
         title: string;
-        sheets: {
+        sheets: Array<{
             sheetId: number;
             title: string;
             index: number;
             rowCount: number;
             columnCount: number;
-        }[];
+        }>;
         namedRanges: Object[];
         developerMetadata: Object[];
     };
@@ -287,13 +287,13 @@ export namespace formatSheetsResponse {
      * @returns {{files: Array<{id: string, name: string, createdTime: string, modifiedTime: string, webViewLink: string}>, nextPageToken: string}} Formatted files list
      */
     function filesList(response: FilesListResponse): {
-        files: {
+        files: Array<{
             id: string;
             name: string;
             createdTime: string;
             modifiedTime: string;
             webViewLink: string;
-        }[];
+        }>;
         nextPageToken: string;
     };
     /**
@@ -318,13 +318,13 @@ export namespace formatSheetsResponse {
         autoRecalc: string;
         timeZone: string;
         defaultFormat: Object;
-        sheets: {
+        sheets: Array<{
             sheetId: number;
             title: string;
             index: number;
             sheetType: string;
             gridProperties: GridProperties;
-        }[];
+        }>;
     };
 }
 //# sourceMappingURL=sheetsFormatting.d.ts.map

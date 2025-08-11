@@ -54,7 +54,7 @@ export function axiosGet(url: string, config?: {
     timeout?: number | undefined;
     params?: Object | undefined;
     responseType?: "stream" | "json" | "text" | "arraybuffer" | "blob" | "document" | undefined;
-} | undefined): Promise<AxiosResponse>;
+}): Promise<AxiosResponse>;
 /**
  * Wrapper around axios.post with comprehensive error handling
  * @param {string} url - The URL to make POST request to
@@ -70,7 +70,7 @@ export function axiosPost(url: string, data?: any, config?: {
     headers?: any;
     timeout?: number | undefined;
     params?: Object | undefined;
-} | undefined): Promise<AxiosResponse>;
+}): Promise<AxiosResponse>;
 /**
  * Wrapper around axios.put with comprehensive error handling
  * @param {string} url - The URL to make PUT request to

@@ -26,7 +26,7 @@ export = setupListRecordsTool;
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-declare function setupListRecordsTool(server: MCPServer, airtableService: import('../services/airtableService.js').AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
+declare function setupListRecordsTool(server: MCPServer, airtableService: import("../services/airtableService.js").AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
 declare namespace setupListRecordsTool {
     export { MCPServer, ServiceConfig, ListRecordsParams };
 }
@@ -72,7 +72,7 @@ type ListRecordsParams = {
      */
     sort?: {
         field: string;
-        direction?: "asc" | "desc" | undefined;
+        direction?: "asc" | "desc";
     }[] | undefined;
     /**
      * - Formula to filter records

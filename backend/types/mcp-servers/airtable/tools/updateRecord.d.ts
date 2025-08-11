@@ -22,7 +22,7 @@ export = setupUpdateRecordTool;
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-declare function setupUpdateRecordTool(server: MCPServer, airtableService: import('../services/airtableService.js').AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
+declare function setupUpdateRecordTool(server: MCPServer, airtableService: import("../services/airtableService.js").AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
 declare namespace setupUpdateRecordTool {
     export { MCPServer, ServiceConfig, UpdateRecordParams };
 }

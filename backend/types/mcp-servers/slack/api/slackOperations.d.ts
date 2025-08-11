@@ -366,7 +366,7 @@ declare class ChannelOperations {
      * @param {'archive'|'unarchive'|'join'|'leave'} operation - Operation to perform
      * @returns {Promise<ChannelOperationResult[]>} Results for each operation
      */
-    bulkChannelOperations(channels: string[], operation: 'archive' | 'unarchive' | 'join' | 'leave'): Promise<ChannelOperationResult[]>;
+    bulkChannelOperations(channels: string[], operation: "archive" | "unarchive" | "join" | "leave"): Promise<ChannelOperationResult[]>;
 }
 /**
  * User activity summary
@@ -482,7 +482,7 @@ declare class WorkspaceOperations {
      * @param {('messages'|'files')[]} types - Content types to search
      * @returns {Promise<SearchResults>} Search results
      */
-    comprehensiveSearch(query: string, types?: ('messages' | 'files')[]): Promise<SearchResults>;
+    comprehensiveSearch(query: string, types?: ("messages" | "files")[]): Promise<SearchResults>;
 }
 export {};
 //# sourceMappingURL=slackOperations.d.ts.map

@@ -57,7 +57,7 @@ export function sleep(ms: number): Promise<void>;
  * @param {boolean} [immediate] - Execute immediately on first call
  * @returns {Function} Debounced function
  */
-export function debounce(func: Function, wait: number, immediate?: boolean | undefined): Function;
+export function debounce(func: Function, wait: number, immediate?: boolean): Function;
 /**
  * Throttle function execution
  * @param {Function} func - Function to throttle
@@ -77,7 +77,7 @@ export function throttle(func: Function, limit: number): Function;
  * @param {CircuitBreakerOptions} [options] - Circuit breaker options
  * @returns {Function} Circuit breaker wrapped function
  */
-export function circuitBreaker(fn: Function, options?: CircuitBreakerOptions | undefined): Function;
+export function circuitBreaker(fn: Function, options?: CircuitBreakerOptions): Function;
 /**
  * @typedef {Object} RetryOptions
  * @property {number} [maxAttempts] - Maximum number of attempts
@@ -93,7 +93,7 @@ export function circuitBreaker(fn: Function, options?: CircuitBreakerOptions | u
  * @param {RetryOptions} [options] - Retry options
  * @returns {Promise<T>}
  */
-export function retry<T>(fn: () => Promise<T>, options?: RetryOptions | undefined): Promise<T>;
+export function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Promise<T>;
 /**
  * @template T
  * @typedef {Object} ExecutionResult
@@ -115,7 +115,7 @@ export function measureExecutionTime<T>(fn: () => Promise<T>): Promise<Execution
  * @param {string} [timeoutMessage] - Custom timeout message
  * @returns {Promise<T>}
  */
-export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage?: string | undefined): Promise<T>;
+export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage?: string): Promise<T>;
 /**
  * Execute functions in parallel with concurrency limit
  * @template T, R
@@ -124,5 +124,5 @@ export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMe
  * @param {number} [concurrency] - Maximum concurrent executions
  * @returns {Promise<Array<R>>} Results array
  */
-export function parallelLimit<T, R>(items: T[], fn: (item: T) => Promise<R>, concurrency?: number | undefined): Promise<R[]>;
+export function parallelLimit<T, R>(items: Array<T>, fn: (item: T) => Promise<R>, concurrency?: number): Promise<Array<R>>;
 //# sourceMappingURL=async.d.ts.map

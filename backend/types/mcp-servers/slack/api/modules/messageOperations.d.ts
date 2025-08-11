@@ -1,7 +1,7 @@
-export type SlackMessage = import('../../middleware/types.js').SlackMessage;
-export type SlackBlock = import('../../middleware/types.js').SlackBlock;
-export type SlackAttachment = import('../../middleware/types.js').SlackAttachment;
-export type FormattedMessage = import('../../utils/messageFormatting.js').FormattedMessage;
+export type SlackMessage = import("../../middleware/types.js").SlackMessage;
+export type SlackBlock = import("../../middleware/types.js").SlackBlock;
+export type SlackAttachment = import("../../middleware/types.js").SlackAttachment;
+export type FormattedMessage = import("../../utils/messageFormatting.js").FormattedMessage;
 export type SendMessageArgs = {
     /**
      * - Channel ID

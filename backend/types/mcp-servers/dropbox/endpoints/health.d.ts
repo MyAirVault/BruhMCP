@@ -1,4 +1,4 @@
-export type ServiceConfig = import('../../../types/dropbox.js').ServiceConfig;
+export type ServiceConfig = import("../../../types/dropbox.js").ServiceConfig;
 export type HealthCheckResponse = {
     /**
      * - Service name

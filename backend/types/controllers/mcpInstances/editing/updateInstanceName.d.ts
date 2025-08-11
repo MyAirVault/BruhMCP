@@ -1,5 +1,5 @@
-export type Request = import('express').Request;
-export type Response = import('express').Response;
+export type Request = import("express").Request;
+export type Response = import("express").Response;
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
 /**

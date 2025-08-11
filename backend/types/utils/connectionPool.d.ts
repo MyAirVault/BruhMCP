@@ -1,6 +1,13 @@
-/// <reference types="node" />
-/// <reference types="node" />
-export type ConnectionPoolOptions = {
+declare namespace _exports {
+    export { ConnectionPoolOptions, ConnectionMetrics };
+}
+declare namespace _exports {
+    export { ConnectionPool };
+    export { ConnectionPoolManager };
+    export { connectionPoolManager as default };
+}
+export = _exports;
+type ConnectionPoolOptions = {
     /**
      * - Pool name
      */
@@ -38,7 +45,7 @@ export type ConnectionPoolOptions = {
      */
     maxConcurrentRequests?: number | undefined;
 };
-export type ConnectionMetrics = {
+type ConnectionMetrics = {
     /**
      * - Total number of requests
      */
@@ -98,7 +105,7 @@ export type ConnectionMetrics = {
 /**
  * HTTP Connection Pool Manager
  */
-export class ConnectionPool {
+declare class ConnectionPool {
     /**
      * @param {ConnectionPoolOptions} options - Pool configuration options
      */
@@ -277,7 +284,7 @@ export class ConnectionPool {
 /**
  * Connection Pool Manager for managing multiple connection pools
  */
-export class ConnectionPoolManager {
+declare class ConnectionPoolManager {
     /** @type {Map<string, ConnectionPool>} */
     pools: Map<string, ConnectionPool>;
     /**
@@ -391,5 +398,4 @@ export class ConnectionPoolManager {
 declare const connectionPoolManager: ConnectionPoolManager;
 import { Agent } from "http";
 import { Agent as HttpsAgent } from "https";
-export { connectionPoolManager as default };
 //# sourceMappingURL=connectionPool.d.ts.map

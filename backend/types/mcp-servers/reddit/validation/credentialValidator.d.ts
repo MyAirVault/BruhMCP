@@ -8,6 +8,7 @@ declare function createRedditValidator(credentials: RedditOAuthCredentials | Red
 declare namespace createRedditValidator {
     export { RedditOAuthCredentials, RedditAPIKeyCredentials, RedditServiceInfo, RedditValidationResult };
 }
+import { BaseValidator } from "../../../services/validation/baseValidator";
 type RedditOAuthCredentials = {
     /**
      * - Reddit OAuth client ID
@@ -24,7 +25,6 @@ type RedditAPIKeyCredentials = {
      */
     api_key: string;
 };
-import { BaseValidator } from "../../../services/validation/baseValidator";
 type RedditServiceInfo = {
     /**
      * - Service name

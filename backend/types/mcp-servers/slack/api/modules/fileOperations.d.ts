@@ -30,7 +30,7 @@ export type FileInfoArgs = {
      */
     file: string;
 };
-export type SlackFile = import('../../middleware/types.js').SlackFile;
+export type SlackFile = import("../../middleware/types.js").SlackFile;
 export type SlackFileResponse = {
     /**
      * - Success indicator
@@ -45,7 +45,7 @@ export type SlackFileResponse = {
      */
     error?: string | undefined;
 };
-export type FormattedFile = import('../../utils/messageFormatting.js').FormattedFile;
+export type FormattedFile = import("../../utils/messageFormatting.js").FormattedFile;
 export type FileUploadResult = {
     /**
      * - Success indicator

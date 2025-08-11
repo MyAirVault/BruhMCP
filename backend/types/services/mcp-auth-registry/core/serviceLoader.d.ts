@@ -1,6 +1,6 @@
-export type ServiceType = import('../types/serviceTypes.js').ServiceType;
-export type ServiceFunctions = import('../types/serviceTypes.js').ServiceFunctions;
-export type ServiceError = import('../types/serviceTypes.js').ServiceError;
+export type ServiceType = import("../types/serviceTypes.js").ServiceType;
+export type ServiceFunctions = import("../types/serviceTypes.js").ServiceFunctions;
+export type ServiceError = import("../types/serviceTypes.js").ServiceError;
 /**
  * @typedef {import('../types/serviceTypes.js').ServiceType} ServiceType
  * @typedef {import('../types/serviceTypes.js').ServiceFunctions} ServiceFunctions
@@ -55,7 +55,7 @@ export function getExpectedParameterCount(functionName: string): number;
  * @param {Error} [originalError] - Original error
  * @returns {ServiceError} Service error object
  */
-export function createServiceError(code: string, message: string, serviceName?: string | undefined, functionName?: string | undefined, originalError?: Error | undefined): ServiceError;
+export function createServiceError(code: string, message: string, serviceName?: string, functionName?: string, originalError?: Error): ServiceError;
 /**
  * Safely calls a service function with error handling
  * @param {Function} func - Function to call

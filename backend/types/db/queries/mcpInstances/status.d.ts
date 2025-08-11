@@ -1,4 +1,4 @@
-export type MCPInstanceRecord = import('./types.js').MCPInstanceRecord;
+export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
 /**
  * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord
  */

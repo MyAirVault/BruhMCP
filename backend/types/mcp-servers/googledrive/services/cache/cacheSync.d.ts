@@ -97,5 +97,5 @@ export type SyncController = {
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
  * @returns {SyncController} Sync service controller
  */
-export function startBackgroundCacheSync(intervalMinutes?: number | undefined): SyncController;
+export function startBackgroundCacheSync(intervalMinutes?: number): SyncController;
 //# sourceMappingURL=cacheSync.d.ts.map

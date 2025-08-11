@@ -168,22 +168,22 @@ declare namespace loggingService {
 declare class LoggingService {
     systemLogger: {
         application(level: string, message: string, metadata?: Object): void;
-        security(level: string, message: string, securityContext?: systemLogger.SecurityContext): void;
+        security(level: string, message: string, securityContext?: SecurityContext): void;
         performance(message: string, performanceData?: systemLogger.PerformanceData): void;
-        audit(action: string, auditContext?: systemLogger.AuditContext): void;
+        audit(action: string, auditContext?: AuditContext): void;
         database(operation: string, dbContext?: systemLogger.DatabaseContext): void;
         cache(operation: string, cacheContext?: systemLogger.CacheContext): void;
         info(message: string, metadata?: Object): void;
         warn(message: string, metadata?: Object): void;
         error(message: string, metadata?: Object): void;
         debug(message: string, metadata?: Object): void;
-        startup(startupInfo?: systemLogger.StartupInfo): void;
+        startup(startupInfo?: StartupInfo): void;
         shutdown(shutdownInfo?: systemLogger.ShutdownInfo): void;
-        sanitizeSecurityData(data: systemLogger.SecurityContext): systemLogger.SecurityContext;
+        sanitizeSecurityData(data: SecurityContext): SecurityContext;
         sanitizeQuery(query: string): string;
         maskEmail(email: string): string;
-        getLoggerHealth(): systemLogger.LoggerHealth;
-        getLogDirectorySize(): systemLogger.DirectorySize;
+        getLoggerHealth(): LoggerHealth;
+        getLogDirectorySize(): DirectorySize;
         rotateAllLogs(): void;
         cleanupOldLogs(retentionDays?: number): number;
     };
@@ -344,7 +344,7 @@ declare class LoggingService {
      * @param {'responseTime'|'statusCode'} field - Field to calculate average for
      * @returns {number} Average value
      */
-    calculateAverage(data: PerformanceData[], field: 'responseTime' | 'statusCode'): number;
+    calculateAverage(data: PerformanceData[], field: "responseTime" | "statusCode"): number;
     /**
      * @param {PerformanceData[]} data - Performance data array
      * @param {number} limit - Number of top endpoints to return
@@ -687,7 +687,7 @@ type HealthData = {
      * - Memory usage statistics
      */
     memoryUsage?: {
-        used?: number | undefined;
+        used?: number;
     } | undefined;
     /**
      * - CPU usage percentage
@@ -821,7 +821,7 @@ type ExpressRequest = {
      * - User object (can be null)
      */
     user?: {
-        id?: string | number | undefined;
+        id?: string | number;
     } | null | undefined;
     /**
      * - Get header function

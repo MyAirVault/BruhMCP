@@ -2,7 +2,7 @@ export type NotionParent = {
     /**
      * - Parent type
      */
-    type: 'page_id' | 'database_id' | 'workspace';
+    type: "page_id" | "database_id" | "workspace";
     /**
      * - Page ID if type is 'page_id'
      */
@@ -173,18 +173,18 @@ export namespace Logger {
      * @param {string} message - Log message
      * @param {LogMetadata} [metadata] - Additional metadata
      */
-    function info(message: string, metadata?: Record<string, any> | undefined): void;
+    function info(message: string, metadata?: LogMetadata): void;
     /**
      * Log error message
      * @param {string} message - Log message
      * @param {Error|LogMetadata} [error] - Error object or metadata
      */
-    function error(message: string, error?: Error | Record<string, any> | undefined): void;
+    function error(message: string, error?: Error | LogMetadata): void;
     /**
      * Log general message
      * @param {string} message - Log message
      * @param {LogMetadata} [metadata] - Additional metadata
      */
-    function log(message: string, metadata?: Record<string, any> | undefined): void;
+    function log(message: string, metadata?: LogMetadata): void;
 }
 //# sourceMappingURL=validation.d.ts.map

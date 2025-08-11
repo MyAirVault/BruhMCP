@@ -1,6 +1,6 @@
-export type Request = import('express').Request;
-export type Response = import('express').Response;
-export type NextFunction = import('express').NextFunction;
+export type Request = import("express").Request;
+export type Response = import("express").Response;
+export type NextFunction = import("express").NextFunction;
 export type CachedCredential = {
     /**
      * - API key
@@ -62,7 +62,7 @@ export type AuthenticatedRequest = Request & {
     instance?: InstanceData;
     cacheHit?: boolean;
 };
-export type RequestWithHeaders = import('http').IncomingMessage & {
+export type RequestWithHeaders = import("http").IncomingMessage & {
     headers: Record<string, string | undefined>;
 };
 /** @typedef {import('express').Request} Request */

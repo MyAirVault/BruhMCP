@@ -209,7 +209,7 @@ export function getRetryDelay(parsedError: ParsedSlackError, attemptNumber: numb
  * @param {number} [maxAttempts=3] - Maximum retry attempts
  * @returns {boolean} True if should retry
  */
-export function shouldRetry(parsedError: ParsedSlackError, attemptNumber: number, maxAttempts?: number | undefined): boolean;
+export function shouldRetry(parsedError: ParsedSlackError, attemptNumber: number, maxAttempts?: number): boolean;
 /**
  * Create an OAuth error response object
  * @param {string} instanceId - Instance ID

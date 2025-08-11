@@ -5,7 +5,7 @@
  * @param {string} apiKey - Notion API key for this instance
  * @returns {NotionMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: import('../endpoints/mcpHandler.js').ServiceConfig, apiKey: string): NotionMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: import("../endpoints/mcpHandler.js").ServiceConfig, apiKey: string): NotionMCPHandler;
 /**
  * Start the session cleanup service
  * Called when the server starts

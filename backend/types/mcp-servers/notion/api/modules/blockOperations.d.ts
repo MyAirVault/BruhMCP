@@ -6,7 +6,7 @@
  */
 export function appendBlocks(args: {
     pageId: string;
-    children: import('../../utils/notionFormatting.js').NotionBlock[];
+    children: import("../../utils/notionFormatting.js").NotionBlock[];
 }, bearerToken: string): Promise<Record<string, unknown>>;
 /**
  * Delete block

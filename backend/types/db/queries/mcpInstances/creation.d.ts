@@ -1,6 +1,6 @@
-export type MCPInstanceCreateData = import('./types.js').MCPInstanceCreateData;
-export type MCPInstanceRecord = import('./types.js').MCPInstanceRecord;
-export type CreateInstanceResult = import('./types.js').CreateInstanceResult;
+export type MCPInstanceCreateData = import("./types.js").MCPInstanceCreateData;
+export type MCPInstanceRecord = import("./types.js").MCPInstanceRecord;
+export type CreateInstanceResult = import("./types.js").CreateInstanceResult;
 /**
  * @typedef {import('./types.js').MCPInstanceCreateData} MCPInstanceCreateData
  * @typedef {import('./types.js').MCPInstanceRecord} MCPInstanceRecord

@@ -13,7 +13,7 @@ export function createSpreadsheet(params: {
         rows?: number;
         cols?: number;
     }>;
-}, bearerToken: string): Promise<import('../../types/index.js').CreateSpreadsheetResponse>;
+}, bearerToken: string): Promise<import("../../types/index.js").CreateSpreadsheetResponse>;
 /**
  * Get spreadsheet metadata and optionally data
  * @param {Object} params - Get parameters

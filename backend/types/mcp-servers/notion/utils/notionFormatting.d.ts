@@ -160,7 +160,7 @@ export type NotionSort = {
     /**
      * - Sort direction
      */
-    direction: 'ascending' | 'descending';
+    direction: "ascending" | "descending";
 };
 export type NotionPage = {
     /**

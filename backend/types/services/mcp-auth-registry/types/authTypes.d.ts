@@ -134,7 +134,7 @@ export type ServiceConfig = {
     /**
      * - Service authentication type
      */
-    type: 'oauth' | 'apikey';
+    type: "oauth" | "apikey";
     /**
      * - Credential validator
      */

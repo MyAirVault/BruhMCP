@@ -1,37 +1,66 @@
+declare namespace _exports {
+    export { LogLevel };
+}
+declare namespace _exports {
+    export { debug };
+    export { info };
+    export { warn };
+    export { error };
+    export { fatal };
+    export { logApiRequest };
+    export { logApiResponse };
+    export { logTokenOperation };
+    export { logTokenRefresh };
+    export { logMcpRequest };
+    export { logMcpResponse };
+    export { logDatabaseOperation };
+    export { logCredentialOperation };
+    export { logValidationError };
+    export { logRateLimit };
+    export { logCacheOperation };
+    export { logSystemHealth };
+    export { logStartup };
+    export { logShutdown };
+    export { createRequestLogger };
+    export { createTimer };
+    export { CURRENT_LOG_LEVEL as currentLogLevel };
+    export { LOG_LEVELS as logLevels };
+}
+export = _exports;
 /**
  * Log levels
  */
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL";
 /**
  * Debug logging
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function debug(message: string, context?: Record<string, unknown> | undefined): void;
+declare function debug(message: string, context?: Record<string, unknown>): void;
 /**
  * Info logging
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function info(message: string, context?: Record<string, unknown> | undefined): void;
+declare function info(message: string, context?: Record<string, unknown>): void;
 /**
  * Warning logging
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function warn(message: string, context?: Record<string, unknown> | undefined): void;
+declare function warn(message: string, context?: Record<string, unknown>): void;
 /**
  * Error logging
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function error(message: string, context?: Record<string, unknown> | undefined): void;
+declare function error(message: string, context?: Record<string, unknown>): void;
 /**
  * Fatal error logging
  * @param {string} message - The log message
  * @param {Record<string, unknown>} [context={}] - Additional context data
  */
-export function fatal(message: string, context?: Record<string, unknown> | undefined): void;
+declare function fatal(message: string, context?: Record<string, unknown>): void;
 /**
  * Log API request start
  * @param {string} method - HTTP method
@@ -39,7 +68,7 @@ export function fatal(message: string, context?: Record<string, unknown> | undef
  * @param {string} instanceId - Instance identifier
  * @param {Record<string, unknown>} [params={}] - Request parameters
  */
-export function logApiRequest(method: string, endpoint: string, instanceId: string, params?: Record<string, unknown> | undefined): void;
+declare function logApiRequest(method: string, endpoint: string, instanceId: string, params?: Record<string, unknown>): void;
 /**
  * Log API response
  * @param {string} method - HTTP method
@@ -49,7 +78,7 @@ export function logApiRequest(method: string, endpoint: string, instanceId: stri
  * @param {number} duration - Request duration in milliseconds
  * @param {Record<string, unknown>} [response={}] - Response data
  */
-export function logApiResponse(method: string, endpoint: string, instanceId: string, success: boolean, duration: number, response?: Record<string, unknown> | undefined): void;
+declare function logApiResponse(method: string, endpoint: string, instanceId: string, success: boolean, duration: number, response?: Record<string, unknown>): void;
 /**
  * Log OAuth token operations
  * @param {string} operation - The token operation
@@ -57,7 +86,7 @@ export function logApiResponse(method: string, endpoint: string, instanceId: str
  * @param {boolean} success - Whether the operation was successful
  * @param {Record<string, unknown>} [details={}] - Additional operation details
  */
-export function logTokenOperation(operation: string, instanceId: string, success: boolean, details?: Record<string, unknown> | undefined): void;
+declare function logTokenOperation(operation: string, instanceId: string, success: boolean, details?: Record<string, unknown>): void;
 /**
  * Log token refresh with metrics
  * @param {string} instanceId - Instance identifier
@@ -68,14 +97,14 @@ export function logTokenOperation(operation: string, instanceId: string, success
  * @param {number} startTime - Operation start timestamp
  * @param {number} endTime - Operation end timestamp
  */
-export function logTokenRefresh(instanceId: string, method: string, success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
+declare function logTokenRefresh(instanceId: string, method: string, success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
 /**
  * Log MCP request processing
  * @param {string} method - MCP method name
  * @param {Record<string, unknown>|null} params - Request parameters
  * @param {string} instanceId - Instance identifier
  */
-export function logMcpRequest(method: string, params: Record<string, unknown> | null, instanceId: string): void;
+declare function logMcpRequest(method: string, params: Record<string, unknown> | null, instanceId: string): void;
 /**
  * Log MCP response
  * @param {string} method - MCP method name
@@ -84,7 +113,7 @@ export function logMcpRequest(method: string, params: Record<string, unknown> | 
  * @param {number} duration - Request duration in milliseconds
  * @param {Error|null} [error=null] - Error object if failed
  */
-export function logMcpResponse(method: string, instanceId: string, success: boolean, duration: number, error?: Error | null | undefined): void;
+declare function logMcpResponse(method: string, instanceId: string, success: boolean, duration: number, error?: Error | null): void;
 /**
  * Log database operations
  * @param {string} operation - Database operation type
@@ -93,7 +122,7 @@ export function logMcpResponse(method: string, instanceId: string, success: bool
  * @param {boolean} success - Whether the operation was successful
  * @param {Record<string, unknown>} [details={}] - Additional operation details
  */
-export function logDatabaseOperation(operation: string, table: string, instanceId: string, success: boolean, details?: Record<string, unknown> | undefined): void;
+declare function logDatabaseOperation(operation: string, table: string, instanceId: string, success: boolean, details?: Record<string, unknown>): void;
 /**
  * Log credential operations
  * @param {string} operation - Credential operation type
@@ -101,7 +130,7 @@ export function logDatabaseOperation(operation: string, table: string, instanceI
  * @param {boolean} success - Whether the operation was successful
  * @param {Record<string, unknown>} [details={}] - Additional operation details
  */
-export function logCredentialOperation(operation: string, instanceId: string, success: boolean, details?: Record<string, unknown> | undefined): void;
+declare function logCredentialOperation(operation: string, instanceId: string, success: boolean, details?: Record<string, unknown>): void;
 /**
  * Log validation errors
  * @param {string} type - Validation error type
@@ -110,7 +139,7 @@ export function logCredentialOperation(operation: string, instanceId: string, su
  * @param {string} instanceId - Instance identifier
  * @param {Record<string, unknown>} [details={}] - Additional error details
  */
-export function logValidationError(type: string, field: string, value: unknown, instanceId: string, details?: Record<string, unknown> | undefined): void;
+declare function logValidationError(type: string, field: string, value: unknown, instanceId: string, details?: Record<string, unknown>): void;
 /**
  * Log rate limiting
  * @param {string} endpoint - API endpoint that was rate limited
@@ -118,7 +147,7 @@ export function logValidationError(type: string, field: string, value: unknown, 
  * @param {number} retryAfter - Retry after duration in seconds
  * @param {Record<string, unknown>} [details={}] - Additional rate limit details
  */
-export function logRateLimit(endpoint: string, instanceId: string, retryAfter: number, details?: Record<string, unknown> | undefined): void;
+declare function logRateLimit(endpoint: string, instanceId: string, retryAfter: number, details?: Record<string, unknown>): void;
 /**
  * Log cache operations
  * @param {string} operation - Cache operation type
@@ -127,7 +156,7 @@ export function logRateLimit(endpoint: string, instanceId: string, retryAfter: n
  * @param {string} instanceId - Instance identifier
  * @param {Record<string, unknown>} [details={}] - Additional cache details
  */
-export function logCacheOperation(operation: string, key: string, hit: boolean, instanceId: string, details?: Record<string, unknown> | undefined): void;
+declare function logCacheOperation(operation: string, key: string, hit: boolean, instanceId: string, details?: Record<string, unknown>): void;
 /**
  * Log system health
  * @param {'healthy'|'degraded'|'unhealthy'} status - System health status
@@ -135,33 +164,33 @@ export function logCacheOperation(operation: string, key: string, hit: boolean, 
  * @param {string[]} [issues=[]] - List of system issues
  * @param {string[]} [warnings=[]] - List of system warnings
  */
-export function logSystemHealth(status: 'healthy' | 'degraded' | 'unhealthy', metrics: Record<string, unknown>, issues?: string[] | undefined, warnings?: string[] | undefined): void;
+declare function logSystemHealth(status: "healthy" | "degraded" | "unhealthy", metrics: Record<string, unknown>, issues?: string[], warnings?: string[]): void;
 /**
  * Log startup information
  * @param {number} port - Server port number
  * @param {string} environment - Environment name
  * @param {string[]} [features=[]] - List of enabled features
  */
-export function logStartup(port: number, environment: string, features?: string[] | undefined): void;
+declare function logStartup(port: number, environment: string, features?: string[]): void;
 /**
  * Log shutdown information
  * @param {string} reason - Shutdown reason
  * @param {boolean} [graceful=true] - Whether shutdown was graceful
  */
-export function logShutdown(reason: string, graceful?: boolean | undefined): void;
+declare function logShutdown(reason: string, graceful?: boolean): void;
 /**
  * Create a request logger middleware
  * @param {string} [serviceName='slack'] - Service name for logging
  * @returns {Function} Express middleware function
  */
-export function createRequestLogger(serviceName?: string | undefined): Function;
+declare function createRequestLogger(serviceName?: string): Function;
 /**
  * Performance timer utility
  * @param {string} operation - Operation name
  * @param {string} instanceId - Instance identifier
  * @returns {{end: Function}} Timer object with end method
  */
-export function createTimer(operation: string, instanceId: string): {
+declare function createTimer(operation: string, instanceId: string): {
     end: Function;
 };
 /**
@@ -175,5 +204,4 @@ declare namespace LOG_LEVELS {
     let ERROR: number;
     let FATAL: number;
 }
-export { CURRENT_LOG_LEVEL as currentLogLevel, LOG_LEVELS as logLevels };
 //# sourceMappingURL=logger.d.ts.map

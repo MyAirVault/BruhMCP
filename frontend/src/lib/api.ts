@@ -12,6 +12,7 @@
 import { axiosGet, axiosPost, axiosPut } from './axios';
 import { config } from '../data/env';
 import { formatErrorMessage } from './utils';
+import type { SubscriptionPlan, UserSubscription } from '../types/subscription';
 
 
 // API response type definitions
@@ -726,6 +727,397 @@ export const authApi = {
             const statusCode = (error as any)?.status;
             const validationErrors = (error as any)?.validationErrors;
             throw new Error(formatErrorMessage(message, statusCode, validationErrors));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+};
+
+
+// Subscription API operations
+
+/**
+ * Subscription API response interfaces
+ */
+interface SubscriptionPlansResponse {
+    success: boolean;
+    message: string;
+    data: {
+        plans: SubscriptionPlan[];
+    };
+}
+
+interface UserSubscriptionResponse {
+    success: boolean;
+    message: string;
+    data: {
+        subscription: UserSubscription | null;
+    };
+}
+
+interface CreateSubscriptionResponse {
+    success: boolean;
+    message: string;
+    data: {
+        subscriptionId: string;
+        razorpayOrderId: string;
+        amount: number;
+        currency: string;
+    };
+}
+
+interface UpdateSubscriptionResponse {
+    success: boolean;
+    message: string;
+    data: {
+        subscriptionId: string;
+        currentPlan: string;
+        newPlan: string;
+        requiresPayment: boolean;
+    };
+}
+
+interface SubscriptionHistoryResponse {
+    success: boolean;
+    message: string;
+    data: {
+        transactions: Array<{
+            id: string;
+            amount: number;
+            status: string;
+            method: string;
+            created_at: string;
+            plan_name: string;
+            amount_formatted: string;
+        }>;
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            totalRecords: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        };
+    };
+}
+
+interface PaymentStatusResponse {
+    success: boolean;
+    message: string;
+    data: {
+        subscriptionId: string;
+        subscriptionStatus: string;
+        planCode: string;
+        planName: string;
+        billingCycle: string;
+        totalAmount: number;
+        currency: string;
+        latestTransaction: {
+            id: string;
+            status: string;
+            amount: number;
+            method: string;
+            createdAt: string;
+        } | null;
+    };
+}
+
+interface VerifyPaymentResponse {
+    success: boolean;
+    message: string;
+    data: {
+        subscriptionId: string;
+        paymentId: string;
+        paymentStatus: string;
+        subscriptionStatus: string;
+        planCode: string;
+        planName: string;
+        amount: number;
+        currency: string;
+    };
+}
+
+/**
+ * Subscription API functions for managing user subscriptions and billing
+ * Provides subscription plan management and Razorpay integration
+ */
+export const subscriptionApi = {
+    /**
+     * Get all available subscription plans
+     * Retrieves active subscription plans with pricing and features
+     * 
+     * @returns {Promise<SubscriptionPlan[]>} Promise resolving to array of subscription plans
+     * @throws {Error} If plans retrieval fails
+     */
+    async getPlans(): Promise<SubscriptionPlan[]> {
+        try {
+            const response = await axiosGet<SubscriptionPlansResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/plans`
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to get subscription plans');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data.plans;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to get subscription plans';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+
+    /**
+     * Get current user subscription details
+     * Retrieves user's active subscription information
+     * 
+     * @returns {Promise<UserSubscription | null>} Promise resolving to user subscription or null if none
+     * @throws {Error} If subscription retrieval fails
+     */
+    async getCurrentSubscription(): Promise<UserSubscription | null> {
+        try {
+            const response = await axiosGet<UserSubscriptionResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/current`,
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to get current subscription');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data.subscription;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to get current subscription';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+
+    /**
+     * Create new subscription with Razorpay integration
+     * Initiates subscription creation and returns Razorpay order details
+     * 
+     * @param {string} planCode - Plan code (free, pro)
+     * @param {string} billingCycle - Billing cycle (monthly, yearly)
+     * @returns {Promise<CreateSubscriptionResponse['data']>} Promise resolving to Razorpay order details
+     * @throws {Error} If subscription creation fails
+     */
+    async createSubscription(planCode: string, billingCycle: string = 'monthly'): Promise<CreateSubscriptionResponse['data']> {
+        try {
+            const response = await axiosPost<CreateSubscriptionResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/create`,
+                { planCode, billingCycle },
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to create subscription');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to create subscription';
+            const statusCode = (error as any)?.status;
+            const validationErrors = (error as any)?.validationErrors;
+            throw new Error(formatErrorMessage(message, statusCode, validationErrors));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+
+    /**
+     * Update/upgrade subscription to new plan
+     * Changes user's current subscription to a different plan
+     * 
+     * @param {string} newPlanCode - New plan code (free, pro)
+     * @returns {Promise<UpdateSubscriptionResponse['data']>} Promise resolving to upgrade details
+     * @throws {Error} If subscription upgrade fails
+     */
+    async updateSubscription(newPlanCode: string): Promise<UpdateSubscriptionResponse['data']> {
+        try {
+            const response = await axiosPost<UpdateSubscriptionResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/upgrade`,
+                { newPlanCode },
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to upgrade subscription');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to upgrade subscription';
+            const statusCode = (error as any)?.status;
+            const validationErrors = (error as any)?.validationErrors;
+            throw new Error(formatErrorMessage(message, statusCode, validationErrors));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+
+    /**
+     * Get subscription transaction history
+     * Retrieves user's subscription payment history with pagination
+     * 
+     * @param {Object} options - Query options for filtering and pagination
+     * @param {number} [options.page=1] - Page number
+     * @param {number} [options.limit=10] - Items per page
+     * @param {string} [options.type] - Transaction type filter
+     * @param {string} [options.status] - Transaction status filter
+     * @returns {Promise<SubscriptionHistoryResponse['data']>} Promise resolving to transaction history
+     * @throws {Error} If history retrieval fails
+     */
+    async getTransactions(options: {
+        page?: number;
+        limit?: number;
+        type?: string;
+        status?: string;
+        dateFrom?: string;
+        dateTo?: string;
+    } = {}): Promise<SubscriptionHistoryResponse['data']> {
+        try {
+            const params = new URLSearchParams();
+            if (options.page) params.append('page', options.page.toString());
+            if (options.limit) params.append('limit', options.limit.toString());
+            if (options.type) params.append('type', options.type);
+            if (options.status) params.append('status', options.status);
+            if (options.dateFrom) params.append('dateFrom', options.dateFrom);
+            if (options.dateTo) params.append('dateTo', options.dateTo);
+
+            const response = await axiosGet<SubscriptionHistoryResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/history?${params.toString()}`,
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to get subscription history');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to get subscription history';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+
+    /**
+     * Get payment status for subscription polling
+     * Retrieves current payment and subscription status for real-time updates
+     * 
+     * @param {string} subscriptionId - Subscription ID to check status for
+     * @returns {Promise<PaymentStatusResponse['data']>} Promise resolving to payment status
+     * @throws {Error} If status retrieval fails
+     */
+    async getPaymentStatus(subscriptionId: string): Promise<PaymentStatusResponse['data']> {
+        try {
+            const response = await axiosGet<PaymentStatusResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/${subscriptionId}/payment-status`,
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to get payment status');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to get payment status';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+
+    /**
+     * Verify Razorpay payment and activate subscription
+     * Confirms payment completion and activates the subscription
+     * 
+     * @param {string} razorpayPaymentId - Razorpay payment ID
+     * @param {string} [subscriptionId] - Optional subscription ID for verification
+     * @returns {Promise<VerifyPaymentResponse['data']>} Promise resolving to verification result
+     * @throws {Error} If payment verification fails
+     */
+    async verifyPayment(razorpayPaymentId: string, subscriptionId?: string): Promise<VerifyPaymentResponse['data']> {
+        try {
+            const response = await axiosPost<VerifyPaymentResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/verify-payment`,
+                { 
+                    razorpay_payment_id: razorpayPaymentId,
+                    subscription_id: subscriptionId
+                },
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to verify payment');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to verify payment';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
+        } finally {
+            // Debug logging omitted for production
+        }
+    },
+
+    /**
+     * Cancel active subscription
+     * Cancels user's current subscription
+     * 
+     * @returns {Promise<{ message: string }>} Promise resolving to cancellation confirmation
+     * @throws {Error} If subscription cancellation fails
+     */
+    async cancelSubscription(): Promise<{ message: string }> {
+        try {
+            const response = await axiosPost<GenericApiResponse>(
+                `${config.api.baseUrl}/api/v1/subscriptions/cancel`,
+                {},
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to cancel subscription');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return { message: response.data!.message };
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to cancel subscription';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
         } finally {
             // Debug logging omitted for production
         }

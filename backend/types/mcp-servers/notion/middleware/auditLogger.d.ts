@@ -57,7 +57,7 @@ export function logOAuthFlowInitiation(instanceId: string, userId: string, scope
  * @param {string} [errorMessage] - Error message if callback failed
  * @returns {Promise<void>} Promise that resolves when log is created
  */
-export function logOAuthCallbackCompletion(instanceId: string, userId: string, success: boolean, errorMessage?: string | undefined): Promise<void>;
+export function logOAuthCallbackCompletion(instanceId: string, userId: string, success: boolean, errorMessage?: string): Promise<void>;
 /**
  * Create general audit log entry
  * @param {string} instanceId - The instance ID

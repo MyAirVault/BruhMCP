@@ -1,1 +1,1 @@
-{"version":3,"file":"revokeInstance.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/slack/auth/revokeInstance.js"],"names":[],"mappings":";;;;aAYc,OAAO;;;;aACP,MAAM;;AAHpB;;;;GAIG;AAEH;;;;;GAKG;AACH,2CAJW,MAAM,UACN,MAAM,GACJ,QAAQ,gBAAgB,CAAC,CAgErC"}
+{"version":3,"file":"revokeInstance.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/slack/auth/revokeInstance.js"],"names":[],"mappings":";;;;aAYc,OAAO;;;;aACP,MAAM;;AAHpB;;;;GAIG;AAEH;;;;;GAKG;AACH,2CAJW,MAAM,UACN,MAAM,GACJ,OAAO,CAAC,gBAAgB,CAAC,CAgErC"}

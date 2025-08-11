@@ -32,7 +32,7 @@ export class RedditMCPHandler {
      * @param {Object} jsonSchema - JSON schema object
      * @returns {import('zod').ZodObject<Record<string, import('zod').ZodType>>} Zod schema
      */
-    convertJsonSchemaToZod(jsonSchema: Object): import('zod').ZodObject<Record<string, import('zod').ZodType>>;
+    convertJsonSchemaToZod(jsonSchema: Object): import("zod").ZodObject<Record<string, import("zod").ZodType>>;
     /**
      * Handle incoming MCP request using session-based transport
      * @param {any} req - Express request object
@@ -64,6 +64,6 @@ export class RedditMCPHandler {
      */
     cleanup(): Promise<void>;
 }
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 //# sourceMappingURL=mcpHandler.d.ts.map

@@ -1,10 +1,10 @@
-export type CachedCredential = import('./types.js').CachedCredential;
-export type DatabaseInstance = import('./types.js').DatabaseInstance;
-export type NewOAuthTokens = import('./types.js').NewOAuthTokens;
-export type ExpressRequest = import('./types.js').ExpressRequest;
-export type ExpressResponse = import('./types.js').ExpressResponse;
-export type ExpressNext = import('./types.js').ExpressNext;
-export type TokenRefreshOptions = import('./types.js').TokenRefreshOptions;
+export type CachedCredential = import("./types.js").CachedCredential;
+export type DatabaseInstance = import("./types.js").DatabaseInstance;
+export type NewOAuthTokens = import("./types.js").NewOAuthTokens;
+export type ExpressRequest = import("./types.js").ExpressRequest;
+export type ExpressResponse = import("./types.js").ExpressResponse;
+export type ExpressNext = import("./types.js").ExpressNext;
+export type TokenRefreshOptions = import("./types.js").TokenRefreshOptions;
 /**
  * @typedef {import('./types.js').CachedCredential} CachedCredential
  * @typedef {import('./types.js').DatabaseInstance} DatabaseInstance

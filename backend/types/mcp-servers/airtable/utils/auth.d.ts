@@ -108,7 +108,7 @@ export function createAuthHeader(token: string): AuthHeader;
  * @param {AuthMiddlewareOptions} [options] - Middleware options
  * @returns {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} Express middleware
  */
-export function createAuthMiddleware(options?: AuthMiddlewareOptions | undefined): (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>;
+export function createAuthMiddleware(options?: AuthMiddlewareOptions): (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
 /**
  * Generate API key (for testing purposes)
  * @param {string} type - Token type

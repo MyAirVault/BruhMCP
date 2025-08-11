@@ -1,11 +1,11 @@
-export type SlackMessage = import('../middleware/types.js').SlackMessage;
-export type SlackAttachment = import('../middleware/types.js').SlackAttachment;
-export type SlackReaction = import('../middleware/types.js').SlackReaction;
-export type SlackFile = import('../middleware/types.js').SlackFile;
-export type SlackFileUploadResult = import('../middleware/types.js').SlackFileUploadResult;
-export type SlackMessageEdit = import('../middleware/types.js').SlackMessageEdit;
-export type SlackBlock = import('../middleware/types.js').SlackBlock;
-export type SlackField = import('../middleware/types.js').SlackField;
+export type SlackMessage = import("../middleware/types.js").SlackMessage;
+export type SlackAttachment = import("../middleware/types.js").SlackAttachment;
+export type SlackReaction = import("../middleware/types.js").SlackReaction;
+export type SlackFile = import("../middleware/types.js").SlackFile;
+export type SlackFileUploadResult = import("../middleware/types.js").SlackFileUploadResult;
+export type SlackMessageEdit = import("../middleware/types.js").SlackMessageEdit;
+export type SlackBlock = import("../middleware/types.js").SlackBlock;
+export type SlackField = import("../middleware/types.js").SlackField;
 /**
  * Formatted message response object
  */

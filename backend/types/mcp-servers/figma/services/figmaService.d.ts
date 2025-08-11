@@ -101,7 +101,7 @@ export class FigmaService {
      * @param {number|null} [depth] - Depth limit for traversal
      * @returns {Promise<any>} Simplified design object
      */
-    getFile(fileKey: string, depth?: number | null | undefined): Promise<any>;
+    getFile(fileKey: string, depth?: number | null): Promise<any>;
     /**
      * Get specific node data and return simplified response
      * @param {string} fileKey - Figma file key
@@ -109,7 +109,7 @@ export class FigmaService {
      * @param {number|null} [depth] - Depth limit for traversal
      * @returns {Promise<any>} Simplified design object
      */
-    getNode(fileKey: string, nodeId: string, depth?: number | null | undefined): Promise<any>;
+    getNode(fileKey: string, nodeId: string, depth?: number | null): Promise<any>;
     /**
      * Get image downloads
      * @param {string} fileKey - Figma file key

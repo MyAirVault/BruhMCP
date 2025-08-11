@@ -5,13 +5,13 @@
  * @returns {string}
  */
 export function sanitizeInput(input: string, options?: {
-    removeHtml?: boolean | undefined;
-    removeSqlInjection?: boolean | undefined;
-    removeXss?: boolean | undefined;
-    trimWhitespace?: boolean | undefined;
-    maxLength?: number | undefined;
-    allowedChars?: string | null | undefined;
-} | undefined): string;
+    removeHtml?: boolean;
+    removeSqlInjection?: boolean;
+    removeXss?: boolean;
+    trimWhitespace?: boolean;
+    maxLength?: number;
+    allowedChars?: string | null;
+}): string;
 /**
  * Escape HTML entities
  * @param {string} input - Input string
@@ -30,9 +30,9 @@ export function sanitizeFieldName(fieldName: string): string;
  * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
 export function sanitizeRecordFields(fields: {
-    [x: string]: string | number | boolean | string[] | Object | null | undefined;
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
 }): {
-    [x: string]: string | number | boolean | string[] | Object | null | undefined;
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
 };
 /**
  * Sanitize object recursively
@@ -40,7 +40,7 @@ export function sanitizeRecordFields(fields: {
  * @param {number} [depth=0] - Current depth (to prevent infinite recursion)
  * @returns {string|number|boolean|Object|null|undefined}
  */
-export function sanitizeObject(obj: string | number | boolean | Object | null | undefined, depth?: number | undefined): string | number | boolean | Object | null | undefined;
+export function sanitizeObject(obj: string | number | boolean | Object | null | undefined, depth?: number): string | number | boolean | Object | null | undefined;
 /**
  * Sanitize URL
  * @param {string} url - URL to sanitize
@@ -77,9 +77,9 @@ export function sanitizeFormula(formula: string): string;
  * @returns {Object.<string, string|number|boolean|string[]|Object|null|undefined>}
  */
 export function sanitizeQueryParams(params: {
-    [x: string]: string | number | boolean | string[] | Object | null | undefined;
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
 }): {
-    [x: string]: string | number | boolean | string[] | Object | null | undefined;
+    [x: string]: string | number | boolean | Object | string[] | null | undefined;
 };
 /**
  * Check if input contains malicious patterns
@@ -106,5 +106,5 @@ export function createSanitizationReport(original: string, sanitized: string): O
  * @param {function(string|number|boolean|Object|null|undefined): (string|number|boolean|Object|null|undefined)} [sanitizer=sanitizeInput] - Sanitization function
  * @returns {(string|number|boolean|Object|null|undefined|null)[]}
  */
-export function batchSanitize(inputs: (string | number | boolean | Object | null | undefined)[], sanitizer?: ((arg0: string | number | boolean | Object | null | undefined) => (string | number | boolean | Object | null | undefined)) | undefined): (string | number | boolean | Object | null | undefined | null)[];
+export function batchSanitize(inputs: (string | number | boolean | Object | null | undefined)[], sanitizer?: (arg0: string | number | boolean | Object | null | undefined) => (string | number | boolean | Object | null | undefined)): (string | number | boolean | Object | null | undefined | null)[];
 //# sourceMappingURL=sanitization.d.ts.map

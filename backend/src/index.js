@@ -10,11 +10,8 @@ const settingsRoutes = require('./routes/settingsRoutes.js');
 const mcpTypesRoutes = require('./routes/mcpTypesRoutes.js');
 const apiKeysRoutes = require('./routes/apiKeysRoutes.js');
 const mcpInstancesRoutes = require('./routes/mcpInstancesRoutes.js');
-const billingRoutes = require('./billing/routes/billingRoutes.js');
-const billingDetailsRoutes = require('./routes/billingDetailsRoutes.js');
-
-// Import billing validation
-const { validateBillingConfig } = require('./billing/middleware/webhookValidation.js');
+const subscriptionRoutes = require('./routes/subscriptions.js');
+const webhookRoutes = require('./routes/webhooks.js');
 
 // Import middleware
 const { apiRateLimiter } = require('./utils/rateLimiter.js');
@@ -137,8 +134,8 @@ app.get('/api/v1/health', (_req, res) => {
 app.use('/api/v1/mcp-types', mcpTypesRoutes);
 app.use('/api/v1/api-keys', apiKeysRoutes);
 app.use('/api/v1/mcps', mcpInstancesRoutes);
-app.use('/api/v1/billing', billingRoutes);
-app.use('/api/v1/billing-details', billingDetailsRoutes);
+app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/webhooks', webhookRoutes);
 
 // Register MCP Auth Registry routes (will be initialized during startup)
 app.use('/api/v1/auth-registry', (req, res, next) => {
@@ -205,15 +202,7 @@ const server = app.listen(port, async () => {
 	// Startup validation checks
 	console.log('🔍 Running startup validation checks...');
 
-	// Validate billing configuration
-	const billingConfig = validateBillingConfig();
-	if (!billingConfig.valid) {
-		console.warn('⚠️ Billing configuration incomplete:', billingConfig.message);
-		console.warn('💳 Payment features will not work until Razorpay is configured');
-		console.warn('🔧 Required environment variables:', billingConfig.missingVars?.join(', '));
-	} else {
-		console.log('✅ Billing configuration is valid');
-	}
+	// Billing validation removed - not needed for MicroSAASTemplate compatibility
 
 	// Initialize database and verify tables
 	try {

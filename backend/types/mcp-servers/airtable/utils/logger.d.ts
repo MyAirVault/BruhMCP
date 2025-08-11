@@ -149,7 +149,7 @@ declare class Logger {
      * @param {string} message - Message
      * @param {Object} metadata - Metadata
      */
-    withContext(level: 'debug' | 'info' | 'warn' | 'error', message: string, metadata?: Object): void;
+    withContext(level: "debug" | "info" | "warn" | "error", message: string, metadata?: Object): void;
 }
 export {};
 //# sourceMappingURL=logger.d.ts.map

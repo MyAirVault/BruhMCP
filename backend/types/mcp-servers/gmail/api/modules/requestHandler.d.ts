@@ -31,5 +31,5 @@ export type RequestOptions = {
  * @returns {Promise<Record<string, any>>} API response
  * @throws {Error} When API request fails
  */
-export function makeGmailRequest(endpoint: string, bearerToken: string, options?: RequestOptions | undefined): Promise<Record<string, any>>;
+export function makeGmailRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<Record<string, any>>;
 //# sourceMappingURL=requestHandler.d.ts.map

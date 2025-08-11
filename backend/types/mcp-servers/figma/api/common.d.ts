@@ -60,5 +60,5 @@ export function makeAuthenticatedRequest(endpoint: string, apiKey: string, optio
     headers?: Object | undefined;
     method?: string | undefined;
     body?: string | undefined;
-} | undefined): Promise<any>;
+}): Promise<any>;
 //# sourceMappingURL=common.d.ts.map

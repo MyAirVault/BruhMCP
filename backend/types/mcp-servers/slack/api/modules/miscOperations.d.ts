@@ -12,7 +12,7 @@ export type CreateReminderArgs = {
      */
     user?: string | undefined;
 };
-export type SlackTeam = import('../../middleware/types.js').SlackTeam;
+export type SlackTeam = import("../../middleware/types.js").SlackTeam;
 export type SlackTeamResponse = {
     /**
      * - Success indicator

@@ -140,7 +140,7 @@ export type ValidationResult = {
      */
     errorResponse?: any;
 };
-export type ExpressRequest = import('express').Request & {
+export type ExpressRequest = import("express").Request & {
     instanceId?: string;
     userId?: string;
     bearerToken?: string;
@@ -148,6 +148,6 @@ export type ExpressRequest = import('express').Request & {
         instanceId?: string;
     };
 };
-export type ExpressResponse = import('express').Response;
-export type ExpressNext = import('express').NextFunction;
+export type ExpressResponse = import("express").Response;
+export type ExpressNext = import("express").NextFunction;
 //# sourceMappingURL=types.d.ts.map

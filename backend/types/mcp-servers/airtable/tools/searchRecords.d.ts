@@ -23,7 +23,7 @@ export = setupSearchRecordsTool;
  * @param {(operation: string, fn: Function) => Function} measurePerformance - Performance measurement function
  * @param {ServiceConfig} serviceConfig - Service configuration
  */
-declare function setupSearchRecordsTool(server: MCPServer, airtableService: import('../services/airtableService.js').AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
+declare function setupSearchRecordsTool(server: MCPServer, airtableService: import("../services/airtableService.js").AirtableService, measurePerformance: (operation: string, fn: Function) => Function, serviceConfig: ServiceConfig): void;
 declare namespace setupSearchRecordsTool {
     export { MCPServer, ServiceConfig, SearchRecordsParams };
 }

@@ -2,7 +2,7 @@ export type ValidationConfig = {
     /**
      * - The expected type
      */
-    type: 'string' | 'integer' | 'boolean' | 'array' | 'object';
+    type: "string" | "integer" | "boolean" | "array" | "object";
     /**
      * - Whether the field is required
      */

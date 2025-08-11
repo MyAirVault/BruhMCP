@@ -1,5 +1,5 @@
-export type CacheEntry = import('./credentialCache.js').CacheEntry;
-export type CacheStatistics = import('./credentialCache.js').CacheStatistics;
+export type CacheEntry = import("./credentialCache.js").CacheEntry;
+export type CacheStatistics = import("./credentialCache.js").CacheStatistics;
 /**
  * Start the credential watcher background process
  * Runs every 30 seconds to maintain cache health

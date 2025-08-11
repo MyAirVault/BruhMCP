@@ -1,13 +1,13 @@
-export type NotionRichText = import('../../utils/notionFormatting.js').NotionRichText;
-export type NotionUser = import('../../utils/notionFormatting.js').NotionUser;
-export type NotionParent = import('../../utils/notionFormatting.js').NotionParent;
-export type NotionDatabase = import('../../utils/notionFormatting.js').NotionDatabase;
-export type NotionPage = import('../../utils/notionFormatting.js').NotionPage;
-export type NotionQueryResponse = import('../../utils/notionFormatting.js').NotionQueryResponse;
-export type NotionResponseData = import('../../utils/notionFormatting.js').NotionResponseData;
-export type NotionFilter = import('../../utils/notionFormatting.js').NotionFilter;
-export type NotionSort = import('../../utils/notionFormatting.js').NotionSort;
-export type NotionProperty = import('../../utils/notionFormatting.js').NotionProperty;
+export type NotionRichText = import("../../utils/notionFormatting.js").NotionRichText;
+export type NotionUser = import("../../utils/notionFormatting.js").NotionUser;
+export type NotionParent = import("../../utils/notionFormatting.js").NotionParent;
+export type NotionDatabase = import("../../utils/notionFormatting.js").NotionDatabase;
+export type NotionPage = import("../../utils/notionFormatting.js").NotionPage;
+export type NotionQueryResponse = import("../../utils/notionFormatting.js").NotionQueryResponse;
+export type NotionResponseData = import("../../utils/notionFormatting.js").NotionResponseData;
+export type NotionFilter = import("../../utils/notionFormatting.js").NotionFilter;
+export type NotionSort = import("../../utils/notionFormatting.js").NotionSort;
+export type NotionProperty = import("../../utils/notionFormatting.js").NotionProperty;
 export type GetDatabaseArgs = {
     /**
      * - The database ID to retrieve

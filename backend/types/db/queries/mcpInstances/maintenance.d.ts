@@ -1,4 +1,4 @@
-export type InstanceStatusRecord = import('./types.js').InstanceStatusRecord;
+export type InstanceStatusRecord = import("./types.js").InstanceStatusRecord;
 /**
  * @typedef {import('./types.js').InstanceStatusRecord} InstanceStatusRecord
  */
@@ -23,7 +23,7 @@ export function getFailedOAuthInstances(): Promise<InstanceStatusRecord[]>;
  * @param {number} [minutesOld=5] - Minutes threshold (default: 5)
  * @returns {Promise<InstanceStatusRecord[]>} Array of instances with pending OAuth status older than threshold
  */
-export function getPendingOAuthInstances(minutesOld?: number | undefined): Promise<InstanceStatusRecord[]>;
+export function getPendingOAuthInstances(minutesOld?: number): Promise<InstanceStatusRecord[]>;
 /**
  * Bulk update expired instances to expired status
  * @param {string[]} instanceIds - Array of instance IDs to mark as expired

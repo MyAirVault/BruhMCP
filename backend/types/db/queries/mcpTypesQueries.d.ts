@@ -73,7 +73,7 @@ export type MCPTypeStats = {
  * @param {boolean} [activeOnly=false] - Whether to return only active services
  * @returns {Promise<MCPServiceType[]>} Array of MCP service type records
  */
-export function getAllMCPTypes(activeOnly?: boolean | undefined): Promise<MCPServiceType[]>;
+export function getAllMCPTypes(activeOnly?: boolean): Promise<MCPServiceType[]>;
 /**
  * Get MCP service type by name
  * @param {string} serviceName - Service name (e.g., 'figma', 'github')

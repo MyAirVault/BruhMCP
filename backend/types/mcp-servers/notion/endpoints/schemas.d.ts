@@ -16,10 +16,10 @@ export namespace searchPagesSchema {
         value: z.ZodOptional<z.ZodEnum<["page", "database"]>>;
         property: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        value?: "database" | "page" | undefined;
+        value?: "page" | "database" | undefined;
         property?: string | undefined;
     }, {
-        value?: "database" | "page" | undefined;
+        value?: "page" | "database" | undefined;
         property?: string | undefined;
     }>>;
 }

@@ -199,7 +199,7 @@ export function parseOAuthError(error: Error & {
 export function handleTokenRefreshFailure(instanceId: string, error: Error & {
     code?: string;
     name?: string;
-}, updateOAuthStatus: (arg0: string, arg1: import('../../../db/queries/mcpInstances/types.js').OAuthUpdateData) => Promise<import('../../../db/queries/mcpInstances/types.js').MCPInstanceRecord>): Promise<TokenRefreshFailureResponse>;
+}, updateOAuthStatus: (arg0: string, arg1: import("../../../db/queries/mcpInstances/types.js").OAuthUpdateData) => Promise<import("../../../db/queries/mcpInstances/types.js").MCPInstanceRecord>): Promise<TokenRefreshFailureResponse>;
 /**
  * Determine if error should trigger retry logic
  * @param {Error & {code?: string, name?: string}} error - OAuth error with optional code and name properties

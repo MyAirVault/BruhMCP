@@ -1,6 +1,6 @@
-export type ServiceType = import('../types/serviceTypes.js').ServiceType;
-export type ServiceRegistryMap = import('../types/serviceTypes.js').ServiceRegistryMap;
-export type ServiceRegistryEntry = import('../types/serviceTypes.js').ServiceRegistryEntry;
+export type ServiceType = import("../types/serviceTypes.js").ServiceType;
+export type ServiceRegistryMap = import("../types/serviceTypes.js").ServiceRegistryMap;
+export type ServiceRegistryEntry = import("../types/serviceTypes.js").ServiceRegistryEntry;
 /**
  * @typedef {import('../types/serviceTypes.js').ServiceType} ServiceType
  * @typedef {import('../types/serviceTypes.js').ServiceRegistryMap} ServiceRegistryMap

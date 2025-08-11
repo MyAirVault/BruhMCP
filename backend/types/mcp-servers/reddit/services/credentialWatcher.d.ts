@@ -1,7 +1,7 @@
-export type ExtendedCachedCredential = import('../middleware/types.js').ExtendedCachedCredential;
-export type DatabaseInstance = import('../middleware/types.js').DatabaseInstance;
-export type NewOAuthTokens = import('../middleware/types.js').NewOAuthTokens;
-export type TokenRefreshOptions = import('../middleware/types.js').TokenRefreshOptions;
+export type ExtendedCachedCredential = import("../middleware/types.js").ExtendedCachedCredential;
+export type DatabaseInstance = import("../middleware/types.js").DatabaseInstance;
+export type NewOAuthTokens = import("../middleware/types.js").NewOAuthTokens;
+export type TokenRefreshOptions = import("../middleware/types.js").TokenRefreshOptions;
 export type WatcherStats = {
     /**
      * - ISO timestamp of last run

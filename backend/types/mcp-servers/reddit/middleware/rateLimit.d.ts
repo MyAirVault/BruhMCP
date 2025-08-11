@@ -50,7 +50,7 @@ export function recordRequest(key: string, config: {
  * @param {{requests: number, window: number}} config - Rate limit configuration
  * @param {number} now - Current timestamp
  */
-export function addRateLimitHeaders(res: import('express').Response, key: string, config: {
+export function addRateLimitHeaders(res: import("express").Response, key: string, config: {
     requests: number;
     window: number;
 }, now: number): void;
@@ -59,6 +59,6 @@ export function addRateLimitHeaders(res: import('express').Response, key: string
  * @param {import('express').Response} res - Express response object
  * @param {string} message - Error message
  */
-export function sendRateLimitResponse(res: import('express').Response, message: string): void;
+export function sendRateLimitResponse(res: import("express").Response, message: string): void;
 export { createRateLimitMiddleware as createRedditApiRateLimitMiddleware };
 //# sourceMappingURL=rateLimit.d.ts.map

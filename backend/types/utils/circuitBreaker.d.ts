@@ -1,5 +1,15 @@
-export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
-export type CircuitBreakerOptions = {
+declare namespace _exports {
+    export { CircuitState, CircuitBreakerOptions, CircuitBreakerMetrics, CircuitBreakerStatus, HealthAssessment };
+}
+declare namespace _exports {
+    export { CircuitBreaker };
+    export { CircuitBreakerManager };
+    export { CIRCUIT_STATES };
+    export { circuitBreakerManager as default };
+}
+export = _exports;
+type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
+type CircuitBreakerOptions = {
     /**
      * - Circuit breaker name
      */
@@ -37,7 +47,7 @@ export type CircuitBreakerOptions = {
      */
     onFailure?: ((error: Error) => void) | undefined;
 };
-export type CircuitBreakerMetrics = {
+type CircuitBreakerMetrics = {
     /**
      * - Total number of calls made
      */
@@ -59,7 +69,7 @@ export type CircuitBreakerMetrics = {
      */
     lastStateChange: number;
 };
-export type CircuitBreakerStatus = {
+type CircuitBreakerStatus = {
     /**
      * - Circuit breaker name
      */
@@ -97,7 +107,7 @@ export type CircuitBreakerStatus = {
      */
     config: Object;
 };
-export type HealthAssessment = {
+type HealthAssessment = {
     /**
      * - Whether circuit is healthy
      */
@@ -172,11 +182,11 @@ export type HealthAssessment = {
 /**
  * Circuit Breaker class
  */
-export class CircuitBreaker {
+declare class CircuitBreaker {
     /**
      * @param {CircuitBreakerOptions} [options={}] - Circuit breaker options
      */
-    constructor(options?: CircuitBreakerOptions | undefined);
+    constructor(options?: CircuitBreakerOptions);
     /** @type {string} */
     name: string;
     /** @type {number} */
@@ -259,7 +269,7 @@ export class CircuitBreaker {
 /**
  * Circuit Breaker Manager for managing multiple circuit breakers
  */
-export class CircuitBreakerManager {
+declare class CircuitBreakerManager {
     /** @type {Map<string, CircuitBreaker>} */
     breakers: Map<string, CircuitBreaker>;
     /**
@@ -268,7 +278,7 @@ export class CircuitBreakerManager {
      * @param {CircuitBreakerOptions} [options={}] - Circuit breaker options
      * @returns {CircuitBreaker} Circuit breaker instance
      */
-    getOrCreate(name: string, options?: CircuitBreakerOptions | undefined): CircuitBreaker;
+    getOrCreate(name: string, options?: CircuitBreakerOptions): CircuitBreaker;
     /**
      * Get circuit breaker by name
      * @param {string} name - Circuit breaker name
@@ -312,7 +322,6 @@ export class CircuitBreakerManager {
  * Circuit Breaker States
  * @type {Record<string, CircuitState>}
  */
-export const CIRCUIT_STATES: Record<string, CircuitState>;
+declare const CIRCUIT_STATES: Record<string, CircuitState>;
 declare const circuitBreakerManager: CircuitBreakerManager;
-export { circuitBreakerManager as default };
 //# sourceMappingURL=circuitBreaker.d.ts.map

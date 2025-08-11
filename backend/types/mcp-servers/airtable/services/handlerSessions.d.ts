@@ -5,7 +5,7 @@
  * @param {string} apiKey - Airtable API key for this instance
  * @returns {AirtableMCPHandler} Persistent handler instance
  */
-export function getOrCreateHandler(instanceId: string, serviceConfig: import('../../../types/airtable.d.ts').ServiceConfig, apiKey: string): AirtableMCPHandler;
+export function getOrCreateHandler(instanceId: string, serviceConfig: import("../../../types/airtable.d.ts").ServiceConfig, apiKey: string): AirtableMCPHandler;
 /**
  * Remove a specific handler session
  * @param {string} instanceId - UUID of the service instance

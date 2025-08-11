@@ -8,6 +8,7 @@ declare function createNotionValidator(credentials: OAuthCredentials | NotionBea
 declare namespace createNotionValidator {
     export { OAuthCredentials, NotionOAuthCredentials, NotionBearerTokenCredentials };
 }
+import { BaseValidator } from "../../../services/validation/baseValidator";
 /**
  * Credentials object for OAuth authentication
  */
@@ -38,6 +39,19 @@ type OAuthCredentials = {
     api_key?: string | undefined;
 };
 /**
+ * OAuth credentials for Notion validator
+ */
+type NotionOAuthCredentials = {
+    /**
+     * - OAuth client ID
+     */
+    client_id: string;
+    /**
+     * - OAuth client secret
+     */
+    client_secret: string;
+};
+/**
  * Bearer token credentials for Notion validator
  */
 type NotionBearerTokenCredentials = {
@@ -53,19 +67,5 @@ type NotionBearerTokenCredentials = {
      * - API key
      */
     api_key?: string | undefined;
-};
-import { BaseValidator } from "../../../services/validation/baseValidator";
-/**
- * OAuth credentials for Notion validator
- */
-type NotionOAuthCredentials = {
-    /**
-     * - OAuth client ID
-     */
-    client_id: string;
-    /**
-     * - OAuth client secret
-     */
-    client_secret: string;
 };
 //# sourceMappingURL=credentialValidator.d.ts.map

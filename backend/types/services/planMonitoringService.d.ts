@@ -20,7 +20,7 @@ declare class PlanMonitoringService {
      * Restart the plan monitoring service with new interval
      * @param {number} [intervalMinutes] - New interval in minutes (optional)
      */
-    restart(intervalMinutes?: number | undefined): void;
+    restart(intervalMinutes?: number): void;
     /**
      * Run the plan expiration agent manually (one-time execution)
      * @returns {Promise<Object>} Execution result

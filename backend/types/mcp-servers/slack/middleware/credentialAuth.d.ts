@@ -30,7 +30,7 @@ export type SlackError = {
 /**
  * Extended error options for Slack error responses
  */
-export type ExtendedErrorOptions = import('../../../utils/errorResponse.js').CustomErrorOptions & {
+export type ExtendedErrorOptions = import("../../../utils/errorResponse.js").CustomErrorOptions & {
     expectedFormat?: string;
     error?: string;
     errorCode?: string;
@@ -39,7 +39,7 @@ export type ExtendedErrorOptions = import('../../../utils/errorResponse.js').Cus
 /**
  * Extended OAuth update data for Slack
  */
-export type SlackOAuthUpdateData = import('../../../db/queries/mcpInstances/types.js').OAuthUpdateData & {
+export type SlackOAuthUpdateData = import("../../../db/queries/mcpInstances/types.js").OAuthUpdateData & {
     teamId?: string;
 };
 /**

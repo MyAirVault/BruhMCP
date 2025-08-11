@@ -1,10 +1,10 @@
-export type Request = import('express').Request;
-export type Response = import('express').Response;
+export type Request = import("express").Request;
+export type Response = import("express").Response;
 export type MCPService = {
     mcp_service_id: string;
     mcp_service_name: string;
     display_name: string;
-    type: 'api_key' | 'oauth';
+    type: "api_key" | "oauth";
     is_active: boolean;
     port: number;
 };

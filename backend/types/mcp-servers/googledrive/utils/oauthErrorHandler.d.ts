@@ -1,5 +1,5 @@
-export type OAuthErrorType = 'INVALID_REFRESH_TOKEN' | 'INVALID_CLIENT' | 'INVALID_REQUEST' | 'NETWORK_ERROR' | 'SERVICE_UNAVAILABLE' | 'UNKNOWN_ERROR';
-export type LogLevel = 'error' | 'warn' | 'info';
+export type OAuthErrorType = "INVALID_REFRESH_TOKEN" | "INVALID_CLIENT" | "INVALID_REQUEST" | "NETWORK_ERROR" | "SERVICE_UNAVAILABLE" | "UNKNOWN_ERROR";
+export type LogLevel = "error" | "warn" | "info";
 export type OAuthErrorAnalysis = {
     type: OAuthErrorType;
     requiresReauth: boolean;
@@ -32,7 +32,7 @@ export type OAuthErrorResponse = {
     };
 };
 export type OAuthStatusUpdate = {
-    status: 'failed';
+    status: "failed";
     accessToken: null;
     refreshToken: null;
     tokenExpiresAt: null;

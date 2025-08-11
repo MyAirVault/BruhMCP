@@ -5,7 +5,7 @@
  * @returns {Promise<any>} Response data
  */
 export function fetchWithRetry(url: string, options?: {
+    headers?: Record<string, string>;
     [key: string]: any;
-    headers?: Record<string, string> | undefined;
 }): Promise<any>;
 //# sourceMappingURL=fetchWithRetry.d.ts.map

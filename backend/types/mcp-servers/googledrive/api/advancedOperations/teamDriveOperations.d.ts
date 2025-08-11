@@ -30,7 +30,7 @@ export function getTeamDriveInfo(driveId: string, bearerToken: string): Promise<
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<any>} List of files
  */
-export function listTeamDriveFiles(driveId: string, bearerToken: string, options?: import("../types.js").ListOptions | undefined): Promise<any>;
+export function listTeamDriveFiles(driveId: string, bearerToken: string, options?: import("../types.js").ListOptions): Promise<any>;
 /**
  * Add a member to a Team Drive
  * @param {string} driveId - Team Drive ID

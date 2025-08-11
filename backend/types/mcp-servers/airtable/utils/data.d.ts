@@ -35,14 +35,14 @@ export function isObject(item: Object | null | undefined | string | number | boo
  * @param {number} size - Chunk size
  * @returns {Array<Array<T>>} Array of chunks
  */
-export function chunkArray<T>(array: T[], size: number): T[][];
+export function chunkArray<T>(array: Array<T>, size: number): Array<Array<T>>;
 /**
  * Flatten nested array
  * @param {Object[]} arr - Array to flatten
  * @param {number} [depth] - Depth to flatten (default: Infinity)
  * @returns {Object[]} Flattened array
  */
-export function flattenArray(arr: Object[], depth?: number | undefined): Object[];
+export function flattenArray(arr: Object[], depth?: number): Object[];
 /**
  * Remove duplicates from array
  * @template T
@@ -50,14 +50,14 @@ export function flattenArray(arr: Object[], depth?: number | undefined): Object[
  * @param {((item: T) => string | number) | null} [keyFn] - Key function for objects
  * @returns {Array<T>} Array without duplicates
  */
-export function uniqueArray<T>(array: T[], keyFn?: ((item: T) => string | number) | null | undefined): T[];
+export function uniqueArray<T>(array: Array<T>, keyFn?: ((item: T) => string | number) | null): Array<T>;
 /**
  * Group array items by key
  * @param {Object[]} array - Array to group
  * @param {((item: Object) => string) | string} keyFn - Key function or property name
  * @returns {Record<string, Object[]>} Grouped object
  */
-export function groupBy(array: Object[], keyFn: string | ((item: Object) => string)): Record<string, Object[]>;
+export function groupBy(array: Object[], keyFn: ((item: Object) => string) | string): Record<string, Object[]>;
 /**
  * @typedef {Object} SortKey
  * @property {string | ((item: Object) => string | number)} key - Sort key or function
@@ -70,7 +70,7 @@ export function groupBy(array: Object[], keyFn: string | ((item: Object) => stri
  * @param {Array<SortKey>} sortKeys - Array of sort configurations
  * @returns {Array<T>} Sorted array
  */
-export function multiSort<T>(array: T[], sortKeys: Array<SortKey>): T[];
+export function multiSort<T>(array: Array<T>, sortKeys: Array<SortKey>): Array<T>;
 /**
  * Pick specific properties from object
  * @template {Record<string, string | number | boolean | Object>} T
@@ -79,7 +79,7 @@ export function multiSort<T>(array: T[], sortKeys: Array<SortKey>): T[];
  * @param {Array<K>} keys - Keys to pick
  * @returns {Pick<T, K>} Object with picked properties
  */
-export function pick<T extends Record<string, string | number | boolean | Object>, K extends keyof T>(obj: T, keys: K[]): Pick<T, K>;
+export function pick<T extends Record<string, string | number | boolean | Object>, K extends keyof T>(obj: T, keys: Array<K>): Pick<T, K>;
 /**
  * Omit specific properties from object
  * @template {Record<string, string | number | boolean | Object>} T
@@ -88,7 +88,7 @@ export function pick<T extends Record<string, string | number | boolean | Object
  * @param {Array<K>} keys - Keys to omit
  * @returns {Omit<T, K>} Object without omitted properties
  */
-export function omit<T extends Record<string, string | number | boolean | Object>, K extends keyof T>(obj: T, keys: K[]): Omit<T, K>;
+export function omit<T extends Record<string, string | number | boolean | Object>, K extends keyof T>(obj: T, keys: Array<K>): Omit<T, K>;
 /**
  * Get nested property value safely
  * @param {Record<string, Object>} obj - Source object
@@ -96,7 +96,7 @@ export function omit<T extends Record<string, string | number | boolean | Object
  * @param {Object | null} [defaultValue] - Default value if path not found
  * @returns {Object | null | undefined} Property value or default
  */
-export function get(obj: Record<string, Object>, path: string, defaultValue?: Object | null | undefined): Object | null | undefined;
+export function get(obj: Record<string, Object>, path: string, defaultValue?: Object | null): Object | null | undefined;
 /**
  * Set nested property value safely
  * @param {Record<string, Object>} obj - Target object

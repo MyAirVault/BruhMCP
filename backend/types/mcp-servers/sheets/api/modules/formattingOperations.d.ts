@@ -10,7 +10,7 @@
 export function formatCells(params: {
     spreadsheetId: string;
     range: string;
-    format: import('../../types/index.js').CellFormat;
+    format: import("../../types/index.js").CellFormat;
 }, bearerToken: string): Promise<Record<string, any>>;
 /**
  * Batch update a spreadsheet
@@ -22,6 +22,6 @@ export function formatCells(params: {
  */
 export function batchUpdate(params: {
     spreadsheetId: string;
-    requests: import('../../types/index.js').Request[];
+    requests: import("../../types/index.js").Request[];
 }, bearerToken: string): Promise<Record<string, any>>;
 //# sourceMappingURL=formattingOperations.d.ts.map

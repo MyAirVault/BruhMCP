@@ -31,7 +31,7 @@ export type RequestOptions = {
  * @returns {Promise<Record<string, any>>} API response
  * @throws {Error} When API request fails
  */
-export function makeSheetsRequest(endpoint: string, bearerToken: string, options?: RequestOptions | undefined): Promise<Record<string, any>>;
+export function makeSheetsRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<Record<string, any>>;
 /**
  * Make authenticated request to Google Drive API
  * @param {string} endpoint - API endpoint
@@ -40,5 +40,5 @@ export function makeSheetsRequest(endpoint: string, bearerToken: string, options
  * @returns {Promise<Record<string, any>>} API response
  * @throws {Error} When API request fails
  */
-export function makeDriveRequest(endpoint: string, bearerToken: string, options?: RequestOptions | undefined): Promise<Record<string, any>>;
+export function makeDriveRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<Record<string, any>>;
 //# sourceMappingURL=requestHandler.d.ts.map

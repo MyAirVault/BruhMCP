@@ -178,9 +178,9 @@ export type MessagePayloadPart = {
      * - Part body
      */
     body?: {
-        data?: string | undefined;
-        size?: number | undefined;
-        attachmentId?: string | undefined;
+        data?: string;
+        size?: number;
+        attachmentId?: string;
     } | undefined;
     /**
      * - Nested parts
@@ -323,7 +323,7 @@ export type DraftData = {
     drafts?: {
         draftId: string;
         messageId: string;
-        snippet?: string | undefined;
+        snippet?: string;
         timestamp: string;
     }[] | undefined;
 };

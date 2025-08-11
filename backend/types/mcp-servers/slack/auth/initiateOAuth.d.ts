@@ -1,5 +1,5 @@
-export type OAuthResult = import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult;
-export type CredentialsData = import('../../../services/mcp-auth-registry/types/serviceTypes.js').CredentialsData;
+export type OAuthResult = import("../../../services/mcp-auth-registry/types/serviceTypes.js").OAuthResult;
+export type CredentialsData = import("../../../services/mcp-auth-registry/types/serviceTypes.js").CredentialsData;
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').OAuthResult} OAuthResult
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').CredentialsData} CredentialsData

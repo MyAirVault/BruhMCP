@@ -1,6 +1,6 @@
-export type Request = import('express').Request;
-export type Response = import('express').Response;
-export type NextFunction = import('express').NextFunction;
+export type Request = import("express").Request;
+export type Response = import("express").Response;
+export type NextFunction = import("express").NextFunction;
 export type CachedCredential = {
     /**
      * - The Figma Personal Access Token

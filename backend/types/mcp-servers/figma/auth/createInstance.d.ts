@@ -1,8 +1,8 @@
-export type InstanceResult = import('../../../services/mcp-auth-registry/types/serviceTypes.js').InstanceResult;
-export type InstanceData = import('../../../services/mcp-auth-registry/types/serviceTypes.js').InstanceData;
-export type ValidationResult = import('../../../services/validation/baseValidator.js').ValidationResult;
-export type MCPServiceType = import('../../../db/queries/mcpTypesQueries.js').MCPServiceType;
-export type MCPInstanceRecord = import('../../../db/queries/mcpInstances/types.js').MCPInstanceRecord;
+export type InstanceResult = import("../../../services/mcp-auth-registry/types/serviceTypes.js").InstanceResult;
+export type InstanceData = import("../../../services/mcp-auth-registry/types/serviceTypes.js").InstanceData;
+export type ValidationResult = import("../../../services/validation/baseValidator.js").ValidationResult;
+export type MCPServiceType = import("../../../db/queries/mcpTypesQueries.js").MCPServiceType;
+export type MCPInstanceRecord = import("../../../db/queries/mcpInstances/types.js").MCPInstanceRecord;
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').InstanceResult} InstanceResult
  * @typedef {import('../../../services/mcp-auth-registry/types/serviceTypes.js').InstanceData} InstanceData

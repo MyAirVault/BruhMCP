@@ -1,13 +1,13 @@
-export type DropboxApiArgs = import('../../../types/dropbox.d.ts').DropboxApiArgs;
-export type DropboxListFolderResponse = import('../../../types/dropbox.d.ts').DropboxListFolderResponse;
-export type DropboxFileMetadata = import('../../../types/dropbox.d.ts').DropboxFileMetadata;
-export type DropboxFolder = import('../../../types/dropbox.d.ts').DropboxFolder;
-export type DropboxSearchResponse = import('../../../types/dropbox.d.ts').DropboxSearchResponse;
-export type DropboxSearchMatch = import('../../../types/dropbox.d.ts').DropboxSearchMatch;
-export type DropboxSharedLinksResponse = import('../../../types/dropbox.d.ts').DropboxSharedLinksResponse;
-export type DropboxSharedLink = import('../../../types/dropbox.d.ts').DropboxSharedLink;
-export type DropboxSpaceUsage = import('../../../types/dropbox.d.ts').DropboxSpaceUsage;
-export type DropboxAPIError = import('../../../types/dropbox.d.ts').DropboxAPIError;
+export type DropboxApiArgs = import("../../../types/dropbox.d.ts").DropboxApiArgs;
+export type DropboxListFolderResponse = import("../../../types/dropbox.d.ts").DropboxListFolderResponse;
+export type DropboxFileMetadata = import("../../../types/dropbox.d.ts").DropboxFileMetadata;
+export type DropboxFolder = import("../../../types/dropbox.d.ts").DropboxFolder;
+export type DropboxSearchResponse = import("../../../types/dropbox.d.ts").DropboxSearchResponse;
+export type DropboxSearchMatch = import("../../../types/dropbox.d.ts").DropboxSearchMatch;
+export type DropboxSharedLinksResponse = import("../../../types/dropbox.d.ts").DropboxSharedLinksResponse;
+export type DropboxSharedLink = import("../../../types/dropbox.d.ts").DropboxSharedLink;
+export type DropboxSpaceUsage = import("../../../types/dropbox.d.ts").DropboxSpaceUsage;
+export type DropboxAPIError = import("../../../types/dropbox.d.ts").DropboxAPIError;
 /**
  * @typedef {import('../../../types/dropbox.d.ts').DropboxApiArgs} DropboxApiArgs
  * @typedef {import('../../../types/dropbox.d.ts').DropboxListFolderResponse} DropboxListFolderResponse

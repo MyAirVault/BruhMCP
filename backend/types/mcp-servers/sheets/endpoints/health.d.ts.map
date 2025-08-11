@@ -1,1 +1,1 @@
-{"version":3,"file":"health.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/sheets/endpoints/health.js"],"names":[],"mappings":";AAUA;;;;GAIG;AACH;;oBAHiC,MAAM;;QAC5B;IAAC,IAAI,WAAW;IAAC,MAAM,WAAU;CAAC,iBA8C5C"}
+{"version":3,"file":"health.d.ts","sourceRoot":"","sources":["../../../../src/mcp-servers/sheets/endpoints/health.js"],"names":[],"mappings":";AAUA;;;;GAIG;AACH,kCAHW;IAAC,MAAM,EAAE;QAAC,UAAU,EAAE,MAAM,CAAA;KAAC,CAAA;CAAC,OAC9B;IAAC,IAAI,WAAW;IAAC,MAAM,WAAU;CAAC,iBA8C5C"}

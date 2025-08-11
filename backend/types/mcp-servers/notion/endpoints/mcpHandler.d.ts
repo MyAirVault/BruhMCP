@@ -1,15 +1,15 @@
-export type NotionRichText = import('../utils/notionFormatting.js').NotionRichText;
-export type NotionUser = import('../utils/notionFormatting.js').NotionUser;
-export type NotionParent = import('../utils/notionFormatting.js').NotionParent;
-export type NotionProperty = import('../utils/notionFormatting.js').NotionProperty;
-export type NotionFilter = import('../utils/notionFormatting.js').NotionFilter;
-export type NotionSort = import('../utils/notionFormatting.js').NotionSort;
-export type NotionPage = import('../utils/notionFormatting.js').NotionPage;
-export type NotionDatabase = import('../utils/notionFormatting.js').NotionDatabase;
-export type NotionBlock = import('../utils/notionFormatting.js').NotionBlock;
-export type NotionSearchResponse = import('../utils/notionFormatting.js').NotionSearchResponse;
-export type NotionBlocksResponse = import('../utils/notionFormatting.js').NotionBlocksResponse;
-export type NotionQueryResponse = import('../utils/notionFormatting.js').NotionQueryResponse;
+export type NotionRichText = import("../utils/notionFormatting.js").NotionRichText;
+export type NotionUser = import("../utils/notionFormatting.js").NotionUser;
+export type NotionParent = import("../utils/notionFormatting.js").NotionParent;
+export type NotionProperty = import("../utils/notionFormatting.js").NotionProperty;
+export type NotionFilter = import("../utils/notionFormatting.js").NotionFilter;
+export type NotionSort = import("../utils/notionFormatting.js").NotionSort;
+export type NotionPage = import("../utils/notionFormatting.js").NotionPage;
+export type NotionDatabase = import("../utils/notionFormatting.js").NotionDatabase;
+export type NotionBlock = import("../utils/notionFormatting.js").NotionBlock;
+export type NotionSearchResponse = import("../utils/notionFormatting.js").NotionSearchResponse;
+export type NotionBlocksResponse = import("../utils/notionFormatting.js").NotionBlocksResponse;
+export type NotionQueryResponse = import("../utils/notionFormatting.js").NotionQueryResponse;
 export type ServiceConfig = {
     name: string;
     displayName: string;
@@ -38,7 +38,7 @@ export type ZodSearchFilter = {
     /**
      * - Filter by type
      */
-    value?: "database" | "page" | undefined;
+    value?: "page" | "database" | undefined;
     /**
      * - Filter property
      */
@@ -300,8 +300,8 @@ export class NotionMCPHandler {
      * @param {MCPRequest} message - MCP message
      * @returns {Promise<void>}
      */
-    handleMCPRequest(req: import('express').Request, res: import('express').Response, message: MCPRequest): Promise<void>;
+    handleMCPRequest(req: import("express").Request, res: import("express").Response, message: MCPRequest): Promise<void>;
 }
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 //# sourceMappingURL=mcpHandler.d.ts.map

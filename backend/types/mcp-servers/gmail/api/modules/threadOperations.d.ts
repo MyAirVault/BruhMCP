@@ -1,5 +1,5 @@
-export type GmailMessage = import('../../middleware/types.js').GmailMessage;
-export type GmailMessagePayload = import('../../middleware/types.js').GmailMessagePayload;
+export type GmailMessage = import("../../middleware/types.js").GmailMessage;
+export type GmailMessagePayload = import("../../middleware/types.js").GmailMessagePayload;
 export type GmailThreadResponse = {
     /**
      * - Thread ID

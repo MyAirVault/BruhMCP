@@ -5,16 +5,16 @@ export const createMCPSchema: z.ZodObject<{
     credentials: z.ZodEffects<z.ZodRecord<z.ZodString, z.ZodString>, Record<string, string>, Record<string, string>>;
     config: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>;
 }, "strip", z.ZodTypeAny, {
-    mcp_type: string;
     credentials: Record<string, string>;
+    mcp_type: string;
     custom_name: string;
-    expiration_option: "never" | "1h" | "6h" | "1day" | "30days";
+    expiration_option: "1h" | "never" | "6h" | "1day" | "30days";
     config?: Record<string, any> | undefined;
 }, {
-    mcp_type: string;
     credentials: Record<string, string>;
+    mcp_type: string;
     custom_name: string;
-    expiration_option: "never" | "1h" | "6h" | "1day" | "30days";
+    expiration_option: "1h" | "never" | "6h" | "1day" | "30days";
     config?: Record<string, any> | undefined;
 }>;
 export const updateMCPSchema: z.ZodObject<{
@@ -40,9 +40,9 @@ export const toggleMCPSchema: z.ZodObject<{
 export const renewMCPSchema: z.ZodObject<{
     expiration_option: z.ZodEnum<["never", "1h", "6h", "1day", "30days"]>;
 }, "strip", z.ZodTypeAny, {
-    expiration_option: "never" | "1h" | "6h" | "1day" | "30days";
+    expiration_option: "1h" | "never" | "6h" | "1day" | "30days";
 }, {
-    expiration_option: "never" | "1h" | "6h" | "1day" | "30days";
+    expiration_option: "1h" | "never" | "6h" | "1day" | "30days";
 }>;
 import { z } from "zod";
 //# sourceMappingURL=schemas.d.ts.map

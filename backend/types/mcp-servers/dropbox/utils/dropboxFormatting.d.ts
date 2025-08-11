@@ -1,14 +1,14 @@
-export type DropboxFileMetadata = import('../../../types/dropbox.d.ts').DropboxFileMetadata;
-export type DropboxFolder = import('../../../types/dropbox.d.ts').DropboxFolder;
-export type DropboxListFolderResponse = import('../../../types/dropbox.d.ts').DropboxListFolderResponse;
-export type DropboxSearchResponse = import('../../../types/dropbox.d.ts').DropboxSearchResponse;
-export type DropboxSearchMatch = import('../../../types/dropbox.d.ts').DropboxSearchMatch;
-export type DropboxSpaceUsage = import('../../../types/dropbox.d.ts').DropboxSpaceUsage;
-export type DropboxSharedLink = import('../../../types/dropbox.d.ts').DropboxSharedLink;
-export type DropboxMediaInfo = import('../../../types/dropbox.d.ts').DropboxMediaInfo;
-export type DropboxSharingInfo = import('../../../types/dropbox.d.ts').DropboxSharingInfo;
-export type DropboxPropertyGroup = import('../../../types/dropbox.d.ts').DropboxPropertyGroup;
-export type DropboxContentOwnership = import('../../../types/dropbox.d.ts').DropboxContentOwnership;
+export type DropboxFileMetadata = import("../../../types/dropbox.d.ts").DropboxFileMetadata;
+export type DropboxFolder = import("../../../types/dropbox.d.ts").DropboxFolder;
+export type DropboxListFolderResponse = import("../../../types/dropbox.d.ts").DropboxListFolderResponse;
+export type DropboxSearchResponse = import("../../../types/dropbox.d.ts").DropboxSearchResponse;
+export type DropboxSearchMatch = import("../../../types/dropbox.d.ts").DropboxSearchMatch;
+export type DropboxSpaceUsage = import("../../../types/dropbox.d.ts").DropboxSpaceUsage;
+export type DropboxSharedLink = import("../../../types/dropbox.d.ts").DropboxSharedLink;
+export type DropboxMediaInfo = import("../../../types/dropbox.d.ts").DropboxMediaInfo;
+export type DropboxSharingInfo = import("../../../types/dropbox.d.ts").DropboxSharingInfo;
+export type DropboxPropertyGroup = import("../../../types/dropbox.d.ts").DropboxPropertyGroup;
+export type DropboxContentOwnership = import("../../../types/dropbox.d.ts").DropboxContentOwnership;
 export type FormattedFileEntry = {
     /**
      * - File name
@@ -84,7 +84,7 @@ export type FormattedSearchMatch = {
      * - Type of match
      */
     match_type: {
-        '.tag': 'filename' | 'content' | 'both';
+        ".tag": "filename" | "content" | "both";
     } | string;
     /**
      * - File metadata
@@ -448,7 +448,7 @@ export function formatError(error: Error): Object;
  * @param {Object|null} [data=null] - Optional data to include
  * @returns {FormattedSuccessResponse} Formatted success response
  */
-export function formatSuccessResponse(message: string, data?: Object | null | undefined): FormattedSuccessResponse;
+export function formatSuccessResponse(message: string, data?: Object | null): FormattedSuccessResponse;
 /**
  * Format file metadata for display
  * @param {DropboxFileMetadata | DropboxFolder} metadata - The file or folder metadata
@@ -475,7 +475,7 @@ export function formatDate(dateString: string | null | undefined): Object | null
  * @param {Object|null} [data=null] - Optional data to include
  * @returns {FormattedToolResponse} Standardized tool response
  */
-export function createToolResponse(toolName: string, success: boolean, message: string, data?: Object | null | undefined): FormattedToolResponse;
+export function createToolResponse(toolName: string, success: boolean, message: string, data?: Object | null): FormattedToolResponse;
 /**
  * Format operation summary
  * @param {string} operation - The operation that was performed

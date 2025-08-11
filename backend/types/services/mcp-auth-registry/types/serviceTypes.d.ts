@@ -66,7 +66,7 @@ export type RevokeResult = {
      */
     message: string;
 };
-export type ServiceType = 'apikey' | 'oauth' | 'hybrid';
+export type ServiceType = "apikey" | "oauth" | "hybrid";
 /**
  * - Dynamic collection of service functions
  */

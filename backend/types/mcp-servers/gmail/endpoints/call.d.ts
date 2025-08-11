@@ -1,15 +1,15 @@
-export type SendEmailArgs = import('../api/modules/messageOperations.js').SendEmailArgs;
-export type FetchEmailsArgs = import('../api/modules/messageOperations.js').FetchEmailsArgs;
-export type FetchMessageByIdArgs = import('../api/modules/messageOperations.js').FetchMessageByIdArgs;
-export type ReplyToEmailArgs = import('../api/modules/messageOperations.js').ReplyToEmailArgs;
-export type MessageIdArgs = import('../api/modules/messageOperations.js').MessageIdArgs;
-export type SearchEmailsArgs = import('../api/modules/messageOperations.js').SearchEmailsArgs;
-export type GetThreadArgs = import('../api/modules/threadOperations.js').GetThreadArgs;
-export type CreateDraftArgs = import('../api/modules/draftOperations.js').CreateDraftArgs;
-export type SendDraftArgs = import('../api/modules/draftOperations.js').SendDraftArgs;
-export type ListDraftsArgs = import('../api/modules/draftOperations.js').ListDraftsArgs;
-export type CreateLabelArgs = import('../api/labelOperations.js').CreateLabelArgs;
-export type ModifyLabelsArgs = import('../api/labelOperations.js').ModifyLabelsArgs;
+export type SendEmailArgs = import("../api/modules/messageOperations.js").SendEmailArgs;
+export type FetchEmailsArgs = import("../api/modules/messageOperations.js").FetchEmailsArgs;
+export type FetchMessageByIdArgs = import("../api/modules/messageOperations.js").FetchMessageByIdArgs;
+export type ReplyToEmailArgs = import("../api/modules/messageOperations.js").ReplyToEmailArgs;
+export type MessageIdArgs = import("../api/modules/messageOperations.js").MessageIdArgs;
+export type SearchEmailsArgs = import("../api/modules/messageOperations.js").SearchEmailsArgs;
+export type GetThreadArgs = import("../api/modules/threadOperations.js").GetThreadArgs;
+export type CreateDraftArgs = import("../api/modules/draftOperations.js").CreateDraftArgs;
+export type SendDraftArgs = import("../api/modules/draftOperations.js").SendDraftArgs;
+export type ListDraftsArgs = import("../api/modules/draftOperations.js").ListDraftsArgs;
+export type CreateLabelArgs = import("../api/labelOperations.js").CreateLabelArgs;
+export type ModifyLabelsArgs = import("../api/labelOperations.js").ModifyLabelsArgs;
 export type MarkAsReadArgs = {
     /**
      * - Array of message IDs to mark as read

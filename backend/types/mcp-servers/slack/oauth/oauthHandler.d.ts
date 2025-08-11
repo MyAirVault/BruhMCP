@@ -32,9 +32,9 @@ declare class SlackOAuthHandler {
 declare namespace SlackOAuthHandler {
     export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult, SlackOAuthResponse, SlackTokenData, SlackOAuthTokens, SlackOAuthCallbackResult, StateData, MCPInstance };
 }
-type AuthCredentials = import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials;
-type OAuthFlowResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult;
-type OAuthCallbackResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult;
+type AuthCredentials = import("../../../services/mcp-auth-registry/types/authTypes.js").AuthCredentials;
+type OAuthFlowResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthFlowResult;
+type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
 type SlackOAuthResponse = {
     /**
      * - Whether the request was successful

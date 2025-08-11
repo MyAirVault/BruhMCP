@@ -12,10 +12,10 @@ export type ServiceConfig = {
      */
     version: string;
 };
-export type RequestWithHeaders = import('http').IncomingMessage & {
+export type RequestWithHeaders = import("http").IncomingMessage & {
     headers: Record<string, string | undefined>;
 };
-export type ResponseObject = import('http').ServerResponse & {
+export type ResponseObject = import("http").ServerResponse & {
     status: (arg0: number) => ResponseObject;
     json: (arg0: Object) => void;
 };

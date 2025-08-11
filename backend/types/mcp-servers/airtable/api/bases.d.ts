@@ -2,21 +2,21 @@ export type BasesListResponse = {
     /**
      * - List of bases
      */
-    bases: import('./common.js').AirtableBase[];
+    bases: import("./common.js").AirtableBase[];
     /**
      * - Response metadata
      */
-    _meta: import('./common.js').ApiResponseMeta;
+    _meta: import("./common.js").ApiResponseMeta;
 };
 export type BaseSchemaResponse = {
     /**
      * - List of tables
      */
-    tables: import('./common.js').AirtableTable[];
+    tables: import("./common.js").AirtableTable[];
     /**
      * - Response metadata
      */
-    _meta: import('./common.js').ApiResponseMeta;
+    _meta: import("./common.js").ApiResponseMeta;
 };
 /**
  * @typedef {Object} BasesListResponse

@@ -45,5 +45,5 @@ export type RequiredField = {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export function getMCPTypes(req: import('express').Request, res: import('express').Response): Promise<void>;
+export function getMCPTypes(req: import("express").Request, res: import("express").Response): Promise<void>;
 //# sourceMappingURL=getMCPTypes.d.ts.map

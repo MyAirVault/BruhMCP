@@ -43,7 +43,7 @@ declare class RedditOAuthHandler {
 declare namespace RedditOAuthHandler {
     export { AuthCredentials, OAuthFlowResult, OAuthCallbackResult };
 }
-type AuthCredentials = import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials;
-type OAuthFlowResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult;
-type OAuthCallbackResult = import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult;
+type AuthCredentials = import("../../../services/mcp-auth-registry/types/authTypes.js").AuthCredentials;
+type OAuthFlowResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthFlowResult;
+type OAuthCallbackResult = import("../../../services/mcp-auth-registry/types/authTypes.js").OAuthCallbackResult;
 //# sourceMappingURL=oauthHandler.d.ts.map

@@ -325,18 +325,18 @@ export function resetRefreshAttempts(instanceId: string): void;
  * @param {SyncOptions} [options] - Sync options
  * @returns {Promise<boolean>} True if sync was successful
  */
-export function syncCacheWithDatabase(instanceId: string, options?: SyncOptions | undefined): Promise<boolean>;
+export function syncCacheWithDatabase(instanceId: string, options?: SyncOptions): Promise<boolean>;
 /**
  * Background synchronization for all cached instances
  * This function runs periodically to ensure cache-database consistency
  * @param {BackgroundSyncOptions} [options] - Sync options
  * @returns {Promise<SyncResults>} Sync results
  */
-export function backgroundCacheSync(options?: BackgroundSyncOptions | undefined): Promise<SyncResults>;
+export function backgroundCacheSync(options?: BackgroundSyncOptions): Promise<SyncResults>;
 /**
  * Start background cache synchronization service
  * @param {number} [intervalMinutes] - Sync interval in minutes (default: 5)
  * @returns {SyncController} Sync service controller
  */
-export function startBackgroundCacheSync(intervalMinutes?: number | undefined): SyncController;
+export function startBackgroundCacheSync(intervalMinutes?: number): SyncController;
 //# sourceMappingURL=credentialCache.d.ts.map

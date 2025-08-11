@@ -1,4 +1,4 @@
-export type CacheEntry = import('./cacheCore.js').CacheEntry;
+export type CacheEntry = import("./cacheCore.js").CacheEntry;
 export type RefreshAttemptStats = {
     /**
      * - Entries with zero refresh attempts

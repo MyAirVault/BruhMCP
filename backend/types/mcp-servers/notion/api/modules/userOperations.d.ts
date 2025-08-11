@@ -12,7 +12,7 @@ export function getCurrentUser(_args: Record<string, never>, bearerToken: string
  * @returns {Promise<Record<string, unknown>>} Users list
  */
 export function listUsers(args: {
-    start_cursor?: string | undefined;
-    page_size?: number | undefined;
+    start_cursor?: string;
+    page_size?: number;
 }, bearerToken: string): Promise<Record<string, unknown>>;
 //# sourceMappingURL=userOperations.d.ts.map

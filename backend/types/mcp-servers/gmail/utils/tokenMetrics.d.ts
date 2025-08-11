@@ -1,7 +1,36 @@
+declare namespace _exports {
+    export { MetricsData, DailyStats, InstanceMetric };
+}
+declare namespace _exports {
+    export { recordTokenRefreshMetrics };
+    export { getTokenMetricsSummary };
+    export { getInstanceTokenMetrics };
+    export { getDailyTokenStats };
+    export { exportTokenMetrics };
+    export { getTokenSystemHealth };
+    export { resetTokenMetrics };
+    export namespace metrics {
+        let refreshAttempts: number;
+        let refreshSuccesses: number;
+        let refreshFailures: number;
+        let directOAuthFallbacks: number;
+        let serviceUnavailableErrors: number;
+        let invalidTokenErrors: number;
+        let networkErrors: number;
+        let totalLatency: number;
+        let maxLatency: number;
+        let minLatency: number;
+        let lastReset: number;
+        let errorsByType: Record<string, number>;
+        let dailyStats: Record<string, DailyStats>;
+        let instanceMetrics: Record<string, InstanceMetric>;
+    }
+}
+export = _exports;
 /**
  * Token metrics data structure
  */
-export type MetricsData = {
+type MetricsData = {
     /**
      * - Total refresh attempts
      */
@@ -62,7 +91,7 @@ export type MetricsData = {
 /**
  * Daily statistics
  */
-export type DailyStats = {
+type DailyStats = {
     /**
      * - Attempts count
      */
@@ -83,7 +112,7 @@ export type DailyStats = {
 /**
  * Instance metric data
  */
-export type InstanceMetric = {
+type InstanceMetric = {
     /**
      * - Attempts count
      */
@@ -118,11 +147,11 @@ export type InstanceMetric = {
  * @param {string} [errorType=''] - Error type if failed
  * @param {string} [errorMessage=''] - Error message if failed
  */
-export function recordTokenRefreshMetrics(instanceId: string, method: 'oauth_service' | 'direct_oauth', success: boolean, startTime: number, endTime: number, errorType?: string | undefined, errorMessage?: string | undefined): void;
+declare function recordTokenRefreshMetrics(instanceId: string, method: "oauth_service" | "direct_oauth", success: boolean, startTime: number, endTime: number, errorType?: string, errorMessage?: string): void;
 /**
  * Get metrics summary
  */
-export function getTokenMetricsSummary(): {
+declare function getTokenMetricsSummary(): {
     /**
      * - Overview stats
      */
@@ -165,7 +194,7 @@ export function getTokenMetricsSummary(): {
  * @param {string} instanceId - Instance ID
  * @returns {InstanceMetrics|null} Instance metrics
  */
-export function getInstanceTokenMetrics(instanceId: string): {
+declare function getInstanceTokenMetrics(instanceId: string): {
     /**
      * - Instance ID
      */
@@ -203,11 +232,11 @@ export function getInstanceTokenMetrics(instanceId: string): {
  * @param {number} [days=7] - Number of days to include
  * @returns {Record<string, DailyStats>} Daily statistics
  */
-export function getDailyTokenStats(days?: number | undefined): Record<string, DailyStats>;
+declare function getDailyTokenStats(days?: number): Record<string, DailyStats>;
 /**
  * Export all metrics
  */
-export function exportTokenMetrics(): {
+declare function exportTokenMetrics(): {
     /**
      * - Export timestamp
      */
@@ -262,7 +291,7 @@ export function exportTokenMetrics(): {
     /**
      * - All instance metrics
      */
-    allInstanceMetrics: {
+    allInstanceMetrics: Array<{
         /**
          * - Instance ID
          */
@@ -294,7 +323,7 @@ export function exportTokenMetrics(): {
             timestamp: number;
             method: string;
         } | null;
-    }[];
+    }>;
     /**
      * - Raw metrics data
      */
@@ -303,11 +332,11 @@ export function exportTokenMetrics(): {
 /**
  * Get health assessment
  */
-export function getTokenSystemHealth(): {
+declare function getTokenSystemHealth(): {
     /**
      * - Overall health status
      */
-    status: 'healthy' | 'degraded' | 'unhealthy';
+    status: "healthy" | "degraded" | "unhealthy";
     /**
      * - Critical issues
      */
@@ -361,21 +390,5 @@ export function getTokenSystemHealth(): {
 /**
  * Reset metrics (for testing)
  */
-export function resetTokenMetrics(): void;
-export declare namespace metrics {
-    let refreshAttempts: number;
-    let refreshSuccesses: number;
-    let refreshFailures: number;
-    let directOAuthFallbacks: number;
-    let serviceUnavailableErrors: number;
-    let invalidTokenErrors: number;
-    let networkErrors: number;
-    let totalLatency: number;
-    let maxLatency: number;
-    let minLatency: number;
-    let lastReset: number;
-    let errorsByType: Record<string, number>;
-    let dailyStats: Record<string, DailyStats>;
-    let instanceMetrics: Record<string, InstanceMetric>;
-}
+declare function resetTokenMetrics(): void;
 //# sourceMappingURL=tokenMetrics.d.ts.map

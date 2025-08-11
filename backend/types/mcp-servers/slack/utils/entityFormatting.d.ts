@@ -1,10 +1,10 @@
-export type SlackChannel = import('../middleware/types.js').SlackChannel;
-export type SlackUser = import('../middleware/types.js').SlackUser;
-export type SlackTeam = import('../middleware/types.js').SlackTeam;
-export type SlackTopic = import('../middleware/types.js').SlackTopic;
-export type SlackPurpose = import('../middleware/types.js').SlackPurpose;
-export type SlackMessage = import('../middleware/types.js').SlackMessage;
-export type FormattedMessage = import('./messageFormatting.js').FormattedMessage;
+export type SlackChannel = import("../middleware/types.js").SlackChannel;
+export type SlackUser = import("../middleware/types.js").SlackUser;
+export type SlackTeam = import("../middleware/types.js").SlackTeam;
+export type SlackTopic = import("../middleware/types.js").SlackTopic;
+export type SlackPurpose = import("../middleware/types.js").SlackPurpose;
+export type SlackMessage = import("../middleware/types.js").SlackMessage;
+export type FormattedMessage = import("./messageFormatting.js").FormattedMessage;
 /**
  * @typedef {import('../middleware/types.js').SlackChannel} SlackChannel
  * @typedef {import('../middleware/types.js').SlackUser} SlackUser

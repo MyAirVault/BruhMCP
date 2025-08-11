@@ -38,14 +38,14 @@ export type SimplifiedLayout = {
     gap?: string | undefined;
     locationRelativeToParent?: Point | undefined;
     dimensions?: {
-        width?: number | undefined;
-        height?: number | undefined;
-        aspectRatio?: number | undefined;
+        width?: number;
+        height?: number;
+        aspectRatio?: number;
     } | undefined;
     padding?: string | undefined;
     sizing?: {
-        horizontal?: "fill" | "fixed" | "hug" | undefined;
-        vertical?: "fill" | "fixed" | "hug" | undefined;
+        horizontal?: "fixed" | "fill" | "hug";
+        vertical?: "fixed" | "fill" | "hug";
     } | undefined;
     overflowScroll?: ("y" | "x")[] | undefined;
     position?: "absolute" | undefined;

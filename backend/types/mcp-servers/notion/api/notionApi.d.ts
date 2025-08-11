@@ -37,8 +37,8 @@ export class NotionService {
             property: string;
         };
         sort?: {
-            direction: 'ascending' | 'descending';
-            timestamp: 'last_edited_time';
+            direction: "ascending" | "descending";
+            timestamp: "last_edited_time";
         };
     }): Promise<Record<string, unknown>>;
     /**
@@ -65,9 +65,9 @@ export class NotionService {
      * @returns {Promise<Record<string, unknown>>} Created page
      */
     createPage(args: {
-        parent: import('../utils/notionFormatting.js').NotionParent;
-        properties: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
-        children?: import('../utils/notionFormatting.js').NotionBlock[];
+        parent: import("../utils/notionFormatting.js").NotionParent;
+        properties: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
+        children?: import("../utils/notionFormatting.js").NotionBlock[];
     }): Promise<Record<string, unknown>>;
     /**
      * Update page properties
@@ -76,7 +76,7 @@ export class NotionService {
      */
     updatePage(args: {
         pageId: string;
-        properties?: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
+        properties?: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
         archived?: boolean;
     }): Promise<Record<string, unknown>>;
     /**
@@ -94,8 +94,8 @@ export class NotionService {
      */
     queryDatabase(args: {
         databaseId: string;
-        filter?: import('../utils/notionFormatting.js').NotionFilter;
-        sorts?: import('../utils/notionFormatting.js').NotionSort[];
+        filter?: import("../utils/notionFormatting.js").NotionFilter;
+        sorts?: import("../utils/notionFormatting.js").NotionSort[];
         start_cursor?: string;
         page_size?: number;
     }): Promise<Record<string, unknown>>;
@@ -105,9 +105,9 @@ export class NotionService {
      * @returns {Promise<Record<string, unknown>>} Created database
      */
     createDatabase(args: {
-        parent: import('../utils/notionFormatting.js').NotionParent;
-        title: import('../utils/notionFormatting.js').NotionRichText[];
-        properties: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
+        parent: import("../utils/notionFormatting.js").NotionParent;
+        title: import("../utils/notionFormatting.js").NotionRichText[];
+        properties: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
     }): Promise<Record<string, unknown>>;
     /**
      * Update database properties
@@ -116,8 +116,8 @@ export class NotionService {
      */
     updateDatabase(args: {
         databaseId: string;
-        title?: import('../utils/notionFormatting.js').NotionRichText[];
-        properties?: Record<string, import('../utils/notionFormatting.js').NotionProperty>;
+        title?: import("../utils/notionFormatting.js").NotionRichText[];
+        properties?: Record<string, import("../utils/notionFormatting.js").NotionProperty>;
     }): Promise<Record<string, unknown>>;
     /**
      * Append blocks to a page or block
@@ -126,7 +126,7 @@ export class NotionService {
      */
     appendBlocks(args: {
         blockId: string;
-        children: import('../utils/notionFormatting.js').NotionBlock[];
+        children: import("../utils/notionFormatting.js").NotionBlock[];
     }): Promise<Record<string, unknown>>;
     /**
      * Delete a block
@@ -158,7 +158,7 @@ export class NotionService {
      */
     makeRawApiCall(args: {
         endpoint: string;
-        method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+        method?: "GET" | "POST" | "PATCH" | "DELETE";
         body?: Record<string, unknown>;
     }): Promise<Record<string, unknown>>;
 }

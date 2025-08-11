@@ -224,7 +224,7 @@ export function validateBearerToken(bearerToken: string): Promise<TokenValidatio
  * @param {number} [bufferMinutes=5] - Minutes before expiry to consider token as expired
  * @returns {boolean} True if token is expired or will expire soon
  */
-export function isTokenExpired(tokenData: TokenData, bufferMinutes?: number | undefined): boolean;
+export function isTokenExpired(tokenData: TokenData, bufferMinutes?: number): boolean;
 /**
  * Notion API user response
  * @typedef {Object} NotionUserResponse

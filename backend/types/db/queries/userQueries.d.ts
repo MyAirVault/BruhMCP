@@ -92,7 +92,7 @@ export function createUser(userData: {
  * @param {string|null} [name] - User name
  * @returns {Promise<DatabaseUser>} User record (existing or newly created)
  */
-export function findOrCreateUser(email: string, name?: string | null | undefined): Promise<DatabaseUser>;
+export function findOrCreateUser(email: string, name?: string | null): Promise<DatabaseUser>;
 /**
  * Update user information
  * @param {string} userId - User ID

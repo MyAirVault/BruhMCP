@@ -91,25 +91,15 @@ async function createMCP(req, res) {
 
 		const { mcp_type, custom_name, expiration_option, credentials } = validationResult.data;
 
-		// Get user plan for atomic limit checking
-		const { getUserPlan, isUserPlanActive } = require('../../../db/queries/userPlansQueries.js');
-		const userPlan = await getUserPlan(userId);
+		// Get user subscription for atomic limit checking
+		const { checkInstanceLimit } = require('../../../utils/subscriptionLimits.js');
+		const limitCheck = await checkInstanceLimit(userId);
 
-		if (!userPlan) {
-			return ErrorResponses.forbidden(res, 'No subscription plan found. Please contact support.', {
+		if (!limitCheck.canCreate) {
+			return ErrorResponses.forbidden(res, limitCheck.message, {
 				userId,
-				reason: 'NO_PLAN',
-			});
-		}
-
-		// Check if plan is active (not expired)
-		const isPlanActive = await isUserPlanActive(userId);
-
-		if (!isPlanActive) {
-			return ErrorResponses.forbidden(res, 'Your subscription plan has expired. Please renew to continue.', {
-				userId,
-				reason: 'PLAN_EXPIRED',
-				expiresAt: userPlan.expires_at || undefined,
+				reason: limitCheck.reason,
+				details: limitCheck.details
 			});
 		}
 
@@ -190,7 +180,7 @@ async function createMCP(req, res) {
 					expiresAt: expiresAt || undefined,
 					serviceType: mcpService.type,
 				},
-				userPlan.max_instances
+				limitCheck.details?.maxInstances || 1
 			)
 		);
 
@@ -200,7 +190,7 @@ async function createMCP(req, res) {
 				return ErrorResponses.forbidden(res, creationResult.message, {
 					userId,
 					reason: creationResult.reason,
-					plan: userPlan.plan_type,
+					plan: limitCheck.details?.plan || 'unknown',
 					currentCount: creationResult.currentCount,
 					maxInstances: creationResult.maxInstances,
 					upgradeMessage: 'Upgrade to Pro plan for unlimited active instances',

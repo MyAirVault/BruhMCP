@@ -83,9 +83,9 @@ declare class MCPInstanceLogger {
      */
     createRequestMiddleware(instanceId: string): (arg0: Request, arg1: Response, arg2: NextFunction) => void;
 }
-type Request = import('express').Request;
-type Response = import('express').Response;
-type NextFunction = import('express').NextFunction;
+type Request = import("express").Request;
+type Response = import("express").Response;
+type NextFunction = import("express").NextFunction;
 type LogMetadata = {
     /**
      * - User agent string

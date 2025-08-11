@@ -1,4 +1,4 @@
-export type AirtableRecord = import('./common.js').AirtableRecord;
+export type AirtableRecord = import("./common.js").AirtableRecord;
 export type ListRecordsOptions = {
     /**
      * - View name or ID
@@ -17,7 +17,7 @@ export type ListRecordsOptions = {
      */
     sort?: {
         field: string;
-        direction: 'asc' | 'desc';
+        direction: "asc" | "desc";
     }[] | undefined;
     /**
      * - Filter formula
@@ -70,7 +70,7 @@ export type BatchCreateResponse = {
  * @param {ListRecordsOptions} [options] - Query options
  * @returns {Promise<Object>} Records list
  */
-export function listRecords(baseId: string, tableId: string, apiKey: string, options?: ListRecordsOptions | undefined): Promise<Object>;
+export function listRecords(baseId: string, tableId: string, apiKey: string, options?: ListRecordsOptions): Promise<Object>;
 /**
  * Get a specific record
  * @param {string} baseId - Base ID

@@ -20,10 +20,10 @@ export type ServiceConfig = {
      */
     useSimplification?: boolean | undefined;
 };
-export type AirtableRecord = import('../api/common.js').AirtableRecord;
-export type AirtableBase = import('../api/common.js').AirtableBase;
-export type AirtableField = import('../api/common.js').AirtableField;
-export type AirtableTable = import('../api/common.js').AirtableTable;
+export type AirtableRecord = import("../api/common.js").AirtableRecord;
+export type AirtableBase = import("../api/common.js").AirtableBase;
+export type AirtableField = import("../api/common.js").AirtableField;
+export type AirtableTable = import("../api/common.js").AirtableTable;
 export type SortItem = {
     /**
      * - Field name to sort by

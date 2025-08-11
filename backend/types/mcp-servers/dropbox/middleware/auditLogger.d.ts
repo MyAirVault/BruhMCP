@@ -63,7 +63,7 @@ export function logOAuthInitiation(instanceId: string, userId: string, clientId:
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logOAuthCallback(instanceId: string, userId: string, success: boolean, error?: string | undefined): void;
+export function logOAuthCallback(instanceId: string, userId: string, success: boolean, error?: string): void;
 /**
  * Log token refresh attempt
  * @param {string} instanceId - The instance ID
@@ -73,7 +73,7 @@ export function logOAuthCallback(instanceId: string, userId: string, success: bo
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logTokenRefresh(instanceId: string, userId: string, success: boolean, method: string, error?: string | undefined): void;
+export function logTokenRefresh(instanceId: string, userId: string, success: boolean, method: string, error?: string): void;
 /**
  * Log token validation attempt
  * @param {string} instanceId - The instance ID
@@ -82,7 +82,7 @@ export function logTokenRefresh(instanceId: string, userId: string, success: boo
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logTokenValidation(instanceId: string, userId: string, success: boolean, error?: string | undefined): void;
+export function logTokenValidation(instanceId: string, userId: string, success: boolean, error?: string): void;
 /**
  * Log instance revocation
  * @param {string} instanceId - The instance ID
@@ -91,7 +91,7 @@ export function logTokenValidation(instanceId: string, userId: string, success: 
  * @param {string} [error] - Error message if failed
  * @returns {void}
  */
-export function logInstanceRevocation(instanceId: string, userId: string, success: boolean, error?: string | undefined): void;
+export function logInstanceRevocation(instanceId: string, userId: string, success: boolean, error?: string): void;
 /**
  * Log security event (failed authentication, suspicious activity, etc.)
  * @param {string} event - Event type
@@ -101,7 +101,7 @@ export function logInstanceRevocation(instanceId: string, userId: string, succes
  * @param {Object} [metadata] - Additional metadata
  * @returns {void}
  */
-export function logSecurityEvent(event: string, instanceId: string, userId: string, description: string, metadata?: Object | undefined): void;
+export function logSecurityEvent(event: string, instanceId: string, userId: string, description: string, metadata?: Object): void;
 /**
  * Log API request with authentication
  * @param {string} instanceId - The instance ID

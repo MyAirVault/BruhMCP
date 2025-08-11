@@ -1,21 +1,4 @@
 /**
- * Result of log directory creation operation
- */
-export type LogDirectoryResult = {
-    /**
-     * - Whether the operation was successful
-     */
-    success: boolean;
-    /**
-     * - Path to the created log directory (on success)
-     */
-    logDir?: string | undefined;
-    /**
-     * - Error message (on failure)
-     */
-    error?: string | undefined;
-};
-/**
  * Result of user log directory creation operation
  */
 export type UserLogDirectoryResult = {
@@ -45,13 +28,6 @@ export type RemoveDirectoryResult = {
      */
     error?: string | undefined;
 };
-/**
- * Result of log directory creation operation
- * @typedef {Object} LogDirectoryResult
- * @property {boolean} success - Whether the operation was successful
- * @property {string} [logDir] - Path to the created log directory (on success)
- * @property {string} [error] - Error message (on failure)
- */
 /**
  * Result of user log directory creation operation
  * @typedef {Object} UserLogDirectoryResult

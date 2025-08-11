@@ -6,7 +6,7 @@ export type LastAttempt = {
     /**
      * - Method used for the attempt
      */
-    method: 'oauth_service' | 'direct_oauth';
+    method: "oauth_service" | "direct_oauth";
 };
 export type InstanceMetric = {
     /**
@@ -222,7 +222,7 @@ export type HealthAssessment = {
     /**
      * - Overall health status
      */
-    status: 'healthy' | 'degraded' | 'unhealthy';
+    status: "healthy" | "degraded" | "unhealthy";
     /**
      * - List of critical issues
      */
@@ -268,7 +268,7 @@ export type ExportedMetrics = {
  * @param {number} startTime - Start timestamp
  * @param {number} endTime - End timestamp
  */
-export function recordTokenRefreshMetrics(instanceId: string, method: 'oauth_service' | 'direct_oauth', success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
+export function recordTokenRefreshMetrics(instanceId: string, method: "oauth_service" | "direct_oauth", success: boolean, errorType: string | null, errorMessage: string | null, startTime: number, endTime: number): void;
 /**
  * Get metrics summary
  * @returns {MetricsSummary} Current metrics summary
@@ -285,7 +285,7 @@ export function getInstanceTokenMetrics(instanceId: string): InstanceMetricsResu
  * @param {number} [days] - Number of days to include (default: 7)
  * @returns {Record<string, DailyStats>} Daily statistics
  */
-export function getDailyTokenStats(days?: number | undefined): Record<string, DailyStats>;
+export function getDailyTokenStats(days?: number): Record<string, DailyStats>;
 /**
  * Export all metrics
  * @returns {ExportedMetrics} All metrics data for export
@@ -414,7 +414,7 @@ declare class TokenMetrics {
      * @param {'oauth_service' | 'direct_oauth'} method - Method used
      * @param {number} startTime - Start timestamp
      */
-    recordRefreshAttempt(instanceId: string, method: 'oauth_service' | 'direct_oauth', startTime: number): void;
+    recordRefreshAttempt(instanceId: string, method: "oauth_service" | "direct_oauth", startTime: number): void;
     /**
      * Record a successful token refresh
      * @param {string} instanceId - Instance ID
@@ -422,7 +422,7 @@ declare class TokenMetrics {
      * @param {number} startTime - Start timestamp
      * @param {number} endTime - End timestamp
      */
-    recordRefreshSuccess(instanceId: string, method: 'oauth_service' | 'direct_oauth', startTime: number, endTime: number): void;
+    recordRefreshSuccess(instanceId: string, method: "oauth_service" | "direct_oauth", startTime: number, endTime: number): void;
     /**
      * Record a failed token refresh
      * @param {string} instanceId - Instance ID
@@ -432,7 +432,7 @@ declare class TokenMetrics {
      * @param {number} startTime - Start timestamp
      * @param {number} endTime - End timestamp
      */
-    recordRefreshFailure(instanceId: string, method: 'oauth_service' | 'direct_oauth', errorType: string, errorMessage: string, startTime: number, endTime: number): void;
+    recordRefreshFailure(instanceId: string, method: "oauth_service" | "direct_oauth", errorType: string, errorMessage: string, startTime: number, endTime: number): void;
     /**
      * Get current metrics summary
      * @returns {MetricsSummary} Metrics summary

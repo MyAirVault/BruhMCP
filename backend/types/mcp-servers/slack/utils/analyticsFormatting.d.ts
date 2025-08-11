@@ -1,7 +1,7 @@
-export type SlackMessage = import('../middleware/types.js').SlackMessage;
-export type SlackUser = import('../middleware/types.js').SlackUser;
-export type SlackChannel = import('../middleware/types.js').SlackChannel;
-export type SlackTeam = import('../middleware/types.js').SlackTeam;
+export type SlackMessage = import("../middleware/types.js").SlackMessage;
+export type SlackUser = import("../middleware/types.js").SlackUser;
+export type SlackChannel = import("../middleware/types.js").SlackChannel;
+export type SlackTeam = import("../middleware/types.js").SlackTeam;
 export type SlackSearchMatch = {
     /**
      * - Type of search match (message, file, etc.)
@@ -120,7 +120,7 @@ export function formatSearchResults(results: SlackSearchResults, query: string):
  * @param {SlackUser[]} [users=[]] - User data for mention resolution
  * @returns {{ok: boolean, messages: Array<Object>, has_more: boolean, pin_count: number, response_metadata: Object}|null} Formatted conversation history
  */
-export function formatConversationHistory(history: SlackConversationHistory, users?: import("../middleware/types.js").SlackUser[] | undefined): {
+export function formatConversationHistory(history: SlackConversationHistory, users?: SlackUser[]): {
     ok: boolean;
     messages: Array<Object>;
     has_more: boolean;

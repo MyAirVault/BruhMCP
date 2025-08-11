@@ -257,5 +257,5 @@ export function sanitizePath(path: string): string;
  * @throws {Error} If size is invalid
  * @returns {void}
  */
-export function validateFileSize(size: number, maxSize?: number | undefined): void;
+export function validateFileSize(size: number, maxSize?: number): void;
 //# sourceMappingURL=validation.d.ts.map

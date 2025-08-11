@@ -126,87 +126,22 @@ async function toggleInstanceStatus(req, res) {
 		try {
 			await client.query('BEGIN');
 
-			// CRITICAL: Atomic plan limit checking when activating inactive instances
+			// CRITICAL: Atomic subscription limit checking when activating inactive instances
 			if (status === 'active' && instanceData.status === 'inactive') {
-				// Get user plan with locking to prevent race conditions
-				const planQuery = `
-					SELECT up.plan_type, up.max_instances, up.expires_at
-					FROM user_plans up
-					WHERE up.user_id = $1
-					FOR UPDATE
-				`;
-				const planResult = await client.query(planQuery, [userId]);
+				// Check subscription limits before allowing activation
+				const { checkInstanceLimit } = require('../../../utils/subscriptionLimits.js');
+				const limitCheck = await checkInstanceLimit(userId);
 
-				if (planResult.rows.length === 0) {
+				if (!limitCheck.canCreate) {
 					await client.query('ROLLBACK');
 					res.status(403).json({
 						error: {
-							code: 'NO_PLAN',
-							message: 'No subscription plan found. Please contact support.',
-							details: { userId, instanceId: id },
-						},
-					});
-					return;
-				}
-
-				const userPlan = planResult.rows[0];
-
-				// Check if plan is active (not expired)
-				if (userPlan.expires_at && new Date(userPlan.expires_at) < new Date()) {
-					await client.query('ROLLBACK');
-					res.status(403).json({
-						error: {
-							code: 'PLAN_EXPIRED',
-							message: 'Your subscription plan has expired. Please renew to continue.',
+							code: limitCheck.reason,
+							message: limitCheck.message,
 							details: {
 								userId,
 								instanceId: id,
-								plan: userPlan.plan_type,
-								expiresAt: userPlan.expires_at,
-							},
-						},
-					});
-					return;
-				}
-
-				// First, lock the relevant rows to prevent race conditions
-				const lockQuery = `
-					SELECT ms.instance_id
-					FROM mcp_service_table ms
-					WHERE ms.user_id = $1 
-					  AND ms.status = 'active' 
-					  AND ms.oauth_status = 'completed'
-					  AND ms.instance_id != $2
-					FOR UPDATE
-				`;
-				await client.query(lockQuery, [userId, id]);
-
-				// Then count the instances (without FOR UPDATE since we already have the lock)
-				const countQuery = `
-					SELECT COUNT(*) as count 
-					FROM mcp_service_table ms
-					WHERE ms.user_id = $1 
-					  AND ms.status = 'active' 
-					  AND ms.oauth_status = 'completed'
-					  AND ms.instance_id != $2
-				`;
-				const countResult = await client.query(countQuery, [userId, id]);
-				const currentActiveInstances = parseInt(countResult.rows[0].count);
-
-				// Check plan limits (null means unlimited for pro plans)
-				if (userPlan.max_instances !== null && currentActiveInstances >= userPlan.max_instances) {
-					await client.query('ROLLBACK');
-					res.status(403).json({
-						error: {
-							code: 'ACTIVE_LIMIT_REACHED',
-							message: `You have reached your ${userPlan.plan_type} plan limit of ${userPlan.max_instances} active instance${userPlan.max_instances > 1 ? 's' : ''}. Deactivate or delete an existing instance to activate this one.`,
-							details: {
-								userId,
-								instanceId: id,
-								plan: userPlan.plan_type,
-								currentActiveInstances,
-								maxInstances: userPlan.max_instances,
-								upgradeMessage: 'Upgrade to Pro plan for unlimited active instances',
+								...limitCheck.details
 							},
 						},
 					});
@@ -214,7 +149,7 @@ async function toggleInstanceStatus(req, res) {
 				}
 
 				console.log(
-					`✅ Plan limit check passed: ${currentActiveInstances + 1}/${userPlan.max_instances || 'unlimited'} active instances for ${userPlan.plan_type} plan`
+					`✅ Subscription limit check passed: ${limitCheck.details?.activeInstances || 0 + 1}/${limitCheck.details?.maxInstances || 'unlimited'} active instances for ${limitCheck.details?.plan} plan`
 				);
 			}
 

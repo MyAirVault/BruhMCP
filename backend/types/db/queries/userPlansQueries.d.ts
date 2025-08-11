@@ -10,7 +10,7 @@ export type UserPlan = {
     /**
      * - Plan type (free/pro)
      */
-    plan_type: 'free' | 'pro';
+    plan_type: "free" | "pro";
     /**
      * - Maximum instances allowed
      */
@@ -34,7 +34,7 @@ export type UserPlan = {
     /**
      * - Payment status
      */
-    payment_status: 'active' | 'inactive' | 'cancelled' | 'processing' | null;
+    payment_status: "active" | "inactive" | "cancelled" | "processing" | null;
     /**
      * - Creation timestamp
      */
@@ -122,7 +122,7 @@ export function getUserPlan(userId: string): Promise<UserPlan | null>;
  * @param {PlanOptions} [options] - Additional options
  * @returns {Promise<UserPlan>} Updated plan object
  */
-export function updateUserPlan(userId: string, planType: string, options?: PlanOptions | undefined): Promise<UserPlan>;
+export function updateUserPlan(userId: string, planType: string, options?: PlanOptions): Promise<UserPlan>;
 /**
  * Create user plan (used for new users if auto-trigger fails)
  * @param {string} userId - User ID
@@ -130,7 +130,7 @@ export function updateUserPlan(userId: string, planType: string, options?: PlanO
  * @param {PlanOptions} [options] - Additional options
  * @returns {Promise<UserPlan>} Created plan object
  */
-export function createUserPlan(userId: string, planType?: string | undefined, options?: PlanOptions | undefined): Promise<UserPlan>;
+export function createUserPlan(userId: string, planType?: string, options?: PlanOptions): Promise<UserPlan>;
 /**
  * Check if user's plan is active (not expired)
  * @param {string} userId - User ID
@@ -143,7 +143,7 @@ export function isUserPlanActive(userId: string): Promise<boolean>;
  * @param {QueryOptions} [options] - Query options
  * @returns {Promise<UserPlan[]>} Array of users with the specified plan
  */
-export function getUsersByPlanType(planType: string, options?: QueryOptions | undefined): Promise<UserPlan[]>;
+export function getUsersByPlanType(planType: string, options?: QueryOptions): Promise<UserPlan[]>;
 /**
  * Get plan statistics
  * @returns {Promise<PlanStatistics>} Plan statistics
@@ -183,5 +183,5 @@ export function deactivateAllUserInstances(userId: string): Promise<number>;
  * @param {string|null} [customerId] - Razorpay customer ID
  * @returns {Promise<Object>} Result object with status and plan data
  */
-export function atomicActivateProSubscription(userId: string, subscriptionId: string, expiresAt: Date, customerId?: string | null | undefined): Promise<Object>;
+export function atomicActivateProSubscription(userId: string, subscriptionId: string, expiresAt: Date, customerId?: string | null): Promise<Object>;
 //# sourceMappingURL=userPlansQueries.d.ts.map

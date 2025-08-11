@@ -223,11 +223,11 @@ export type ValueRange = {
 /**
  * How values should be rendered in output
  */
-export type ValueRenderOption = 'FORMATTED_VALUE' | 'UNFORMATTED_VALUE' | 'FORMULA';
+export type ValueRenderOption = "FORMATTED_VALUE" | "UNFORMATTED_VALUE" | "FORMULA";
 /**
  * How input data should be interpreted
  */
-export type ValueInputOption = 'RAW' | 'USER_ENTERED';
+export type ValueInputOption = "RAW" | "USER_ENTERED";
 export type BorderStyle = {
     /**
      * - Border style

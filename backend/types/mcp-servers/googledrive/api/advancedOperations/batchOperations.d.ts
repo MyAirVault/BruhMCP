@@ -18,7 +18,7 @@ export function batchDeleteFiles(fileIds: string[], permanent: boolean | undefin
  * @param {string} bearerToken - OAuth Bearer token
  * @returns {Promise<{processed: number, successful: number, failed: number, results: Array<any>, errors: Array<any>}>} Batch operation results
  */
-export function batchUpdateMetadata(updates: Array<import('../types.js').UpdateMetadata>, bearerToken: string): Promise<{
+export function batchUpdateMetadata(updates: Array<import("../types.js").UpdateMetadata>, bearerToken: string): Promise<{
     processed: number;
     successful: number;
     failed: number;
@@ -32,7 +32,7 @@ export function batchUpdateMetadata(updates: Array<import('../types.js').UpdateM
  * @param {import('../types.js').SyncParams} [params={}] - Sync parameters
  * @returns {Promise<{folderId: string, folderPermissions: number, processed: number, successful: number, failed: number, results: Array<any>, errors: Array<any>}>} Sync results
  */
-export function syncFolderPermissions(folderId: string, bearerToken: string, params?: import("../types.js").SyncParams | undefined): Promise<{
+export function syncFolderPermissions(folderId: string, bearerToken: string, params?: import("../types.js").SyncParams): Promise<{
     folderId: string;
     folderPermissions: number;
     processed: number;

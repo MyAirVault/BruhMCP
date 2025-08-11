@@ -7,7 +7,7 @@
  * @param {Function} [typeGuard] - Optional type guard function
  * @returns {boolean} True if object has the key with valid value
  */
-export function hasValue(key: string, obj: any, typeGuard?: Function | undefined): boolean;
+export function hasValue(key: string, obj: any, typeGuard?: Function): boolean;
 /**
  * Check if value is a frame * @param {any} val - Value to check
  * @returns {boolean} True if value is a frame

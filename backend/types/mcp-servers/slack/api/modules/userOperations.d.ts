@@ -14,7 +14,7 @@ export type ListUsersArgs = {
      */
     cursor?: string | undefined;
 };
-export type SlackUser = import('../../middleware/types.js').SlackUser;
+export type SlackUser = import("../../middleware/types.js").SlackUser;
 export type SlackUserResponse = {
     /**
      * - Success indicator

@@ -149,7 +149,7 @@ export const AIRTABLE_BASE_URL: "https://api.airtable.com/v0";
  * @returns {Promise<void>}
  * @throws {Error} When API response indicates an error
  */
-export function handleApiError(response: import('node-fetch').Response, context: string): Promise<void>;
+export function handleApiError(response: import("node-fetch").Response, context: string): Promise<void>;
 /**
  * @typedef {Object} RequestOptions
  * @property {Record<string, string>} [headers] - Additional headers
@@ -163,7 +163,7 @@ export function handleApiError(response: import('node-fetch').Response, context:
  * @param {RequestOptions} [options] - Fetch options
  * @returns {Promise<import('node-fetch').Response>}
  */
-export function makeAuthenticatedRequest(endpoint: string, apiKey: string, options?: RequestOptions | undefined): Promise<import('node-fetch').Response>;
+export function makeAuthenticatedRequest(endpoint: string, apiKey: string, options?: RequestOptions): Promise<import("node-fetch").Response>;
 /**
  * Build query parameters for Airtable API requests
  * @param {Record<string, string | number | boolean | string[] | undefined | null>} params - Query parameters

@@ -70,7 +70,7 @@ export function getEnv(key: string, defaultValue?: string): string;
  * @param {number} [decimals] - Number of decimal places
  * @returns {string} Formatted string
  */
-export function formatBytes(bytes: number, decimals?: number | undefined): string;
+export function formatBytes(bytes: number, decimals?: number): string;
 /**
  * Format duration in milliseconds to human readable string
  * @param {number} ms - Duration in milliseconds
@@ -96,7 +96,7 @@ export function formatDuration(ms: number): string;
  * @param {number} [ttl] - Time to live in milliseconds
  * @returns {SimpleCache} Cache instance
  */
-export function createCache(ttl?: number | undefined): SimpleCache;
+export function createCache(ttl?: number): SimpleCache;
 import { deepClone } from "./data.js";
 import { deepMerge } from "./data.js";
 import { isObject } from "./data.js";

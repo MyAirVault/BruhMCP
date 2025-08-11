@@ -222,7 +222,7 @@ export type CustomErrorOptions = {
  * @param {CustomErrorOptions} [options] - Additional options
  * @returns {ErrorResponse} Standardized error response object
  */
-export function createErrorResponse(_statusCode: number, code: string, message: string, options?: CustomErrorOptions | undefined): ErrorResponse;
+export function createErrorResponse(_statusCode: number, code: string, message: string, options?: CustomErrorOptions): ErrorResponse;
 /**
  * Sends a standardized error response
  * @param {import('express').Response} res - Express response object
@@ -231,34 +231,34 @@ export function createErrorResponse(_statusCode: number, code: string, message: 
  * @param {string} message - Error message
  * @param {CustomErrorOptions} [options] - Additional options
  */
-export function sendErrorResponse(res: import('express').Response, statusCode: number, code: string, message: string, options?: CustomErrorOptions | undefined): void;
+export function sendErrorResponse(res: import("express").Response, statusCode: number, code: string, message: string, options?: CustomErrorOptions): void;
 export namespace ErrorResponses {
-    function unauthorized(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function forbidden(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function invalidToken(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function missingToken(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function validation(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, details?: ValidationDetail[] | undefined, options?: CustomErrorOptions | undefined): void;
-    function badRequest(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function invalidInput(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function missingField(res: import("express").Response<any, Record<string, any>>, field: string, options?: CustomErrorOptions | undefined): void;
-    function notFound(res: import("express").Response<any, Record<string, any>>, resource?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function alreadyExists(res: import("express").Response<any, Record<string, any>>, resource?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function instanceNotFound(res: import("express").Response<any, Record<string, any>>, instanceId: string, options?: CustomErrorOptions | undefined): void;
-    function instanceUnavailable(res: import("express").Response<any, Record<string, any>>, instanceId: string, options?: CustomErrorOptions | undefined): void;
-    function serviceDisabled(res: import("express").Response<any, Record<string, any>>, serviceName: string, options?: CustomErrorOptions | undefined): void;
-    function serviceUnavailable(res: import("express").Response<any, Record<string, any>>, serviceName?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function rateLimited(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function internal(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function databaseError(res: import("express").Response<any, Record<string, any>>, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function externalApiError(res: import("express").Response<any, Record<string, any>>, service: string, message?: string | undefined, options?: CustomErrorOptions | undefined): void;
-    function credentialsInvalid(res: import("express").Response<any, Record<string, any>>, service: string, options?: CustomErrorOptions | undefined): void;
+    function unauthorized(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function forbidden(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function invalidToken(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function missingToken(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function validation(res: import("express").Response, message?: string, details?: Array<ValidationDetail>, options?: CustomErrorOptions): void;
+    function badRequest(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function invalidInput(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function missingField(res: import("express").Response, field: string, options?: CustomErrorOptions): void;
+    function notFound(res: import("express").Response, resource?: string, options?: CustomErrorOptions): void;
+    function alreadyExists(res: import("express").Response, resource?: string, options?: CustomErrorOptions): void;
+    function instanceNotFound(res: import("express").Response, instanceId: string, options?: CustomErrorOptions): void;
+    function instanceUnavailable(res: import("express").Response, instanceId: string, options?: CustomErrorOptions): void;
+    function serviceDisabled(res: import("express").Response, serviceName: string, options?: CustomErrorOptions): void;
+    function serviceUnavailable(res: import("express").Response, serviceName?: string, options?: CustomErrorOptions): void;
+    function rateLimited(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function internal(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function databaseError(res: import("express").Response, message?: string, options?: CustomErrorOptions): void;
+    function externalApiError(res: import("express").Response, service: string, message?: string, options?: CustomErrorOptions): void;
+    function credentialsInvalid(res: import("express").Response, service: string, options?: CustomErrorOptions): void;
 }
 /**
  * Converts Zod validation errors to standard format
  * @param {import('zod').ZodError} zodError - Zod validation error
  * @returns {Array<ValidationDetail>} Formatted validation details
  */
-export function formatZodErrors(zodError: import('zod').ZodError): Array<ValidationDetail>;
+export function formatZodErrors(zodError: import("zod").ZodError): Array<ValidationDetail>;
 /**
  * Error handler middleware for Express
  * Catches unhandled errors and formats them consistently
@@ -267,5 +267,5 @@ export function formatZodErrors(zodError: import('zod').ZodError): Array<Validat
  * @param {import('express').Response} res - Express response
  * @param {import('express').NextFunction} next - Express next function
  */
-export function errorHandler(err: Error, req: import('express').Request, res: import('express').Response, next: import('express').NextFunction): void;
+export function errorHandler(err: Error, req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): void;
 //# sourceMappingURL=errorResponse.d.ts.map

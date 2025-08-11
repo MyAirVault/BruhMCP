@@ -1,4 +1,4 @@
-export type CacheEntry = import('./cacheCore.js').CacheEntry;
+export type CacheEntry = import("./cacheCore.js").CacheEntry;
 /**
  * @typedef {import('./cacheCore.js').CacheEntry} CacheEntry
  */

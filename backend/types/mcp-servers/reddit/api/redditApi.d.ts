@@ -493,7 +493,7 @@ export type RedditMessage = {
  * @param {RequestOptions} [options] - Request options
  * @returns {Promise<RedditApiResponse|RedditListingResponse|RedditSubmissionResponse|RedditCommentResponse|RedditMessageResponse|[RedditListingResponse, RedditListingResponse]>} API response
  */
-export function makeRedditRequest(endpoint: string, bearerToken: string, options?: RequestOptions | undefined): Promise<RedditApiResponse | RedditListingResponse | RedditSubmissionResponse | RedditCommentResponse | RedditMessageResponse | [RedditListingResponse, RedditListingResponse]>;
+export function makeRedditRequest(endpoint: string, bearerToken: string, options?: RequestOptions): Promise<RedditApiResponse | RedditListingResponse | RedditSubmissionResponse | RedditCommentResponse | RedditMessageResponse | [RedditListingResponse, RedditListingResponse]>;
 /**
  * Get current user information
  * @param {string} bearerToken - OAuth bearer token

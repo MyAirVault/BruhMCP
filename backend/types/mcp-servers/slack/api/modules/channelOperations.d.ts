@@ -30,7 +30,7 @@ export type LeaveChannelArgs = {
      */
     channel: string;
 };
-export type SlackChannel = import('../../middleware/types.js').SlackChannel;
+export type SlackChannel = import("../../middleware/types.js").SlackChannel;
 export type SlackChannelsResponse = {
     /**
      * - Success indicator

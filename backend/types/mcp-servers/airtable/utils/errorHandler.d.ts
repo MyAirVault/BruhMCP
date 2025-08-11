@@ -176,13 +176,13 @@ export class AirtableErrorHandler {
  * @param {import('express').Response} res - Response object
  * @param {import('express').NextFunction} _next - Next middleware
  */
-export function errorMiddleware(err: Error, req: import('express').Request, res: import('express').Response, _next: import('express').NextFunction): void;
+export function errorMiddleware(err: Error, req: import("express").Request, res: import("express").Response, _next: import("express").NextFunction): void;
 /**
  * Async error wrapper
  * @param {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>} fn - Async function to wrap
  * @returns {(req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => void}
  */
-export function asyncErrorHandler(fn: (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => Promise<void>): (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => void;
+export function asyncErrorHandler(fn: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>): (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => void;
 /**
  * Error recovery helper
  * @template T
@@ -191,8 +191,8 @@ export function asyncErrorHandler(fn: (req: import('express').Request, res: impo
  * @returns {Promise<T>}
  */
 export function withErrorRecovery<T>(operation: () => Promise<T>, options?: {
-    maxRetries?: number | undefined;
-    retryDelay?: number | undefined;
-    context?: Record<string, string | number | boolean> | undefined;
+    maxRetries?: number;
+    retryDelay?: number;
+    context?: Record<string, string | number | boolean>;
 }): Promise<T>;
 //# sourceMappingURL=errorHandler.d.ts.map

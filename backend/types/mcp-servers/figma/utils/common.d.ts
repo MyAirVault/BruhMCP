@@ -60,8 +60,8 @@ export function generateCSSShorthand(values: {
     bottom: number;
     left: number;
 }, options?: {
-    ignoreZero?: boolean | undefined;
-    suffix?: string | undefined;
+    ignoreZero?: boolean;
+    suffix?: string;
 }): string | undefined;
 /**
  * Convert a Figma paint (solid, image, gradient) to a SimplifiedFill
