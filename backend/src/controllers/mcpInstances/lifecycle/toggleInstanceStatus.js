@@ -129,7 +129,7 @@ async function toggleInstanceStatus(req, res) {
 			// CRITICAL: Atomic subscription limit checking when activating inactive instances
 			if (status === 'active' && instanceData.status === 'inactive') {
 				// Check subscription limits before allowing activation
-				const { checkInstanceLimit } = require('../../../utils/subscriptionLimits.js');
+				const { checkInstanceLimit } = require('../../../utils/razorpay/subscriptionLimits.js');
 				const limitCheck = await checkInstanceLimit(userId);
 
 				if (!limitCheck.canCreate) {

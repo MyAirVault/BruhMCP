@@ -1,9 +1,5 @@
 export = DropboxOAuthHandler;
 /**
- * @fileoverview Dropbox OAuth Handler
- * Implements OAuth flow for Dropbox MCP service
- */
-/**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult} OAuthFlowResult
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult} OAuthCallbackResult

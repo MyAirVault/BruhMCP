@@ -280,7 +280,7 @@ router.get('/health', (req, res) => {
  * @param {import('express').NextFunction} next - Express next function
  * @returns {Promise<void>} Sends error response or calls next
  */
-router.use((error, req, res, next) => {
+router.use((/** @type {Error} */ error, /** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
     try {
         const errorMessage = error instanceof Error ? error.message : String(error);
         const requestInfo = {

@@ -69,7 +69,9 @@ async function createUser(userData) {
         console.error('Create user failed:', errorMessage);
         
         // Handle specific PostgreSQL errors
-        if (error.code === '23505' && error.constraint === 'users_email_key') {
+        /** @type {any} */
+        const dbError = error;
+        if (dbError.code === '23505' && dbError.constraint === 'users_email_key') {
             throw new Error('User with this email already exists');
         }
         
@@ -83,7 +85,7 @@ async function createUser(userData) {
 /**
  * Find user by email address
  * @param {string} email - User's email address
- * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, is_verified: number, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
+ * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
  */
 async function findUserByEmail(email) {
     try {
@@ -113,7 +115,6 @@ async function findUserByEmail(email) {
             email: user.email,
             password_hash: user.password, // Keep same name for compatibility
             isVerified: user.email_verified,
-            is_verified: user.email_verified ? 1 : 0, // Keep SQLite compatibility
             razorpayCustomerId: user.razorpay_customer_id,
             createdAt: user.created_at,
             updatedAt: user.updated_at,
@@ -134,7 +135,7 @@ async function findUserByEmail(email) {
 /**
  * Find user by ID
  * @param {string} userId - User's UUID
- * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, is_verified: number, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
+ * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
  */
 async function findUserById(userId) {
     try {
@@ -164,7 +165,6 @@ async function findUserById(userId) {
             email: user.email,
             password_hash: user.password, // Keep same name for compatibility
             isVerified: user.email_verified,
-            is_verified: user.email_verified ? 1 : 0, // Keep SQLite compatibility
             razorpayCustomerId: user.razorpay_customer_id,
             createdAt: user.created_at,
             updatedAt: user.updated_at,
@@ -199,12 +199,16 @@ async function updateUser(userId, updateData) {
             'razorpay_customer_id', 'last_login_at'
         ];
         
+        /** @type {string[]} */
         const updateFields = [];
+        /** @type {any[]} */
         const values = [];
         let paramCount = 1;
         
         // Build dynamic update query
-        Object.keys(updateData).forEach(key => {
+        /** @type {Record<string, any>} */
+        const updateObj = updateData;
+        Object.keys(updateObj).forEach(key => {
             let dbField = key;
             
             // Map camelCase to snake_case
@@ -217,7 +221,7 @@ async function updateUser(userId, updateData) {
             
             if (allowedFields.includes(dbField)) {
                 updateFields.push(`${dbField} = $${paramCount + 1}`);
-                values.push(updateData[key]);
+                values.push(updateObj[key]);
                 paramCount++;
             }
         });
@@ -386,7 +390,7 @@ async function updateLastLogin(userId) {
 /**
  * Check if user exists with email (including unverified users)
  * @param {string} email - User's email address
- * @returns {Promise<{id: string, isVerified: boolean, is_verified: number, isActive: boolean}|null>} Minimal user data or null
+ * @returns {Promise<{id: string, isVerified: boolean, isActive: boolean}|null>} Minimal user data or null
  */
 async function checkUserExists(email) {
     try {
@@ -411,7 +415,6 @@ async function checkUserExists(email) {
         return {
             id: user.id,
             isVerified: user.email_verified,
-            is_verified: user.email_verified ? 1 : 0, // Keep SQLite compatibility
             isActive: user.is_active
         };
         
@@ -463,6 +466,39 @@ async function deactivateUser(userId) {
 }
 
 
+/**
+ * Find existing user or create new one (upsert pattern)
+ * Used primarily for local development authentication
+ * @param {string} email - User email
+ * @param {string} [firstName] - User first name
+ * @param {string} [lastName] - User last name
+ * @returns {Promise<Object>} User record (existing or newly created)
+ */
+async function findOrCreateUser(email, firstName = 'User', lastName = '') {
+    try {
+        // First try to find existing user
+        const existingUser = await findUserByEmail(email);
+        if (existingUser) {
+            return existingUser;
+        }
+
+        // User doesn't exist, create new one with minimal data
+        return await createUser({
+            email,
+            firstName,
+            lastName,
+            passwordHash: '', // Will be set later by local auth system
+            isVerified: true  // Local development users are auto-verified
+        });
+    } catch (error) {
+        console.error('Error in findOrCreateUser:', error);
+        throw error;
+    } finally {
+        console.debug('Find or create user process completed');
+    }
+}
+
+
 // Export all authentication query functions
 module.exports = {
     // Core CRUD operations
@@ -478,5 +514,6 @@ module.exports = {
     
     // Utility functions
     checkUserExists,
-    deactivateUser
+    deactivateUser,
+    findOrCreateUser
 };

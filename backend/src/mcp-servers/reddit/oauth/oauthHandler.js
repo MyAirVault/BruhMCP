@@ -4,6 +4,7 @@
  */
 
 const { axiosGet, axiosPost } = require('../../../utils/axiosUtils.js');
+const { PUBLIC_DOMAIN } = require('../../../config/env.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
@@ -17,7 +18,7 @@ const { axiosGet, axiosPost } = require('../../../utils/axiosUtils.js');
  */
 class RedditOAuthHandler {
 	constructor() {
-		this.redirectUri = `${process.env.PUBLIC_DOMAIN || 'http://localhost:5000'}/api/v1/auth-registry/callback/reddit`;
+		this.redirectUri = `${PUBLIC_DOMAIN}/api/v1/auth-registry/callback/reddit`;
 		this.scopes = ['identity', 'read', 'vote', 'submit', 'flair', 'edit'];
 		this.authorizationEndpoint = 'https://www.reddit.com/api/v1/authorize';
 		this.tokenEndpoint = 'https://www.reddit.com/api/v1/access_token';

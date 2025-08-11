@@ -45,6 +45,7 @@ const DATABASE_URL = getEnvVar('DATABASE_URL', '', false); // For production dep
 
 const PORT = getEnvVar('PORT', '5000', false);
 const NODE_ENV = getEnvVar('NODE_ENV', 'development', false);
+const PUBLIC_DOMAIN = getEnvVar('PUBLIC_DOMAIN', 'http://localhost:5000', false);
 
 
 // JWT configuration
@@ -131,6 +132,7 @@ module.exports = {
     // Server
     PORT,
     NODE_ENV,
+    PUBLIC_DOMAIN,
     
     // JWT
     JWT_SECRET,

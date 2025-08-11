@@ -8,6 +8,10 @@ declare global {
 				email: string;
 				sessionCreatedAt: Date;
 				sessionExpiresAt: Date;
+				firstName?: string;
+				lastName?: string;
+				isVerified?: boolean;
+				createdAt?: Date;
 			} | null;
 			instance?: {
 				instance_id: string;

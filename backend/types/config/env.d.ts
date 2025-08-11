@@ -5,6 +5,7 @@ export const DB_PASSWORD: string;
 export const DATABASE_URL: string;
 export const PORT: string;
 export const NODE_ENV: string;
+export const PUBLIC_DOMAIN: string;
 export const JWT_SECRET: string;
 export const JWT_REFRESH_SECRET: string;
 export const SMTP_HOST: string;

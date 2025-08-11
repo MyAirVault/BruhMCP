@@ -52,7 +52,10 @@ async function checkDatabaseTables() {
 		'mcp_service_table',
 		'mcp_credentials',
 		'token_audit_log',
-		'user_plans',
+		'user_subscriptions',
+		'auth_tokens',
+		'subscription_transactions',
+		'account_credits'
 	];
 
 	try {

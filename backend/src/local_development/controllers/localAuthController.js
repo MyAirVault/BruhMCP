@@ -7,7 +7,7 @@
 
 const { z } = require('zod');
 const { localUserService } = require('../services/localUserService.js');
-const { generateJWT } = require('../../utils/jwt.js');
+const { generateAccessToken } = require('../../utils/jwt.js');
 const { ErrorResponses, formatZodErrors } = require('../../utils/errorResponse.js');
 const { getLocalModeConfig } = require('../config/localMode.js');
 
@@ -49,7 +49,10 @@ async function localLoginOrRegister(req, res) {
         }
 
         // Generate JWT (same as production)
-        const jwtToken = generateJWT(/** @type {{ id: string, email: string }} */ (result.user));
+        if (!result.user) {
+            return ErrorResponses.internal(res, 'User authentication failed');
+        }
+        const jwtToken = generateAccessToken({ userId: result.user.id, email: result.user.email });
 
         // Set JWT as HTTP-only cookie (same as production)
         res.cookie('authToken', jwtToken, {

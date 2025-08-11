@@ -39,7 +39,7 @@ CREATE TABLE auth_tokens (
 CREATE TABLE user_subscriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    plan_code VARCHAR(50) NOT NULL CHECK (plan_code IN ('free', 'pro', 'plus')) DEFAULT 'free',
+    plan_code VARCHAR(50) NOT NULL CHECK (plan_code IN ('free', 'pro')) DEFAULT 'free',
     razorpay_subscription_id VARCHAR(255) UNIQUE,
     razorpay_customer_id VARCHAR(255),
     status VARCHAR(50) NOT NULL CHECK (status IN ('created', 'authenticated', 'active', 'past_due', 'cancelled', 'completed', 'paused', 'halted', 'upgraded', 'replaced')) DEFAULT 'active',
@@ -146,6 +146,9 @@ CREATE INDEX idx_user_subscriptions_user_id ON user_subscriptions(user_id);
 CREATE INDEX idx_user_subscriptions_status ON user_subscriptions(status);
 CREATE INDEX idx_user_subscriptions_razorpay_subscription_id ON user_subscriptions(razorpay_subscription_id);
 CREATE INDEX idx_user_subscriptions_next_billing ON user_subscriptions(next_billing_date) WHERE status = 'active';
+-- Allow multiple subscriptions per user for stacked billing periods
+-- Users can buy monthly subscriptions multiple times (e.g., 3 separate monthly purchases)
+CREATE INDEX idx_user_subscriptions_user_active ON user_subscriptions(user_id, status) WHERE status = 'active';
 
 CREATE INDEX idx_subscription_transactions_user_id ON subscription_transactions(user_id);
 CREATE INDEX idx_subscription_transactions_subscription_id ON subscription_transactions(subscription_id);

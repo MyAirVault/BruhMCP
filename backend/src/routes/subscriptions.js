@@ -22,7 +22,7 @@ const {
 } = require('../controllers/subscriptions/subscriptions');
 
 // Import middleware (adapted to current structure)
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticate } = require('../middleware/auth');
 const { apiRateLimiter } = require('../utils/rateLimiter');
 
 // Create router instance
@@ -174,7 +174,7 @@ router.post(
  * Error handling middleware for subscription routes
  * Catches any unhandled errors in subscription endpoints
  */
-router.use((error, req, res, next) => {
+router.use((/** @type {Error} */ error, /** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
 	console.error('Subscription route error:', {
 		error: error.message,
 		stack: error.stack,

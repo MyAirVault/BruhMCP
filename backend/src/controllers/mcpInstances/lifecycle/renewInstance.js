@@ -142,7 +142,7 @@ async function renewInstance(req, res) {
 
 		// Check subscription limits before allowing renewal
 		// For free users: renewal activates the instance, so check total active instances limit
-		const { checkInstanceLimit } = require('../../../utils/subscriptionLimits.js');
+		const { checkInstanceLimit } = require('../../../utils/razorpay/subscriptionLimits.js');
 		// Check instance limits
 		const limitCheck = await checkInstanceLimit(userId);
 

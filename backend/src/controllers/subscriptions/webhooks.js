@@ -252,16 +252,24 @@ async function handleSubscriptionCancelled(payload) {
 			if (cancelledSub.rows.length > 0) {
 				const userId = cancelledSub.rows[0].user_id;
 				
-				// Create free subscription
-				await client.query(
-					`INSERT INTO user_subscriptions (
-						user_id, plan_code, status, billing_cycle, 
-						current_period_start, current_period_end, total_amount
-					) VALUES ($1, 'free', 'active', 'monthly', 
-						CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 days', 0)
-					ON CONFLICT (user_id) WHERE plan_code = 'free' DO NOTHING`,
+				// Check if user already has an active free subscription
+				const freeSubCheck = await client.query(
+					`SELECT id FROM user_subscriptions 
+					 WHERE user_id = $1 AND plan_code = 'free' AND status = 'active'`,
 					[userId]
 				);
+				
+				// Create free subscription only if they don't have one
+				if (freeSubCheck.rows.length === 0) {
+					await client.query(
+						`INSERT INTO user_subscriptions (
+							user_id, plan_code, status, billing_cycle, 
+							current_period_start, current_period_end, total_amount
+						) VALUES ($1, 'free', 'active', 'monthly', 
+							CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 days', 0)`,
+						[userId]
+					);
+				}
 			}
 		}
 

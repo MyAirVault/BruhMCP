@@ -1,3 +1,5 @@
+const { PUBLIC_DOMAIN } = require('../../config/env.js');
+
 /**
  * Calculate expiration date based on option
  * @param {string} option - Expiration option
@@ -29,8 +31,7 @@ function calculateExpirationDate(option) {
  * @returns {string} The formatted access URL in format <domain>/<mcp>/uuid
  */
 function generateAccessUrl(instanceId, mcpTypeName) {
-	const publicDomain = process.env.PUBLIC_DOMAIN || 'http://localhost:5000';
-	return `${publicDomain}/${mcpTypeName}/${instanceId}`;
+	return `${PUBLIC_DOMAIN}/${mcpTypeName}/${instanceId}`;
 }
 
 module.exports = {

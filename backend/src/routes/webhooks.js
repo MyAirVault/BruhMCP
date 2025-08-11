@@ -22,7 +22,7 @@ const router = express.Router();
 router.use('/razorpay', express.raw({ type: 'application/json' }));
 
 // Convert raw body back to JSON for processing
-router.use('/razorpay', (req, res, next) => {
+router.use('/razorpay', (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
 	if (req.body) {
 		try {
 			req.body = JSON.parse(req.body.toString());
@@ -35,7 +35,7 @@ router.use('/razorpay', (req, res, next) => {
 			});
 		}
 	}
-	next();
+	return next();
 });
 
 /**
@@ -64,7 +64,7 @@ router.get('/health', (req, res) => {
  * Error handling middleware for webhook routes
  * Catches any unhandled errors in webhook endpoints
  */
-router.use((error, req, res, next) => {
+router.use((/** @type {Error} */ error, /** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
 	console.error('Webhook route error:', {
 		error: error.message,
 		stack: error.stack,

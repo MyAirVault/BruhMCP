@@ -12,7 +12,8 @@
 const { updateUser } = require('../../db/queries/authQueries');
 const { verifyOTP } = require('../../utils/otp');
 const { generateAccessToken, generateRefreshToken } = require('../../utils/jwt');
-// const { createRazorpayCustomer } = require('../../utils/razorpay'); // TODO: Implement if needed
+const { createDefaultFreeSubscription } = require('../../db/queries/subscriptionQueries');
+const { createRazorpayCustomer } = require('../../utils/razorpay/razorpay');
 
 
 // Constants for verification configuration
@@ -76,13 +77,12 @@ async function handleSignupVerification(req, res) {
         // Create Razorpay customer now that email is verified
         
         let razorpayCustomerId = null;
-        // TODO: Implement Razorpay customer creation if needed
-        /*
         try {
             const customerName = user.firstName && user.lastName 
                 ? `${user.firstName} ${user.lastName}`.trim()
                 : VERIFICATION_CONFIG.DEFAULT_CUSTOMER_NAME_FALLBACK;
                 
+            /** @type {import('../../utils/razorpay/modules/customers.js').RazorpayCustomer} */
             const razorpayCustomer = await createRazorpayCustomer({
                 name: customerName,
                 email: normalizedEmail,
@@ -109,14 +109,13 @@ async function handleSignupVerification(req, res) {
             });
             // Continue with verification even if Razorpay customer creation fails
         }
-        */
         
         
         // Update user record with Razorpay customer ID if available
         
         if (razorpayCustomerId) {
             try {
-                await updateUser(user.id, { razorpayCustomerId });
+                await updateUser(user.id, { razorpay_customer_id: razorpayCustomerId });
             } catch (updateError) {
                 console.warn('Failed to update user with Razorpay customer ID:', {
                     userId: user.id,
@@ -124,6 +123,24 @@ async function handleSignupVerification(req, res) {
                     error: updateError instanceof Error ? updateError.message : String(updateError)
                 });
             }
+        }
+
+        
+        // Create default free subscription for new user
+        
+        try {
+            await createDefaultFreeSubscription(user.id);
+            console.log('Default free subscription created for user:', {
+                userId: user.id,
+                email: normalizedEmail
+            });
+        } catch (subscriptionError) {
+            // Log error but don't fail verification - user can still use the system
+            console.warn('Failed to create default subscription during verification:', {
+                userId: user.id,
+                email: normalizedEmail,
+                error: subscriptionError instanceof Error ? subscriptionError.message : String(subscriptionError)
+            });
         }
         
         

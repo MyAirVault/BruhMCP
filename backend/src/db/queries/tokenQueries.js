@@ -132,7 +132,9 @@ async function storeRefreshToken(userId, refreshToken, expiryDays = 30) {
         console.error('Store refresh token failed:', errorMessage);
         
         // Handle unique constraint violations
-        if (error.code === '23505' && error.constraint === 'auth_tokens_token_key') {
+        /** @type {any} */
+        const dbError = error;
+        if (dbError.code === '23505' && dbError.constraint === 'auth_tokens_token_key') {
             throw new Error('Token already exists');
         }
         
@@ -516,7 +518,7 @@ async function getRecentOTPRequests(userId, windowMinutes = 5) {
 
 /**
  * Clean up expired tokens
- * @param {string} [tokenType] - Specific token type to clean up, or all types if not specified
+ * @param {string|null} [tokenType] - Specific token type to clean up, or all types if not specified
  * @returns {Promise<number>} Number of tokens cleaned up
  */
 async function cleanupExpiredTokens(tokenType = null) {
@@ -562,7 +564,7 @@ async function cleanupExpiredTokens(tokenType = null) {
 /**
  * Invalidate all tokens for a user (logout from all devices)
  * @param {string} userId - User's UUID
- * @param {string} [tokenType] - Specific token type to invalidate, or all types if not specified
+ * @param {string|null} [tokenType] - Specific token type to invalidate, or all types if not specified
  * @returns {Promise<number>} Number of tokens invalidated
  */
 async function invalidateUserTokens(userId, tokenType = null) {

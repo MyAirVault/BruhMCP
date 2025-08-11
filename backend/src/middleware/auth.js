@@ -36,7 +36,9 @@ function authenticateToken(req, res, next) {
         req.user = {
             id: decoded.userId,
             userId: decoded.userId,
-            email: decoded.email
+            email: decoded.email,
+            sessionCreatedAt: new Date(decoded.iat * 1000),
+            sessionExpiresAt: new Date(decoded.exp * 1000)
         };
         
         next();
@@ -118,7 +120,7 @@ async function verifyUserExists(req, res, next) {
             return;
         }
         
-        // Add full user data to request
+        // Add full user data to request (user already comes in camelCase from authQueries)
         req.user = {
             ...req.user,
             firstName: user.firstName,
@@ -212,7 +214,9 @@ function optionalAuth(req, res, next) {
             req.user = {
                 id: decoded.userId,
                 userId: decoded.userId,
-                email: decoded.email
+                email: decoded.email,
+                sessionCreatedAt: new Date(decoded.iat * 1000),
+                sessionExpiresAt: new Date(decoded.exp * 1000)
             };
         } catch (tokenError) {
             // Token is invalid, but we continue without authentication
@@ -240,31 +244,45 @@ function optionalAuth(req, res, next) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @param {import('express').NextFunction} next - Express next function
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
     try {
-        authenticateToken(req, res, (tokenError) => {
-            if (tokenError) return;
+        // First validate the token synchronously
+        authenticateToken(req, res, async (tokenError) => {
+            if (tokenError) return; // Token validation failed, response already sent
             
-            verifyUserExists(req, res, (userError) => {
-                if (userError) return;
+            try {
+                // Then verify user exists asynchronously
+                await new Promise((resolve, reject) => {
+                    verifyUserExists(req, res, (userError) => {
+                        if (userError) {
+                            reject(userError);
+                        } else {
+                            resolve(true);
+                        }
+                    });
+                });
+                
+                // If we get here, both token and user verification passed
                 next();
-            });
+                
+            } catch (userError) {
+                // User verification failed, response already sent by verifyUserExists
+                return;
+            }
         });
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('Combined authentication failed:', errorMessage);
         
-        res.status(500).json({
-            success: false,
-            message: 'Authentication error'
-        });
-        return;
-        
-    } finally {
-        console.debug('Combined authentication process completed');
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                message: 'Authentication error'
+            });
+        }
     }
 }
 
@@ -274,13 +292,12 @@ function authenticate(req, res, next) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @param {import('express').NextFunction} next - Express next function
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function authenticateVerified(req, res, next) {
+async function authenticateVerified(req, res, next) {
     try {
-        authenticate(req, res, (authError) => {
-            if (authError) return;
-            
+        // Use the updated async authenticate function
+        await authenticate(req, res, () => {
             requireVerifiedEmail(req, res, next);
         });
         
@@ -288,14 +305,12 @@ function authenticateVerified(req, res, next) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('Verified authentication failed:', errorMessage);
         
-        res.status(500).json({
-            success: false,
-            message: 'Authentication error'
-        });
-        return;
-        
-    } finally {
-        console.debug('Verified authentication process completed');
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                message: 'Authentication error'
+            });
+        }
     }
 }
 

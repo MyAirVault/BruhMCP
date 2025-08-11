@@ -1,21 +1,4 @@
-export type PlanLimits = {
-    /**
-     * - Maximum instances allowed
-     */
-    instances: number;
-    /**
-     * - Maximum API calls allowed
-     */
-    api_calls: number;
-    /**
-     * - Maximum storage in GB
-     */
-    storage_gb: number;
-    /**
-     * - Maximum users allowed
-     */
-    users: number;
-};
+export type PlanLimits = Object & Record<string, number>;
 export type SubscriptionPlan = {
     /**
      * - Plan code identifier
@@ -86,11 +69,12 @@ export type SubscriptionPlan = {
  * @fileoverview Comprehensive subscription plans configuration with features, limits, and pricing
  */
 /**
- * @typedef {Object} PlanLimits
+ * @typedef {Object & Record<string, number>} PlanLimits
  * @property {number} instances - Maximum instances allowed
  * @property {number} api_calls - Maximum API calls allowed
  * @property {number} storage_gb - Maximum storage in GB
  * @property {number} users - Maximum users allowed
+ * @property {number} integrations - Maximum integrations allowed
  */
 /**
  * @typedef {Object} SubscriptionPlan
@@ -127,14 +111,6 @@ export function getActivePlans(): Array<SubscriptionPlan>;
  * @throws {Error} If plan code is invalid
  */
 export function getPlanByCode(planCode: string): SubscriptionPlan | null;
-/**
- * Get subscription plan by ID (for backward compatibility)
- * Maps old numeric IDs to plan codes
- * @param {number} planId - Numeric plan ID (1=free, 2=pro)
- * @returns {Object|null} Plan object or null if not found
- * @throws {Error} If plan ID is invalid
- */
-export function getPlanById(planId: number): Object | null;
 /**
  * Get all subscription plans
  * @returns {Array<Object>} Array of all plans sorted by display order

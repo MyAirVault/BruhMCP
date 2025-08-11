@@ -18,7 +18,7 @@ const { RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX, CORS_ORIGIN, NODE_ENV } = require(
  * @returns {Function} Express middleware that does nothing
  */
 function createTestRateLimit() {
-    return (req, res, next) => {
+    return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
         next();
     };
 }
@@ -450,7 +450,7 @@ function sanitizeInput(req, res, next) {
  * @returns {Function} Express middleware function
  */
 function logSecurityEvent(eventType) {
-    return (req, res, next) => {
+    return (/** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
         try {
             const clientIP = req.ip || req.connection.remoteAddress;
             const userAgent = req.get('User-Agent') || 'Unknown';

@@ -155,48 +155,6 @@ function getPlanByCode(planCode) {
 }
 
 
-/**
- * Get subscription plan by ID (for backward compatibility)
- * Maps old numeric IDs to plan codes
- * @param {number} planId - Numeric plan ID (1=free, 2=pro)
- * @returns {Object|null} Plan object or null if not found
- * @throws {Error} If plan ID is invalid
- */
-function getPlanById(planId) {
-    try {
-        if (typeof planId !== 'number' && typeof planId !== 'string') {
-            throw new Error('Plan ID must be a number or string');
-        }
-
-        // Map old numeric IDs to plan codes for backward compatibility
-        /** @type {Record<number, string>} */
-        const idToCodeMap = {
-            1: 'free',
-            2: 'pro'
-        };
-
-        const numericId = typeof planId === 'string' ? parseInt(planId, 10) : planId;
-
-        if (isNaN(numericId)) {
-            throw new Error('Plan ID must be a valid number');
-        }
-
-        const planCode = idToCodeMap[numericId];
-
-        if (!planCode) {
-            console.warn(`No plan found for ID: ${planId}`);
-            return null;
-        }
-
-        return getPlanByCode(planCode);
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error('Failed to get plan by ID:', errorMessage);
-        throw error;
-    } finally {
-        console.debug('Get plan by ID process completed');
-    }
-}
 
 
 /**
@@ -400,11 +358,12 @@ function isPlanUnlimited(planCode, resource) {
 }
 
 
+
+
 module.exports = {
     SUBSCRIPTION_PLANS,
     getActivePlans,
     getPlanByCode,
-    getPlanById,
     getAllPlans,
     getRazorpayPlanId,
     getPlanPricing,

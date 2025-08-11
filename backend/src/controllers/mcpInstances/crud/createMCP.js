@@ -14,6 +14,7 @@ const mcpInstanceLogger = require('../../../utils/mcpInstanceLogger.js');
 // Import new MCP Auth Registry
 const { authRegistry } = require('../../../services/mcp-auth-registry/index.js');
 const { deleteMCPInstance } = require('../../../db/queries/mcpInstances/crud.js');
+const { PUBLIC_DOMAIN } = require('../../../config/env.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -92,7 +93,7 @@ async function createMCP(req, res) {
 		const { mcp_type, custom_name, expiration_option, credentials } = validationResult.data;
 
 		// Get user subscription for atomic limit checking
-		const { checkInstanceLimit } = require('../../../utils/subscriptionLimits.js');
+		const { checkInstanceLimit } = require('../../../utils/razorpay/subscriptionLimits.js');
 		const limitCheck = await checkInstanceLimit(userId);
 
 		if (!limitCheck.canCreate) {
@@ -306,8 +307,7 @@ async function createMCP(req, res) {
 		});
 
 		// Build instance URL using PUBLIC_DOMAIN for consistent format
-		const publicDomain = process.env.PUBLIC_DOMAIN || 'http://localhost:5000';
-		const instanceUrl = `${publicDomain}/${mcpService.mcp_service_name}/${createdInstance.instance_id}`;
+		const instanceUrl = `${PUBLIC_DOMAIN}/${mcpService.mcp_service_name}/${createdInstance.instance_id}`;
 
 		console.log(
 			`✅ MCP instance created: ${createdInstance.instance_id} for user ${userId} (${mcpService.mcp_service_name})`

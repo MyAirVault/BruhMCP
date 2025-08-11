@@ -1,9 +1,5 @@
 export = NotionOAuthHandler;
 /**
- * @fileoverview Notion OAuth Handler
- * Implements OAuth flow for Notion MCP service
- */
-/**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult} OAuthFlowResult
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthCallbackResult} OAuthCallbackResult

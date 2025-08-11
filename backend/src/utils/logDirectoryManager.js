@@ -6,7 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 
-/* Result of log directory creation operation
+/**
+ * Result of log directory creation operation
  * @typedef {Object} LogDirectoryResult
  * @property {boolean} success - Whether the operation was successful
  * @property {string} [logDir] - Path to the created log directory (on success)

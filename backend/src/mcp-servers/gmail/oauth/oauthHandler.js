@@ -4,6 +4,7 @@
  */
 
 const { google } = require('googleapis');
+const { PUBLIC_DOMAIN } = require('../../../config/env.js');
 
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
@@ -17,7 +18,7 @@ const { google } = require('googleapis');
  */
 class GmailOAuthHandler {
 	constructor() {
-		this.redirectUri = `${process.env.PUBLIC_DOMAIN || 'http://localhost:5000'}/api/v1/auth-registry/callback/gmail`;
+		this.redirectUri = `${PUBLIC_DOMAIN}/api/v1/auth-registry/callback/gmail`;
 		this.scopes = [
 			'https://www.googleapis.com/auth/gmail.modify',
 			'https://www.googleapis.com/auth/userinfo.profile',

@@ -3,6 +3,8 @@
  * Implements OAuth flow for Dropbox MCP service
  */
 
+const { PUBLIC_DOMAIN } = require('../../../config/env.js');
+
 /**
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').AuthCredentials} AuthCredentials
  * @typedef {import('../../../services/mcp-auth-registry/types/authTypes.js').OAuthFlowResult} OAuthFlowResult
@@ -15,7 +17,7 @@
  */
 class DropboxOAuthHandler {
 	constructor() {
-		this.redirectUri = `${process.env.PUBLIC_DOMAIN || 'http://localhost:5000'}/api/v1/auth-registry/callback/dropbox`;
+		this.redirectUri = `${PUBLIC_DOMAIN}/api/v1/auth-registry/callback/dropbox`;
 		this.scopes = [
 			'account_info.read',
 			'files.metadata.write',

@@ -6,6 +6,16 @@
 const { initializeRazorpay } = require('./core');
 
 /**
+ * @typedef {Object} RazorpayCustomer
+ * @property {string} id - Razorpay customer ID
+ * @property {string} name - Customer name
+ * @property {string} email - Customer email
+ * @property {string} [contact] - Customer phone number
+ * @property {Object} [notes] - Additional customer notes
+ * @property {number} created_at - Creation timestamp
+ */
+
+/**
  * Create a new Razorpay customer
  * @param {Object} customerData - Customer creation data
  * @param {string} customerData.name - Customer name
@@ -13,7 +23,7 @@ const { initializeRazorpay } = require('./core');
  * @param {string} [customerData.contact] - Customer phone number
  * @param {string} [customerData.fail_existing] - Fail if customer already exists
  * @param {Object} [customerData.notes] - Additional notes
- * @returns {Promise<Object>} Razorpay customer object with isNew flag
+ * @returns {Promise<RazorpayCustomer>} Razorpay customer object
  * @throws {Error} If customer creation fails
  */
 async function createRazorpayCustomer(customerData) {

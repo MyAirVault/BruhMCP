@@ -78,15 +78,15 @@ export function getOTPAttemptCount(userId: string, windowMinutes?: number): Prom
 export function getRecentOTPRequests(userId: string, windowMinutes?: number): Promise<number>;
 /**
  * Clean up expired tokens
- * @param {string} [tokenType] - Specific token type to clean up, or all types if not specified
+ * @param {string|null} [tokenType] - Specific token type to clean up, or all types if not specified
  * @returns {Promise<number>} Number of tokens cleaned up
  */
-export function cleanupExpiredTokens(tokenType?: string): Promise<number>;
+export function cleanupExpiredTokens(tokenType?: string | null): Promise<number>;
 /**
  * Invalidate all tokens for a user (logout from all devices)
  * @param {string} userId - User's UUID
- * @param {string} [tokenType] - Specific token type to invalidate, or all types if not specified
+ * @param {string|null} [tokenType] - Specific token type to invalidate, or all types if not specified
  * @returns {Promise<number>} Number of tokens invalidated
  */
-export function invalidateUserTokens(userId: string, tokenType?: string): Promise<number>;
+export function invalidateUserTokens(userId: string, tokenType?: string | null): Promise<number>;
 //# sourceMappingURL=tokenQueries.d.ts.map

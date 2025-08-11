@@ -6,7 +6,7 @@
  */
 
 const bcrypt = require('bcrypt');
-const { findOrCreateUser } = require('../../db/queries/userQueries.js');
+const { findOrCreateUser } = require('../../db/queries/authQueries.js');
 const { 
     getUserWithPasswordHash, 
     updateUserPassword, 

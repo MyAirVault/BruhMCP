@@ -26,7 +26,7 @@ export function createUser(userData: {
 /**
  * Find user by email address
  * @param {string} email - User's email address
- * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, is_verified: number, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
+ * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
  */
 export function findUserByEmail(email: string): Promise<{
     id: string;
@@ -35,7 +35,6 @@ export function findUserByEmail(email: string): Promise<{
     email: string;
     password_hash: string;
     isVerified: boolean;
-    is_verified: number;
     razorpayCustomerId: string | null;
     createdAt: Date;
     updatedAt: Date;
@@ -45,7 +44,7 @@ export function findUserByEmail(email: string): Promise<{
 /**
  * Find user by ID
  * @param {string} userId - User's UUID
- * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, is_verified: number, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
+ * @returns {Promise<{id: string, firstName: string, lastName: string, email: string, password_hash: string, isVerified: boolean, razorpayCustomerId: string|null, createdAt: Date, updatedAt: Date, lastLoginAt: Date|null, isActive: boolean}|null>} User data or null if not found
  */
 export function findUserById(userId: string): Promise<{
     id: string;
@@ -54,7 +53,6 @@ export function findUserById(userId: string): Promise<{
     email: string;
     password_hash: string;
     isVerified: boolean;
-    is_verified: number;
     razorpayCustomerId: string | null;
     createdAt: Date;
     updatedAt: Date;
@@ -101,12 +99,11 @@ export function updateLastLogin(userId: string): Promise<boolean>;
 /**
  * Check if user exists with email (including unverified users)
  * @param {string} email - User's email address
- * @returns {Promise<{id: string, isVerified: boolean, is_verified: number, isActive: boolean}|null>} Minimal user data or null
+ * @returns {Promise<{id: string, isVerified: boolean, isActive: boolean}|null>} Minimal user data or null
  */
 export function checkUserExists(email: string): Promise<{
     id: string;
     isVerified: boolean;
-    is_verified: number;
     isActive: boolean;
 } | null>;
 /**
@@ -115,4 +112,13 @@ export function checkUserExists(email: string): Promise<{
  * @returns {Promise<boolean>} Success status
  */
 export function deactivateUser(userId: string): Promise<boolean>;
+/**
+ * Find existing user or create new one (upsert pattern)
+ * Used primarily for local development authentication
+ * @param {string} email - User email
+ * @param {string} [firstName] - User first name
+ * @param {string} [lastName] - User last name
+ * @returns {Promise<Object>} User record (existing or newly created)
+ */
+export function findOrCreateUser(email: string, firstName?: string, lastName?: string): Promise<Object>;
 //# sourceMappingURL=authQueries.d.ts.map
