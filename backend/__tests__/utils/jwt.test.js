@@ -341,6 +341,25 @@ describe('JWT Utilities', () => {
             it('should reject missing token', async () => {
                 // Act & Assert
                 await expect(verifyRefreshToken('')).rejects.toThrow('No refresh token provided');
+                await expect(verifyRefreshToken(null)).rejects.toThrow('No refresh token provided');
+                await expect(verifyRefreshToken(undefined)).rejects.toThrow('No refresh token provided');
+            });
+
+            it('should reject string decoded token', async () => {
+                // Arrange
+                jwt.verify.mockReturnValue('string-token');
+
+                // Act & Assert
+                await expect(verifyRefreshToken('invalid-token')).rejects.toThrow('Invalid token format');
+            });
+
+            it('should reject wrong token type', async () => {
+                // Arrange
+                const wrongTypeToken = { ...mockDecodedToken, type: 'access' };
+                jwt.verify.mockReturnValue(wrongTypeToken);
+
+                // Act & Assert
+                await expect(verifyRefreshToken('wrong-type-token')).rejects.toThrow('Invalid token type');
             });
 
             it('should reject token not found in database', async () => {
@@ -350,6 +369,42 @@ describe('JWT Utilities', () => {
 
                 // Act & Assert
                 await expect(verifyRefreshToken('unknown-token')).rejects.toThrow('Invalid or expired refresh token');
+            });
+        });
+
+        describe('Error Handling', () => {
+            it('should handle JWT verification errors', async () => {
+                // Arrange
+                const verificationError = new Error('Token expired');
+                jwt.verify.mockImplementation(() => {
+                    throw verificationError;
+                });
+
+                // Act & Assert
+                await expect(verifyRefreshToken('expired-token')).rejects.toThrow('Token expired');
+                expect(console.error).toHaveBeenCalledWith('Refresh token verification failed:', 'Token expired');
+            });
+
+            it('should handle database lookup errors', async () => {
+                // Arrange
+                jwt.verify.mockReturnValue(mockDecodedToken);
+                const dbError = new Error('Database lookup failed');
+                findValidRefreshToken.mockRejectedValue(dbError);
+
+                // Act & Assert
+                await expect(verifyRefreshToken('valid-token')).rejects.toThrow('Database lookup failed');
+                expect(console.error).toHaveBeenCalledWith('Refresh token verification failed:', 'Database lookup failed');
+            });
+
+            it('should handle non-Error exceptions', async () => {
+                // Arrange
+                jwt.verify.mockImplementation(() => {
+                    throw 'String error';
+                });
+
+                // Act & Assert
+                await expect(verifyRefreshToken('invalid-token')).rejects.toBe('String error');
+                expect(console.error).toHaveBeenCalledWith('Refresh token verification failed:', 'String error');
             });
         });
     });
@@ -395,6 +450,25 @@ describe('JWT Utilities', () => {
             it('should reject missing token', async () => {
                 // Act & Assert
                 await expect(verifyPasswordResetToken('')).rejects.toThrow('No password reset token provided');
+                await expect(verifyPasswordResetToken(null)).rejects.toThrow('No password reset token provided');
+                await expect(verifyPasswordResetToken(undefined)).rejects.toThrow('No password reset token provided');
+            });
+
+            it('should reject string decoded token', async () => {
+                // Arrange
+                jwt.verify.mockReturnValue('string-token');
+
+                // Act & Assert
+                await expect(verifyPasswordResetToken('invalid-token')).rejects.toThrow('Invalid token format');
+            });
+
+            it('should reject wrong token type', async () => {
+                // Arrange
+                const wrongTypeToken = { ...mockDecodedToken, type: 'access' };
+                jwt.verify.mockReturnValue(wrongTypeToken);
+
+                // Act & Assert
+                await expect(verifyPasswordResetToken('wrong-type-token')).rejects.toThrow('Invalid token type');
             });
 
             it('should reject token not found in database', async () => {
@@ -404,6 +478,42 @@ describe('JWT Utilities', () => {
 
                 // Act & Assert
                 await expect(verifyPasswordResetToken('unknown-token')).rejects.toThrow('Invalid or expired password reset token');
+            });
+        });
+
+        describe('Error Handling', () => {
+            it('should handle JWT verification errors', async () => {
+                // Arrange
+                const verificationError = new Error('Token expired');
+                jwt.verify.mockImplementation(() => {
+                    throw verificationError;
+                });
+
+                // Act & Assert
+                await expect(verifyPasswordResetToken('expired-token')).rejects.toThrow('Token expired');
+                expect(console.error).toHaveBeenCalledWith('Password reset token verification failed:', 'Token expired');
+            });
+
+            it('should handle database lookup errors', async () => {
+                // Arrange
+                jwt.verify.mockReturnValue(mockDecodedToken);
+                const dbError = new Error('Database lookup failed');
+                findValidPasswordResetToken.mockRejectedValue(dbError);
+
+                // Act & Assert
+                await expect(verifyPasswordResetToken('valid-token')).rejects.toThrow('Database lookup failed');
+                expect(console.error).toHaveBeenCalledWith('Password reset token verification failed:', 'Database lookup failed');
+            });
+
+            it('should handle non-Error exceptions', async () => {
+                // Arrange
+                jwt.verify.mockImplementation(() => {
+                    throw 'String error';
+                });
+
+                // Act & Assert
+                await expect(verifyPasswordResetToken('invalid-token')).rejects.toBe('String error');
+                expect(console.error).toHaveBeenCalledWith('Password reset token verification failed:', 'String error');
             });
         });
     });
@@ -443,6 +553,16 @@ describe('JWT Utilities', () => {
                 await expect(invalidateRefreshToken(mockToken)).rejects.toThrow('Database operation failed');
                 expect(console.error).toHaveBeenCalledWith('Refresh token invalidation failed:', 'Database operation failed');
             });
+
+            it('should handle non-Error exceptions', async () => {
+                // Arrange
+                const mockToken = 'token-to-invalidate';
+                markTokenAsUsedByValue.mockRejectedValue('String error');
+
+                // Act & Assert
+                await expect(invalidateRefreshToken(mockToken)).rejects.toBe('String error');
+                expect(console.error).toHaveBeenCalledWith('Refresh token invalidation failed:', 'String error');
+            });
         });
     });
 
@@ -479,6 +599,16 @@ describe('JWT Utilities', () => {
                 // Act & Assert
                 await expect(invalidatePasswordResetToken(mockToken)).rejects.toThrow('Database operation failed');
                 expect(console.error).toHaveBeenCalledWith('Password reset token invalidation failed:', 'Database operation failed');
+            });
+
+            it('should handle non-Error exceptions', async () => {
+                // Arrange
+                const mockToken = 'reset-token-to-invalidate';
+                markTokenAsUsedByValue.mockRejectedValue('String error');
+
+                // Act & Assert
+                await expect(invalidatePasswordResetToken(mockToken)).rejects.toBe('String error');
+                expect(console.error).toHaveBeenCalledWith('Password reset token invalidation failed:', 'String error');
             });
         });
     });
