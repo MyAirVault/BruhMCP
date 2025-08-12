@@ -16,10 +16,13 @@ const { findUserById } = require('../db/queries/authQueries');
  */
 function authenticateToken(req, res, next) {
     try {
+        console.log('[DEBUG] authenticateToken called with headers:', req.headers);
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.startsWith('Bearer ') 
             ? authHeader.substring(7) 
             : null;
+        
+        console.log('[DEBUG] Extracted token:', token);
         
         if (!token) {
             res.status(401).json({
@@ -29,8 +32,10 @@ function authenticateToken(req, res, next) {
             return;
         }
         
+        console.log('[DEBUG] About to call verifyAccessToken with:', token);
         // Verify the token
         const decoded = verifyAccessToken(token);
+        console.log('[DEBUG] verifyAccessToken returned:', decoded);
         
         // Add user information to request object
         req.user = {
@@ -248,41 +253,85 @@ function optionalAuth(req, res, next) {
  */
 async function authenticate(req, res, next) {
     try {
-        // First validate the token synchronously
-        authenticateToken(req, res, async (tokenError) => {
-            if (tokenError) return; // Token validation failed, response already sent
-            
-            try {
-                // Then verify user exists asynchronously
-                await new Promise((resolve, reject) => {
-                    verifyUserExists(req, res, (userError) => {
-                        if (userError) {
-                            reject(userError);
-                        } else {
-                            resolve(true);
-                        }
-                    });
-                });
-                
-                // If we get here, both token and user verification passed
-                next();
-                
-            } catch (userError) {
-                // User verification failed, response already sent by verifyUserExists
-                return;
-            }
-        });
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.startsWith('Bearer ') 
+            ? authHeader.substring(7) 
+            : null;
+        
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'Access token is required'
+            });
+        }
+        
+        // Verify the token
+        const decoded = verifyAccessToken(token);
+        
+        // Add user information to request object
+        req.user = {
+            id: decoded.userId,
+            userId: decoded.userId,
+            email: decoded.email,
+            sessionCreatedAt: new Date(decoded.iat * 1000),
+            sessionExpiresAt: new Date(decoded.exp * 1000)
+        };
+        
+        // Verify user exists and is active
+        const user = await findUserById(req.user.userId);
+        
+        if (!user || user.email !== req.user.email) {
+            res.setHeader('X-Clear-Auth', 'true');
+            return res.status(401).json({
+                success: false,
+                message: 'User not found or inactive'
+            });
+        }
+        
+        // Add full user data to request
+        req.user = {
+            ...req.user,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            isVerified: user.isVerified,
+            createdAt: user.createdAt
+        };
+        
+        next();
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error('Combined authentication failed:', errorMessage);
+        console.error('Authentication failed:', errorMessage);
         
-        if (!res.headersSent) {
-            res.status(500).json({
+        // Handle token-specific errors
+        if (errorMessage.includes('expired')) {
+            return res.status(401).json({
                 success: false,
-                message: 'Authentication error'
+                message: 'Access token has expired'
             });
         }
+        
+        if (errorMessage.includes('invalid') || 
+            errorMessage.includes('malformed') ||
+            errorMessage.includes('signature') ||
+            errorMessage.includes('JsonWebTokenError')) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid access token'
+            });
+        }
+        
+        // Handle user deletion errors
+        if (errorMessage.includes('user not found') || 
+            errorMessage.includes('user deleted') ||
+            errorMessage.includes('account inactive')) {
+            res.setHeader('X-Clear-Auth', 'true');
+        }
+        
+        return res.status(401).json({
+            success: false,
+            message: 'Authentication failed'
+        });
     }
 }
 
@@ -296,9 +345,24 @@ async function authenticate(req, res, next) {
  */
 async function authenticateVerified(req, res, next) {
     try {
-        // Use the updated async authenticate function
+        // First authenticate the user
         await authenticate(req, res, () => {
-            requireVerifiedEmail(req, res, next);
+            // Then check if email is verified
+            if (!req.user) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'User authentication required'
+                });
+            }
+            
+            if (!req.user.isVerified) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Email verification required to access this resource'
+                });
+            }
+            
+            next();
         });
         
     } catch (error) {

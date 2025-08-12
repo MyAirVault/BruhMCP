@@ -5,7 +5,7 @@
 
 // const { randomUUID } = require('crypto'); // @ts-ignore - keeping for future functionality
 const { createMCPSchema } = require('../schemas.js');
-const { calculateExpirationDate } = require('../utils.js');
+const { calculateExpirationDate, generateAccessUrl } = require('../utils.js');
 const { ErrorResponses, formatZodErrors } = require('../../../utils/errorResponse.js');
 const { updateMCPServiceStats, createMCPInstanceWithLimitCheck } = require('../../../db/queries/mcpInstances/index.js');
 const { getMCPTypeByName } = require('../../../db/queries/mcpTypesQueries.js');
@@ -14,7 +14,6 @@ const mcpInstanceLogger = require('../../../utils/mcpInstanceLogger.js');
 // Import new MCP Auth Registry
 const { authRegistry } = require('../../../services/mcp-auth-registry/index.js');
 const { deleteMCPInstance } = require('../../../db/queries/mcpInstances/crud.js');
-const { PUBLIC_DOMAIN } = require('../../../config/env.js');
 
 /** @typedef {import('express').Request} Request */
 /** @typedef {import('express').Response} Response */
@@ -306,8 +305,8 @@ async function createMCP(req, res) {
 			activeInstancesIncrement: 1,
 		});
 
-		// Build instance URL using PUBLIC_DOMAIN for consistent format
-		const instanceUrl = `${PUBLIC_DOMAIN}/${mcpService.mcp_service_name}/${createdInstance.instance_id}`;
+		// Build instance URL using centralized generateAccessUrl function for consistency
+		const instanceUrl = generateAccessUrl(createdInstance.instance_id, mcpService.mcp_service_name);
 
 		console.log(
 			`✅ MCP instance created: ${createdInstance.instance_id} for user ${userId} (${mcpService.mcp_service_name})`

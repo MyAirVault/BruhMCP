@@ -32,8 +32,8 @@ async function handleLogin(req, res) {
             return;
         }
         
-        // Check if user is verified before verifying password
-        if (!user.isVerified) {
+        // Check if user is verified before verifying password (skip verification in local development)
+        if (!user.isVerified && process.env.NODE_ENV !== 'local') {
             // Verify password first, then redirect to OTP flow
             const isPasswordValid = await verifyPassword(password, user.password_hash);
             if (!isPasswordValid) {

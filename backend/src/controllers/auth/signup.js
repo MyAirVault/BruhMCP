@@ -76,13 +76,13 @@ async function handleSignup(req, res) {
             // Hash password securely
             const passwordHash = await hashPassword(password);
             
-            // Create user as unverified (Razorpay customer will be created after email verification)
+            // Create user (verified in local development, unverified in production)
             const newUser = await createUser({
                 firstName: firstName.trim(),
                 lastName: lastName ? lastName.trim() : '',
                 email: email.toLowerCase().trim(),
                 passwordHash: passwordHash,
-                isVerified: false
+                isVerified: process.env.NODE_ENV === 'local'
             });
             
             userId = newUser.id;
@@ -94,16 +94,21 @@ async function handleSignup(req, res) {
             console.log(`New user created for email: ${email.toLowerCase().trim()}, userId: ${userId}`);
         }
         
-        // Generate and send OTP for email verification
-        const otp = generateOTPCode();
-        await storeOTP(userId, email.toLowerCase().trim(), otp);
-        await sendOTPEmail(email.toLowerCase().trim(), otp, 'signup_verification');
+        // Generate and send OTP for email verification (skip in local development)
+        if (process.env.NODE_ENV !== 'local') {
+            const otp = generateOTPCode();
+            await storeOTP(userId, email.toLowerCase().trim(), otp);
+            await sendOTPEmail(email.toLowerCase().trim(), otp, 'signup_verification');
+        }
         
         console.log(`User signup initiated for email: ${email.toLowerCase().trim()}, userId: ${userId}`);
         
-        const responseMessage = userCreated 
-            ? 'Account created! Please check your email and enter the verification code to complete setup.'
-            : 'Account exists but not verified. A new verification code has been sent to your email.';
+        const isLocal = process.env.NODE_ENV === 'local';
+        const responseMessage = isLocal 
+            ? 'Account created and verified! You can now log in.'
+            : userCreated 
+                ? 'Account created! Please check your email and enter the verification code to complete setup.'
+                : 'Account exists but not verified. A new verification code has been sent to your email.';
         
         res.status(201).json({
             success: true,
@@ -111,8 +116,8 @@ async function handleSignup(req, res) {
             data: {
                 userId: userId,
                 email: email.toLowerCase().trim(),
-                requiresVerification: true,
-                step: 'email_verification',
+                requiresVerification: !isLocal,
+                step: isLocal ? 'completed' : 'email_verification',
                 isExistingUser: !userCreated
             }
         });

@@ -483,7 +483,10 @@ function logSecurityEvent(eventType) {
  */
 function validatePaymentIntegrity(req, res, next) {
     try {
-        const { amount, planId } = req.body;
+        const { amount, plan_code, planCode } = req.body;
+        
+        // Handle both plan_code and planCode (legacy) field names
+        const effectivePlanCode = plan_code || planCode;
         
         // Basic amount validation
         if (amount !== undefined) {
@@ -497,13 +500,14 @@ function validatePaymentIntegrity(req, res, next) {
             }
         }
         
-        // Validate plan ID if provided
-        if (planId !== undefined) {
-            if (!Number.isInteger(planId) || planId <= 0) {
+        // Validate plan code if provided
+        if (effectivePlanCode !== undefined) {
+            const validPlanCodes = ['free', 'pro', 'basic', 'starter', 'premium'];
+            if (typeof effectivePlanCode !== 'string' || !validPlanCodes.includes(effectivePlanCode)) {
                 res.status(400).json({
                     success: false,
-                    message: 'Invalid plan ID. Plan ID must be a positive integer.',
-                    code: 'INVALID_PLAN_ID'
+                    message: `Invalid plan code. Must be one of: ${validPlanCodes.join(', ')}`,
+                    code: 'INVALID_PLAN_CODE'
                 });
                 return;
             }
