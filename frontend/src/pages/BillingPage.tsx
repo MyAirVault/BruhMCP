@@ -23,6 +23,7 @@ import { CancelSubscriptionModal } from '../components/subscription/CancelSubscr
 import { CreditBalance } from '../components/subscription/CreditBalance';
 import { formatErrorMessage } from '../lib/utils';
 import { subscriptionApi } from '../lib/api';
+import { mockPlans } from '../data/mockSubscriptionData';
 import type { 
     SubscriptionPlan, 
     UserSubscription, 
@@ -33,7 +34,7 @@ import type {
     TransactionFilters
 } from '../types/subscription';
 
-type ViewMode = 'billing' | 'plans' | 'history' | 'credits';
+type ViewMode = 'billing' | 'plans' | 'history' | 'credits'; // 'methods' removed - not needed currently
 
 /**
  * Unified billing and subscription management page
@@ -104,7 +105,10 @@ export function BillingPage() {
                 if (plansData.status === 'fulfilled') {
                     // API now returns SubscriptionPlan[] directly after transformation
                     const plansValue = Array.isArray(plansData.value) ? plansData.value : [];
-                    setPlans(plansValue);
+                    // Add the 3rd plan (Plus) from mock data to the API plans
+                    const plusPlan = mockPlans.find(plan => plan.plan_code === 'plus');
+                    const allPlans = plusPlan ? [...plansValue, plusPlan] : plansValue;
+                    setPlans(allPlans);
                 } else {
                     console.error('Failed to load plans:', plansData.reason);
                     setPlans([]); // Ensure plans is always an array
@@ -120,9 +124,8 @@ export function BillingPage() {
 
                 // Handle credits data
                 if (creditsData.status === 'fulfilled') {
-                    const credits = creditsData.value;
-                    setCredits(credits);
-                    setTotalCreditBalance(credits.reduce((sum, credit) => sum + credit.amount, 0));
+                    setCredits(creditsData.value.credits);
+                    setTotalCreditBalance(creditsData.value.totalBalance);
                 } else {
                     console.error('Failed to load credits:', creditsData.reason);
                     setCredits([]);
@@ -147,23 +150,12 @@ export function BillingPage() {
                 // Load transactions with current filters
                 const transactionsData = await subscriptionApi.getTransactions(filters);
                 
-                // Successfully loaded transactions - convert format to BillingTransaction
-                const billingTransactions: BillingTransaction[] = transactionsData.transactions.map(tx => ({
-                    id: tx.id,
-                    userId: '', // Not provided in API response
-                    subscriptionId: '', // Not provided in API response  
-                    amount: tx.amount,
-                    currency: 'INR', // Default currency
-                    status: tx.status as BillingTransaction['status'],
-                    description: tx.plan_name,
-                    paymentMethod: tx.method,
-                    createdAt: tx.created_at
-                }));
+                // Successfully loaded transactions
                 
-                setTransactions(billingTransactions);
-                setTotalTransactions(transactionsData.pagination.totalRecords);
-                setCurrentPage(transactionsData.pagination.currentPage);
-                setTotalPages(transactionsData.pagination.totalPages);
+                setTransactions(transactionsData.transactions);
+                setTotalTransactions(transactionsData.total);
+                setCurrentPage(transactionsData.page);
+                setTotalPages(Math.ceil(transactionsData.total / (transactionsData.limit || 10)));
 
             } catch (error) {
                 console.error('Failed to load transactions:', error);
@@ -173,6 +165,15 @@ export function BillingPage() {
             }
         };
 
+        const handleSelectPlan = async (planId: number) => {
+            try {
+                // Navigate directly to checkout
+                await handleConfirmUpgrade(planId);
+            } catch (error) {
+                console.error('Plan selection error:', error);
+                setError(formatErrorMessage(error));
+            }
+        };
 
         const handleUpgrade = () => {
             try {
@@ -215,8 +216,8 @@ export function BillingPage() {
                     return;
                 }
 
-                // Navigate to payment page with the plan ID
-                navigate(`/payment?planId=${plan.id}&retry=true`);
+                // Navigate to checkout page with the plan ID
+                navigate(`/checkout?planId=${plan.id}&retry=true`);
             } catch (error) {
                 console.error('Complete payment error:', error);
                 setError(formatErrorMessage(error));
@@ -233,10 +234,10 @@ export function BillingPage() {
                     cancelAtPeriodEnd: false
                 };
                 
-                await subscriptionApi.cancelSubscription(cancelRequest);
+                const updatedSubscription = await subscriptionApi.cancelSubscription(cancelRequest);
                 
-                // Refresh subscription data to get updated state
-                await loadSubscriptionData();
+                // Update subscription state
+                setCurrentSubscription(updatedSubscription);
                 
             } catch (error) {
                 console.error('Immediate cancel error:', error);
@@ -272,19 +273,13 @@ export function BillingPage() {
                 if (transaction?.invoiceUrl) {
                     window.open(transaction.invoiceUrl, '_blank');
                 } else {
-                    // Invoice download not available
-                    setError('Invoice download is not available for this transaction');
+                    // Get invoice URL from API
+                    const invoiceUrl = await subscriptionApi.downloadInvoice(transactionId);
+                    window.open(invoiceUrl, '_blank');
                 }
             } catch (error) {
                 console.error('Invoice download error:', error);
                 setError(formatErrorMessage(error));
-            }
-        };
-
-        const handleSelectPlan = (planCode: string, _billingCycle?: 'monthly' | 'yearly') => {
-            const selectedPlan = Array.isArray(plans) ? plans.find(p => p.plan_code === planCode) : undefined;
-            if (selectedPlan) {
-                handleConfirmUpgrade(selectedPlan.id);
             }
         };
 
@@ -305,12 +300,14 @@ export function BillingPage() {
                     if (currentSubscription) {
                         // Upgrade/downgrade to free plan via upgrade endpoint
                         const upgradeResponse = await subscriptionApi.updateSubscription({ planId });
-                        if (upgradeResponse.subscription) {
-                            setCurrentSubscription(upgradeResponse.subscription);
-                        }
+                        setCurrentSubscription(upgradeResponse.subscription);
                     } else {
                         // Create new free subscription directly via create endpoint
-                        await subscriptionApi.createSubscription(selectedPlan.plan_code, 'monthly');
+                        await subscriptionApi.createPaymentIntent({
+                            planId,
+                            paymentMethod: 'free',
+                            savePaymentMethod: false
+                        });
                         
                         // For free plans, subscription is created immediately
                         const newSubscription = await subscriptionApi.getCurrentSubscription();
@@ -322,8 +319,8 @@ export function BillingPage() {
                     return;
                 }
 
-                // For paid plans, redirect to payment page
-                navigate(`/payment?planId=${selectedPlan.id}`);
+                // For paid plans, redirect to checkout page
+                navigate(`/checkout?planId=${selectedPlan.id}`);
 
             } catch (error) {
                 console.error('Upgrade confirmation error:', error);
@@ -338,10 +335,10 @@ export function BillingPage() {
                 setLoading(true);
                 
                 // Call API to cancel subscription
-                await subscriptionApi.cancelSubscription(request);
+                const updatedSubscription = await subscriptionApi.cancelSubscription(request);
                 
-                // Refresh subscription data to get updated state
-                await loadSubscriptionData();
+                // Update subscription state
+                setCurrentSubscription(updatedSubscription);
                 
                 setShowCancelModal(false);
 
@@ -397,16 +394,13 @@ export function BillingPage() {
             try {
                 setLoading(true);
                 
-                // For now, apply all available credits
-                const amountToApply = totalCreditBalance;
-                if (amountToApply > 0) {
-                    await subscriptionApi.applyCredits(amountToApply);
-                }
+                // Call API to apply credits
+                await subscriptionApi.applyCredits();
                 
                 // Reload credits data to get updated state
                 const creditsData = await subscriptionApi.getCredits();
-                setCredits(creditsData);
-                setTotalCreditBalance(creditsData.reduce((sum, credit) => sum + credit.amount, 0));
+                setCredits(creditsData.credits);
+                setTotalCreditBalance(creditsData.totalBalance);
 
             } catch (error) {
                 console.error('Apply credits error:', error);

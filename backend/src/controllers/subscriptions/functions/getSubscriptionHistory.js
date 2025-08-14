@@ -1,28 +1,30 @@
 /**
- * Get user subscription history with transactions
- * Retrieves transaction history with filtering and pagination support
+ * Get user's subscription transaction history
+ * Copied exactly from MicroSAASTemplate and adapted for PostgreSQL
  */
 
 const { pool } = require('../../../db/config.js');
 const { getPlanByCode } = require('../../../data/subscription-plans.js');
 
 /**
- * Get user subscription history with transactions
+ * Get user's subscription transaction history
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @returns {Promise<void>}
  */
 async function getSubscriptionHistory(req, res) {
 	try {
-		const userId = req.user?.userId;
+		const userId = /** @type {string | undefined} */ (req.user?.id);
+		const { page = 1, limit = 10, type, status, dateFrom, dateTo } = req.query;
+
 		if (!userId) {
 			res.status(401).json({
 				success: false,
-				message: 'User authentication required',
+				message: 'Please log in to view your subscription history.',
+				code: 'AUTHENTICATION_REQUIRED',
 			});
 			return;
 		}
-		const { page = 1, limit = 10, type, status, dateFrom, dateTo } = req.query;
 		
 		// Cast query parameters to strings for TypeScript compatibility
 		const pageStr = String(page);
@@ -105,18 +107,18 @@ async function getSubscriptionHistory(req, res) {
 
 		client.release();
 
-		// Format transactions with plan information
-		const formattedTransactions = transactions.map(transaction => {
+		// Parse JSON fields and format data with plan information
+		const formattedTransactions = (transactions || []).map(transaction => {
 			const planConfig = transaction.plan_code ? getPlanByCode(transaction.plan_code) : null;
-			const planConfigData = planConfig;
 			return {
 				...transaction,
-				plan_name: (planConfigData && typeof planConfigData === 'object' && 'name' in planConfigData) ? planConfigData.name : '',
+				plan_name: planConfig ? planConfig.name : 'Unknown Plan',
 				method_details: transaction.method_details_json ? 
-					JSON.parse(transaction.method_details_json) : null,
-				gateway_response: transaction.gateway_response_json ?
-					JSON.parse(transaction.gateway_response_json) : null,
-				amount_formatted: (transaction.amount / 100).toFixed(2),
+					(typeof transaction.method_details_json === 'string' ? JSON.parse(transaction.method_details_json) : transaction.method_details_json) : null,
+				gateway_response: transaction.gateway_response_json
+					? (typeof transaction.gateway_response_json === 'string' ? JSON.parse(transaction.gateway_response_json) : transaction.gateway_response_json)
+					: null,
+				amount_formatted: (transaction.amount / 100).toFixed(2), // Convert paise to rupees
 				net_amount_formatted: (transaction.net_amount / 100).toFixed(2),
 			};
 		});
@@ -127,24 +129,26 @@ async function getSubscriptionHistory(req, res) {
 			success: true,
 			message: 'Subscription history retrieved successfully',
 			data: {
-				transactions: formattedTransactions,
-				pagination: {
-					currentPage: parseInt(pageStr),
-					totalPages,
-					totalRecords: total,
-					hasNextPage: parseInt(pageStr) < totalPages,
-					hasPreviousPage: parseInt(pageStr) > 1,
+				data: {
+					transactions: formattedTransactions,
+					pagination: {
+						currentPage: parseInt(pageStr),
+						totalPages,
+						totalRecords: total,
+						hasNextPage: parseInt(pageStr) < totalPages,
+						hasPreviousPage: parseInt(pageStr) > 1,
+					},
 				},
 			},
 		});
-		
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		console.error('Failed to get subscription history:', errorMessage);
+		console.error('Get subscription history failed:', errorMessage);
 
 		res.status(500).json({
 			success: false,
-			message: 'Failed to retrieve subscription history',
+			message: 'Failed to retrieve subscription history. Please try again later.',
+			code: 'HISTORY_FETCH_ERROR',
 		});
 	} finally {
 		console.debug('Get subscription history process completed');

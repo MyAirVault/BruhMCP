@@ -12,7 +12,7 @@ const { apiRateLimiter } = require('../utils/rateLimiter.js');
 const router = express.Router();
 
 // Apply rate limiting to all cleanup routes
-router.use(apiRateLimiter);
+router.use(/** @type {import('express').RequestHandler} */ (apiRateLimiter));
 
 /**
  * Manual cleanup trigger (authenticated users only)

@@ -16,7 +16,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useDropdown } from '../hooks/useDropdown';
 
 const Dashboard: React.FC = () => {
-  const { userName, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
+  const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.name : undefined;
   const { openDropdown, handleDropdownToggle, closeDropdowns } = useDropdown();
   const navigate = useNavigate();
   
@@ -195,7 +196,7 @@ const Dashboard: React.FC = () => {
       <PlanLimitModal
         isOpen={planLimitModal.isOpen}
         onClose={() => setPlanLimitModal({ isOpen: false, title: '', message: '' })}
-        onUpgrade={() => navigate('/billing/checkout')}
+        onUpgrade={() => navigate('/billing?view=plans')}
         title={planLimitModal.title}
         message={planLimitModal.message}
       />

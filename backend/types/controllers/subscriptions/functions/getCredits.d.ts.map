@@ -1,1 +1,1 @@
-{"version":3,"file":"getCredits.d.ts","sourceRoot":"","sources":["../../../../src/controllers/subscriptions/functions/getCredits.js"],"names":[],"mappings":";AAOA;;;;;GAKG;AACH,iCAJW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,GACxB,OAAO,CAAC,IAAI,CAAC,CA6EzB"}
+{"version":3,"file":"getCredits.d.ts","sourceRoot":"","sources":["../../../../src/controllers/subscriptions/functions/getCredits.js"],"names":[],"mappings":"AAOA;;;;;GAKG;AACH,gCAJW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,GACxB,OAAO,CAAC,OAAO,SAAS,EAAE,QAAQ,CAAC,CAqI/C"}

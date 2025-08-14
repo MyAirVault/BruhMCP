@@ -155,4 +155,16 @@ export function getPlanLimit(planCode: string, resource: string): number;
  * @returns {boolean} True if unlimited (-1)
  */
 export function isPlanUnlimited(planCode: string, resource: string): boolean;
+/**
+ * Validate plan code against available plans
+ * @param {string} planCode - Plan code to validate
+ * @returns {boolean} True if plan code is valid
+ */
+export function isValidPlanCode(planCode: string): boolean;
+/**
+ * Validate billing cycle
+ * @param {string} billingCycle - Billing cycle to validate
+ * @returns {boolean} True if billing cycle is valid
+ */
+export function isValidBillingCycle(billingCycle: string): boolean;
 //# sourceMappingURL=subscription-plans.d.ts.map

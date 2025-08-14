@@ -33,10 +33,11 @@ async function handleRefreshToken(req, res) {
             // Tell frontend to clear authentication data
             res.setHeader('X-Clear-Auth', 'true');
             
-            return res.status(401).json({
+             res.status(401).json({
                 success: false,
                 message: 'User not found'
             });
+            return
         }
         
         // Generate new tokens
@@ -68,10 +69,11 @@ async function handleRefreshToken(req, res) {
             errorMessage.includes('signature')) {
             // Set header to clear auth data for any refresh token failure
             res.setHeader('X-Clear-Auth', 'true');
-            return res.status(401).json({
+             res.status(401).json({
                 success: false,
                 message: 'Invalid or expired refresh token'
             });
+            return
         }
         
         res.status(500).json({

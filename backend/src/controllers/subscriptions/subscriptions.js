@@ -84,6 +84,11 @@ const getSubscriptionHistory = require('./functions/getSubscriptionHistory.js');
 const verifyPayment = require('./functions/verifyPayment.js');
 const getPaymentStatus = require('./functions/getPaymentStatus.js');
 
+// Import additional subscription control functions
+const pauseSubscription = require('./functions/pauseSubscription.js');
+const resumeSubscription = require('./functions/resumeSubscription.js');
+const downloadInvoice = require('./functions/downloadInvoice.js');
+
 
 module.exports = {
 	getAllPlans,
@@ -94,4 +99,8 @@ module.exports = {
 	getSubscriptionHistory,
 	verifyPayment,
 	getPaymentStatus,
+	// Additional subscription control functions
+	pauseSubscription,
+	resumeSubscription,
+	downloadInvoice,
 };

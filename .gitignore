@@ -1,6 +1,6 @@
 # === Node modules ===
 node_modules/
-MicroSAASTemplate/
+MicroSAASTemplat/
 
 # === Logs ===
 npm-debug.log*

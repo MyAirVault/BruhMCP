@@ -12,7 +12,8 @@ import {
 import SavePopup from '../components/modals/SavePopup';
 
 const Profile: React.FC = () => {
-  const { userName, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
+  const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.name : undefined;
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showSavePopup, setShowSavePopup] = useState(false);
@@ -25,7 +26,7 @@ const Profile: React.FC = () => {
     handleNotificationToggle,
     handleSave: saveProfileData,
     handleCancel: cancelProfileEdit
-  } = useProfileData(userName);
+  } = useProfileData(user?.email || null);
 
   const handleSave = async () => {
     try {

@@ -14,6 +14,9 @@ const {
 	handleRazorpayWebhook,
 } = require('../controllers/subscriptions/webhooks');
 
+// Import rate limiting
+const { webhookRateLimit } = require('../utils/rateLimiter');
+
 // Create router instance
 const router = express.Router();
 
@@ -43,7 +46,7 @@ router.use('/razorpay', (/** @type {import('express').Request} */ req, /** @type
  * Handle Razorpay webhook events
  * Includes signature verification for security
  */
-router.post('/razorpay', verifyRazorpayWebhook, handleRazorpayWebhook);
+router.post('/razorpay', /** @type {import('express').RequestHandler} */ (webhookRateLimit), verifyRazorpayWebhook, handleRazorpayWebhook);
 
 /**
  * GET /api/webhooks/health

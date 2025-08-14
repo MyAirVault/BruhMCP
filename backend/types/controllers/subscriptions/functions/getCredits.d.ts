@@ -1,9 +1,8 @@
-export = getCredits;
 /**
  * Get user account credits
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
- * @returns {Promise<void>}
+ * @returns {Promise<import('express').Response>} Credits list and pagination info
  */
-declare function getCredits(req: import("express").Request, res: import("express").Response): Promise<void>;
+export function getCredits(req: import("express").Request, res: import("express").Response): Promise<import("express").Response>;
 //# sourceMappingURL=getCredits.d.ts.map

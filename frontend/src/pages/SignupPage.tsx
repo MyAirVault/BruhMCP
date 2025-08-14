@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthLayout } from '../components/layout';
 import { SignupForm } from '../components/forms';
 import { SignupVerificationForm } from '../components/forms/SignupVerificationForm';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks';
 import { type RegisterFormData, type OTPVerificationFormData } from '../lib/validations';
 import { authApi } from '../lib/api';
 

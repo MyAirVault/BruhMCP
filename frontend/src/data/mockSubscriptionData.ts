@@ -80,10 +80,10 @@ export const mockPlans: SubscriptionPlan[] = [
     {
         id: 3,
         name: 'Plus',
-        displayName: 'Plus',
-        description: 'For growing organizations',
-        price_monthly: 249900, // ₹2499 in paisa
-        price_yearly: 2499900, // ₹24999 in paisa (2 months free)
+        displayName: 'Enterprise',
+        description: 'Enterprise solution with tailored pricing to fit your specific needs and scale',
+        price_monthly: -1, // Custom pricing indicator
+        price_yearly: -1, // Custom pricing indicator
         price_currency: 'INR',
         features: [
             'Everything in Pro',
@@ -104,12 +104,13 @@ export const mockPlans: SubscriptionPlan[] = [
         trial_days: 14,
         is_featured: false,
         // Legacy compatibility
-        price: 2499,
+        price: -1, // Custom pricing
         currency: 'INR',
         interval: 'month',
+        isPopular: false, // Ensures consistent bordered styling
         maxUsers: -1,
         maxProjects: -1,
-        storage: '1TB',
+        storage: 'Custom',
         support: 'Dedicated'
     }
 ];

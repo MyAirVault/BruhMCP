@@ -1,6 +1,6 @@
 export = verifyPayment;
 /**
- * Verify Razorpay payment and activate subscription
+ * Verify Razorpay payment and update subscription status
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @returns {Promise<void>}

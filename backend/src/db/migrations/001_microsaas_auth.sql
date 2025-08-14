@@ -15,9 +15,9 @@ CREATE TABLE users (
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255), -- Hashed password (bcrypt)
-    email_verified BOOLEAN DEFAULT false,
+    password_hash VARCHAR(255) NOT NULL, -- Hashed password (bcrypt)
     razorpay_customer_id VARCHAR(255), -- For payment integration
+    is_verified BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP,
@@ -29,7 +29,7 @@ CREATE TABLE auth_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token TEXT UNIQUE NOT NULL,
-    type VARCHAR(50) NOT NULL CHECK (type IN ('email_otp', 'password_reset', 'email_verification', 'refresh', 'email_change_pending')),
+    token_type VARCHAR(50) NOT NULL CHECK (token_type IN ('otp', 'password_reset', 'refresh', 'email_change_pending')),
     expires_at TIMESTAMP NOT NULL,
     is_used BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -110,7 +110,7 @@ CREATE TABLE subscription_transactions (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     -- Constraints
-    CHECK (amount > 0 OR transaction_type = 'refund'),
+    CHECK (amount >= 0 OR transaction_type = 'refund'),
     CHECK (net_amount >= 0 OR transaction_type = 'refund'),
     CHECK (retry_count >= 0),
     CHECK (exchange_rate > 0)
@@ -120,27 +120,35 @@ CREATE TABLE subscription_transactions (
 CREATE TABLE account_credits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    amount INTEGER NOT NULL, -- Amount in paise (can be negative for debits)
-    currency VARCHAR(10) DEFAULT 'INR',
+    subscription_id UUID REFERENCES user_subscriptions(id),
+    credit_amount INTEGER NOT NULL, -- Original credit amount in paise
+    remaining_amount INTEGER NOT NULL, -- Remaining credit amount in paise
+    credit_type VARCHAR(50) NOT NULL CHECK (credit_type IN ('downgrade', 'refund', 'adjustment', 'promotional')),
+    source_transaction_id UUID REFERENCES subscription_transactions(id),
     description TEXT,
-    source_type VARCHAR(50) CHECK (source_type IN ('refund', 'adjustment', 'promotion', 'downgrade')),
-    source_id VARCHAR(255), -- Reference to the source transaction or adjustment
-    is_used BOOLEAN DEFAULT false,
-    used_at TIMESTAMP,
     expires_at TIMESTAMP,
+    is_active BOOLEAN DEFAULT true,
+    applied_count INTEGER DEFAULT 0,
+    last_applied_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CHECK (credit_amount > 0),
+    CHECK (remaining_amount >= 0),
+    CHECK (remaining_amount <= credit_amount),
+    CHECK (applied_count >= 0)
 );
 
 -- Create indexes for better query performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_razorpay_customer_id ON users(razorpay_customer_id);
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_email_verified ON users(email_verified, is_active);
+CREATE INDEX idx_users_is_verified ON users(is_verified, is_active);
 
 CREATE INDEX idx_auth_tokens_user_id ON auth_tokens(user_id);
 CREATE INDEX idx_auth_tokens_token ON auth_tokens(token);
-CREATE INDEX idx_auth_tokens_type_user ON auth_tokens(type, user_id);
+CREATE INDEX idx_auth_tokens_type_user ON auth_tokens(token_type, user_id);
 CREATE INDEX idx_auth_tokens_expires_at ON auth_tokens(expires_at) WHERE is_used = false;
 
 CREATE INDEX idx_user_subscriptions_user_id ON user_subscriptions(user_id);
@@ -158,7 +166,9 @@ CREATE INDEX idx_subscription_transactions_created_at ON subscription_transactio
 CREATE INDEX idx_subscription_transactions_razorpay_payment_id ON subscription_transactions(razorpay_payment_id);
 
 CREATE INDEX idx_account_credits_user_id ON account_credits(user_id);
-CREATE INDEX idx_account_credits_is_used ON account_credits(is_used, expires_at);
+CREATE INDEX idx_account_credits_active ON account_credits(user_id, is_active) WHERE is_active = true;
+CREATE INDEX idx_account_credits_subscription ON account_credits(subscription_id);
+CREATE INDEX idx_account_credits_expires ON account_credits(expires_at) WHERE is_active = true AND expires_at IS NOT NULL;
 
 -- Create function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

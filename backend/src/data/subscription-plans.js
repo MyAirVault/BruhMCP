@@ -95,9 +95,9 @@ const SUBSCRIPTION_PLANS = {
         is_active: true,
         is_featured: true,
         display_order: 2,
-        // TODO: Fill these with actual Razorpay plan IDs from your Razorpay dashboard
-        razorpay_plan_id_monthly: 'plan_R0c1k7ViK9H1Hj', // e.g., 'plan_xxxxxxxxx'
-        razorpay_plan_id_yearly: 'plan_R0cCKbK32MukR0', // e.g., 'plan_yyyyyyyyy'
+        // Razorpay plan IDs from your Razorpay dashboard
+        razorpay_plan_id_monthly: 'plan_R0c1k7ViK9H1Hj',
+        razorpay_plan_id_yearly: 'plan_R0cCKbK32MukR0',
     }
 };
 
@@ -360,6 +360,39 @@ function isPlanUnlimited(planCode, resource) {
 
 
 
+/**
+ * Validate plan code against available plans
+ * @param {string} planCode - Plan code to validate
+ * @returns {boolean} True if plan code is valid
+ */
+function isValidPlanCode(planCode) {
+    try {
+        const plan = getPlanByCode(planCode);
+        return plan !== null;
+    } catch (error) {
+        return false;
+    } finally {
+        console.debug('Plan code validation completed');
+    }
+}
+
+
+/**
+ * Validate billing cycle
+ * @param {string} billingCycle - Billing cycle to validate
+ * @returns {boolean} True if billing cycle is valid
+ */
+function isValidBillingCycle(billingCycle) {
+    try {
+        return ['monthly', 'yearly'].includes(billingCycle?.toLowerCase());
+    } catch (error) {
+        return false;
+    } finally {
+        console.debug('Billing cycle validation completed');
+    }
+}
+
+
 module.exports = {
     SUBSCRIPTION_PLANS,
     getActivePlans,
@@ -370,4 +403,6 @@ module.exports = {
     planHasFeature,
     getPlanLimit,
     isPlanUnlimited,
+    isValidPlanCode,
+    isValidBillingCycle,
 };

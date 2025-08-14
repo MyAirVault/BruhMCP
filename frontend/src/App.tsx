@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ProfilePage } from './pages';
 import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
 import { BillingPage } from './pages/BillingPage';
@@ -50,11 +51,6 @@ function App() {
               <BillingPage />
             </ProtectedRoute>
           } />
-          <Route path="/billing/checkout" element={
-            <ProtectedRoute>
-              <CheckoutPage />
-            </ProtectedRoute>
-          } />
           <Route path="/checkout" element={
             <ProtectedRoute>
               <CheckoutPage />
@@ -68,6 +64,11 @@ function App() {
           <Route path="/settings" element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           } />
           

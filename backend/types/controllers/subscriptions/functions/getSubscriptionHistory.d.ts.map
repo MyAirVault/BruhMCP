@@ -1,1 +1,1 @@
-{"version":3,"file":"getSubscriptionHistory.d.ts","sourceRoot":"","sources":["../../../../src/controllers/subscriptions/functions/getSubscriptionHistory.js"],"names":[],"mappings":";AAQA;;;;;GAKG;AACH,6CAJW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,GACxB,OAAO,CAAC,IAAI,CAAC,CA2IzB"}
+{"version":3,"file":"getSubscriptionHistory.d.ts","sourceRoot":"","sources":["../../../../src/controllers/subscriptions/functions/getSubscriptionHistory.js"],"names":[],"mappings":";AAQA;;;;;GAKG;AACH,6CAJW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,GACxB,OAAO,CAAC,IAAI,CAAC,CA+IzB"}

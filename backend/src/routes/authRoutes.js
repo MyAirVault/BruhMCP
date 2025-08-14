@@ -32,11 +32,15 @@ const { handleGetUserPlan } = require('../controllers/auth/profile');
 const { handleSignupVerification } = require('../controllers/auth/signup-verification');
 const { handleResendSignupOTP } = require('../controllers/auth/signup');
 
+// Import rate limiters from utils
+const {
+    authRateLimiter,
+    otpRateLimit,
+    passwordResetRateLimit
+} = require('../utils/rateLimiter');
+
 // Import security middleware
 const {
-    authRateLimit,
-    otpRateLimit,
-    passwordResetRateLimit,
     validateSignup,
     validateLogin,
     validateEmail,
@@ -76,7 +80,7 @@ router.use(sanitizeInput);
  * - Duplicate email checking
  */
 router.post('/signup',
-    /** @type {import('express').RequestHandler} */ (authRateLimit),
+    /** @type {import('express').RequestHandler} */ (authRateLimiter),
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('SIGNUP_ATTEMPT')),
     ...validateSignup,
     /** @type {import('express').RequestHandler} */ (handleValidationErrors),
@@ -95,7 +99,7 @@ router.post('/signup',
  * - User verification status checking
  */
 router.post('/signup/resend',
-    /** @type {import('express').RequestHandler} */ (authRateLimit),
+    /** @type {import('express').RequestHandler} */ (authRateLimiter),
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('SIGNUP_OTP_RESEND')),
     ...validateEmail,
     /** @type {import('express').RequestHandler} */ (handleValidationErrors),
@@ -114,7 +118,7 @@ router.post('/signup/resend',
  * - Automatic user login after verification
  */
 router.post('/signup/verify',
-    /** @type {import('express').RequestHandler} */ (authRateLimit),
+    /** @type {import('express').RequestHandler} */ (authRateLimiter),
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('SIGNUP_VERIFICATION')),
     ...validateOTP,
     /** @type {import('express').RequestHandler} */ (handleValidationErrors),
@@ -127,7 +131,7 @@ router.post('/signup/verify',
  * Authenticate user and return tokens
  */
 router.post('/login',
-    /** @type {import('express').RequestHandler} */ (authRateLimit),
+    /** @type {import('express').RequestHandler} */ (authRateLimiter),
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('LOGIN_ATTEMPT')),
     ...validateLogin,
     /** @type {import('express').RequestHandler} */ (handleValidationErrors),
@@ -153,7 +157,7 @@ router.post('/send-otp',
  * Verify OTP code and complete email verification
  */
 router.post('/verify-otp',
-    /** @type {import('express').RequestHandler} */ (authRateLimit),
+    /** @type {import('express').RequestHandler} */ (authRateLimiter),
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('OTP_VERIFICATION')),
     ...validateOTP,
     /** @type {import('express').RequestHandler} */ (handleValidationErrors),
@@ -179,7 +183,7 @@ router.post('/forgot-password',
  * Reset password using reset token
  */
 router.post('/reset-password',
-    /** @type {import('express').RequestHandler} */ (authRateLimit),
+    /** @type {import('express').RequestHandler} */ (authRateLimiter),
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('PASSWORD_RESET')),
     ...validatePasswordReset,
     /** @type {import('express').RequestHandler} */ (handleValidationErrors),
@@ -192,7 +196,7 @@ router.post('/reset-password',
  * Refresh access token using refresh token
  */
 router.post('/refresh',
-    /** @type {import('express').RequestHandler} */ (authRateLimit),
+    /** @type {import('express').RequestHandler} */ (authRateLimiter),
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('TOKEN_REFRESH')),
     ...validateRefreshToken,
     /** @type {import('express').RequestHandler} */ (handleValidationErrors),

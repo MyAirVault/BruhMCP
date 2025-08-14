@@ -137,7 +137,7 @@ async function handleResetPassword(req, res) {
         await invalidateUserTokens(otpResult.user.id, 'refresh');
         
         // Clean up any remaining OTP tokens for this user
-        await invalidateUserTokens(otpResult.user.id, 'email_otp');
+        await invalidateUserTokens(otpResult.user.id, 'otp');
         
         console.log('Password reset completed successfully:', {
             email: email,

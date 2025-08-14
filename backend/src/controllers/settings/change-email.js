@@ -115,10 +115,10 @@ async function handleChangeEmail(req, res) {
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
         
         const storePendingQuery = `
-            INSERT INTO auth_tokens (user_id, token, type, expires_at)
+            INSERT INTO auth_tokens (user_id, token, token_type, expires_at)
             VALUES ($1, $2, 'email_change_pending', $3)
-            ON CONFLICT (user_id, type) 
-            WHERE type = 'email_change_pending'
+            ON CONFLICT (user_id, token_type) 
+            WHERE token_type = 'email_change_pending'
             DO UPDATE SET 
                 token = EXCLUDED.token,
                 expires_at = EXCLUDED.expires_at,
@@ -216,7 +216,7 @@ async function handleVerifyEmailChange(req, res) {
         const pendingChangeQuery = `
             SELECT token FROM auth_tokens 
             WHERE user_id = $1
-            AND type = 'email_change_pending' 
+            AND token_type = 'email_change_pending' 
             AND token = $2
             AND expires_at > CURRENT_TIMESTAMP
             AND is_used = false
@@ -288,8 +288,8 @@ async function handleVerifyEmailChange(req, res) {
             
             // Step 1: Check if there's still an unverified account with the target email
             const unverifiedAccountQuery = `
-                SELECT id, email_verified FROM users 
-                WHERE email = $1 AND id != $2 AND email_verified = false AND is_active = true
+                SELECT id, is_verified FROM users 
+                WHERE email = $1 AND id != $2 AND is_verified = false AND is_active = true
             `;
             const unverifiedResult = await client.query(unverifiedAccountQuery, [email, userId]);
             const unverifiedAccount = unverifiedResult.rows.length > 0 ? unverifiedResult.rows[0] : null;
@@ -309,7 +309,7 @@ async function handleVerifyEmailChange(req, res) {
                 // Delete the unverified user account
                 const deleteUserQuery = `
                     DELETE FROM users 
-                    WHERE id = $1 AND email_verified = false AND is_active = true
+                    WHERE id = $1 AND is_verified = false AND is_active = true
                 `;
                 const deleteResult = await client.query(deleteUserQuery, [unverifiedAccount.id]);
                 
@@ -339,7 +339,7 @@ async function handleVerifyEmailChange(req, res) {
             // Step 4: Clean up pending email change record
             const cleanupPendingQuery = `
                 DELETE FROM auth_tokens 
-                WHERE user_id = $1 AND type = 'email_change_pending'
+                WHERE user_id = $1 AND token_type = 'email_change_pending'
             `;
             await client.query(cleanupPendingQuery, [userId]);
             
@@ -347,7 +347,7 @@ async function handleVerifyEmailChange(req, res) {
             const cleanupOTPsQuery = `
                 UPDATE auth_tokens 
                 SET is_used = true 
-                WHERE user_id = $1 AND type = 'email_otp' AND is_used = false
+                WHERE user_id = $1 AND token_type = 'otp' AND is_used = false
             `;
             await client.query(cleanupOTPsQuery, [userId]);
             

@@ -12,7 +12,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onCreateMCP }) => {
   const navigate = useNavigate();
 
   const handleUpgradeClick = () => {
-    navigate('/billing/checkout');
+    navigate('/billing?view=plans');
   };
 
   return (

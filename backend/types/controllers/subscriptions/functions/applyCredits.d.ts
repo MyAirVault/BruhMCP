@@ -1,9 +1,8 @@
-export = applyCredits;
 /**
- * Apply user account credits
+ * Apply user account credits to next billing cycle
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
- * @returns {Promise<void>}
+ * @returns {Promise<import('express').Response>} Application result and updated balance
  */
-declare function applyCredits(req: import("express").Request, res: import("express").Response): Promise<void>;
+export function applyCredits(req: import("express").Request, res: import("express").Response): Promise<import("express").Response>;
 //# sourceMappingURL=applyCredits.d.ts.map

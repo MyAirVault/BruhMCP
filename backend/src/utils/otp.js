@@ -205,7 +205,7 @@ async function verifyOTP(email, otp) {
         }
         
         // Mark OTP as used
-        await markTokenAsUsedByValue(normalizedOTP, 'email_otp');
+        await markTokenAsUsedByValue(normalizedOTP, 'otp');
         
         // Mark user as verified if not already
         if (!user.isVerified) {
@@ -415,7 +415,7 @@ async function sendOTPEmail(email, otp, purpose = 'verification') {
 async function cleanupExpiredOTPs() {
     try {
         // Use the token queries to clean up expired OTPs
-        const deletedCount = await cleanupExpiredTokens('email_otp');
+        const deletedCount = await cleanupExpiredTokens('otp');
         
         if (deletedCount > 0) {
             console.log(`Cleaned up ${deletedCount} expired OTP records`);

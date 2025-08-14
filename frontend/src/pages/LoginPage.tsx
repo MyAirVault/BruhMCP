@@ -7,7 +7,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthLayout } from '../components/layout';
 import { LoginForm, OTPForm } from '../components/forms';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks';
 import { type LoginFormData } from '../lib/validations';
 
 /**

@@ -1,9 +1,8 @@
-export = downloadInvoice;
 /**
- * Download invoice for a transaction
+ * Generate and download invoice for a transaction
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
- * @returns {Promise<void>}
+ * @returns {Promise<import('express').Response | void>} Invoice PDF download
  */
-declare function downloadInvoice(req: import("express").Request, res: import("express").Response): Promise<void>;
+export function downloadInvoice(req: import("express").Request, res: import("express").Response): Promise<import("express").Response | void>;
 //# sourceMappingURL=downloadInvoice.d.ts.map

@@ -74,7 +74,7 @@ app.use(
 );
 
 // Rate limiting
-app.use(apiRateLimiter);
+app.use(/** @type {import('express').RequestHandler} */ (apiRateLimiter));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -120,6 +120,24 @@ app.get('/health', (_req, res) => {
 // API routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/settings', settingsRoutes);
+// API health check (standard endpoint matching MicroSAASTemplate)
+app.get('/api/health', (_req, res) => {
+	res.json({
+		success: true,
+		message: 'API is healthy',
+		services: {
+			database: 'connected',
+			authentication: 'active',
+			settings: 'active',
+			subscriptions: 'active',
+			webhooks: process.env.RAZORPAY_WEBHOOK_SECRET ? 'configured' : 'not_configured',
+			payments: process.env.RAZORPAY_KEY_ID ? 'configured' : 'not_configured',
+			mcpInstances: 'active'
+		},
+		timestamp: new Date().toISOString()
+	});
+});
+
 app.get('/api/v1/health', (_req, res) => {
 	res.status(200).json({
 		status: 'ok',

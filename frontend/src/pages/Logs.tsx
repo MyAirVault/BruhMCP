@@ -8,7 +8,8 @@ import type { MCPLog } from '../types';
 import { Download, Filter, Search, RefreshCw, ArrowLeft, FileText, Activity, AlertCircle, Info, Bug, Server, Database, Globe } from 'lucide-react';
 
 const Logs: React.FC = () => {
-  const { userName, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
+  const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.name : undefined;
   const location = useLocation();
   const navigate = useNavigate();
   const [logs, setLogs] = useState<MCPLog[]>([]);

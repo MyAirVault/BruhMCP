@@ -215,7 +215,7 @@ export function getZodFieldErrors(error: z.ZodError): Record<string, string> {
     try {
         const fieldErrors: Record<string, string> = {};
         
-        error.issues.forEach((err: any) => {
+        error.issues.forEach((err) => {
             const fieldPath = err.path.join('.');
             if (fieldPath) {
                 fieldErrors[fieldPath] = err.message;

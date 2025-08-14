@@ -30,19 +30,21 @@ async function handleSendOTP(req, res) {
         // Check if user exists
         const user = await findUserByEmail(email);
         if (!user) {
-            return res.status(404).json({
+             res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
+            return
         }
         
         // Check rate limit
         const rateLimitCheck = await checkOTPRateLimit(user.id);
         if (!rateLimitCheck.canRequest) {
-            return res.status(429).json({
+             res.status(429).json({
                 success: false,
                 message: rateLimitCheck.message
             });
+            return
         }
         
         // Generate and send OTP
@@ -85,18 +87,20 @@ async function handleVerifyOTP(req, res) {
         const verificationResult = await verifyOTP(email, otp);
         
         if (!verificationResult.success) {
-            return res.status(400).json({
+             res.status(400).json({
                 success: false,
                 message: verificationResult.message
             });
+            return
         }
         
         // Ensure user data is present in successful verification
         if (!verificationResult.user) {
-            return res.status(500).json({
+             res.status(500).json({
                 success: false,
                 message: 'Verification successful but user data missing'
             });
+            return
         }
         
         // Generate tokens for the verified user

@@ -1,11 +1,10 @@
 /**
- * Subscription Plans component with pricing cards
- * Displays Free, Pro plans + Contact Us option
- * Adapted for current project structure
+ * Subscription Plans component with Notion-inspired pricing cards
+ * Displays all available subscription plans with features and pricing
  */
 
 import { motion } from 'framer-motion';
-import { Check, Star, Zap, Mail } from 'lucide-react';
+import { Check, Star, Zap, Crown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { cn } from '../../lib/utils';
@@ -14,7 +13,7 @@ import type { SubscriptionPlan, UserSubscription } from '../../types/subscriptio
 interface SubscriptionPlansProps {
     plans: SubscriptionPlan[];
     currentSubscription?: UserSubscription | null;
-    onSelectPlan: (planCode: string, billingCycle?: 'monthly' | 'yearly') => void;
+    onSelectPlan: (planId: number) => void;
     loading?: boolean;
     disabled?: boolean;
 }
@@ -22,12 +21,17 @@ interface SubscriptionPlansProps {
 const planIcons = {
     free: <Zap className="h-5 w-5" />,
     pro: <Star className="h-5 w-5" />,
-    contact: <Mail className="h-5 w-5" />,
+    plus: <Crown className="h-5 w-5" />,
 };
 
 /**
  * Subscription plans pricing component
- * Shows 2 real plans (Free, Pro) + 1 Contact Us option
+ * @param plans - Available subscription plans
+ * @param currentSubscription - User's current subscription
+ * @param onSelectPlan - Handler for plan selection
+ * @param loading - Loading state
+ * @param disabled - Disabled state
+ * @returns SubscriptionPlans JSX element
  */
 export function SubscriptionPlans({
     plans,
@@ -37,249 +41,264 @@ export function SubscriptionPlans({
     disabled = false,
 }: SubscriptionPlansProps) {
     try {
-        // Sort plans by display_order, then add Contact Us
-        const sortedPlans = [...plans].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-        
-        // Add Contact Us as third option
-        const contactPlan: SubscriptionPlan = {
-            id: 999, // Contact plan ID
-            plan_code: 'contact',
-            name: 'Contact Us',
-            description: 'Custom solutions for enterprise needs',
-            tagline: 'Tailored to your requirements',
-            price_monthly: 0,
-            price_yearly: 0,
-            price_currency: 'INR',
-            features: [
-                'Everything in Pro',
-                'Custom integrations',
-                'Dedicated support',
-                'SLA agreements',
-                'Volume discounts',
-                'On-premise deployment'
-            ],
-            limits: {},
-            display_order: 3,
-            is_featured: false
-        };
-
-        const allPlans = [...sortedPlans, contactPlan];
+        // Sort by ID to maintain: Free (1), Pro (2), Plus (3) order
+        const sortedPlans = [...plans].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
         
         const isCurrentPlan = (plan: SubscriptionPlan): boolean => {
             if (!currentSubscription || currentSubscription.status !== 'active') {
                 return false;
             }
             
-            return currentSubscription.plan_code === plan.plan_code;
+            // Compare by plan_code first (preferred), then fall back to planId
+            if (currentSubscription.planCode && plan.plan_code) {
+                return currentSubscription.planCode === plan.plan_code;
+            }
+            
+            // Legacy comparison by ID
+            return currentSubscription.planId === plan.id;
         };
 
         const getButtonText = (plan: SubscriptionPlan): string => {
-            if (plan.plan_code === 'contact') {
-                return 'Contact Sales';
-            }
-            
             if (isCurrentPlan(plan)) {
                 return 'Current Plan';
             }
-            
-            if (plan.plan_code === 'free') {
+            if (plan.price === -1 || (plan.price_monthly ?? 0) === -1) {
+                return 'Contact Sales';
+            }
+            if (plan.price === 0) {
                 return 'Get Started';
             }
-            
-            return 'Upgrade to Pro';
+            if (currentSubscription && (currentSubscription.plan.price ?? 0) < (plan.price ?? 0)) {
+                return 'Upgrade';
+            }
+            if (currentSubscription && (currentSubscription.plan.price ?? 0) > (plan.price ?? 0)) {
+                return 'Downgrade';
+            }
+            return 'Choose Plan';
         };
 
         const getButtonVariant = (plan: SubscriptionPlan): 'primary' | 'secondary' | 'outline' => {
             if (isCurrentPlan(plan)) {
                 return 'outline';
             }
-            if (plan.is_featured || plan.plan_code === 'pro') {
+            if (plan.isPopular) {
                 return 'primary';
             }
             return 'outline';
-        };
-
-        const handlePlanSelect = (plan: SubscriptionPlan) => {
-            if (plan.plan_code === 'contact') {
-                // Redirect to contact URL (you can set this)
-                window.open('/contact', '_blank');
-                return;
-            }
-            
-            onSelectPlan(plan.plan_code, 'monthly');
-        };
-
-        const formatPrice = (plan: SubscriptionPlan) => {
-            if (plan.plan_code === 'contact') {
-                return 'Custom';
-            }
-            
-            if (plan.price_monthly === 0) {
-                return 'Free';
-            }
-            
-            const monthlyPrice = plan.price_monthly / 100; // Convert from paise
-            const yearlyPrice = plan.price_yearly ? plan.price_yearly / 100 : monthlyPrice * 10;
-            
-            return {
-                monthly: `₹${monthlyPrice.toLocaleString('en-IN')}`,
-                yearly: `₹${yearlyPrice.toLocaleString('en-IN')}`
-            };
         };
 
         return (
             <div className="space-y-8">
                 {/* Header */}
                 <div className="text-center space-y-4">
-                    <h2 className="text-3xl font-bold text-gray-900">
+                    <h2 className="text-2xl font-semibold text-gray-900">
                         Choose Your Plan
                     </h2>
-                    <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                        Select the perfect plan for your MCP needs. Upgrade or downgrade at any time.
+                    <p className="text-gray-600 max-w-2xl mx-auto">
+                        Select the perfect plan for your needs. Upgrade or downgrade at any time.
                     </p>
                 </div>
 
                 {/* Plans Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                    {allPlans.map((plan, index) => {
-                        const prices = formatPrice(plan);
-                        const icon = planIcons[plan.plan_code as keyof typeof planIcons] || <Zap className="h-5 w-5" />;
-                        
-                        return (
-                            <motion.div
-                                key={plan.plan_code}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    {sortedPlans.map((plan, index) => (
+                        <motion.div
+                            key={plan.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="relative"
+                        >
+                            {/* Popular badge */}
+                            {plan.isPopular && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-medium">
+                                        Most Popular
+                                    </div>
+                                </div>
+                            )}
+
+                            <Card
+                                variant={plan.isPopular ? 'elevated' : 'bordered'}
                                 className={cn(
-                                    "relative",
-                                    plan.is_featured || plan.plan_code === 'pro' ? "md:scale-105" : ""
+                                    'relative h-full transition-all duration-300 hover:shadow-lg',
+                                    plan.isPopular && 'ring-2 ring-blue-500 ring-opacity-20',
+                                    isCurrentPlan(plan) && 'ring-2 ring-green-500 ring-opacity-30',
+                                    // Ensure consistent border for non-popular plans
+                                    !plan.isPopular && 'border-gray-300'
                                 )}
                             >
-                                {/* Popular badge */}
-                                {(plan.is_featured || plan.plan_code === 'pro') && (
-                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                                        <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                                            Most Popular
-                                        </span>
-                                    </div>
-                                )}
-
-                                <Card className={cn(
-                                    "relative h-full transition-all duration-200 hover:shadow-lg",
-                                    (plan.is_featured || plan.plan_code === 'pro') 
-                                        ? "border-blue-500 shadow-lg" 
-                                        : "border-gray-200",
-                                    isCurrentPlan(plan) ? "ring-2 ring-green-500" : ""
-                                )}>
-                                    <CardHeader className="text-center pb-4">
-                                        {/* Plan Icon */}
+                                <CardHeader className="text-center">
+                                    {/* Plan icon and name */}
+                                    <div className="flex items-center justify-center space-x-2 mb-2">
                                         <div className={cn(
-                                            "w-12 h-12 rounded-lg mx-auto flex items-center justify-center mb-4",
-                                            plan.plan_code === 'free' ? "bg-gray-100 text-gray-600" :
-                                            plan.plan_code === 'pro' ? "bg-blue-100 text-blue-600" :
-                                            "bg-purple-100 text-purple-600"
+                                            'p-2 rounded-lg',
+                                            plan.name === 'free' && 'bg-gray-100 text-gray-600',
+                                            plan.name === 'pro' && 'bg-blue-100 text-blue-600',
+                                            plan.name === 'plus' && 'bg-purple-100 text-purple-600'
                                         )}>
-                                            {icon}
+                                            {planIcons[plan.name as keyof typeof planIcons] || <Zap className="h-5 w-5" />}
                                         </div>
-
-                                        {/* Plan Name */}
-                                        <h3 className="text-xl font-bold text-gray-900">
-                                            {plan.name}
+                                        <h3 className="text-xl font-semibold text-gray-900">
+                                            {plan.displayName}
                                         </h3>
+                                    </div>
 
-                                        {/* Plan Tagline */}
-                                        {plan.tagline && (
-                                            <p className="text-sm text-gray-600 mb-4">
-                                                {plan.tagline}
-                                            </p>
-                                        )}
-
-                                        {/* Pricing */}
-                                        <div className="space-y-2">
-                                            {typeof prices === 'string' ? (
-                                                <div className="text-3xl font-bold text-gray-900">
-                                                    {prices}
+                                    {/* Price */}
+                                    <div className="space-y-1">
+                                        {(plan.price === -1 || (plan.price_monthly ?? 0) === -1) ? (
+                                            <div className="text-center">
+                                                <span className="text-2xl font-bold text-gray-900">
+                                                    Custom Pricing
+                                                </span>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Contact us for pricing
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="flex items-baseline justify-center space-x-1">
+                                                    <span className="text-sm text-gray-500">₹</span>
+                                                    <span className="text-4xl font-bold text-gray-900">
+                                                        {plan.price === 0 ? '0' : ((plan.price ?? 0) / 100).toFixed(0)}
+                                                    </span>
+                                                    <span className="text-sm text-gray-500">
+                                                        /{plan.interval}
+                                                    </span>
                                                 </div>
-                                            ) : (
-                                                <div className="space-y-1">
-                                                    <div className="text-3xl font-bold text-gray-900">
-                                                        {prices.monthly}
-                                                        <span className="text-lg font-normal text-gray-600">
-                                                            /month
-                                                        </span>
-                                                    </div>
-                                                    {prices.yearly && (
-                                                        <div className="text-sm text-gray-600">
-                                                            {prices.yearly}/year (Save 2 months!)
-                                                        </div>
-                                                    )}
+                                                {(plan.price ?? 0) > 0 && (
+                                                    <p className="text-xs text-gray-500">
+                                                        Billed {plan.interval}ly
+                                                    </p>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        {plan.description}
+                                    </p>
+                                </CardHeader>
+
+                                <CardContent className="space-y-4">
+                                    {/* Features */}
+                                    <div className="space-y-3">
+                                        {plan.features.map((feature, featureIndex) => (
+                                            <div key={featureIndex} className="flex items-start space-x-3">
+                                                <div className="flex-shrink-0 mt-0.5">
+                                                    <Check className="h-4 w-4 text-green-500" />
+                                                </div>
+                                                <span className="text-sm text-gray-700">
+                                                    {feature}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Plan limits - hide for custom pricing plans */}
+                                    {(plan.maxUsers || plan.maxProjects || plan.storage) && !(plan.price === -1 || (plan.price_monthly ?? 0) === -1) && (
+                                        <div className="pt-4 border-t border-gray-100 space-y-2">
+                                            {plan.maxUsers && (
+                                                <div className="flex justify-between text-xs text-gray-600">
+                                                    <span>Users:</span>
+                                                    <span className="font-medium">
+                                                        {plan.maxUsers === -1 ? 'Unlimited' : plan.maxUsers}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {plan.maxProjects && (
+                                                <div className="flex justify-between text-xs text-gray-600">
+                                                    <span>Projects:</span>
+                                                    <span className="font-medium">
+                                                        {plan.maxProjects === -1 ? 'Unlimited' : plan.maxProjects}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {plan.storage && (
+                                                <div className="flex justify-between text-xs text-gray-600">
+                                                    <span>Storage:</span>
+                                                    <span className="font-medium">{plan.storage}</span>
                                                 </div>
                                             )}
                                         </div>
-                                    </CardHeader>
+                                    )}
 
-                                    <CardContent className="space-y-6">
-                                        {/* Plan Description */}
-                                        <p className="text-gray-600 text-center">
-                                            {plan.description}
-                                        </p>
-
-                                        {/* Features List */}
-                                        <ul className="space-y-3">
-                                            {plan.features.map((feature, featureIndex) => (
-                                                <li key={featureIndex} className="flex items-start gap-3">
-                                                    <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                                    <span className="text-gray-700 text-sm">
-                                                        {feature}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                        {/* Action Button */}
-                                        <div className="pt-4">
-                                            <Button
-                                                variant={getButtonVariant(plan)}
-                                                size="lg"
-                                                className="w-full"
-                                                onClick={() => handlePlanSelect(plan)}
-                                                disabled={disabled || loading || isCurrentPlan(plan)}
-                                                loading={loading}
-                                            >
-                                                {getButtonText(plan)}
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        );
-                    })}
+                                    {/* Action button or current plan indicator */}
+                                    <div className="pt-4">
+                                        {isCurrentPlan(plan) ? (
+                                            <div className="text-center">
+                                                <span className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-green-100 text-green-800 w-full justify-center">
+                                                    <Check className="h-4 w-4 mr-2" />
+                                                    Current Plan
+                                                </span>
+                                            </div>
+                                        ) : plan.price === 0 ? (
+                                            // Free plan - no button needed since users can cancel to get to free
+                                            <div className="text-center">
+                                                <span className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 w-full justify-center">
+                                                    Free Plan
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            (plan.price === -1 || (plan.price_monthly ?? 0) === -1) ? (
+                                                <a 
+                                                    href="mailto:sales@yourdomain.com?subject=Enterprise Plan Inquiry"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block"
+                                                >
+                                                    <Button
+                                                        variant={getButtonVariant(plan)}
+                                                        fullWidth
+                                                        disabled={disabled || loading}
+                                                    >
+                                                        {getButtonText(plan)}
+                                                    </Button>
+                                                </a>
+                                            ) : (
+                                                <Button
+                                                    variant={getButtonVariant(plan)}
+                                                    fullWidth
+                                                    onClick={() => onSelectPlan(plan.id)}
+                                                    disabled={disabled || loading}
+                                                    loading={loading}
+                                                >
+                                                    {getButtonText(plan)}
+                                                </Button>
+                                            )
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    ))}
                 </div>
 
-                {/* Additional Info */}
-                <div className="text-center space-y-4 pt-8">
+                {/* Additional info */}
+                <div className="text-center space-y-2 max-w-2xl mx-auto">
                     <p className="text-sm text-gray-600">
-                        All plans include secure hosting, regular backups, and community support.
+                        All plans include 14-day free trial • No setup fees • Cancel anytime
                     </p>
-                    <p className="text-sm text-gray-600">
-                        Need help choosing? <button className="text-blue-600 hover:text-blue-700 underline">
-                            Contact our team
-                        </button>
+                    <p className="text-xs text-gray-500">
+                        Prices are in Indian Rupees (INR) and exclude applicable taxes.
                     </p>
                 </div>
             </div>
         );
-
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error('Failed to render subscription plans:', errorMessage);
-        
+        console.error('SubscriptionPlans render error:', error);
         return (
-            <div className="text-center py-12">
-                <p className="text-red-600">
-                    Failed to load subscription plans. Please try again.
+            <div className="text-center space-y-4 p-8">
+                <p className="text-error-600">
+                    Unable to load subscription plans. Please refresh the page and try again.
                 </p>
+                <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                >
+                    Refresh Page
+                </Button>
             </div>
         );
     }

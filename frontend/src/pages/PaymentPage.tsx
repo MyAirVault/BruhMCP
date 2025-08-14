@@ -13,7 +13,7 @@ import { PaymentStatus } from '../components/subscription/PaymentStatus';
 import { formatErrorMessage } from '../lib/utils';
 import { subscriptionApi } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import type { SubscriptionPlan, PaymentFormData, UserSubscription, UpgradeRequest, BillingInfo, ProrationInfo, PollingConfig, PaymentStatusResponse } from '../types/subscription';
+import type { SubscriptionPlan, PaymentFormData, UserSubscription, UpgradeRequest, BillingInfo, ProrationInfo, PollingConfig } from '../types/subscription';
 
 type PaymentState = 'processing' | 'success' | 'failed' | 'pending';
 
@@ -87,10 +87,10 @@ export function PaymentPage() {
 			};
 		}, [cleanupPolling]);
 
-		// Payment status polling function with MicroSAAS pattern
+		// Payment status polling function
 		const startPaymentStatusPolling = React.useCallback(async (
 			subscriptionId: string,
-			initialConfig: PollingConfig = {
+			config: PollingConfig = {
 				initialIntervalMs: 2000,
 				maxIntervalMs: 30000,
 				backoffMultiplier: 1.5,
@@ -106,83 +106,59 @@ export function PaymentPage() {
 				setPaymentState('processing');
 
 				let attemptCount = 0;
-				let currentIntervalMs = initialConfig.initialIntervalMs;
-				let totalTimeoutMs = initialConfig.timeoutMs;
-				let maxAttempts = initialConfig.maxAttempts;
+				let currentInterval = config.initialIntervalMs;
 				const startTime = Date.now();
 
 				const poll = async (): Promise<void> => {
 					try {
+						// Check if we should stop polling
+						if (attemptCount >= config.maxAttempts) {
+							throw new Error('Payment status polling timeout. Please check your payment status manually.');
+						}
+
+						if (Date.now() - startTime > config.timeoutMs) {
+							throw new Error('Payment verification timeout. Please check your billing history.');
+						}
+
 						// Create abort controller for this request
 						abortControllerRef.current = new AbortController();
+						
 
-						// Make API call to get comprehensive payment status
-						const statusData: PaymentStatusResponse['data'] = await subscriptionApi.getPaymentStatus(subscriptionId);
+						// Make API call
+						const statusData = await subscriptionApi.getPaymentStatus(subscriptionId);
 						
 						// Check if we got aborted
 						if (abortControllerRef.current?.signal.aborted) {
 							return;
 						}
 
-						// Use backend's polling configuration if available
-						if (statusData.polling) {
-							const backendConfig = statusData.polling;
-							if (backendConfig.interval_seconds > 0) {
-								currentIntervalMs = backendConfig.interval_seconds * 1000;
-							}
-							if (backendConfig.max_attempts > 0) {
-								maxAttempts = backendConfig.max_attempts;
-							}
-							if (backendConfig.recommended_timeout > 0) {
-								totalTimeoutMs = backendConfig.recommended_timeout * 1000;
-							}
-
-							// If backend says to stop polling, respect that
-							if (!backendConfig.should_continue) {
-								cleanupPolling();
-								
-								// Determine final state based on payment status
-								const paymentStatus = statusData.payment.status;
-								if (paymentStatus === 'completed' || paymentStatus === 'not_required') {
-									setPaymentState('success');
-									setPaymentData({
-										paymentId: statusData.payment.latest_payment_id || 'completed',
-										orderId: statusData.subscription.razorpay_subscription_id,
-										amount: statusData.subscription.total_amount,
-									});
-									navigate(`/payment?planId=${planId}&status=success`, { replace: true });
-								} else {
-									if (handlePaymentErrorRef.current) {
-										handlePaymentErrorRef.current(statusData.payment.message || 'Payment verification completed with errors');
-									}
-								}
-								return;
-							}
+						const { payment, subscription, polling } = statusData;
+						
+						// Check if we should stop polling
+						if (!polling.should_continue) {
+							cleanupPolling();
 						}
-
-						// Check timeout conditions
-						if (attemptCount >= maxAttempts) {
-							throw new Error('Payment status polling timeout. Please check your payment status manually.');
-						}
-
-						if (Date.now() - startTime > totalTimeoutMs) {
-							throw new Error('Payment verification timeout. Please check your billing history.');
-						}
-
-						// Handle different payment statuses using MicroSAAS logic
-						const paymentStatus = statusData.payment.status;
-						const paymentMessage = statusData.payment.message;
-
-						switch (paymentStatus) {
+						
+						// Handle different payment statuses
+						switch (payment.status) {
 							case 'completed':
 								cleanupPolling();
 								setPaymentState('success');
 								setPaymentData({
-									paymentId: statusData.payment.latest_payment_id || 'completed',
-									orderId: statusData.subscription.razorpay_subscription_id,
-									amount: statusData.subscription.total_amount,
+									paymentId: payment.latest_payment_id || undefined,
+									orderId: subscription.razorpay_subscription_id,
+									amount: subscription.total_amount,
 								});
-								navigate(`/payment?planId=${planId}&status=success`, { replace: true });
+								navigate(`/checkout?planId=${planId}&status=success`, { replace: true });
+								return;
+
+							case 'failed':
+							case 'cancelled':
+							case 'expired':
+								cleanupPolling();
+								if (handlePaymentErrorRef.current) {
+									handlePaymentErrorRef.current(payment.message || 'Payment verification failed');
+								}
 								return;
 
 							case 'not_required':
@@ -194,49 +170,32 @@ export function PaymentPage() {
 									orderId: 'not-required',
 									amount: 0,
 								});
-								navigate(`/payment?planId=${planId}&status=success`, { replace: true });
-								return;
-
-							case 'failed':
-							case 'cancelled':
-							case 'expired':
-								cleanupPolling();
-								if (handlePaymentErrorRef.current) {
-									handlePaymentErrorRef.current(paymentMessage || 'Payment verification failed');
-								}
+								navigate(`/checkout?planId=${planId}&status=success`, { replace: true });
 								return;
 
 							case 'pending':
-								// Continue polling with backend-specified interval
+								// Continue polling
 								attemptCount++;
 								
-								// Use backend-specified interval or fallback to exponential backoff
-								if (!statusData.polling?.interval_seconds) {
-									currentIntervalMs = Math.min(
-										currentIntervalMs * initialConfig.backoffMultiplier,
-										initialConfig.maxIntervalMs
-									);
-								}
+								// Use backend-provided retry interval if available, otherwise use exponential backoff
+								const nextInterval = (polling.interval_seconds * 1000) || Math.min(
+									currentInterval * config.backoffMultiplier,
+									config.maxIntervalMs
+								);
+								currentInterval = nextInterval;
+
 
 								// Schedule next poll
 								pollingTimeoutRef.current = window.setTimeout(() => {
 									if (!abortControllerRef.current?.signal.aborted) {
 										poll();
 									}
-								}, currentIntervalMs);
+								}, nextInterval);
 								
 								break;
 
 							default:
-								console.warn(`Unknown payment status: ${paymentStatus}, treating as pending`);
-								// Treat unknown status as pending and continue polling
-								attemptCount++;
-								pollingTimeoutRef.current = window.setTimeout(() => {
-									if (!abortControllerRef.current?.signal.aborted) {
-										poll();
-									}
-								}, currentIntervalMs);
-								break;
+								throw new Error(`Unknown payment status: ${payment.status}`);
 						}
 
 					} catch (error) {
@@ -248,7 +207,7 @@ export function PaymentPage() {
 						console.error('Payment status polling error:', error);
 						
 						// If we've exhausted retries or hit a permanent error, stop polling
-						if (attemptCount >= maxAttempts || 
+						if (attemptCount >= config.maxAttempts || 
 							(error instanceof Error && error.message.includes('timeout'))) {
 							cleanupPolling();
 							if (handlePaymentErrorRef.current) {
@@ -259,13 +218,13 @@ export function PaymentPage() {
 
 						// For temporary errors, continue polling with backoff
 						attemptCount++;
-						currentIntervalMs = Math.min(currentIntervalMs * initialConfig.backoffMultiplier, initialConfig.maxIntervalMs);
+						currentInterval = Math.min(currentInterval * config.backoffMultiplier, config.maxIntervalMs);
 						
 						pollingTimeoutRef.current = window.setTimeout(() => {
 							if (!abortControllerRef.current?.signal.aborted) {
 								poll();
 							}
-						}, currentIntervalMs);
+						}, currentInterval);
 					}
 				};
 
@@ -275,6 +234,7 @@ export function PaymentPage() {
 			} catch (error) {
 				console.error('Failed to start payment status polling:', error);
 				cleanupPolling();
+				// handlePaymentError will be defined later, so we'll call it via ref
 				if (handlePaymentErrorRef.current) {
 					handlePaymentErrorRef.current(formatErrorMessage(error));
 				}
@@ -395,22 +355,11 @@ export function PaymentPage() {
 							paymentId: 'upgrade-immediate',
 							orderId: 'upgrade-immediate',
 							amount: upgradeResponse.billing?.chargeAmount || 0,
-							billing: upgradeResponse.billing ? {
-								immediateCharge: upgradeResponse.billing.immediateCharge ?? false,
-								chargeAmount: upgradeResponse.billing.chargeAmount ?? 0,
-								chargeDescription: upgradeResponse.billing.chargeDescription ?? null,
-								creditAmount: upgradeResponse.billing.creditAmount,
-								creditDescription: upgradeResponse.billing.creditDescription,
-								nextBillingAmount: upgradeResponse.billing.nextBillingAmount ?? 0,
-								nextBillingDate: upgradeResponse.billing.nextBillingDate ?? ''
-							} : undefined,
-							proration: upgradeResponse.proration ? {
-								...upgradeResponse.proration,
-								description: upgradeResponse.proration.isUpgrade ? 'Upgrade proration' : 'Downgrade credit'
-							} : undefined,
+							billing: upgradeResponse.billing,
+							proration: upgradeResponse.proration,
 						});
 
-						navigate(`/payment?planId=${planId}&status=success`, { replace: true });
+						navigate(`/checkout?planId=${planId}&status=success`, { replace: true });
 						return;
 					} catch (upgradeError) {
 						console.error('Upgrade failed:', upgradeError);
@@ -419,11 +368,11 @@ export function PaymentPage() {
 					}
 				}
 
-				// For new subscriptions (not upgrades), create subscription
-				const paymentOrderData = await subscriptionApi.createSubscription(data.planCode || '', 'monthly');
+				// For new subscriptions (not upgrades), create payment intent
+				const paymentOrderData = await subscriptionApi.createPaymentIntent(data);
 
 				// Check if it's a free plan or requires payment
-				if (!paymentOrderData.amount || paymentOrderData.amount === 0) {
+				if (!paymentOrderData.requiresPayment) {
 					// Free plan activated directly
 					setPaymentState('success');
 					setPaymentData({
@@ -433,16 +382,16 @@ export function PaymentPage() {
 					});
 
 					// Update URL to show success status
-					navigate(`/payment?planId=${planId}&status=success`, { replace: true });
+					navigate(`/checkout?planId=${planId}&status=success`, { replace: true });
 					return;
 				}
 
 				// Check if this is a subscription with a payment URL (new Razorpay subscription workflow)
-				// if (paymentOrderData.isSubscription && paymentOrderData.subscriptionUrl) {
-				// 	// For Razorpay subscriptions, redirect to subscription payment URL
-				// 	window.location.href = paymentOrderData.subscriptionUrl;
-				// 	return;
-				// }
+				if (paymentOrderData.isSubscription && paymentOrderData.subscriptionUrl) {
+					// For Razorpay subscriptions, redirect to subscription payment URL
+					window.location.href = paymentOrderData.subscriptionUrl;
+					return;
+				}
 
 				// For one-time payments (legacy fallback), open Razorpay checkout
 				if (!window.Razorpay) {
@@ -450,12 +399,13 @@ export function PaymentPage() {
 				}
 
 				const options = {
-					key: process.env.REACT_APP_RAZORPAY_KEY || 'rzp_test_dummy_key',
+					key: paymentOrderData.razorpayKeyId!,
+					subscription_id: paymentOrderData.razorpaySubscriptionId,
 					amount: paymentOrderData.amount,
 					currency: paymentOrderData.currency || 'INR',
 					name: 'Subscription Payment',
-					description: `${plan?.name || 'Subscription'} Plan`,
-					order_id: paymentOrderData.razorpayOrderId,
+					description: `${paymentOrderData.planName} Plan`,
+					order_id: paymentOrderData.orderId!,
 					handler: async (response: any) => {
 						try {
 
@@ -468,10 +418,11 @@ export function PaymentPage() {
 							if (pollingId) {
 								await startPaymentStatusPolling(pollingId);
 							} else {
-								// Fallback to immediate verification for backward compatibility
-								await subscriptionApi.verifyPayment(
+								// Fallback to immediate confirmation for backward compatibility
+								await subscriptionApi.confirmPayment(
+									response.razorpay_order_id,
 									response.razorpay_payment_id,
-									paymentOrderData.subscriptionId
+									response.razorpay_signature
 								);
 								handlePaymentSuccess(response.razorpay_payment_id, response.razorpay_order_id);
 							}
@@ -504,7 +455,7 @@ export function PaymentPage() {
 				setPaymentData({
 					errorMessage: formatErrorMessage(error),
 				});
-				navigate(`/payment?planId=${planId}&status=failed`, { replace: true });
+				navigate(`/checkout?planId=${planId}&status=failed`, { replace: true });
 			}
 		};
 
@@ -518,7 +469,7 @@ export function PaymentPage() {
 				});
 
 				// Update URL to show success status
-				navigate(`/payment?planId=${planId}&status=success`, { replace: true });
+				navigate(`/checkout?planId=${planId}&status=success`, { replace: true });
 			} catch (error) {
 				console.error('Payment success handler error:', error);
 				handlePaymentError(formatErrorMessage(error));
@@ -532,7 +483,7 @@ export function PaymentPage() {
 				setPaymentData({
 					errorMessage,
 				});
-				navigate(`/payment?planId=${planId}&status=failed`, { replace: true });
+				navigate(`/checkout?planId=${planId}&status=failed`, { replace: true });
 			} catch (error) {
 				console.error('Payment error handler error:', error);
 			}
@@ -654,7 +605,7 @@ export function PaymentPage() {
 							onRetryPayment={() => {
 								cleanupPolling();
 								setPaymentState('pending');
-								navigate(`/payment?planId=${planId}`, { replace: true });
+								navigate(`/checkout?planId=${planId}`, { replace: true });
 							}}
 							onGoToDashboard={handleGoToDashboard}
 							onGoToBilling={handleBackToBilling}

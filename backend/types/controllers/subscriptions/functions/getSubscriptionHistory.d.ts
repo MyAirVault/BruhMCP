@@ -1,6 +1,6 @@
 export = getSubscriptionHistory;
 /**
- * Get user subscription history with transactions
+ * Get user's subscription transaction history
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @returns {Promise<void>}

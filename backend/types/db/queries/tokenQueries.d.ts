@@ -58,7 +58,7 @@ export function markTokenAsUsed(tokenId: string): Promise<boolean>;
 /**
  * Mark token as used by token value and type
  * @param {string} token - Token value
- * @param {string} tokenType - Token type (email_otp, refresh, password_reset)
+ * @param {string} tokenType - Token type (otp, refresh, password_reset)
  * @returns {Promise<boolean>} Success status
  */
 export function markTokenAsUsedByValue(token: string, tokenType: string): Promise<boolean>;

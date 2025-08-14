@@ -27,10 +27,11 @@ async function handleForgotPassword(req, res) {
         const user = await findUserByEmail(email);
         if (!user) {
             // Don't reveal if user exists or not for security
-            return res.json({
+             res.json({
                 success: true,
                 message: 'If an account with this email exists, you will receive a password reset link.'
             });
+            return
         }
         
         // Generate password reset token
@@ -101,10 +102,11 @@ async function handleResetPassword(req, res) {
         console.error('Password reset failed:', errorMessage);
         
         if (errorMessage.includes('expired') || errorMessage.includes('invalid')) {
-            return res.status(400).json({
+             res.status(400).json({
                 success: false,
                 message: 'Invalid or expired reset token'
             });
+            return
         }
         
         res.status(500).json({

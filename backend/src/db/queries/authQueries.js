@@ -31,9 +31,9 @@ async function createUser(userData) {
         }
         
         const query = `
-            INSERT INTO users (first_name, last_name, email, password, email_verified)
+            INSERT INTO users (first_name, last_name, email, password_hash, is_verified)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, first_name, last_name, email, email_verified, created_at, updated_at
+            RETURNING id, first_name, last_name, email, is_verified, created_at, updated_at
         `;
         
         const values = [
@@ -59,7 +59,7 @@ async function createUser(userData) {
             firstName: user.first_name,
             lastName: user.last_name,
             email: user.email,
-            isVerified: user.email_verified,
+            isVerified: user.is_verified,
             createdAt: user.created_at,
             updatedAt: user.updated_at
         };
@@ -94,7 +94,7 @@ async function findUserByEmail(email) {
         }
         
         const query = `
-            SELECT id, first_name, last_name, email, password, email_verified, 
+            SELECT id, first_name, last_name, email, password_hash, is_verified, 
                    razorpay_customer_id, created_at, updated_at, last_login_at, is_active
             FROM users 
             WHERE LOWER(TRIM(email)) = LOWER(TRIM($1)) AND is_active = true
@@ -113,8 +113,8 @@ async function findUserByEmail(email) {
             firstName: user.first_name,
             lastName: user.last_name,
             email: user.email,
-            password_hash: user.password, // Keep same name for compatibility
-            isVerified: user.email_verified,
+            password_hash: user.password_hash,
+            isVerified: user.is_verified,
             razorpayCustomerId: user.razorpay_customer_id,
             createdAt: user.created_at,
             updatedAt: user.updated_at,
@@ -144,7 +144,7 @@ async function findUserById(userId) {
         }
         
         const query = `
-            SELECT id, first_name, last_name, email, password, email_verified, 
+            SELECT id, first_name, last_name, email, password_hash, is_verified, 
                    razorpay_customer_id, created_at, updated_at, last_login_at, is_active
             FROM users 
             WHERE id = $1 AND is_active = true
@@ -163,8 +163,8 @@ async function findUserById(userId) {
             firstName: user.first_name,
             lastName: user.last_name,
             email: user.email,
-            password_hash: user.password, // Keep same name for compatibility
-            isVerified: user.email_verified,
+            password_hash: user.password_hash,
+            isVerified: user.is_verified,
             razorpayCustomerId: user.razorpay_customer_id,
             createdAt: user.created_at,
             updatedAt: user.updated_at,
@@ -195,7 +195,7 @@ async function updateUser(userId, updateData) {
         }
         
         const allowedFields = [
-            'first_name', 'last_name', 'email', 'password', 'email_verified',
+            'first_name', 'last_name', 'email', 'password_hash', 'is_verified',
             'razorpay_customer_id', 'last_login_at'
         ];
         
@@ -214,8 +214,8 @@ async function updateUser(userId, updateData) {
             // Map camelCase to snake_case
             if (key === 'firstName') dbField = 'first_name';
             else if (key === 'lastName') dbField = 'last_name';
-            else if (key === 'passwordHash') dbField = 'password';
-            else if (key === 'isVerified') dbField = 'email_verified';
+            else if (key === 'passwordHash') dbField = 'password_hash';
+            else if (key === 'isVerified') dbField = 'is_verified';
             else if (key === 'razorpayCustomerId') dbField = 'razorpay_customer_id';
             else if (key === 'lastLoginAt') dbField = 'last_login_at';
             
@@ -234,7 +234,7 @@ async function updateUser(userId, updateData) {
             UPDATE users 
             SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1 AND is_active = true
-            RETURNING id, first_name, last_name, email, email_verified, 
+            RETURNING id, first_name, last_name, email, is_verified, 
                       razorpay_customer_id, created_at, updated_at, last_login_at, is_active
         `;
         
@@ -253,7 +253,7 @@ async function updateUser(userId, updateData) {
             firstName: user.first_name,
             lastName: user.last_name,
             email: user.email,
-            isVerified: user.email_verified,
+            isVerified: user.is_verified,
             razorpayCustomerId: user.razorpay_customer_id,
             createdAt: user.created_at,
             updatedAt: user.updated_at,
@@ -285,7 +285,7 @@ async function updateUserPassword(userId, newPasswordHash) {
         
         const query = `
             UPDATE users 
-            SET password = $2, updated_at = CURRENT_TIMESTAMP
+            SET password_hash = $2, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1 AND is_active = true
             RETURNING id
         `;
@@ -323,7 +323,7 @@ async function markEmailAsVerified(userId) {
         
         const query = `
             UPDATE users 
-            SET email_verified = true, updated_at = CURRENT_TIMESTAMP
+            SET is_verified = true, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1 AND is_active = true
             RETURNING id, email
         `;
@@ -399,7 +399,7 @@ async function checkUserExists(email) {
         }
         
         const query = `
-            SELECT id, email_verified, is_active
+            SELECT id, is_verified, is_active
             FROM users 
             WHERE LOWER(TRIM(email)) = LOWER(TRIM($1))
         `;
@@ -414,7 +414,7 @@ async function checkUserExists(email) {
         
         return {
             id: user.id,
-            isVerified: user.email_verified,
+            isVerified: user.is_verified,
             isActive: user.is_active
         };
         

@@ -38,7 +38,7 @@ async function storeOTPToken(userId, otp, expiryMinutes = 5) {
             await client.query(`
                 UPDATE auth_tokens 
                 SET is_used = true 
-                WHERE user_id = $1 AND type = 'email_otp' AND is_used = false
+                WHERE user_id = $1 AND token_type = 'otp' AND is_used = false
             `, [userId]);
             
             // Calculate expiry timestamp
@@ -46,9 +46,9 @@ async function storeOTPToken(userId, otp, expiryMinutes = 5) {
             
             // Store new OTP
             const insertQuery = `
-                INSERT INTO auth_tokens (user_id, token, type, expires_at)
-                VALUES ($1, $2, 'email_otp', $3)
-                RETURNING id, token, type, expires_at, created_at
+                INSERT INTO auth_tokens (user_id, token, token_type, expires_at)
+                VALUES ($1, $2, 'otp', $3)
+                RETURNING id, token, token_type, expires_at, created_at
             `;
             
             const result = await client.query(insertQuery, [userId, otp, expiresAt]);
@@ -66,7 +66,7 @@ async function storeOTPToken(userId, otp, expiryMinutes = 5) {
             return {
                 id: tokenRecord.id,
                 token: tokenRecord.token,
-                type: tokenRecord.type,
+                type: tokenRecord.token_type,
                 expiresAt: tokenRecord.expires_at,
                 createdAt: tokenRecord.created_at
             };
@@ -104,9 +104,9 @@ async function storeRefreshToken(userId, refreshToken, expiryDays = 30) {
         const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
         
         const query = `
-            INSERT INTO auth_tokens (user_id, token, type, expires_at)
+            INSERT INTO auth_tokens (user_id, token, token_type, expires_at)
             VALUES ($1, $2, 'refresh', $3)
-            RETURNING id, token, type, expires_at, created_at
+            RETURNING id, token, token_type, expires_at, created_at
         `;
         
         const result = await pool.query(query, [userId, refreshToken, expiresAt]);
@@ -122,7 +122,7 @@ async function storeRefreshToken(userId, refreshToken, expiryDays = 30) {
         return {
             id: tokenRecord.id,
             token: tokenRecord.token,
-            type: tokenRecord.type,
+            type: tokenRecord.token_type,
             expiresAt: tokenRecord.expires_at,
             createdAt: tokenRecord.created_at
         };
@@ -167,15 +167,15 @@ async function storePasswordResetToken(userId, resetToken, expiryHours = 1) {
             await client.query(`
                 UPDATE auth_tokens 
                 SET is_used = true 
-                WHERE user_id = $1 AND type = 'password_reset' AND is_used = false
+                WHERE user_id = $1 AND token_type = 'password_reset' AND is_used = false
             `, [userId]);
             
             const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
             
             const insertQuery = `
-                INSERT INTO auth_tokens (user_id, token, type, expires_at)
+                INSERT INTO auth_tokens (user_id, token, token_type, expires_at)
                 VALUES ($1, $2, 'password_reset', $3)
-                RETURNING id, token, type, expires_at, created_at
+                RETURNING id, token, token_type, expires_at, created_at
             `;
             
             const result = await client.query(insertQuery, [userId, resetToken, expiresAt]);
@@ -193,7 +193,7 @@ async function storePasswordResetToken(userId, resetToken, expiryHours = 1) {
             return {
                 id: tokenRecord.id,
                 token: tokenRecord.token,
-                type: tokenRecord.type,
+                type: tokenRecord.token_type,
                 expiresAt: tokenRecord.expires_at,
                 createdAt: tokenRecord.created_at
             };
@@ -228,11 +228,11 @@ async function findValidOTPToken(userId, otp) {
         }
         
         const query = `
-            SELECT id, user_id, token, type, expires_at, is_used, created_at
+            SELECT id, user_id, token, token_type, expires_at, is_used, created_at
             FROM auth_tokens 
             WHERE user_id = $1 
                 AND token = $2 
-                AND type = 'email_otp' 
+                AND token_type = 'otp' 
                 AND is_used = false 
                 AND expires_at > CURRENT_TIMESTAMP
             ORDER BY created_at DESC
@@ -251,7 +251,7 @@ async function findValidOTPToken(userId, otp) {
             id: tokenRecord.id,
             userId: tokenRecord.user_id,
             token: tokenRecord.token,
-            type: tokenRecord.type,
+            type: tokenRecord.token_type,
             expiresAt: tokenRecord.expires_at,
             isUsed: tokenRecord.is_used,
             createdAt: tokenRecord.created_at
@@ -279,10 +279,10 @@ async function findValidRefreshToken(refreshToken) {
         }
         
         const query = `
-            SELECT id, user_id, token, type, expires_at, is_used, created_at
+            SELECT id, user_id, token, token_type, expires_at, is_used, created_at
             FROM auth_tokens 
             WHERE token = $1 
-                AND type = 'refresh' 
+                AND token_type = 'refresh' 
                 AND is_used = false 
                 AND expires_at > CURRENT_TIMESTAMP
         `;
@@ -299,7 +299,7 @@ async function findValidRefreshToken(refreshToken) {
             id: tokenRecord.id,
             userId: tokenRecord.user_id,
             token: tokenRecord.token,
-            type: tokenRecord.type,
+            type: tokenRecord.token_type,
             expiresAt: tokenRecord.expires_at,
             isUsed: tokenRecord.is_used,
             createdAt: tokenRecord.created_at
@@ -327,10 +327,10 @@ async function findValidPasswordResetToken(resetToken) {
         }
         
         const query = `
-            SELECT id, user_id, token, type, expires_at, is_used, created_at
+            SELECT id, user_id, token, token_type, expires_at, is_used, created_at
             FROM auth_tokens 
             WHERE token = $1 
-                AND type = 'password_reset' 
+                AND token_type = 'password_reset' 
                 AND is_used = false 
                 AND expires_at > CURRENT_TIMESTAMP
         `;
@@ -347,7 +347,7 @@ async function findValidPasswordResetToken(resetToken) {
             id: tokenRecord.id,
             userId: tokenRecord.user_id,
             token: tokenRecord.token,
-            type: tokenRecord.type,
+            type: tokenRecord.token_type,
             expiresAt: tokenRecord.expires_at,
             isUsed: tokenRecord.is_used,
             createdAt: tokenRecord.created_at
@@ -405,7 +405,7 @@ async function markTokenAsUsed(tokenId) {
 /**
  * Mark token as used by token value and type
  * @param {string} token - Token value
- * @param {string} tokenType - Token type (email_otp, refresh, password_reset)
+ * @param {string} tokenType - Token type (otp, refresh, password_reset)
  * @returns {Promise<boolean>} Success status
  */
 async function markTokenAsUsedByValue(token, tokenType) {
@@ -414,7 +414,7 @@ async function markTokenAsUsedByValue(token, tokenType) {
             throw new Error('Token value and type are required');
         }
         
-        const validTypes = ['email_otp', 'refresh', 'password_reset', 'email_verification', 'email_change_pending'];
+        const validTypes = ['otp', 'refresh', 'password_reset', 'email_change_pending'];
         
         if (!validTypes.includes(tokenType)) {
             throw new Error(`Invalid token type: ${tokenType}`);
@@ -423,7 +423,7 @@ async function markTokenAsUsedByValue(token, tokenType) {
         const query = `
             UPDATE auth_tokens 
             SET is_used = true, updated_at = CURRENT_TIMESTAMP
-            WHERE token = $1 AND type = $2 AND is_used = false
+            WHERE token = $1 AND token_type = $2 AND is_used = false
             RETURNING id
         `;
         
@@ -464,7 +464,7 @@ async function getOTPAttemptCount(userId, windowMinutes = 60) {
             SELECT COUNT(*) as count
             FROM auth_tokens 
             WHERE user_id = $1 
-                AND type = 'email_otp' 
+                AND token_type = 'otp' 
                 AND created_at > CURRENT_TIMESTAMP - INTERVAL '${windowMinutes} minutes'
         `;
         
@@ -498,7 +498,7 @@ async function getRecentOTPRequests(userId, windowMinutes = 5) {
             SELECT COUNT(*) as count
             FROM auth_tokens
             WHERE user_id = $1 
-                AND type = 'email_otp'
+                AND token_type = 'otp'
                 AND created_at > CURRENT_TIMESTAMP - INTERVAL '${windowMinutes} minutes'
         `;
         
@@ -531,13 +531,13 @@ async function cleanupExpiredTokens(tokenType = null) {
         const values = [];
         
         if (tokenType) {
-            const validTypes = ['email_otp', 'refresh', 'password_reset', 'email_verification', 'email_change_pending'];
+            const validTypes = ['otp', 'refresh', 'password_reset', 'email_change_pending'];
             
             if (!validTypes.includes(tokenType)) {
                 throw new Error(`Invalid token type: ${tokenType}`);
             }
             
-            query += ' AND type = $1';
+            query += ' AND token_type = $1';
             values.push(tokenType);
         }
         
@@ -582,13 +582,13 @@ async function invalidateUserTokens(userId, tokenType = null) {
         const values = [userId];
         
         if (tokenType) {
-            const validTypes = ['email_otp', 'refresh', 'password_reset', 'email_verification', 'email_change_pending'];
+            const validTypes = ['otp', 'refresh', 'password_reset', 'email_change_pending'];
             
             if (!validTypes.includes(tokenType)) {
                 throw new Error(`Invalid token type: ${tokenType}`);
             }
             
-            query += ' AND type = $2';
+            query += ' AND token_type = $2';
             values.push(tokenType);
         }
         

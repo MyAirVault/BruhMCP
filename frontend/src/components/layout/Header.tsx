@@ -50,24 +50,6 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                   border: '1px solid var(--dropdown-border)' 
                 }}
               >
-                {/* Profile navigation commented out as profile section is not implemented yet */}
-                {/* <button
-                  onClick={() => {
-                    navigate('/profile');
-                    setUserDropdownOpen(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"
-                  style={{ color: 'var(--dropdown-text-default)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--dropdown-bg-hover)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <User className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">My Profile</span>
-                </button> */}
                 <button
                   onClick={() => {
                     navigate('/billing');
@@ -87,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({ userName = 'John Smith' }) => {
                 </button>
                 <button
                   onClick={() => {
-                    console.log('Settings');
+                    navigate('/settings');
                     setUserDropdownOpen(false);
                   }}
                   className="w-full px-4 py-2 text-left text-sm transition-colors cursor-pointer flex items-center gap-3"

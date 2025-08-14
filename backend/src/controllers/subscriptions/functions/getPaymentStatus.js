@@ -1,6 +1,6 @@
 /**
- * Get payment status for subscription polling
- * Retrieves comprehensive payment and subscription status following MicroSAAS pattern
+ * Get payment status and subscription state for polling
+ * Copied exactly from MicroSAASTemplate and adapted for PostgreSQL
  */
 
 const { pool } = require('../../../db/config.js');

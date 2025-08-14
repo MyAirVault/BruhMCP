@@ -19,20 +19,22 @@ async function handleGetProfile(req, res) {
         const userId = req.user?.userId || req.user?.id;
         
         if (!userId) {
-            return res.status(401).json({
+             res.status(401).json({
                 success: false,
                 message: 'User ID not found in session'
             });
+            return
         }
         
         // Fetch complete user data from database
         const user = await findUserById(userId);
         
         if (!user) {
-            return res.status(404).json({
+             res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
+            return
         }
         
         res.json({
@@ -76,10 +78,11 @@ async function handleGetUserPlan(req, res) {
         const userId = req.user?.userId || req.user?.id;
         
         if (!userId) {
-            return res.status(401).json({
+             res.status(401).json({
                 success: false,
                 message: 'User ID not found in session'
             });
+            return
         }
         
         // Get user subscription data

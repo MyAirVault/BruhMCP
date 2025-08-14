@@ -9,7 +9,7 @@
 const express = require('express');
 const { body, param } = require('express-validator');
 
-// Import controllers (updated paths for current structure)
+// Import all controllers from centralized subscriptions controller
 const {
 	getAllPlans,
 	getUserSubscription,
@@ -19,17 +19,27 @@ const {
 	getSubscriptionHistory,
 	verifyPayment,
 	getPaymentStatus,
+	// Advanced subscription control functions
+	pauseSubscription,
+	resumeSubscription,
+	downloadInvoice,
 } = require('../controllers/subscriptions/subscriptions');
 
 // Import middleware (adapted to current structure)
 const { authenticate } = require('../middleware/auth');
-const { apiRateLimiter } = require('../utils/rateLimiter');
+const { 
+	apiRateLimiter,
+	paymentRateLimit,
+	subscriptionRateLimit,
+	subscriptionViewRateLimit,
+	webhookRateLimit
+} = require('../utils/rateLimiter');
 
 // Create router instance
 const router = express.Router();
 
-// Apply common middleware to all subscription routes
-router.use(apiRateLimiter);
+// Apply general rate limiting to all subscription routes
+router.use(/** @type {import('express').RequestHandler} */ (apiRateLimiter));
 
 // Validation middleware functions
 
@@ -87,6 +97,32 @@ const validatePaymentStatusParams = [
 		.withMessage('Subscription ID must be a valid UUID'),
 ];
 
+
+/**
+ * Validate pause subscription request
+ */
+const validatePauseSubscription = [
+	body('reason')
+		.optional()
+		.isString()
+		.isLength({ min: 1, max: 255 })
+		.withMessage('Reason must be a string between 1-255 characters'),
+	body('pauseDuration')
+		.optional()
+		.isInt({ min: 1, max: 180 })
+		.withMessage('Pause duration must be between 1-180 days'),
+];
+
+
+/**
+ * Validate invoice download params
+ */
+const validateInvoiceDownload = [
+	param('transactionId')
+		.isUUID()
+		.withMessage('Transaction ID must be a valid UUID'),
+];
+
 // Subscription routes
 
 /**
@@ -101,7 +137,7 @@ router.get('/plans', getAllPlans);
  * Get current user subscription status
  * Requires authentication
  */
-router.get('/current', authenticate, getUserSubscription);
+router.get('/current', /** @type {import('express').RequestHandler} */ (subscriptionViewRateLimit), authenticate, getUserSubscription);
 
 /**
  * POST /api/subscriptions/create
@@ -110,6 +146,7 @@ router.get('/current', authenticate, getUserSubscription);
  */
 router.post(
 	'/create',
+	/** @type {import('express').RequestHandler} */ (subscriptionRateLimit),
 	authenticate,
 	validateSubscriptionCreation,
 	createSubscription
@@ -122,6 +159,7 @@ router.post(
  */
 router.post(
 	'/upgrade',
+	/** @type {import('express').RequestHandler} */ (subscriptionRateLimit),
 	authenticate,
 	validateSubscriptionUpgrade,
 	upgradeSubscription
@@ -134,6 +172,7 @@ router.post(
  */
 router.post(
 	'/cancel',
+	/** @type {import('express').RequestHandler} */ (subscriptionRateLimit),
 	authenticate,
 	validateSubscriptionCancellation,
 	cancelSubscription
@@ -144,7 +183,7 @@ router.post(
  * Get user's subscription transaction history with pagination
  * Requires authentication
  */
-router.get('/history', authenticate, getSubscriptionHistory);
+router.get('/history', /** @type {import('express').RequestHandler} */ (subscriptionViewRateLimit), authenticate, getSubscriptionHistory);
 
 /**
  * GET /api/subscriptions/:subscriptionId/payment-status
@@ -153,6 +192,7 @@ router.get('/history', authenticate, getSubscriptionHistory);
  */
 router.get(
 	'/:subscriptionId/payment-status',
+	/** @type {import('express').RequestHandler} */ (subscriptionViewRateLimit),
 	authenticate,
 	validatePaymentStatusParams,
 	getPaymentStatus
@@ -165,9 +205,54 @@ router.get(
  */
 router.post(
 	'/verify-payment',
+	/** @type {import('express').RequestHandler} */ (paymentRateLimit),
 	authenticate,
 	validatePaymentVerification,
 	verifyPayment
+);
+
+
+// Advanced Subscription Control Routes
+
+/**
+ * POST /api/subscriptions/pause
+ * Pause active subscription temporarily
+ * Requires authentication and validates pause data
+ */
+router.post(
+	'/pause',
+	/** @type {import('express').RequestHandler} */ (subscriptionRateLimit),
+	authenticate,
+	validatePauseSubscription,
+	pauseSubscription
+);
+
+/**
+ * POST /api/subscriptions/resume
+ * Resume paused subscription
+ * Requires authentication
+ */
+router.post(
+	'/resume',
+	/** @type {import('express').RequestHandler} */ (subscriptionRateLimit),
+	authenticate,
+	resumeSubscription
+);
+
+
+// Invoice Management Routes
+
+/**
+ * GET /api/subscriptions/invoice/:transactionId
+ * Download invoice PDF for a transaction
+ * Requires authentication and validates transaction ID
+ */
+router.get(
+	'/invoice/:transactionId',
+	/** @type {import('express').RequestHandler} */ (subscriptionViewRateLimit),
+	authenticate,
+	validateInvoiceDownload,
+	downloadInvoice
 );
 
 /**

@@ -83,8 +83,6 @@ type AuthAction =
  * Combines state and action methods for complete auth functionality
  */
 interface AuthContextType extends AuthState {
-    // Computed properties
-    userName: string;
     // Core authentication methods
     login: (email: string, password: string) => Promise<{ requiresVerification?: boolean; email?: string; redirectToOTP?: boolean } | void>;
     register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ requiresVerification: boolean; email: string; step?: string; userId?: string; isExistingUser?: boolean }>;
@@ -1064,9 +1062,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const contextValue: AuthContextType = {
             // Current state
             ...state,
-            
-            // Computed properties
-            userName: state.user ? `${state.user.firstName || ''} ${state.user.lastName || ''}`.trim() || state.user.email : '',
             
             // Authentication methods
             login,
