@@ -32,7 +32,8 @@ CREATE TABLE auth_tokens (
     type VARCHAR(50) NOT NULL CHECK (type IN ('email_otp', 'password_reset', 'email_verification', 'refresh', 'email_change_pending')),
     expires_at TIMESTAMP NOT NULL,
     is_used BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- User subscriptions table (for future subscription system)
@@ -170,6 +171,9 @@ $$ language 'plpgsql';
 
 -- Create triggers to automatically update updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_auth_tokens_updated_at BEFORE UPDATE ON auth_tokens
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_user_subscriptions_updated_at BEFORE UPDATE ON user_subscriptions

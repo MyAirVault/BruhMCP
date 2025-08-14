@@ -8,7 +8,7 @@
 - **[MCP Auth Registry](project-structure/mcp-auth-registry.md)** - Central authentication registry system for MCP servers
 - **[Database Architecture](project-structure/database-architecture.md)** - Database schema and integration patterns
 - **[Logging and Monitoring](project-structure/logging-and-monitoring.md)** - Comprehensive logging infrastructure with Winston, circuit breakers, performance monitoring, and user-specific logging systems
-- **[Local Development](project-structure/local-development.md)** - Local development configuration for disabling payments and enabling pro plan features
+- **[Local Development Authentication](project-structure/local-development-authentication.md)** - Comprehensive guide for local development authentication with email simulation, auto-verification, and console logging setup
 
 ## Implementation Guides
 
