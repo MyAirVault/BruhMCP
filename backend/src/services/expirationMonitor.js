@@ -1,5 +1,6 @@
 const { getExpiredInstances, updateMCPInstance, getMCPInstanceById, getFailedOAuthInstances, getPendingOAuthInstances, deleteMCPInstance } = require('../db/queries/mcpInstances/index.js');
 const { invalidateInstanceCache } = require('./cacheInvalidationService.js');
+const { expireUnpaidSubscriptions } = require('../utils/razorpay/subscription-cleanup.js');
 
 /**
  * @typedef {Object} MCPInstance
@@ -19,6 +20,8 @@ class ExpirationMonitor {
 	constructor() {
 		this.checkInterval = null;
 		this.intervalTime = 60000; // Check every minute
+		this.subscriptionCleanupCounter = 0; // Counter to track subscription cleanup frequency
+		this.subscriptionCleanupInterval = 5; // Run subscription cleanup every 5 checks (5 minutes)
 	}
 
 	/**
@@ -81,6 +84,15 @@ class ExpirationMonitor {
 			console.log('🔄 Starting pending OAuth cleanup...');
 			await this.cleanupPendingOAuthInstances();
 			console.log('🔄 Pending OAuth cleanup completed');
+
+			// Run subscription cleanup every 5 minutes
+			this.subscriptionCleanupCounter++;
+			if (this.subscriptionCleanupCounter >= this.subscriptionCleanupInterval) {
+				console.log('🧹 Starting subscription cleanup...');
+				await this.cleanupUnpaidSubscriptions();
+				console.log('🧹 Subscription cleanup completed');
+				this.subscriptionCleanupCounter = 0; // Reset counter
+			}
 		} catch (/** @type {unknown} */ error) {
 			console.error('❌ Error checking expired MCPs:', error);
 		}
@@ -233,6 +245,30 @@ class ExpirationMonitor {
 		} catch (/** @type {unknown} */ error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			console.error('❌ [PENDING OAUTH CLEANUP] Error cleaning up pending OAuth instances:', errorMessage);
+		}
+	}
+
+	/**
+	 * Clean up unpaid subscriptions that have been pending for too long
+	 */
+	async cleanupUnpaidSubscriptions() {
+		try {
+			console.log('🧹 [SUBSCRIPTION CLEANUP] Checking for unpaid subscriptions to expire...');
+			
+			const result = await expireUnpaidSubscriptions();
+			
+			if (result.expired > 0) {
+				console.log(`🧹 [SUBSCRIPTION CLEANUP] Expired ${result.expired} unpaid subscriptions`);
+			} else {
+				console.log('✅ [SUBSCRIPTION CLEANUP] No unpaid subscriptions found to expire');
+			}
+			
+			if (result.errors && result.errors.length > 0) {
+				console.warn(`⚠️ [SUBSCRIPTION CLEANUP] ${result.errors.length} errors occurred:`, result.errors);
+			}
+		} catch (/** @type {unknown} */ error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			console.error('❌ [SUBSCRIPTION CLEANUP] Error cleaning up unpaid subscriptions:', errorMessage);
 		}
 	}
 

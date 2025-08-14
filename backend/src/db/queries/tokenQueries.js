@@ -34,24 +34,23 @@ async function storeOTPToken(userId, otp, expiryMinutes = 5) {
         try {
             await client.query('BEGIN');
             
-            // Invalidate any existing OTPs for this user
-            await client.query(`
-                UPDATE auth_tokens 
-                SET is_used = true 
-                WHERE user_id = $1 AND token_type = 'otp' AND is_used = false
-            `, [userId]);
-            
             // Calculate expiry timestamp
             const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
             
-            // Store new OTP
-            const insertQuery = `
-                INSERT INTO auth_tokens (user_id, token, token_type, expires_at)
-                VALUES ($1, $2, 'otp', $3)
+            // Use UPSERT to either insert new OTP or update existing one
+            const upsertQuery = `
+                INSERT INTO auth_tokens (user_id, token, token_type, expires_at, is_used)
+                VALUES ($1, $2, 'otp', $3, false)
+                ON CONFLICT (user_id, token_type)
+                DO UPDATE SET 
+                    token = EXCLUDED.token,
+                    expires_at = EXCLUDED.expires_at,
+                    is_used = false,
+                    updated_at = CURRENT_TIMESTAMP
                 RETURNING id, token, token_type, expires_at, created_at
             `;
             
-            const result = await client.query(insertQuery, [userId, otp, expiresAt]);
+            const result = await client.query(upsertQuery, [userId, otp, expiresAt]);
             
             if (!result.rows.length) {
                 throw new Error('Failed to store OTP token');
@@ -104,8 +103,14 @@ async function storeRefreshToken(userId, refreshToken, expiryDays = 30) {
         const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
         
         const query = `
-            INSERT INTO auth_tokens (user_id, token, token_type, expires_at)
-            VALUES ($1, $2, 'refresh', $3)
+            INSERT INTO auth_tokens (user_id, token, token_type, expires_at, is_used)
+            VALUES ($1, $2, 'refresh', $3, false)
+            ON CONFLICT (user_id, token_type)
+            DO UPDATE SET 
+                token = EXCLUDED.token,
+                expires_at = EXCLUDED.expires_at,
+                is_used = false,
+                updated_at = CURRENT_TIMESTAMP
             RETURNING id, token, token_type, expires_at, created_at
         `;
         
@@ -163,22 +168,22 @@ async function storePasswordResetToken(userId, resetToken, expiryHours = 1) {
         try {
             await client.query('BEGIN');
             
-            // Invalidate any existing password reset tokens for this user
-            await client.query(`
-                UPDATE auth_tokens 
-                SET is_used = true 
-                WHERE user_id = $1 AND token_type = 'password_reset' AND is_used = false
-            `, [userId]);
-            
             const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
             
-            const insertQuery = `
-                INSERT INTO auth_tokens (user_id, token, token_type, expires_at)
-                VALUES ($1, $2, 'password_reset', $3)
+            // Use UPSERT to either insert new password reset token or update existing one
+            const upsertQuery = `
+                INSERT INTO auth_tokens (user_id, token, token_type, expires_at, is_used)
+                VALUES ($1, $2, 'password_reset', $3, false)
+                ON CONFLICT (user_id, token_type)
+                DO UPDATE SET 
+                    token = EXCLUDED.token,
+                    expires_at = EXCLUDED.expires_at,
+                    is_used = false,
+                    updated_at = CURRENT_TIMESTAMP
                 RETURNING id, token, token_type, expires_at, created_at
             `;
             
-            const result = await client.query(insertQuery, [userId, resetToken, expiresAt]);
+            const result = await client.query(upsertQuery, [userId, resetToken, expiresAt]);
             
             if (!result.rows.length) {
                 throw new Error('Failed to store password reset token');

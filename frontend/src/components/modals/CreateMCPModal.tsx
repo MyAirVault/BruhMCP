@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { type MCPType } from '../../types';
 import { type CreateMCPModalProps, type ExpirationOption } from '../../types/createMCPModal';
 import { type CreateMCPFormData } from '../dashboard/types';
@@ -7,6 +8,7 @@ import FormField from '../ui/form/FormField';
 import TypeDropdown from '../ui/form/TypeDropdown';
 import ExpirationDropdown from '../ui/form/ExpirationDropdown';
 import CredentialFields from '../ui/form/CredentialFields';
+import { getMCPTypeLink } from '../../constants/mcpTypeLinks';
 
 const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubmit, onPlanLimitReached, onSuccess, onRefresh }) => {
   const {
@@ -194,6 +196,26 @@ const CreateMCPModal: React.FC<CreateMCPModalProps> = ({ isOpen, onClose, onSubm
                 onSelect={handleExpirationSelect}
                 onClose={() => setExpirationDropdownOpen(false)}
               />
+              
+              {/* Tutorial Link for selected MCP type */}
+              {selectedMcpType && getMCPTypeLink(selectedMcpType.name) && (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const linkConfig = getMCPTypeLink(selectedMcpType.name);
+                      if (linkConfig) {
+                        window.open(linkConfig.url, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
+                    className="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:underline transition-colors cursor-pointer text-sm"
+                  >
+                    <span className="mr-1">Watch tutorial here</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </FormField>
           </div>
 

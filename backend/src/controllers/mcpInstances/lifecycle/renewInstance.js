@@ -1,5 +1,4 @@
 const { getMCPInstanceById } = require('../../../db/queries/mcpInstances/index.js');
-// const { checkInstanceLimit } = require('../../../utils/planLimits.js');
 const { pool } = require('../../../db/config.js');
 
 /** @typedef {import('express').Request} Request */

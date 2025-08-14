@@ -629,3 +629,85 @@ export async function axiosDelete<T = any>(
         }
     }
 }
+
+/**
+ * Safe HTTP PATCH request that handles errors gracefully
+ * @param url - Request URL
+ * @param data - Request body data
+ * @param requestConfig - Axios configuration options
+ * @returns Promise resolving to response data or error information
+ */
+export async function axiosPatch<T = any>(
+    url: string,
+    data: any = {},
+    requestConfig: AxiosRequestConfig = {}
+): Promise<ApiResponse<T>> {
+    try {
+        if (!url || typeof url !== 'string') {
+            throw new Error('URL is required and must be a string');
+        }
+        
+        const mergedConfig = { ...defaultConfig, ...requestConfig };
+        
+        const response: AxiosResponse<T> = await axiosInstance.patch(url, data, mergedConfig);
+        
+        return {
+            success: true,
+            data: response.data,
+            status: response.status,
+            headers: response.headers,
+        };
+        
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        if (config.app.isDevelopment) {
+            console.error(`HTTP PATCH error for ${url}:`, errorMessage);
+        }
+        
+        // Handle axios errors specifically
+        if (error instanceof AxiosError) {
+            if (error.response) {
+                // Extract backend message from response data if available
+                let backendMessage = errorMessage;
+                if (error.response.data && typeof error.response.data === 'object' && error.response.data.message) {
+                    backendMessage = String(error.response.data.message);
+                }
+                
+                // Server responded with error status - create enhanced error with status and validation errors
+                const enhancedError = new Error(backendMessage);
+                (enhancedError as any).status = error.response.status;
+                (enhancedError as any).validationErrors = error.response.data?.errors || [];
+                
+                return {
+                    success: false,
+                    error: enhancedError,
+                    status: error.response.status,
+                    data: error.response.data,
+                    headers: error.response.headers,
+                };
+            } else if (error.request) {
+                // Request was made but no response received
+                return {
+                    success: false,
+                    error: 'No response received from server',
+                    status: 0,
+                    data: null,
+                };
+            }
+        }
+        
+        // Something else went wrong
+        return {
+            success: false,
+            error: errorMessage,
+            status: 0,
+            data: null,
+        };
+        
+    } finally {
+        if (config.app.isDevelopment) {
+            console.debug(`HTTP PATCH request completed for ${url}`);
+        }
+    }
+}

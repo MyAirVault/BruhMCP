@@ -33,7 +33,8 @@ CREATE TABLE auth_tokens (
     expires_at TIMESTAMP NOT NULL,
     is_used BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_token_type UNIQUE (user_id, token_type)
 );
 
 -- User subscriptions table (for future subscription system)

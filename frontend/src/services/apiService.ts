@@ -1,5 +1,5 @@
 import type { MCPType, MCPInstance, MCPInstanceCreationResponse, APIKey, MCPLog } from '../types';
-import { axiosGet, axiosPost, axiosPut, axiosDelete } from '../lib/axios';
+import { axiosGet, axiosPost, axiosPut, axiosDelete, axiosPatch } from '../lib/axios';
 import { config } from '../data/env';
 
 const API_BASE_URL = '/api/v1';
@@ -52,6 +52,9 @@ const makeRequest = async <T>(
         break;
       case 'PUT':
         response = await axiosPut<T>(url, options.body ? JSON.parse(options.body) : {});
+        break;
+      case 'PATCH':
+        response = await axiosPatch<T>(url, options.body ? JSON.parse(options.body) : {});
         break;
       case 'DELETE':
         response = await axiosDelete<T>(url);

@@ -52,8 +52,20 @@ function isSubscriptionActive(subscription) {
 	/** @type {any} */
 	const subscriptionData = subscription;
 
-	// Check if subscription status is active
-	const activeStatuses = ['created', 'active', 'authenticated'];
+	// Free plan is always active regardless of status
+	if (subscriptionData.plan_code === 'free') {
+		return true;
+	}
+
+	// Cancelled pro plans should fall back to free plan functionality
+	// This allows users to continue with free plan limits after cancelling pro
+	if (subscriptionData.plan_code === 'pro' && subscriptionData.status === 'cancelled') {
+		return true;
+	}
+
+	// Check if subscription status is active - only 'active' status grants paid plan benefits
+	// 'created' and 'authenticated' are pending payment states and should not grant pro access
+	const activeStatuses = ['active'];
 	if (!activeStatuses.includes(subscriptionData.status)) return false;
 
 	// Check if current period hasn't ended
@@ -173,34 +185,54 @@ async function checkInstanceLimit(userId) {
 		/** @type {any} */
 		const subscriptionData = subscription;
 		
+		// For inactive subscriptions, treat as free plan user instead of blocking completely
+		// This handles cases like pending pro subscriptions (status = 'created') or expired subscriptions
+		let effectivePlanCode = subscriptionData.plan_code;
 		if (!isActive) {
-			return {
-				canCreate: false,
-				reason: 'SUBSCRIPTION_INACTIVE',
-				message: 'Your subscription is not active. Please renew or upgrade to continue.',
-				details: {
-					userId,
-					plan: subscriptionData.plan_code,
-					status: subscriptionData.status,
-					activeInstances: 0,
-					maxInstances: getInstanceLimitForPlan(subscriptionData.plan_code)
-				}
-			};
+			// For pro plans that are not active (pending, expired, etc.), fall back to free plan limits
+			if (subscriptionData.plan_code === 'pro') {
+				effectivePlanCode = 'free';
+			}
+			// Free plans are always considered active for limit checking
+			else if (subscriptionData.plan_code === 'free') {
+				// Free plans continue with their normal logic below
+			}
+			// For other plan types, block access
+			else {
+				return {
+					canCreate: false,
+					reason: 'SUBSCRIPTION_INACTIVE',
+					message: 'Your subscription is not active. Please renew or upgrade to continue.',
+					details: {
+						userId,
+						plan: subscriptionData.plan_code,
+						status: subscriptionData.status,
+						activeInstances: 0,
+						maxInstances: getInstanceLimitForPlan(subscriptionData.plan_code)
+					}
+				};
+			}
 		}
 
 		// Get current active instance count
 		const activeInstances = await getUserInstanceCount(userId, 'active');
-		const maxInstances = getInstanceLimitForPlan(subscriptionData.plan_code);
+		
+		// Update effectivePlanCode for cancelled pro plans as well
+		if (subscriptionData.plan_code === 'pro' && subscriptionData.status === 'cancelled') {
+			effectivePlanCode = 'free';
+		}
+		
+		const maxInstances = getInstanceLimitForPlan(effectivePlanCode);
 
-		// Pro plan (unlimited instances)
-		if (isPlanUnlimited(subscriptionData.plan_code)) {
+		// Pro plan (unlimited instances) - but not if it's cancelled
+		if (isPlanUnlimited(effectivePlanCode)) {
 			return {
 				canCreate: true,
 				reason: 'UNLIMITED_PLAN',
 				message: 'Pro plan allows unlimited active instances',
 				details: {
 					userId,
-					plan: subscriptionData.plan_code,
+					plan: effectivePlanCode,
 					activeInstances,
 					maxInstances: 'unlimited'
 				}
@@ -212,10 +244,10 @@ async function checkInstanceLimit(userId) {
 			return {
 				canCreate: false,
 				reason: 'ACTIVE_LIMIT_REACHED',
-				message: `You have reached your ${subscriptionData.plan_code} plan limit of ${maxInstances} active instance${maxInstances > 1 ? 's' : ''}. Deactivate or delete an existing instance to create a new one.`,
+				message: `You have reached your ${effectivePlanCode} plan limit of ${maxInstances} active instance${maxInstances > 1 ? 's' : ''}. Deactivate or delete an existing instance to create a new one.`,
 				details: {
 					userId,
-					plan: subscriptionData.plan_code,
+					plan: effectivePlanCode,
 					activeInstances,
 					maxInstances,
 					upgradeRequired: true
@@ -230,7 +262,7 @@ async function checkInstanceLimit(userId) {
 			message: `Can create instance (${activeInstances + 1}/${maxInstances || 'unlimited'} active)`,
 			details: {
 				userId,
-				plan: subscriptionData.plan_code,
+				plan: effectivePlanCode,
 				activeInstances,
 				maxInstances,
 				remaining: maxInstances ? maxInstances - activeInstances : 'unlimited'
@@ -328,34 +360,77 @@ async function handleSubscriptionCancellation(userId) {
 
 		const client = await pool.connect();
 		
-		// Update subscription to cancelled status
-		const result = await client.query(
-			`UPDATE user_subscriptions 
-			 SET status = $1, cancelled_at = $2, cancel_at_period_end = $3, updated_at = $2
-			 WHERE user_id = $4 AND status IN ('active', 'created', 'authenticated')
-			 RETURNING id, plan_code`,
-			['cancelled', new Date(), false, userId]
-		);
-		
-		client.release();
+		try {
+			await client.query('BEGIN');
+			
+			// Update subscription to cancelled status
+			// Include 'created' and 'authenticated' as they are pending states that can be cancelled
+			const result = await client.query(
+				`UPDATE user_subscriptions 
+				 SET status = $1, cancelled_at = $2, cancel_at_period_end = $3, updated_at = $2
+				 WHERE user_id = $4 AND status IN ('active', 'created', 'authenticated')
+				 RETURNING id, plan_code, status as previous_status`,
+				['cancelled', new Date(), false, userId]
+			);
 
-		if (result.rows.length === 0) {
+			if (result.rows.length === 0) {
+				await client.query('ROLLBACK');
+				return {
+					success: false,
+					message: 'No active subscription found to cancel'
+				};
+			}
+
+			const cancelledSubscription = result.rows[0];
+			let deactivatedInstances = [];
+			
+			// If cancelling an active pro plan, deactivate all active instances
+			// Only deactivate if the subscription was actually active (not pending)
+			if (cancelledSubscription.plan_code === 'pro' && cancelledSubscription.previous_status === 'active') {
+				console.log(`🔄 Deactivating all active instances for cancelled active pro plan (user: ${userId})`);
+				
+				// Deactivate all active MCP instances for this user
+				const deactivateResult = await client.query(
+					`UPDATE mcp_service_table 
+					 SET status = 'inactive', updated_at = NOW() 
+					 WHERE user_id = $1 AND status = 'active' 
+					 RETURNING instance_id, mcp_service_name`,
+					[userId]
+				);
+				
+				deactivatedInstances = deactivateResult.rows;
+				console.log(`🔄 Deactivated ${deactivatedInstances.length} instances for user ${userId}`);
+				
+				// Log each deactivated instance
+				deactivatedInstances.forEach(instance => {
+					console.log(`📝 Deactivated instance: ${instance.instance_id} (${instance.mcp_service_name}) due to active pro plan cancellation`);
+				});
+			} else if (cancelledSubscription.plan_code === 'pro' && ['created', 'authenticated'].includes(cancelledSubscription.previous_status)) {
+				console.log(`🔄 Cancelled pending pro subscription (user: ${userId}) - no instances to deactivate as pro benefits were not active`);
+			}
+			
+			await client.query('COMMIT');
+			console.log(`✅ Subscription cancellation completed for user ${userId}`);
+
+			const deactivatedCount = deactivatedInstances.length;
+
 			return {
-				success: false,
-				message: 'No active subscription found to cancel'
+				success: true,
+				subscriptionId: cancelledSubscription.id,
+				previousPlan: cancelledSubscription.plan_code,
+				newStatus: 'cancelled',
+				deactivatedInstances: deactivatedCount,
+				message: cancelledSubscription.plan_code === 'pro' ? 
+					`Pro subscription cancelled and ${deactivatedCount} active instances have been deactivated` :
+					'Subscription has been cancelled successfully'
 			};
+
+		} catch (error) {
+			await client.query('ROLLBACK');
+			throw error;
+		} finally {
+			client.release();
 		}
-
-		const cancelledSubscription = result.rows[0];
-		console.log(`✅ Subscription cancellation completed for user ${userId}`);
-
-		return {
-			success: true,
-			subscriptionId: cancelledSubscription.id,
-			previousPlan: cancelledSubscription.plan_code,
-			newStatus: 'cancelled',
-			message: 'Subscription has been cancelled successfully'
-		};
 
 	} catch (error) {
 		console.error('Error handling subscription cancellation:', error);

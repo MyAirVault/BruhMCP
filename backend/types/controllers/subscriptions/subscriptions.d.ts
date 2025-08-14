@@ -208,5 +208,8 @@ import cancelSubscription = require("./functions/cancelSubscription.js");
 import getSubscriptionHistory = require("./functions/getSubscriptionHistory.js");
 import verifyPayment = require("./functions/verifyPayment.js");
 import getPaymentStatus = require("./functions/getPaymentStatus.js");
-export { getAllPlans, getUserSubscription, createSubscription, upgradeSubscription, cancelSubscription, getSubscriptionHistory, verifyPayment, getPaymentStatus };
+import pauseSubscription = require("./functions/pauseSubscription.js");
+import resumeSubscription = require("./functions/resumeSubscription.js");
+import downloadInvoice = require("./functions/downloadInvoice.js");
+export { getAllPlans, getUserSubscription, createSubscription, upgradeSubscription, cancelSubscription, getSubscriptionHistory, verifyPayment, getPaymentStatus, pauseSubscription, resumeSubscription, downloadInvoice };
 //# sourceMappingURL=subscriptions.d.ts.map

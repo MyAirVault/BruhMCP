@@ -4,7 +4,7 @@
  */
 
 const { findUserById } = require('../../db/queries/authQueries');
-const { getUserPlanSummary } = require('../../utils/planLimits');
+const { getUserSubscriptionSummary } = require('../../utils/razorpay/subscriptionLimits');
 
 
 /**
@@ -85,37 +85,27 @@ async function handleGetUserPlan(req, res) {
             return
         }
         
-        // Get user subscription data
-        const subscriptionData = await getUserPlanSummary(userId);
+        // Get user subscription data using the consolidated subscription limits system
+        const subscriptionDataRaw = await getUserSubscriptionSummary(userId);
         
-        // Transform the subscription data to match frontend expectations
-        const currentPlan = subscriptionData.currentPlan || {};
-        const limits = currentPlan.limits || {};
-        const maxInstances = limits.instances || 1;
-        const activeInstances = subscriptionData.activeInstances || 0;
-        const subscription = subscriptionData.subscription || {};
+        /** @type {any} */
+        const subscriptionData = subscriptionDataRaw;
         
         const planData = {
-            userId: userId,
+            userId: subscriptionData.userId,
             plan: {
-                type: currentPlan.plan_code || 'free',
-                maxInstances: maxInstances,
-                features: currentPlan.features || [],
-                expiresAt: subscription && typeof subscription === 'object' && 'current_period_end' in subscription ? 
-                          subscription.current_period_end : null,
-                createdAt: subscription && typeof subscription === 'object' && 'created_at' in subscription ? 
-                          subscription.created_at : new Date().toISOString()
+                type: subscriptionData.subscription?.planCode || 'free',
+                maxInstances: subscriptionData.maxInstances,
+                features: subscriptionData.plan?.features || [],
+                expiresAt: subscriptionData.subscription?.currentPeriodEnd || null,
+                createdAt: subscriptionData.subscription?.createdAt || new Date().toISOString()
             },
-            isActive: subscriptionData.isActive || false,
-            activeInstances: activeInstances,
-            maxInstances: maxInstances,
-            canCreate: subscriptionData.canCreateInstances !== false,
-            message: subscriptionData.message || 'Plan verified successfully',
-            usage: {
-                used: activeInstances,
-                limit: maxInstances,
-                remaining: Math.max(0, maxInstances - activeInstances)
-            }
+            isActive: subscriptionData.isActive,
+            activeInstances: subscriptionData.activeInstances,
+            maxInstances: subscriptionData.maxInstances,
+            canCreate: subscriptionData.canCreate,
+            message: subscriptionData.message,
+            usage: subscriptionData.usage
         };
         
         res.json({
