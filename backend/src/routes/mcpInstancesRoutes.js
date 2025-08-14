@@ -23,12 +23,12 @@ const {
 	validateInstanceCredentialsOnly,
 } = require('../controllers/mcpInstances/editing/updateInstanceCredentials.js');
 const { updateInstance } = require('../controllers/mcpInstances/editing/updateInstance.js');
-const { requireAuth } = require('../middleware/authMiddleware.js');
+const { authenticate } = require('../middleware/auth.js');
 
 const router = Router();
 
 // All MCP instance routes require authentication
-router.use(requireAuth);
+router.use(authenticate);
 
 // POST /api/v1/mcps - Create new MCP instance
 router.post('/', createMCP);

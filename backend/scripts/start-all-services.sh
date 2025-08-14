@@ -87,11 +87,8 @@ pm2 delete mcp-airtable$MODE_SUFFIX 2>/dev/null || true
 pm2 delete mcp-dropbox$MODE_SUFFIX 2>/dev/null || true
 pm2 delete mcp-googledrive$MODE_SUFFIX 2>/dev/null || true
 pm2 delete mcp-reddit$MODE_SUFFIX 2>/dev/null || true
-pm2 delete mcp-todoist$MODE_SUFFIX 2>/dev/null || true
-pm2 delete mcp-github$MODE_SUFFIX 2>/dev/null || true
 pm2 delete mcp-notion$MODE_SUFFIX 2>/dev/null || true
 pm2 delete mcp-slack$MODE_SUFFIX 2>/dev/null || true
-pm2 delete mcp-discord$MODE_SUFFIX 2>/dev/null || true
 
 echo ""
 echo "🏁 Starting MCP services in $MODE mode..."
@@ -104,11 +101,8 @@ start_service "airtable" "$MCP_SERVERS_ROOT/airtable" "49171"
 start_service "dropbox" "$MCP_SERVERS_ROOT/dropbox" "49264"
 start_service "googledrive" "$MCP_SERVERS_ROOT/googledrive" "49303"
 start_service "reddit" "$MCP_SERVERS_ROOT/reddit" "49425"
-start_service "todoist" "$MCP_SERVERS_ROOT/todoist" "49491"
-start_service "github" "$MCP_SERVERS_ROOT/github" "49294"
 start_service "notion" "$MCP_SERVERS_ROOT/notion" "49391"
 start_service "slack" "$MCP_SERVERS_ROOT/slack" "49458"
-start_service "discord" "$MCP_SERVERS_ROOT/discord" "49260"
 
 echo ""
 echo "⏳ Waiting for services to initialize..."
@@ -154,11 +148,8 @@ check_service_health "airtable" "49171"
 check_service_health "dropbox" "49264"
 check_service_health "googledrive" "49303"
 check_service_health "reddit" "49425"
-check_service_health "todoist" "49491"
-check_service_health "github" "49294"
 check_service_health "notion" "49391"
 check_service_health "slack" "49458"
-check_service_health "discord" "49260"
 
 echo ""
 echo "🎉 MCP Services startup complete ($MODE mode)!"
@@ -183,11 +174,11 @@ echo "  📋 Airtable: http://localhost:49171/health"
 echo "  📦 Dropbox: http://localhost:49264/health"
 echo "  🗂️ Google Drive: http://localhost:49303/health"
 echo "  🤖 Reddit: http://localhost:49425/health"
-echo "  ✅ Todoist: http://localhost:49491/health"
-echo "  🐙 GitHub: http://localhost:49294/health"
+echo ""
+echo ""
 echo "  📝 Notion: http://localhost:49391/health"
 echo "  💬 Slack: http://localhost:49458/health"
-echo "  🎮 Discord: http://localhost:49260/health"
+echo ""
 
 echo ""
 echo "📊 PM2 Status:"

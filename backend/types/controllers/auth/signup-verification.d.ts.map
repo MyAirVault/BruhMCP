@@ -1,1 +1,1 @@
-{"version":3,"file":"signup-verification.d.ts","sourceRoot":"","sources":["../../../src/controllers/auth/signup-verification.js"],"names":[],"mappings":"AA0BA;;;;;;;GAOG;AACH,8CAJW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,GACxB,OAAO,CAAC,IAAI,CAAC,CAiLzB"}
+{"version":3,"file":"signup-verification.d.ts","sourceRoot":"","sources":["../../../src/controllers/auth/signup-verification.js"],"names":[],"mappings":"AA0BA;;;;;;;GAOG;AACH,8CAJW,OAAO,SAAS,EAAE,OAAO,OACzB,OAAO,SAAS,EAAE,QAAQ,GACxB,OAAO,CAAC,IAAI,CAAC,CAuLzB"}

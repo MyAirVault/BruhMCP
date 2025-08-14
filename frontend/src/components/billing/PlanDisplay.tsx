@@ -43,7 +43,7 @@ export const PlanDisplay: React.FC<PlanDisplayProps> = ({
       setLoading(true);
       setError(null);
       
-      const response = await apiService.get('/billing/status');
+      const response = await apiService.get('/subscriptions/current');
       setBillingStatus(response.data);
     } catch (err: any) {
       console.error('Error loading billing status:', err);

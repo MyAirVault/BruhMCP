@@ -4,7 +4,7 @@
  */
 
 const express = require('express');
-const { requireAuth: authMiddleware } = require('../../../middleware/authMiddleware.js');
+const { authenticate: authMiddleware } = require('../../../middleware/auth.js');
 
 /**
  * @typedef {import('../types/serviceTypes.js').CredentialsData} CredentialsData

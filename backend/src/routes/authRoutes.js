@@ -25,6 +25,9 @@ const {
     handleGetProfile
 } = require('../controllers/auth');
 
+// Import profile handlers
+const { handleGetUserPlan } = require('../controllers/auth/profile');
+
 // Import signup-related functions separately to avoid potential circular dependency
 const { handleSignupVerification } = require('../controllers/auth/signup-verification');
 const { handleResendSignupOTP } = require('../controllers/auth/signup');
@@ -215,6 +218,17 @@ router.get('/profile',
     authenticate,
     /** @type {import('express').RequestHandler} */ (logSecurityEvent('PROFILE_ACCESS')),
     /** @type {import('express').RequestHandler} */ (handleGetProfile)
+);
+
+
+/**
+ * GET /api/auth/plan
+ * Get authenticated user's plan and usage information
+ */
+router.get('/plan',
+    authenticate,
+    /** @type {import('express').RequestHandler} */ (logSecurityEvent('PLAN_ACCESS')),
+    /** @type {import('express').RequestHandler} */ (handleGetUserPlan)
 );
 
 

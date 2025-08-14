@@ -10,12 +10,12 @@ const { Router } = require('express');
 const { getAPIKeys } = require('../controllers/apiKeys/getAPIKeys.js');
 const { storeAPIKeyHandler } = require('../controllers/apiKeys/storeAPIKey.js');
 const { deleteAPIKeyHandler } = require('../controllers/apiKeys/deleteAPIKey.js');
-const { requireAuth } = require('../middleware/authMiddleware.js');
+const { authenticate } = require('../middleware/auth.js');
 
 const router = Router();
 
 // All API key routes require authentication
-router.use(requireAuth);
+router.use(authenticate);
 
 // GET /api/v1/api-keys - Get user's API keys
 router.get('/', getAPIKeys);

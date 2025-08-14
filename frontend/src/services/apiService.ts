@@ -1,38 +1,20 @@
 import type { MCPType, MCPInstance, MCPInstanceCreationResponse, APIKey, MCPLog } from '../types';
+import { axiosGet, axiosPost, axiosPut, axiosDelete } from '../lib/axios';
+import { config } from '../data/env';
 
 const API_BASE_URL = '/api/v1';
 
-
-interface ApiError {
-  error: {
-    code: string;
-    message: string;
-    details?: Record<string, unknown>;
-    request_id?: string;
-    timestamp?: string;
-  };
-}
-
-const handleResponse = async <T>(response: Response, endpoint?: string): Promise<T> => {
-  if (!response.ok) {
-    try {
-      const errorData: ApiError = await response.json();
-      throw new Error(`${errorData.error.code}: ${errorData.error.message}`);
-    } catch (e) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
+const handleAxiosResponse = async <T>(response: any, endpoint?: string): Promise<T> => {
+  if (!response.success) {
+    throw new Error(response.error instanceof Error ? response.error.message : response.error || 'Request failed');
   }
   
-  if (response.status === 204) {
-    return {} as T;
-  }
-  
-  const data = await response.json();
+  const data = response.data;
   console.log(`🔍 Raw response from ${endpoint}:`, data);
   
   // For MCP creation responses, return the full response structure
   // to preserve both oauth and data fields
-  if (data.oauth || (data.data && data.data.instance_id)) {
+  if (data && (data.oauth || (data.data && data.data.instance_id))) {
     return data as T;
   }
   
@@ -44,7 +26,7 @@ const handleResponse = async <T>(response: Response, endpoint?: string): Promise
   }
   
   // Check if the response has a data field (most API responses)
-  if (data.data !== undefined) {
+  if (data && data.data !== undefined) {
     console.log('📦 Extracting data field from response');
     return data.data as T;
   }
@@ -55,18 +37,36 @@ const handleResponse = async <T>(response: Response, endpoint?: string): Promise
 
 const makeRequest = async <T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: { method?: string; body?: any; headers?: Record<string, string> } = {}
 ): Promise<T> => {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
+  const url = `${API_BASE_URL}${endpoint}`;
   
-  return handleResponse<T>(response, endpoint);
+  console.log('📡 makeRequest called:', { endpoint, method: options.method || 'GET', url });
+  
+  try {
+    let response;
+    
+    switch (options.method?.toUpperCase()) {
+      case 'POST':
+        response = await axiosPost<T>(url, options.body ? JSON.parse(options.body) : {});
+        break;
+      case 'PUT':
+        response = await axiosPut<T>(url, options.body ? JSON.parse(options.body) : {});
+        break;
+      case 'DELETE':
+        response = await axiosDelete<T>(url);
+        break;
+      case 'GET':
+      default:
+        response = await axiosGet<T>(url);
+        break;
+    }
+    
+    return handleAxiosResponse<T>(response, endpoint);
+  } catch (error) {
+    console.error(`API request failed for ${endpoint}:`, error);
+    throw error;
+  }
 };
 
 export const apiService = {
@@ -453,12 +453,21 @@ export const apiService = {
     end_time?: string;
     level?: 'debug' | 'info' | 'warn' | 'error';
   }) => {
+    // For file downloads, we still need to use fetch to handle blob responses
+    // But we need to add the auth header manually
+    const token = localStorage.getItem(config.auth.jwtStorageKey);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}/mcps/${mcpId}/logs/export`, {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
     });
 
@@ -612,7 +621,7 @@ export const apiService = {
     subscription?: any;
     canUpgrade: boolean;
   }> => {
-    return makeRequest('/billing/status');
+    return makeRequest('/subscriptions/current');
   },
 
   createCheckoutSession: async (): Promise<{
