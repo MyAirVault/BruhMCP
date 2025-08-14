@@ -362,7 +362,7 @@ function getEmailTemplate(purpose, email, otp) {
 
 
 /**
- * Send OTP via email (simulated with console.log for now)
+ * Send OTP via email using real SMTP service with console logging
  * @param {string} email - Recipient email
  * @param {string} otp - OTP code
  * @param {string} purpose - OTP purpose (signup_verification, login_otp, password_reset, email_change_verification, verification)
@@ -376,9 +376,9 @@ async function sendOTPEmail(email, otp, purpose = 'verification') {
         
         const template = getEmailTemplate(purpose, email, otp);
         
-        // Simulate email sending with enhanced console output
+        // Always show console output for debugging/development
         console.log('\n' + '='.repeat(50));
-        console.log(`📧 EMAIL SIMULATION - ${purpose.toUpperCase()}`);
+        console.log(`📧 EMAIL - ${purpose.toUpperCase()}`);
         console.log('='.repeat(50));
         console.log(`To: ${email}`);
         console.log(`Subject: ${template.subject}`);
@@ -392,11 +392,20 @@ async function sendOTPEmail(email, otp, purpose = 'verification') {
         console.log('='.repeat(50));
         console.log('');
         
-        // In production, integrate with email service provider:
-        // - SendGrid, Mailgun, Amazon SES, etc.
-        // - Use HTML templates for better presentation
-        // - Add proper error handling for email delivery failures
-        // - Use template.subject and template.content for email content
+        // Also send actual email using SMTP
+        try {
+            const { emailService } = require('../services/emailService.js');
+            const result = await emailService.sendOTP(email, otp, purpose, OTP_CONFIG.EXPIRY_MINUTES);
+            
+            if (result.success) {
+                console.log(`✅ Real email sent successfully to ${email} (Message ID: ${result.messageId})`);
+            } else {
+                console.log(`⚠️ Real email failed: ${result.error}`);
+            }
+        } catch (emailError) {
+            const errorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+            console.log(`⚠️ Real email service error: ${errorMessage}`);
+        }
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

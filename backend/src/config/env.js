@@ -60,6 +60,7 @@ const SMTP_HOST = getEnvVar('SMTP_HOST', '', false);
 const SMTP_PORT = getEnvVar('SMTP_PORT', '587', false);
 const SMTP_USERNAME = getEnvVar('SMTP_USERNAME', '', false);
 const SMTP_PASSWORD = getEnvVar('SMTP_PASSWORD', '', false);
+const SENDER_EMAIL = getEnvVar('SENDER_EMAIL', '', false);
 
 
 // Rate limiting configuration
@@ -143,6 +144,7 @@ module.exports = {
     SMTP_PORT,
     SMTP_USERNAME,
     SMTP_PASSWORD,
+    SENDER_EMAIL,
     
     // Rate limiting
     RATE_LIMIT_WINDOW_MS: parseInt(RATE_LIMIT_WINDOW_MS, 10),

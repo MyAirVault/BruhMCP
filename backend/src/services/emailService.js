@@ -1,6 +1,8 @@
 // @ts-check
 const nodemailer = require('nodemailer');
 const { magicLinkEmailTemplate } = require('../templates/magicLinkEmail.js');
+const { otpEmailTemplate } = require('../templates/otpEmail.js');
+const { SENDER_EMAIL } = require('../config/env.js');
 
 /**
  * @typedef {Object} EmailResult
@@ -61,7 +63,7 @@ class EmailService {
 
 			// Email options
 			const mailOptions = {
-				from: process.env.SENDER_EMAIL || 'no-reply@bruhmcp.com',
+				from: SENDER_EMAIL || 'no-reply@bruhmcp.com',
 				to: email,
 				subject: 'Your Magic Link - Sign in to BruhMCP',
 				html: htmlContent,
@@ -79,6 +81,67 @@ class EmailService {
 			};
 		} catch (error) {
 			console.error(`❌ Failed to send magic link email to ${email}:`, error);
+
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error occurred',
+			};
+		}
+	}
+
+	/**
+	 * Send OTP email to user
+	 * @param {string} email - Recipient email address
+	 * @param {string} otp - OTP code
+	 * @param {string} purpose - OTP purpose (signup_verification, login_otp, password_reset, email_change_verification, verification)
+	 * @param {number} expiryMinutes - OTP expiry time in minutes
+	 * @returns {Promise<EmailResult>}
+	 */
+	async sendOTP(email, otp, purpose = 'verification', expiryMinutes = 5) {
+		if (!this.transporter) {
+			console.error('Email transporter not initialized');
+			return {
+				success: false,
+				error: 'Email service not available',
+			};
+		}
+
+		try {
+			// Generate HTML email content
+			const htmlContent = otpEmailTemplate(otp, email, purpose, expiryMinutes);
+			
+			// Get subject based on purpose
+			/** @type {Record<string, string>} */
+			const subjects = {
+				signup_verification: 'Welcome! Verify your email to get started',
+				login_otp: 'Your login verification code',
+				password_reset: 'Reset your password',
+				email_change_verification: 'Verify your new email address',
+				verification: 'Your verification code'
+			};
+			
+			const subject = subjects[purpose] || subjects.verification;
+
+			// Email options
+			const mailOptions = {
+				from: SENDER_EMAIL || 'no-reply@bruhmcp.com',
+				to: email,
+				subject: subject,
+				html: htmlContent,
+				text: `Your verification code is: ${otp}. This code will expire in ${expiryMinutes} minutes.`,
+			};
+
+			// Send email
+			const result = await this.transporter.sendMail(mailOptions);
+
+			console.log(`✅ OTP email sent to ${email}:`, result.messageId);
+
+			return {
+				success: true,
+				messageId: result.messageId,
+			};
+		} catch (error) {
+			console.error(`❌ Failed to send OTP email to ${email}:`, error);
 
 			return {
 				success: false,
