@@ -1,12 +1,12 @@
 export type ExpiredSubscription = {
     /**
-     * - Subscription ID
+     * - Subscription ID (UUID)
      */
-    id: number;
+    id: string;
     /**
-     * - User ID
+     * - User ID (UUID)
      */
-    user_id: number;
+    user_id: string;
     /**
      * - Plan code
      */
@@ -53,6 +53,16 @@ export function runSubscriptionCleanup(): Promise<{
     cleaned: number;
     errors: string[];
 }>;
+/**
+ * @typedef {Object} ExpiredSubscription
+ * @property {string} id - Subscription ID (UUID)
+ * @property {string} user_id - User ID (UUID)
+ * @property {string} plan_code - Plan code
+ * @property {string} razorpay_subscription_id - Razorpay subscription ID
+ * @property {number} total_amount - Total amount in paise
+ * @property {string} created_at - Creation timestamp
+ * @property {string} plan_name - Plan name
+ */
 /**
  * Configuration for subscription cleanup
  */

@@ -46,7 +46,7 @@ export const useInstanceStatus = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const refreshIntervalRef = useRef<number | null>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
   // Cleanup on unmount

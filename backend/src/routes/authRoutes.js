@@ -217,60 +217,6 @@ router.get('/profile',
     /** @type {import('express').RequestHandler} */ (handleGetProfile)
 );
 
-/**
- * GET /api/auth/plan
- * Get user subscription plan and instance limits (protected route)
- */
-router.get('/plan',
-    authenticate,
-    /** @type {import('express').RequestHandler} */ (logSecurityEvent('PLAN_ACCESS')),
-    async (req, res) => {
-        try {
-            const { getUserSubscriptionSummary } = require('../utils/razorpay/subscriptionLimits');
-            const userId = req.user?.userId;
-            
-            if (!userId) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'User authentication required'
-                });
-            }
-
-            const summary = await getUserSubscriptionSummary(userId);
-            
-            // Type assertion for summary object
-            /** @type {any} */
-            const summaryData = summary;
-            
-            // Transform to match frontend expectations
-            const planCode = summaryData.subscription.planCode || 'free';
-            
-            return res.json({
-                userId: summaryData.userId,
-                plan: {
-                    code: planCode, // Standardize on plan_code everywhere
-                    maxInstances: summaryData.maxInstances,
-                    features: summaryData.plan?.features || [],
-                    expiresAt: summaryData.subscription.currentPeriodEnd,
-                    createdAt: summaryData.subscription.createdAt
-                },
-                isActive: summaryData.isActive,
-                activeInstances: summaryData.activeInstances,
-                maxInstances: summaryData.maxInstances,
-                canCreate: summaryData.canCreate,
-                message: summaryData.message,
-                usage: summaryData.usage
-            });
-            
-        } catch (error) {
-            console.error('Error fetching user plan:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to fetch plan information'
-            });
-        }
-    }
-);
 
 
 

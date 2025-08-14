@@ -41,49 +41,47 @@ export function ChangeEmailForm({
     onStepTwoSubmit,
     loading = false,
 }: ChangeEmailFormProps) {
-    try {
-        // Use AuthContext state instead of local state to persist across remounts
-        const { 
-            emailChangeStep, 
-            emailChangeEmail, 
-            setEmailChangeStep, 
-            setEmailChangeEmail 
-        } = useAuth();
-        
-        // Determine current step based on AuthContext state
-        const currentStep: FormStep = emailChangeStep === 'otp_verification' ? 'step2' : 'step1';
-        const newEmail = emailChangeEmail;
-        const otpSent = emailChangeStep === 'otp_verification';
+    // Use AuthContext state instead of local state to persist across remounts
+    const { 
+        emailChangeStep, 
+        emailChangeEmail, 
+        setEmailChangeStep, 
+        setEmailChangeEmail 
+    } = useAuth();
+    
+    // Determine current step based on AuthContext state
+    const currentStep: FormStep = emailChangeStep === 'otp_verification' ? 'step2' : 'step1';
+    const newEmail = emailChangeEmail;
+    const otpSent = emailChangeStep === 'otp_verification';
 
+    // Step 1 form (email + password)
+    const step1Form = useForm<ChangeEmailStepOneFormData>({
+        resolver: zodResolver(changeEmailStepOneSchema),
+        mode: 'onChange',
+        defaultValues: {
+            newEmail: '',
+            currentPassword: '',
+        },
+    });
 
-        // Step 1 form (email + password)
-        const step1Form = useForm<ChangeEmailStepOneFormData>({
-            resolver: zodResolver(changeEmailStepOneSchema),
-            mode: 'onChange',
-            defaultValues: {
-                newEmail: '',
-                currentPassword: '',
-            },
-        });
+    // Step 2 form (OTP verification)
+    const step2Form = useForm<ChangeEmailStepTwoFormData>({
+        resolver: zodResolver(changeEmailStepTwoSchema),
+        mode: 'onChange',
+        defaultValues: {
+            otp: '',
+        },
+    });
 
-        // Step 2 form (OTP verification)
-        const step2Form = useForm<ChangeEmailStepTwoFormData>({
-            resolver: zodResolver(changeEmailStepTwoSchema),
-            mode: 'onChange',
-            defaultValues: {
-                otp: '',
-            },
-        });
+    // OTP state management for individual digit inputs
+    const [otp, setOtp] = React.useState(['', '', '', '', '', '']);
+    const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
-        // OTP state management for individual digit inputs
-        const [otp, setOtp] = React.useState(['', '', '', '', '', '']);
-        const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
-
-        // Sync OTP state with React Hook Form
-        React.useEffect(() => {
-            const otpString = otp.join('');
-            step2Form.setValue('otp', otpString, { shouldValidate: false });
-        }, [otp, step2Form]);
+    // Sync OTP state with React Hook Form
+    React.useEffect(() => {
+        const otpString = otp.join('');
+        step2Form.setValue('otp', otpString, { shouldValidate: false });
+    }, [otp, step2Form]);
 
         // Handle OTP input changes
         const handleOtpChange = (index: number, value: string) => {
@@ -419,8 +417,9 @@ export function ChangeEmailForm({
             );
         };
 
-        return (
-            <div className="space-y-6 max-w-md mx-auto">
+        try {
+            return (
+                <div className="space-y-6 max-w-md mx-auto">
                 {/* Step indicator */}
                 <div className="flex items-center justify-center space-x-2 mb-6">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 ${

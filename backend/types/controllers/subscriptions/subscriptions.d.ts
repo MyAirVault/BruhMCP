@@ -194,12 +194,6 @@ export type DatabaseTransaction = {
      */
     subscription_status?: string | undefined;
 };
-export type DatabaseCredits = {
-    /**
-     * - Total credits amount
-     */
-    total_credits?: number | undefined;
-};
 export type DatabaseCountResult = {
     /**
      * - Total count

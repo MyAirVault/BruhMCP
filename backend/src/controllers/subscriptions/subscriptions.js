@@ -68,10 +68,6 @@
  * @property {string} [subscription_status] - Subscription status (from JOIN)
  */
 
-/**
- * @typedef {Object} DatabaseCredits
- * @property {number} [total_credits] - Total credits amount
- */
 
 /**
  * @typedef {Object} DatabaseCountResult

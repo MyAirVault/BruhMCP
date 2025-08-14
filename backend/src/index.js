@@ -11,6 +11,7 @@ const mcpTypesRoutes = require('./routes/mcpTypesRoutes.js');
 const apiKeysRoutes = require('./routes/apiKeysRoutes.js');
 const mcpInstancesRoutes = require('./routes/mcpInstancesRoutes.js');
 const subscriptionRoutes = require('./routes/subscriptions.js');
+const subscriptionCleanupRoutes = require('./routes/subscription-cleanup.js');
 const webhookRoutes = require('./routes/webhooks.js');
 
 // Import middleware
@@ -135,6 +136,7 @@ app.use('/api/v1/mcp-types', mcpTypesRoutes);
 app.use('/api/v1/api-keys', apiKeysRoutes);
 app.use('/api/v1/mcps', mcpInstancesRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/subscription-cleanup', subscriptionCleanupRoutes);
 app.use('/api/v1/webhooks', webhookRoutes);
 
 // Register MCP Auth Registry routes (will be initialized during startup)

@@ -1,3 +1,38 @@
+export type RazorpayOrderResponse = {
+    /**
+     * - Order ID
+     */
+    id: string;
+    /**
+     * - Amount in paise
+     */
+    amount: number;
+    /**
+     * - Currency code
+     */
+    currency: string;
+    /**
+     * - Receipt number
+     */
+    receipt: string;
+    /**
+     * - Order status
+     */
+    status: string;
+    /**
+     * - Additional notes
+     */
+    notes: Object;
+};
+/**
+ * @typedef {Object} RazorpayOrderResponse
+ * @property {string} id - Order ID
+ * @property {number} amount - Amount in paise
+ * @property {string} currency - Currency code
+ * @property {string} receipt - Receipt number
+ * @property {string} status - Order status
+ * @property {Object} notes - Additional notes
+ */
 /**
  * Create a Razorpay order for payment processing
  * @param {Object} orderData - Order creation data
@@ -5,7 +40,7 @@
  * @param {string} orderData.currency - Currency code (default: INR)
  * @param {string} orderData.receipt - Unique receipt identifier
  * @param {Object} [orderData.notes] - Additional notes
- * @returns {Promise<Object>} Razorpay order object
+ * @returns {Promise<RazorpayOrderResponse>} Razorpay order object
  * @throws {Error} If order creation fails
  */
 export function createRazorpayOrder(orderData: {
@@ -13,7 +48,7 @@ export function createRazorpayOrder(orderData: {
     currency: string;
     receipt: string;
     notes?: Object | undefined;
-}): Promise<Object>;
+}): Promise<RazorpayOrderResponse>;
 /**
  * Fetch payment details from Razorpay
  * @param {string} paymentId - Razorpay payment ID

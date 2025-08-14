@@ -259,10 +259,11 @@ async function authenticate(req, res, next) {
             : null;
         
         if (!token) {
-            return res.status(401).json({
+             res.status(401).json({
                 success: false,
                 message: 'Access token is required'
             });
+            return
         }
         
         // Verify the token
@@ -282,10 +283,11 @@ async function authenticate(req, res, next) {
         
         if (!user || user.email !== req.user.email) {
             res.setHeader('X-Clear-Auth', 'true');
-            return res.status(401).json({
+             res.status(401).json({
                 success: false,
                 message: 'User not found or inactive'
             });
+            return
         }
         
         // Add full user data to request
@@ -305,20 +307,22 @@ async function authenticate(req, res, next) {
         
         // Handle token-specific errors
         if (errorMessage.includes('expired')) {
-            return res.status(401).json({
+           res.status(401).json({
                 success: false,
                 message: 'Access token has expired'
             });
+              return
         }
         
         if (errorMessage.includes('invalid') || 
             errorMessage.includes('malformed') ||
             errorMessage.includes('signature') ||
             errorMessage.includes('JsonWebTokenError')) {
-            return res.status(401).json({
+           res.status(401).json({
                 success: false,
                 message: 'Invalid access token'
             });
+              return
         }
         
         // Handle user deletion errors
@@ -328,10 +332,11 @@ async function authenticate(req, res, next) {
             res.setHeader('X-Clear-Auth', 'true');
         }
         
-        return res.status(401).json({
+        res.status(401).json({
             success: false,
             message: 'Authentication failed'
         });
+        return 
     }
 }
 
@@ -341,40 +346,26 @@ async function authenticate(req, res, next) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @param {import('express').NextFunction} next - Express next function
- * @returns {Promise<void>}
+ * @returns {void}
  */
-async function authenticateVerified(req, res, next) {
+function authenticateVerified(req, res, next) {
     try {
-        // First authenticate the user
-        await authenticate(req, res, () => {
-            // Then check if email is verified
-            if (!req.user) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'User authentication required'
-                });
-            }
-            
-            if (!req.user.isVerified) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Email verification required to access this resource'
-                });
-            }
-            
-            next();
+        authenticate(req, res, () => {
+            requireVerifiedEmail(req, res, next);
         });
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('Verified authentication failed:', errorMessage);
         
-        if (!res.headersSent) {
-            res.status(500).json({
-                success: false,
-                message: 'Authentication error'
-            });
-        }
+        res.status(500).json({
+            success: false,
+            message: 'Authentication error'
+        });
+        return;
+        
+    } finally {
+        console.debug('Verified authentication process completed');
     }
 }
 

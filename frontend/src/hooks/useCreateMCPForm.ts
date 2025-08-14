@@ -62,7 +62,7 @@ export const useCreateMCPForm = ({ isOpen, onClose, onSubmit, onPlanLimitReached
   
   // Stable ref to validateCredentials to avoid circular dependencies
   const validateCredentialsRef = useRef<(() => Promise<void>) | null>(null);
-  const pollIntervalRef = useRef<number | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load MCP types from backend
   useEffect(() => {

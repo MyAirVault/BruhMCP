@@ -7,8 +7,8 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { SettingsPage } from './pages/SettingsPage';
 import Dashboard from './pages/Dashboard';
 import Logs from './pages/Logs';
-import { BillingPage } from './pages/Billing';
-import { CheckoutPage } from './pages/Checkout';
+import { BillingPage } from './pages/BillingPage';
+import { PaymentPage as CheckoutPage } from './pages/PaymentPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 

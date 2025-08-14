@@ -199,10 +199,22 @@ export interface TransactionsApiResponse {
     success: boolean;
     message: string;
     data: {
-        transactions: BillingTransaction[];
-        total: number;
-        page: number;
-        limit: number;
+        transactions: {
+            id: string;
+            amount: number;
+            status: string;
+            method: string;
+            created_at: string;
+            plan_name: string;
+            amount_formatted: string;
+        }[];
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            totalRecords: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        };
     };
 }
 

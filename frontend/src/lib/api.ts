@@ -12,7 +12,7 @@
 import { axiosGet, axiosPost, axiosPut } from './axios';
 import { config } from '../data/env';
 import { formatErrorMessage } from './utils';
-import type { SubscriptionPlan, UserSubscription } from '../types/subscription';
+import type { SubscriptionPlan, UserSubscription, AccountCredit, PaymentStatusResponse } from '../types/subscription';
 
 
 // API response type definitions
@@ -752,6 +752,17 @@ interface UserSubscriptionResponse {
     message: string;
     data: {
         subscription: UserSubscription | null;
+        currentPlan?: {
+            plan_code: string;
+            name: string;
+            description: string;
+            features: string[];
+            limits: Record<string, any>;
+            price_monthly: number;
+            trial_days: number;
+        };
+        isActive?: boolean;
+        isTrialActive?: boolean;
     };
 }
 
@@ -774,6 +785,25 @@ interface UpdateSubscriptionResponse {
         currentPlan: string;
         newPlan: string;
         requiresPayment: boolean;
+        subscription?: UserSubscription;
+        billing?: {
+            immediateCharge?: boolean;
+            chargeAmount?: number;
+            chargeDescription?: string;
+            creditAmount?: number;
+            creditDescription?: string;
+            nextBillingAmount?: number;
+            nextBillingDate?: string;
+        };
+        proration?: {
+            daysRemaining: number;
+            dailyRate: number;
+            proratedAmount: number;
+            isUpgrade: boolean;
+            isDowngrade: boolean;
+            requiresPayment: boolean;
+            creditAmount: number;
+        };
     };
 }
 
@@ -800,26 +830,8 @@ interface SubscriptionHistoryResponse {
     };
 }
 
-interface PaymentStatusResponse {
-    success: boolean;
-    message: string;
-    data: {
-        subscriptionId: string;
-        subscriptionStatus: string;
-        planCode: string;
-        planName: string;
-        billingCycle: string;
-        totalAmount: number;
-        currency: string;
-        latestTransaction: {
-            id: string;
-            status: string;
-            amount: number;
-            method: string;
-            createdAt: string;
-        } | null;
-    };
-}
+
+
 
 interface VerifyPaymentResponse {
     success: boolean;
@@ -842,6 +854,62 @@ interface VerifyPaymentResponse {
  */
 export const subscriptionApi = {
     /**
+     * Get user credits
+     * @returns {Promise<AccountCredit[]>} Promise resolving to array of account credits
+     */
+    async getCredits(): Promise<AccountCredit[]> {
+        try {
+            const response = await axiosGet<{
+                success: boolean;
+                data: { credits: AccountCredit[] };
+            }>(
+                `${config.api.baseUrl}/api/subscriptions/credits`,
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to get credits');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return response.data!.data.credits;
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to get credits';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
+        }
+    },
+
+    /**
+     * Apply credits to account
+     * @param {number} amount - Amount of credits to apply
+     * @returns {Promise<{ message: string }>} Promise resolving to success message
+     */
+    async applyCredits(amount: number): Promise<{ message: string }> {
+        try {
+            const response = await axiosPost<GenericApiResponse>(
+                `${config.api.baseUrl}/api/subscriptions/apply-credits`,
+                { amount },
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const error = new Error(response.error instanceof Error ? response.error.message : response.error || 'Failed to apply credits');
+                (error as any).status = response.status;
+                throw error;
+            }
+            
+            return { message: response.data!.message };
+            
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to apply credits';
+            const statusCode = (error as any)?.status;
+            throw new Error(formatErrorMessage(message, statusCode));
+        }
+    },
+    /**
      * Get all available subscription plans
      * Retrieves active subscription plans with pricing and features
      * 
@@ -851,7 +919,7 @@ export const subscriptionApi = {
     async getPlans(): Promise<SubscriptionPlan[]> {
         try {
             const response = await axiosGet<SubscriptionPlansResponse>(
-                `${config.api.baseUrl}/api/v1/subscriptions/plans`
+                `${config.api.baseUrl}/api/subscriptions/plans`
             );
             
             if (!response.success) {
@@ -881,7 +949,7 @@ export const subscriptionApi = {
     async getCurrentSubscription(): Promise<UserSubscription | null> {
         try {
             const response = await axiosGet<UserSubscriptionResponse>(
-                `${config.api.baseUrl}/api/v1/subscriptions/current`,
+                `${config.api.baseUrl}/api/subscriptions/current`,
                 { headers: getAuthHeaders() }
             );
             
@@ -914,7 +982,7 @@ export const subscriptionApi = {
     async createSubscription(planCode: string, billingCycle: string = 'monthly'): Promise<CreateSubscriptionResponse['data']> {
         try {
             const response = await axiosPost<CreateSubscriptionResponse>(
-                `${config.api.baseUrl}/api/v1/subscriptions/create`,
+                `${config.api.baseUrl}/api/subscriptions/create`,
                 { planCode, billingCycle },
                 { headers: getAuthHeaders() }
             );
@@ -941,15 +1009,29 @@ export const subscriptionApi = {
      * Update/upgrade subscription to new plan
      * Changes user's current subscription to a different plan
      * 
-     * @param {string} newPlanCode - New plan code (free, pro)
+     * @param {string | Object} newPlanCodeOrRequest - New plan code (free, pro) or request object
      * @returns {Promise<UpdateSubscriptionResponse['data']>} Promise resolving to upgrade details
      * @throws {Error} If subscription upgrade fails
      */
-    async updateSubscription(newPlanCode: string): Promise<UpdateSubscriptionResponse['data']> {
+    async updateSubscription(newPlanCodeOrRequest: string | { planId?: number; planCode?: string; [key: string]: any }): Promise<UpdateSubscriptionResponse['data']> {
         try {
+            let requestBody: any;
+            
+            if (typeof newPlanCodeOrRequest === 'string') {
+                requestBody = { newPlanCode: newPlanCodeOrRequest };
+            } else {
+                // Handle object request with planId or planCode
+                const { planId, planCode, ...rest } = newPlanCodeOrRequest;
+                requestBody = {
+                    newPlanCode: planCode,
+                    planId,
+                    ...rest
+                };
+            }
+            
             const response = await axiosPost<UpdateSubscriptionResponse>(
-                `${config.api.baseUrl}/api/v1/subscriptions/upgrade`,
-                { newPlanCode },
+                `${config.api.baseUrl}/api/subscriptions/upgrade`,
+                requestBody,
                 { headers: getAuthHeaders() }
             );
             
@@ -967,7 +1049,7 @@ export const subscriptionApi = {
             const validationErrors = (error as any)?.validationErrors;
             throw new Error(formatErrorMessage(message, statusCode, validationErrors));
         } finally {
-            // Debug logging omitted for production
+            // Debug logging onmitted for production
         }
     },
 
@@ -1001,7 +1083,7 @@ export const subscriptionApi = {
             if (options.dateTo) params.append('dateTo', options.dateTo);
 
             const response = await axiosGet<SubscriptionHistoryResponse>(
-                `${config.api.baseUrl}/api/v1/subscriptions/history?${params.toString()}`,
+                `${config.api.baseUrl}/api/subscriptions/history?${params.toString()}`,
                 { headers: getAuthHeaders() }
             );
             
@@ -1066,7 +1148,7 @@ export const subscriptionApi = {
     async verifyPayment(razorpayPaymentId: string, subscriptionId?: string): Promise<VerifyPaymentResponse['data']> {
         try {
             const response = await axiosPost<VerifyPaymentResponse>(
-                `${config.api.baseUrl}/api/v1/subscriptions/verify-payment`,
+                `${config.api.baseUrl}/api/subscriptions/verify-payment`,
                 { 
                     razorpay_payment_id: razorpayPaymentId,
                     subscription_id: subscriptionId
@@ -1095,14 +1177,15 @@ export const subscriptionApi = {
      * Cancel active subscription
      * Cancels user's current subscription
      * 
+     * @param {Object} [request] - Optional cancellation request details
      * @returns {Promise<{ message: string }>} Promise resolving to cancellation confirmation
      * @throws {Error} If subscription cancellation fails
      */
-    async cancelSubscription(): Promise<{ message: string }> {
+    async cancelSubscription(request?: any): Promise<{ message: string }> {
         try {
             const response = await axiosPost<GenericApiResponse>(
-                `${config.api.baseUrl}/api/v1/subscriptions/cancel`,
-                {},
+                `${config.api.baseUrl}/api/subscriptions/cancel`,
+                request || {},
                 { headers: getAuthHeaders() }
             );
             
@@ -1122,4 +1205,101 @@ export const subscriptionApi = {
             // Debug logging omitted for production
         }
     },
+
+
+    /**
+     * Run subscription cleanup (admin/maintenance operation)
+     * @returns {Promise<{ expired: number; cleaned: number; errors: string[] }>} Cleanup results
+     */
+    async runSubscriptionCleanup(): Promise<{ expired: number; cleaned: number; errors: string[] }> {
+        try {
+            const response = await axiosPost<{ 
+                success: boolean; 
+                data: { 
+                    expired: number; 
+                    cleaned: number; 
+                    errors: string[]; 
+                }; 
+                error?: string 
+            }>(
+                `${config.api.baseUrl}/api/v1/subscription-cleanup/run`,
+                {},
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const errorMessage = response.error || 'Failed to run subscription cleanup';
+                throw new Error(typeof errorMessage === 'string' ? errorMessage : errorMessage.message);
+            }
+            
+            return response.data!.data;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to run subscription cleanup';
+            throw new Error(formatErrorMessage(message));
+        }
+    },
+
+    /**
+     * Expire unpaid subscriptions only
+     * @returns {Promise<{ expired: number; errors: string[] }>} Expiry results
+     */
+    async expireUnpaidSubscriptions(): Promise<{ expired: number; errors: string[] }> {
+        try {
+            const response = await axiosPost<{ 
+                success: boolean; 
+                data: { 
+                    expired: number; 
+                    errors: string[]; 
+                }; 
+                error?: string 
+            }>(
+                `${config.api.baseUrl}/api/v1/subscription-cleanup/expire-unpaid`,
+                {},
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!response.success) {
+                const errorMessage = response.error || 'Failed to expire unpaid subscriptions';
+                throw new Error(typeof errorMessage === 'string' ? errorMessage : errorMessage.message);
+            }
+            
+            return response.data!.data;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to expire unpaid subscriptions';
+            throw new Error(formatErrorMessage(message));
+        }
+    },
+
+    /**
+     * Check subscription cleanup service health
+     * @returns {Promise<{ message: string; timestamp: string; timeout_minutes: number }>} Health status
+     */
+    async getCleanupServiceHealth(): Promise<{ message: string; timestamp: string; timeout_minutes: number }> {
+        try {
+            const response = await axiosGet<{ 
+                success: boolean; 
+                message: string; 
+                timeout_minutes: number; 
+                timestamp: string; 
+                error?: string 
+            }>(
+                `${config.api.baseUrl}/api/v1/subscription-cleanup/health`
+            );
+            
+            if (!response.success) {
+                const errorMessage = response.error || 'Failed to get cleanup service health';
+                throw new Error(typeof errorMessage === 'string' ? errorMessage : errorMessage.message);
+            }
+            
+            return {
+                message: response.data!.message,
+                timestamp: response.data!.timestamp,
+                timeout_minutes: response.data!.timeout_minutes
+            };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to get cleanup service health';
+            throw new Error(formatErrorMessage(message));
+        }
+    },
+
 };

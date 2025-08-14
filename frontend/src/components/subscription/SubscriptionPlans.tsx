@@ -5,7 +5,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { Check, Star, Zap, Crown, Mail } from 'lucide-react';
+import { Check, Star, Zap, Mail } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { cn } from '../../lib/utils';
@@ -42,6 +42,7 @@ export function SubscriptionPlans({
         
         // Add Contact Us as third option
         const contactPlan: SubscriptionPlan = {
+            id: 999, // Contact plan ID
             plan_code: 'contact',
             name: 'Contact Us',
             description: 'Custom solutions for enterprise needs',

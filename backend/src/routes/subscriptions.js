@@ -171,24 +171,135 @@ router.post(
 );
 
 /**
- * Error handling middleware for subscription routes
- * Catches any unhandled errors in subscription endpoints
+ * GET /api/subscriptions/health
+ * Health check for subscription service
  */
-router.use((/** @type {Error} */ error, /** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
-	console.error('Subscription route error:', {
-		error: error.message,
-		stack: error.stack,
-		url: req.url,
-		method: req.method,
-		body: req.body,
-		timestamp: new Date().toISOString(),
-	});
+router.get('/health', (req, res) => {
+	try {
+		res.json({
+			success: true,
+			message: 'Subscription service is healthy',
+			timestamp: new Date().toISOString(),
+			services: {
+				database: 'connected',
+				razorpay: process.env.RAZORPAY_KEY_ID ? 'configured' : 'not_configured',
+			},
+		});
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Subscription health check failed:', errorMessage);
 
-	res.status(500).json({
-		success: false,
-		message: 'Internal server error in subscription management',
-		timestamp: new Date().toISOString(),
-	});
+		res.status(500).json({
+			success: false,
+			message: 'Subscription service health check failed',
+			timestamp: new Date().toISOString(),
+		});
+	} finally {
+		console.debug('Subscription health check process completed');
+	}
+});
+
+// Error handling middleware for subscription routes
+
+router.use((/** @type {Error} */ error, /** @type {import('express').Request} */ req, /** @type {import('express').Response} */ res, /** @type {import('express').NextFunction} */ next) => {
+	try {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Subscription route error:', errorMessage);
+
+		// Map specific error messages to user-friendly responses
+
+		// Payment-related errors
+		if (errorMessage.includes('Razorpay') || errorMessage.includes('payment')) {
+			return res.status(402).json({
+				success: false,
+				message: 'Payment processing failed. Please check your payment details and try again.',
+				code: 'PAYMENT_PROCESSING_ERROR',
+			});
+		}
+
+		// Plan-related errors
+		if (errorMessage.includes('plan') || errorMessage.includes('Plan')) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid subscription plan selected. Please choose a valid plan.',
+				code: 'INVALID_PLAN_ERROR',
+			});
+		}
+
+		// Subscription status errors
+		if (errorMessage.includes('subscription') || errorMessage.includes('Subscription')) {
+			return res.status(400).json({
+				success: false,
+				message: 'Subscription operation failed. Please check your current subscription status.',
+				code: 'SUBSCRIPTION_OPERATION_ERROR',
+			});
+		}
+
+		// Authentication errors
+		if (error.name === 'UnauthorizedError' || errorMessage.includes('authentication')) {
+			return res.status(401).json({
+				success: false,
+				message: 'Please log in to access subscription features.',
+				code: 'AUTHENTICATION_REQUIRED',
+			});
+		}
+
+		// Validation errors
+		if (error.name === 'ValidationError' || errorMessage.includes('validation')) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid data provided. Please check your information and try again.',
+				code: 'VALIDATION_ERROR',
+				details: errorMessage,
+			});
+		}
+
+		// Database errors
+		if (errorMessage.includes('database') || errorMessage.includes('SQLITE')) {
+			return res.status(500).json({
+				success: false,
+				message: 'Database error occurred. Please try again in a few moments.',
+				code: 'DATABASE_ERROR',
+			});
+		}
+
+		// Rate limiting errors
+		if (error.name === 'TooManyRequestsError' || errorMessage.includes('rate limit')) {
+			return res.status(429).json({
+				success: false,
+				message: 'You have made too many subscription requests recently. Please wait a moment before trying again.',
+				code: 'SUBSCRIPTION_RATE_LIMIT_EXCEEDED',
+				retryAfter: '60 seconds'
+			});
+		}
+
+		// Network/timeout errors
+		if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+			return res.status(504).json({
+				success: false,
+				message: 'Service temporarily unavailable. Please try again later.',
+				code: 'SERVICE_TIMEOUT',
+			});
+		}
+
+		// Generic server error
+		return res.status(500).json({
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			code: 'INTERNAL_SERVER_ERROR',
+		});
+	} catch (handlerError) {
+		const handlerErrorMessage = handlerError instanceof Error ? handlerError.message : String(handlerError);
+		console.error('Subscription error handler failed:', handlerErrorMessage);
+
+		return res.status(500).json({
+			success: false,
+			message: 'Critical error occurred. Please contact support.',
+			code: 'CRITICAL_ERROR',
+		});
+	} finally {
+		console.debug('Subscription error handling process completed');
+	}
 });
 
 module.exports = router;

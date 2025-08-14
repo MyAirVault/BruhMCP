@@ -43,7 +43,7 @@ export function authenticate(req: import("express").Request, res: import("expres
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  * @param {import('express').NextFunction} next - Express next function
- * @returns {Promise<void>}
+ * @returns {void}
  */
-export function authenticateVerified(req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): Promise<void>;
+export function authenticateVerified(req: import("express").Request, res: import("express").Response, next: import("express").NextFunction): void;
 //# sourceMappingURL=auth.d.ts.map

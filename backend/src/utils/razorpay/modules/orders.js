@@ -6,13 +6,23 @@
 const { initializeRazorpay } = require('./core');
 
 /**
+ * @typedef {Object} RazorpayOrderResponse
+ * @property {string} id - Order ID
+ * @property {number} amount - Amount in paise
+ * @property {string} currency - Currency code
+ * @property {string} receipt - Receipt number
+ * @property {string} status - Order status
+ * @property {Object} notes - Additional notes
+ */
+
+/**
  * Create a Razorpay order for payment processing
  * @param {Object} orderData - Order creation data
  * @param {number} orderData.amount - Amount in paise
  * @param {string} orderData.currency - Currency code (default: INR)
  * @param {string} orderData.receipt - Unique receipt identifier
  * @param {Object} [orderData.notes] - Additional notes
- * @returns {Promise<Object>} Razorpay order object
+ * @returns {Promise<RazorpayOrderResponse>} Razorpay order object
  * @throws {Error} If order creation fails
  */
 async function createRazorpayOrder(orderData) {
@@ -40,14 +50,23 @@ async function createRazorpayOrder(orderData) {
 			payment_capture: 1, // Auto-capture payments
 		};
 
-		/** @type {any} */
-		const order = await razorpay.orders.create({
+		const razorpayOrderResponse = await razorpay.orders.create({
 			amount: orderOptions.amount,
 			currency: orderOptions.currency,
 			receipt: orderOptions.receipt,
 			notes: orderOptions.notes,
 			payment_capture: true
 		});
+
+		/** @type {RazorpayOrderResponse} */
+		const order = {
+			id: String(razorpayOrderResponse.id),
+			amount: Number(razorpayOrderResponse.amount),
+			currency: String(razorpayOrderResponse.currency),
+			receipt: String(razorpayOrderResponse.receipt),
+			status: String(razorpayOrderResponse.status),
+			notes: razorpayOrderResponse.notes || {}
+		};
 
 		console.log('Razorpay order created successfully:', order.id);
 		return order;
