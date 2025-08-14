@@ -67,7 +67,7 @@ async function createSubscription(req, res) {
 		// Get user details from PostgreSQL
 		const client = await pool.connect();
 		const userResult = await client.query(
-			'SELECT id, first_name, last_name, email, phone FROM users WHERE id = $1',
+			'SELECT id, first_name, last_name, email, NULL as phone FROM users WHERE id = $1',
 			[userId]
 		);
 
@@ -107,7 +107,7 @@ async function createSubscription(req, res) {
 		const customer = await createRazorpayCustomer({
 			name: `${user.first_name} ${user.last_name}`,
 			email: user.email,
-			contact: user.phone || undefined,
+			contact: user.phone || undefined, // Phone will be null from query
 		});
 		const customerData = customer;
 		customerId = (customerData && typeof customerData === 'object' && 'id' in customerData) ? customerData.id : null;

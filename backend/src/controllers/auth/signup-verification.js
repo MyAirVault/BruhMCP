@@ -74,40 +74,46 @@ async function handleSignupVerification(req, res) {
             throw new Error('Invalid user data received from OTP verification');
         }
         
-        // Create Razorpay customer now that email is verified
+        // Create Razorpay customer now that email is verified (skip in local development)
         
         let razorpayCustomerId = null;
-        try {
-            const customerName = user.firstName && user.lastName 
-                ? `${user.firstName} ${user.lastName}`.trim()
-                : VERIFICATION_CONFIG.DEFAULT_CUSTOMER_NAME_FALLBACK;
+        
+        // Only create Razorpay customer if not in local development mode
+        if (process.env.LOCAL_DEV !== 'true' && process.env.NODE_ENV !== 'local') {
+            try {
+                const customerName = user.firstName && user.lastName 
+                    ? `${user.firstName} ${user.lastName}`.trim()
+                    : VERIFICATION_CONFIG.DEFAULT_CUSTOMER_NAME_FALLBACK;
+                    
+                /** @type {import('../../utils/razorpay/modules/customers.js').RazorpayCustomer} */
+                const razorpayCustomer = await createRazorpayCustomer({
+                    name: customerName,
+                    email: normalizedEmail,
+                    notes: {
+                        source: VERIFICATION_CONFIG.RAZORPAY_CUSTOMER_SOURCE,
+                        user_id: user.id.toString(),
+                        created_at: new Date().toISOString()
+                    }
+                });
                 
-            /** @type {import('../../utils/razorpay/modules/customers.js').RazorpayCustomer} */
-            const razorpayCustomer = await createRazorpayCustomer({
-                name: customerName,
-                email: normalizedEmail,
-                notes: {
-                    source: VERIFICATION_CONFIG.RAZORPAY_CUSTOMER_SOURCE,
-                    user_id: user.id.toString(),
-                    created_at: new Date().toISOString()
-                }
-            });
-            
-            razorpayCustomerId = razorpayCustomer.id;
-            console.log('Razorpay customer created after email verification:', {
-                customerId: razorpayCustomerId,
-                userId: user.id,
-                email: normalizedEmail
-            });
-        } catch (razorpayError) {
-            // Log the error but don't fail the verification process
-            const errorMessage = razorpayError instanceof Error ? razorpayError.message : String(razorpayError);
-            console.error('Razorpay customer creation failed during signup verification:', {
-                error: errorMessage,
-                userId: user.id,
-                email: normalizedEmail
-            });
-            // Continue with verification even if Razorpay customer creation fails
+                razorpayCustomerId = razorpayCustomer.id;
+                console.log('Razorpay customer created after email verification:', {
+                    customerId: razorpayCustomerId,
+                    userId: user.id,
+                    email: normalizedEmail
+                });
+            } catch (razorpayError) {
+                // Log the error but don't fail the verification process
+                const errorMessage = razorpayError instanceof Error ? razorpayError.message : String(razorpayError);
+                console.error('Razorpay customer creation failed during signup verification:', {
+                    error: errorMessage,
+                    userId: user.id,
+                    email: normalizedEmail
+                });
+                // Continue with verification even if Razorpay customer creation fails
+            }
+        } else {
+            console.log('🚫 Razorpay customer creation skipped in local development mode');
         }
         
         

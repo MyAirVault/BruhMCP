@@ -28,7 +28,7 @@ CREATE TABLE users (
 CREATE TABLE auth_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token VARCHAR(255) UNIQUE NOT NULL,
+    token TEXT UNIQUE NOT NULL,
     type VARCHAR(50) NOT NULL CHECK (type IN ('email_otp', 'password_reset', 'email_verification', 'refresh', 'email_change_pending')),
     expires_at TIMESTAMP NOT NULL,
     is_used BOOLEAN DEFAULT false,
