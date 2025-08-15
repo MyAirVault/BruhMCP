@@ -129,6 +129,255 @@ async function recordSubscriptionTransaction(transactionData, existingClient = u
 }
 
 /**
+ * Extend existing subscription with additional billing period
+ * @param {string} userId - User ID
+ * @param {DatabaseSubscription} existingSubscription - Existing subscription to extend
+ * @param {string} planCode - Plan code (should match existing)
+ * @param {string} billingCycle - Billing cycle
+ * @param {number} amount - Subscription amount
+ * @param {PlanConfig} planConfig - Plan configuration
+ * @param {string | null} razorpayPlanId - Razorpay plan ID
+ * @returns {Promise<Object>} Extension result
+ */
+async function extendExistingSubscription(userId, existingSubscription, planCode, billingCycle, amount, planConfig, razorpayPlanId) {
+    try {
+        if (amount === 0) {
+            // Handle free plan extension - just extend the period
+            const client = await pool.connect();
+            
+            try {
+                await client.query('BEGIN');
+
+                // Calculate new end date from current end date
+                const currentEndDate = new Date(existingSubscription.current_period_end);
+                const newEndDate = new Date(currentEndDate);
+                if (billingCycle === 'yearly') {
+                    newEndDate.setFullYear(currentEndDate.getFullYear() + 1);
+                } else {
+                    newEndDate.setMonth(currentEndDate.getMonth() + 1);
+                }
+
+                // Update existing subscription with extended period
+                await client.query(
+                    `UPDATE user_subscriptions 
+                     SET current_period_end = $1, next_billing_date = $2, updated_at = CURRENT_TIMESTAMP
+                     WHERE id = $3`,
+                    [newEndDate.toISOString(), newEndDate.toISOString(), existingSubscription.id]
+                );
+
+                // Record extension transaction
+                const transactionId = await recordSubscriptionTransaction({
+                    userId: userId,
+                    subscriptionId: existingSubscription.id,
+                    transactionType: 'subscription',
+                    amount: 0,
+                    status: 'captured',
+                    description: `Free plan (${planConfig.name}) subscription extended`,
+                    method: 'free_plan',
+                    methodDetails: {
+                        plan_code: planCode,
+                        plan_name: planConfig.name,
+                        billing_cycle: billingCycle,
+                        activation_type: 'extension',
+                        previous_end_date: existingSubscription.current_period_end,
+                        new_end_date: newEndDate.toISOString()
+                    }
+                }, client);
+
+                await client.query('COMMIT');
+
+                return {
+                    success: true,
+                    message: `Subscription extended successfully. ${planConfig.name} plan extended until ${newEndDate.toDateString()}.`,
+                    data: {
+                        subscriptionId: existingSubscription.id,
+                        planName: planConfig.name,
+                        amount: 0,
+                        status: 'active',
+                        requiresPayment: false,
+                        wasExtended: true,
+                        previousEndDate: existingSubscription.current_period_end,
+                        newEndDate: newEndDate.toISOString(),
+                        transactionId: transactionId,
+                    },
+                };
+            } catch (error) {
+                await client.query('ROLLBACK');
+                throw error;
+            } finally {
+                client.release();
+            }
+        }
+
+        // Handle paid plan extension - requires payment
+        const client = await pool.connect();
+        const userResult = await client.query(
+            `SELECT (first_name || ' ' || last_name) as name, email, NULL as phone, razorpay_customer_id 
+             FROM users WHERE id = $1`,
+            [userId]
+        );
+
+        if (userResult.rows.length === 0) {
+            client.release();
+            throw new Error('User not found');
+        }
+
+        const userDetails = userResult.rows[0];
+
+        // Get or create Razorpay customer
+        /** @type {RazorpayCustomerResponse} */
+        let razorpayCustomer;
+        if (userDetails.razorpay_customer_id) {
+            try {
+                const fetchedCustomer = await fetchRazorpayCustomer(userDetails.razorpay_customer_id);
+                razorpayCustomer = /** @type {RazorpayCustomerResponse} */ (fetchedCustomer);
+                razorpayCustomer.isNew = false;
+            } catch (fetchError) {
+                const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+                console.warn('Failed to fetch existing customer, creating new one:', errorMessage);
+                const newCustomer = await createRazorpayCustomer({
+                    name: userDetails.name,
+                    email: userDetails.email,
+                    contact: userDetails.phone || undefined,
+                    notes: {
+                        user_id: userId.toString(),
+                        created_for: 'subscription_extension',
+                    },
+                });
+                razorpayCustomer = /** @type {RazorpayCustomerResponse} */ (newCustomer);
+                razorpayCustomer.isNew = true;
+            }
+        } else {
+            const newCustomer = await createRazorpayCustomer({
+                name: userDetails.name,
+                email: userDetails.email,
+                contact: userDetails.phone || undefined,
+                notes: {
+                    user_id: userId.toString(),
+                    created_for: 'subscription_extension',
+                },
+            });
+            razorpayCustomer = /** @type {RazorpayCustomerResponse} */ (newCustomer);
+            razorpayCustomer.isNew = true;
+        }
+
+        // Update user record with customer ID if it's new
+        if (razorpayCustomer.isNew) {
+            await client.query(
+                `UPDATE users SET razorpay_customer_id = $1 WHERE id = $2`,
+                [razorpayCustomer.id, userId]
+            );
+        }
+
+        // Create new Razorpay subscription for extension
+        const subscriptionResult = await createRazorpaySubscription({
+            plan_id: /** @type {string} */ (razorpayPlanId),
+            customer_id: razorpayCustomer.id,
+            total_count: billingCycle === 'yearly' ? 1 : 12,
+            quantity: 1,
+            customer_notify: 1,
+            notes: {
+                user_id: userId.toString(),
+                plan_code: planCode,
+                billing_cycle: billingCycle,
+                plan_name: planConfig.name,
+                customer_id: razorpayCustomer.id,
+                extended_subscription_id: existingSubscription.id.toString(),
+                is_extension: 'true',
+            },
+        });
+        /** @type {RazorpaySubscriptionResponse} */
+        const subscription = /** @type {RazorpaySubscriptionResponse} */ (subscriptionResult);
+
+        try {
+            await client.query('BEGIN');
+
+            // Calculate new end date from current end date
+            const currentEndDate = new Date(existingSubscription.current_period_end);
+            const newEndDate = new Date(currentEndDate);
+            if (billingCycle === 'yearly') {
+                newEndDate.setFullYear(currentEndDate.getFullYear() + 1);
+            } else {
+                newEndDate.setMonth(currentEndDate.getMonth() + 1);
+            }
+
+            // Update existing subscription with extended period and new Razorpay subscription ID
+            await client.query(
+                `UPDATE user_subscriptions 
+                 SET current_period_end = $1, next_billing_date = $2, 
+                     total_amount = total_amount + $3, razorpay_subscription_id = $4, updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $5`,
+                [newEndDate.toISOString(), newEndDate.toISOString(), amount, subscription.id, existingSubscription.id]
+            );
+
+            // Record extension transaction (will be updated to 'captured' by webhooks)
+            const transactionId = await recordSubscriptionTransaction({
+                userId: userId,
+                subscriptionId: existingSubscription.id,
+                transactionType: 'subscription',
+                amount: amount,
+                status: 'created',
+                description: `Paid plan (${planConfig.name}) subscription extended`,
+                method: 'razorpay_subscription',
+                methodDetails: {
+                    plan_code: planCode,
+                    plan_name: planConfig.name,
+                    billing_cycle: billingCycle,
+                    activation_type: 'extension',
+                    previous_end_date: existingSubscription.current_period_end,
+                    new_end_date: newEndDate.toISOString(),
+                    razorpay_subscription_id: subscription.id,
+                    razorpay_customer_id: razorpayCustomer.id
+                },
+                gatewayResponse: {
+                    razorpay_subscription_id: subscription.id,
+                    razorpay_plan_id: razorpayPlanId,
+                    customer_id: razorpayCustomer.id
+                }
+            }, client);
+
+            await client.query('COMMIT');
+
+            return {
+                success: true,
+                message: `Subscription extended successfully. ${planConfig.name} plan extended until ${newEndDate.toDateString()}.`,
+                data: {
+                    razorpayKeyId: RAZORPAY_KEY_ID,
+                    subscriptionId: existingSubscription.id,
+                    razorpaySubscriptionId: subscription.id,
+                    razorpayCustomerId: razorpayCustomer.id,
+                    planName: planConfig.name,
+                    billingCycle,
+                    amount: amount,
+                    trialDays: 0,
+                    hasTrialPeriod: false,
+                    nextBillingDate: newEndDate.toISOString(),
+                    requiresPayment: true,
+                    isSubscription: true,
+                    subscriptionUrl: subscription.short_url,
+                    status: 'created',
+                    wasExtended: true,
+                    previousEndDate: existingSubscription.current_period_end,
+                    newEndDate: newEndDate.toISOString(),
+                    transactionId: transactionId,
+                },
+            };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('Subscription extension failed:', errorMessage);
+        throw error;
+    } finally {
+        console.debug('Subscription extension process completed');
+    }
+}
+
+/**
  * Replace existing subscription with new one (atomic operation)
  * @param {string} userId - User ID
  * @param {DatabaseSubscription} existingSubscription - Existing subscription to replace
@@ -176,6 +425,7 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                 );
 
                 // Only record cancellation transaction if the existing subscription was actually active/paid
+                // Don't create false cancellation records for subscriptions that were never activated
                 if (['active', 'authenticated'].includes(existingSubscription.status)) {
                     await recordSubscriptionTransaction({
                         userId: userId,
@@ -190,7 +440,7 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                             new_plan_code: newPlanCode,
                             replacement_reason: 'plan_change'
                         }
-                    });
+                    }, client);
                 }
 
                 // Create new subscription
@@ -230,7 +480,7 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                         activation_type: 'replacement',
                         replaced_subscription_id: existingSubscription.id
                     }
-                });
+                }, client);
 
                 await client.query('COMMIT');
 
@@ -257,6 +507,7 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
         }
 
         // Handle paid plan replacement - requires payment
+        // Get user details for customer creation
         const client = await pool.connect();
         const userResult = await client.query(
             `SELECT (first_name || ' ' || last_name) as name, email, NULL as phone, razorpay_customer_id 
@@ -280,7 +531,8 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                 razorpayCustomer = /** @type {RazorpayCustomerResponse} */ (fetchedCustomer);
                 razorpayCustomer.isNew = false;
             } catch (fetchError) {
-                console.warn('Failed to fetch existing customer, creating new one:', String(fetchError));
+                const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+                console.warn('Failed to fetch existing customer, creating new one:', errorMessage);
                 const newCustomer = await createRazorpayCustomer({
                     name: userDetails.name,
                     email: userDetails.email,
@@ -294,7 +546,7 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                 razorpayCustomer.isNew = true;
             }
         } else {
-            const newCustomer2 = await createRazorpayCustomer({
+            const newCustomer = await createRazorpayCustomer({
                 name: userDetails.name,
                 email: userDetails.email,
                 contact: userDetails.phone || undefined,
@@ -303,16 +555,16 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                     created_for: 'subscription_replacement',
                 },
             });
-            razorpayCustomer = /** @type {RazorpayCustomerResponse} */ (newCustomer2);
+            razorpayCustomer = /** @type {RazorpayCustomerResponse} */ (newCustomer);
             razorpayCustomer.isNew = true;
+        }
 
-            // Update user record with customer ID if it's new
-            if (razorpayCustomer.isNew) {
-                await client.query(
-                    `UPDATE users SET razorpay_customer_id = $1 WHERE id = $2`,
-                    [razorpayCustomer.id, userId]
-                );
-            }
+        // Update user record with customer ID if it's new
+        if (razorpayCustomer.isNew) {
+            await client.query(
+                `UPDATE users SET razorpay_customer_id = $1 WHERE id = $2`,
+                [razorpayCustomer.id, userId]
+            );
         }
 
         // Create new Razorpay subscription
@@ -355,14 +607,9 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                 [existingSubscription.id]
             );
 
-            // Verify subscription still exists before recording transaction
-            const verifyResult = await client.query(
-                'SELECT id FROM user_subscriptions WHERE id = $1',
-                [existingSubscription.id]
-            );
-            
-            // Only record cancellation transaction if the existing subscription was actually active/paid and still exists
-            if (verifyResult.rows.length > 0 && ['active', 'authenticated'].includes(existingSubscription.status)) {
+            // Only record cancellation transaction if the existing subscription was actually active/paid
+            // Don't create false cancellation records for subscriptions that were never activated
+            if (['active', 'authenticated'].includes(existingSubscription.status)) {
                 await recordSubscriptionTransaction({
                     userId: userId,
                     subscriptionId: existingSubscription.id,
@@ -378,8 +625,6 @@ async function replaceExistingSubscription(userId, existingSubscription, newPlan
                         old_razorpay_subscription_id: /** @type {any} */ (existingSubscription).razorpay_subscription_id
                     }
                 }, client);
-            } else if (verifyResult.rows.length === 0) {
-                console.log(`Skipping transaction recording - subscription ${existingSubscription.id} no longer exists`);
             }
 
             // Create new subscription
@@ -574,16 +819,21 @@ async function createSubscription(req, res) {
         if (existingSubscription) {
             console.log(`Replacing existing subscription for user ${userId}: ${existingSubscription.status} ${existingSubscription.plan_code}`);
             
-            // If trying to create same plan and it's already active, return error
+            // If trying to purchase same plan that's already active, extend the duration
             // Note: 'created' status is NOT considered active - it means payment is pending
             if (existingSubscription.plan_code === planCode && ['active', 'authenticated'].includes(existingSubscription.status)) {
-                client.release();
-                res.status(409).json({
-                    success: false,
-                    message: `You already have an active ${planConfig.name} subscription.`,
-                    code: 'EXISTING_SUBSCRIPTION_FOUND',
-                });
-                return;
+                console.log(`Extending existing subscription for user ${userId}: ${existingSubscription.plan_code}`);
+                
+                // Extend existing subscription instead of replacing
+                try {
+                    client.release();
+                    const extensionResult = await extendExistingSubscription(userId, existingSubscription, planCode, billingCycle, amount, planConfig, razorpayPlanId);
+                    res.json(extensionResult);
+                    return;
+                } catch (extensionError) {
+                    console.error('Subscription extension failed:', extensionError);
+                    throw new Error('Failed to extend existing subscription. Please try again.');
+                }
             }
             
             // Replace existing subscription with new one
