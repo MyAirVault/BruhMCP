@@ -32,7 +32,7 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
     try {
         const location = useLocation();
-        
+
         const handleLogout = () => {
             try {
                 if (onLogout) {
@@ -61,7 +61,7 @@ export function DashboardLayout({
                                     </div>
                                     <div>
                                         <h1 className="text-lg font-semibold text-gray-900">
-                                            MicroSAAS Dashboard
+                                            Dashboard
                                         </h1>
                                     </div>
                                 </Link>
@@ -73,32 +73,29 @@ export function DashboardLayout({
                                 <nav className="hidden md:flex items-center space-x-1">
                                     <Link
                                         to="/dashboard"
-                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-                                            isActiveRoute('/dashboard')
-                                                ? 'bg-gray-100 text-gray-900'
-                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
+                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${isActiveRoute('/dashboard')
+                                            ? 'bg-gray-100 text-gray-900'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                            }`}
                                     >
                                         Dashboard
                                     </Link>
                                     <Link
                                         to="/billing"
-                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center space-x-1 ${
-                                            isActiveRoute('/billing')
-                                                ? 'bg-gray-100 text-gray-900'
-                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
+                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center space-x-1 ${isActiveRoute('/billing')
+                                            ? 'bg-gray-100 text-gray-900'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                            }`}
                                     >
                                         <Receipt className="h-4 w-4" />
                                         <span>Billing</span>
                                     </Link>
                                     <Link
                                         to="/settings"
-                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center space-x-1 ${
-                                            isActiveRoute('/settings')
-                                                ? 'bg-gray-100 text-gray-900'
-                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
+                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center space-x-1 ${isActiveRoute('/settings')
+                                            ? 'bg-gray-100 text-gray-900'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                            }`}
                                     >
                                         <Settings className="h-4 w-4" />
                                         <span>Settings</span>
@@ -115,11 +112,11 @@ export function DashboardLayout({
                                             {user?.email}
                                         </p>
                                     </div>
-                                    
+
                                     <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center sm:hidden">
                                         <User className="h-4 w-4 text-gray-600" />
                                     </div>
-                                    
+
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -145,7 +142,7 @@ export function DashboardLayout({
         );
     } catch (error) {
         console.error('DashboardLayout render error:', error);
-        
+
         return (
             <div className="min-h-screen bg-gray-50 p-4">
                 <div className="max-w-4xl mx-auto">

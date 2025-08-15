@@ -39,7 +39,7 @@ export const API_TIMEOUT = parseInt(getEnvVar('VITE_API_TIMEOUT', '10000', false
 
 // App configuration
 
-export const APP_NAME = getEnvVar('VITE_APP_NAME', 'MicroSAAS Template', false);
+export const APP_NAME = getEnvVar('VITE_APP_NAME', 'bruhMCP', false);
 export const APP_VERSION = getEnvVar('VITE_APP_VERSION', '1.0.0', false);
 export const NODE_ENV = getEnvVar('VITE_NODE_ENV', 'development', false);
 

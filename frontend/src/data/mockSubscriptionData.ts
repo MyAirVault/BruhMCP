@@ -88,12 +88,10 @@ export const mockPlans: SubscriptionPlan[] = [
         features: [
             'Everything in Pro',
             'Unlimited team members',
-            '1TB storage',
             '24/7 dedicated support',
             'Advanced security features',
             'Custom branding',
             'API access',
-            'White-label options'
         ],
         limits: {
             users: -1,

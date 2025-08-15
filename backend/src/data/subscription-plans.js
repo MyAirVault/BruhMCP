@@ -49,10 +49,10 @@ const SUBSCRIPTION_PLANS = {
         price_yearly: 0,
         price_currency: 'INR',
         features: [
-            'Basic dashboard access', 
-            '1 active MCP instance', 
+            '1 active MCP instance',
+            '60 requests / min / MCP', 
             'Community support', 
-            'Standard API access'
+            'No app installations required'
         ],
         limits: {
             instances: 1,
@@ -80,9 +80,9 @@ const SUBSCRIPTION_PLANS = {
             'Everything in Free',
             'Unlimited MCP instances',
             'Priority support',
+            '120 requests / min / MCP',
             'Advanced analytics',
-            'API integrations',
-            'Custom branding',
+            'No app installations required',
         ],
         limits: {
             instances: -1, // unlimited

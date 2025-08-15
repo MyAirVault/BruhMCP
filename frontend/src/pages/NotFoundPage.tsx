@@ -47,7 +47,7 @@ export function NotFoundPage() {
             <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
                 {/* Background pattern */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-50" />
-                
+
                 <div className="relative sm:mx-auto sm:w-full sm:max-w-md">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -64,7 +64,7 @@ export function NotFoundPage() {
                             >
                                 <Search className="h-12 w-12 text-gray-400" />
                             </motion.div>
-                            
+
                             <motion.h1
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -73,7 +73,7 @@ export function NotFoundPage() {
                             >
                                 404
                             </motion.h1>
-                            
+
                             <motion.h2
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -82,14 +82,14 @@ export function NotFoundPage() {
                             >
                                 Page not found
                             </motion.h2>
-                            
+
                             <motion.p
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.5 }}
                                 className="text-gray-600 mb-8"
                             >
-                                Sorry, we couldn't find the page you're looking for. 
+                                Sorry, we couldn't find the page you're looking for.
                                 The page might have been moved, deleted, or you entered the wrong URL.
                             </motion.p>
                         </div>
@@ -110,7 +110,7 @@ export function NotFoundPage() {
                                     <Home className="h-4 w-4 mr-2" />
                                     {isAuthenticated ? 'Go to Dashboard' : 'Go Home'}
                                 </Button>
-                                
+
                                 <Button
                                     onClick={handleGoBack}
                                     variant="outline"
@@ -120,7 +120,7 @@ export function NotFoundPage() {
                                     <ArrowLeft className="h-4 w-4 mr-2" />
                                     Go Back
                                 </Button>
-                                
+
                                 {!isAuthenticated && (
                                     <Button
                                         onClick={handleGoToLogin}
@@ -143,8 +143,8 @@ export function NotFoundPage() {
                         >
                             <p className="text-xs text-gray-500">
                                 If you believe this is an error, please{' '}
-                                <a 
-                                    href="mailto:support@microsaas.com" 
+                                <a
+                                    href="mailto:support@bruhmcp.com"
                                     className="font-medium text-primary-600 hover:text-primary-500"
                                 >
                                     contact support
@@ -157,7 +157,7 @@ export function NotFoundPage() {
         );
     } catch (error) {
         console.error('NotFoundPage render error:', error);
-        
+
         // Fallback UI
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
